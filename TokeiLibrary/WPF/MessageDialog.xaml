@@ -1,0 +1,17 @@
+﻿<Styles:TkWindow x:Class="TokeiLibrary.WPF.MessageDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles"
+        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView" MinWidth="450" MaxWidth="450" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True">
+    <StackPanel>
+        <TextBlock Margin="5" Name="_textBoxMessage" TextWrapping="Wrap" />
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button  Name="_buttonYes" Visibility="Collapsed" Content="Yes" Height="24" Margin="3" Width="100" Click="_buttonYes_Click" />
+                <Button  Name="_buttonNo" Visibility="Collapsed" Content="No" Height="24" Margin="3" Width="100" Click="_buttonNo_Click" />
+                <Button  Name="_buttonOk" Visibility="Collapsed" Content="Ok" Height="24" Margin="3" Width="100" Click="_buttonOk_Click" />
+                <Button  Name="_buttonCancel" Visibility="Collapsed" Content="Cancel" Height="24" Margin="3" Width="100" Click="_buttonCancel_Click" />
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

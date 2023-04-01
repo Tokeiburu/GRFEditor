@@ -1,0 +1,31 @@
+﻿<Styles:TkWindow x:Class="TokeiLibrary.WPF.AboutDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView">
+    <StackPanel>
+        <Grid>
+            <Image Name="_imageBackground"  Height="275" Width="634"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="180" />
+                    <ColumnDefinition Width="454" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Background="Transparent" x:Name="_labelSoftwareName_2" Margin="3 10 3 3" TextWrapping="Wrap" Foreground="Black" TextAlignment="Center" FontSize="30" FontWeight="Bold">
+                    <TextBlock.Effect>
+                        <BlurEffect />
+                        </TextBlock.Effect>
+                </TextBlock>
+                <TextBlock Background="Transparent" x:Name="_labelSoftwareName" Margin="3 10 3 3" TextWrapping="Wrap" Foreground="White" TextAlignment="Center" FontSize="30" FontWeight="Bold" />
+                <Border Grid.Column="1" Background="#99FFFFFF" BorderThickness="2" BorderBrush="#CCFFFFFF" CornerRadius="1" Margin="0 4 4 4">
+                    <TextBox IsReadOnly="True" BorderThickness="0" BorderBrush="Transparent" Background="Transparent" x:Name="_textBlock" Margin="3" TextWrapping="Wrap" />
+                </Border>
+            </Grid>
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button Content="Close" Width="100" Height="24" Margin="3" Click="_buttonClose"/>
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

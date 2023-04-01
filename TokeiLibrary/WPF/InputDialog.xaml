@@ -1,0 +1,25 @@
+﻿<Styles:TkWindow x:Class="TokeiLibrary.WPF.InputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles"
+                        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary"
+                 SnapsToDevicePixels="True"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView" Width="350" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
+    <StackPanel>
+        <TextBlock Margin="5 5 5 3" Name="_textBlockMessage" HorizontalAlignment="Left" VerticalAlignment="Center" Text="" TextWrapping="Wrap"/>
+        <Grid Margin="5 0 5 3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Name="_textBoxInput" Height="24" VerticalAlignment="Top" KeyDown="_textBoxInput_KeyDown" TabIndex="0" VerticalContentAlignment="Center" />
+            <Button Name="_buttonBrowse" Click="_buttonBrowse_Click" Grid.Column="1" Width="24" Margin="3 0 3 0" Content="..." />
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button  Name="_buttonOk" Content="Ok" Height="24" Margin="3" Width="100" Click="_buttonOk_Click" />
+                <Button  Name="_buttonCancel" Content="Cancel" Height="24" Margin="3" Width="100" Click="_buttonCancel_Click" />
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

@@ -1,0 +1,352 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{812355C7-A277-4E8C-B6A0-306310F8F183}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TokeiLibrary</RootNamespace>
+    <AssemblyName>TokeiLibrary</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
+    <OutputPath>bin\x86\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\TokeiLibrary.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
+    <OutputPath>bin\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\TokeiLibrary.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ErrorManager, Version=1.2.5494.34248, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\ErrorManager.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+    <Reference Include="Utilities, Version=1.2.8337.27244, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Configuration.cs" />
+    <Compile Include="ApplicationManager.cs" />
+    <Compile Include="DispatcherExtensions.cs" />
+    <Compile Include="ObservableTkDictionary.cs" />
+    <Compile Include="Paths\FolderSelect\FolderSelectDialog.cs" />
+    <Compile Include="Paths\FolderSelect\Reflector.cs" />
+    <Compile Include="IconReader.cs" />
+    <Compile Include="Paths\TkPathRequest.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Shortcuts\Manager.cs" />
+    <Compile Include="WpfUtilities.cs" />
+    <Compile Include="WpfImaging.cs" />
+    <Compile Include="WPF\AboutDialog.xaml.cs">
+      <DependentUpon>AboutDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\DaDExtensions.cs" />
+    <Compile Include="WPF\SelectTextBox.cs" />
+    <Compile Include="WPF\EncodingSelector.cs" />
+    <Compile Include="WPF\ErrorDialog.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Extensions.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\InputDialog.xaml.cs">
+      <DependentUpon>InputDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\MessageDialog.xaml.cs">
+      <DependentUpon>MessageDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\OkCancelEmptyDialog.xaml.cs">
+      <DependentUpon>OkCancelEmptyDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfBugFix\RangeListView.cs" />
+    <Compile Include="WPF\RangeObservableCollection.cs" />
+    <Compile Include="WPF\SelectedItemsList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ButtonMenu.cs" />
+    <Compile Include="WPF\Styles\FrozenBrush.cs" />
+    <Compile Include="WPF\Styles\Header.xaml.cs">
+      <DependentUpon>Header.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\Styles\HeaderSeparator.xaml.cs">
+      <DependentUpon>HeaderSeparator.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\Converters.cs" />
+    <Compile Include="WPF\Styles\FancyButton.xaml.cs">
+      <DependentUpon>FancyButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ListViewWidthConverter.cs" />
+    <Compile Include="WPF\Styles\TabHeader.xaml.cs">
+      <DependentUpon>TabHeader.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\Styles\TkMenuItemPrimary.cs" />
+    <Compile Include="WPF\Styles\ListView\ConverterGridViewColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\DefaultComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\DefaultListViewComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\FixedColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\FixedWidthColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ImageGridViewColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\LayoutColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ListViewCustomComparer.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ListViewDataTemplateHelper.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ListViewLayoutManager.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\ProportionalColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\RangeColumn.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\ListView\WpfUtils.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\PathBrowser.xaml.cs">
+      <DependentUpon>PathBrowser.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\PathBrowserRecentFiles.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\TkMenuItem.cs" />
+    <Compile Include="WPF\Styles\TkProgressBar.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\Styles\TkWindow.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\TkInfoBlock.xaml.cs">
+      <DependentUpon>TkInfoBlock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\TkTreeViewItem.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\TkView.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WpfBugFix\ToggleMemoryButton.xaml.cs">
+      <DependentUpon>ToggleMemoryButton.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WpfBugFix\UnclickableBorder.cs" />
+    <Compile Include="WPF\WindowProvider.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\aboutBackground3.jpg" />
+    <EmbeddedResource Include="Resources\document.ico" />
+    <EmbeddedResource Include="Resources\error.png" />
+    <EmbeddedResource Include="Resources\help.ico" />
+    <EmbeddedResource Include="Resources\information.png" />
+    <EmbeddedResource Include="Resources\refresh.ico" />
+    <EmbeddedResource Include="Resources\unknown.png" />
+    <EmbeddedResource Include="Resources\warning.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\spritemaker.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\folderClosed.png" />
+    <EmbeddedResource Include="Resources\folderOpened.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Page Include="WPF\AboutDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\InputDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\MessageDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\OkCancelEmptyDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\FancyButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\Styles\Header.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\HeaderSeparator.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\PathBrowser.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\ProgramStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\TabHeader.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\TkInfoBlock.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WpfBugFix\ToggleMemoryButton.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)\Libraries\$(TargetFileName)"
+echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)..\Libraries\$(TargetFileName)"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

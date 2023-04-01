@@ -1,0 +1,29 @@
+﻿<UserControl x:Class="TokeiLibrary.WpfBugFix.ToggleMemoryButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles" xmlns:WpfBugFix="clr-namespace:TokeiLibrary.WpfBugFix"
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" SnapsToDevicePixels="True" Background="Transparent" Foreground="{DynamicResource TextForeground}">
+    <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <ComboBox Grid.ColumnSpan="2" MaxWidth="0" HorizontalAlignment="Left" Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" Foreground="{DynamicResource TextForeground}">
+            <WpfBugFix:UnclickableBorder x:Name="_unclickableBorder" Margin="-4, -2, -4, -2" Focusable="False" BorderThickness="1" BorderBrush="{DynamicResource ToggleMemoryBorderBrush}" FocusVisualStyle="{x:Null}" Background="{DynamicResource ToggleMemoryBackgroundBrush}">
+                <Grid Name="_gridSearchContent" Margin="2">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label VerticalAlignment="Center" Grid.Row="1" Name="_label" Margin="1" HorizontalAlignment="Center"/>
+                </Grid>
+            </WpfBugFix:UnclickableBorder>
+        </ComboBox>
+        <Styles:FancyButton Margin="0 0 -1 0" Grid.Column="0" x:Name="_button" Height="24" Width="24" ImagePath="empty.png" Click="_button_Click" />
+        <Styles:FancyButton Grid.Column="1" HorizontalAlignment="Right" Height="24" Width="12" x:Name="_buttonOpenSubMenuDrop" ImagePath="smallArrow.png" Click="_buttonOpenSubMenuDrop_Click" />
+    </Grid>
+</UserControl>
