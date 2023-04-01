@@ -1,0 +1,11 @@
+﻿<UserControl x:Class="GRFEditor.WPF.PreviewTabs.TypeExplorer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" SnapsToDevicePixels="True"
+             RenderOptions.BitmapScalingMode="NearestNeighbor"
+             xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" mc:Ignorable="d" >
+    <Grid>
+        <WPF:TkView x:Name="_view" BorderThickness="0" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor" RenderOptions.EdgeMode="Unspecified" />
+    </Grid>
+</UserControl>

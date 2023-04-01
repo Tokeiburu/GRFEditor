@@ -1,0 +1,271 @@
+﻿<?xml version="1.0"?>
+<SyntaxDefinition name="Lua" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Comment" foreground="Green" />
+  <Color name="Error" fontWeight="bold" foreground="Red" />
+  <Color name="String" foreground="Gray" />
+  <Color name="Label" foreground="#000DBA" />
+  <Color name="Orange" fontWeight="bold" foreground="#FFDA7000" />
+  <Color name="Goto" fontWeight="bold" foreground="DarkBlue" />
+  <Color name="Control" foreground="Blue" />
+  <Color name="Api" foreground="#FF000F96" />
+  <Color name="Digit" foreground="Orange" />
+  <Color name="Function" foreground="#FF0083E9" />
+
+  <!-- This is the main ruleset. -->
+	<RuleSet>
+    <Span color="Comment" begin="//" />
+    <Span color="Error" begin="-- DECOMPILER ERROR" />
+    <Span color="Error" begin="-- GRF Editor Decompiler" />
+    <Span color="Orange" begin="-- Using GRF Editor Decompiler" />
+    
+    <Span color="Comment" multiline="true" begin="--\[\[" end="\]\]" />
+    <Span color="Comment" begin="--" />
+    <Span color="Goto" begin="::" end="::" />
+    <Span color="Goto" begin="goto " />
+
+    <Span color="String">
+			<Begin>"</Begin>
+			<End>"</End>
+			<RuleSet>
+				<!-- nested span for escape sequences -->
+				<Span begin="\\" end="." />
+			</RuleSet>
+		</Span>
+
+    <Span color="String">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <!-- nested span for escape sequences -->
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    
+    <Keywords fontStyle="italic" color="Api">
+      <Word>openfile</Word>
+      <Word>closefile</Word>
+      <Word>readfrom</Word>
+      <Word>writeto</Word>
+      <Word>appendto</Word>
+      <Word>remove</Word>
+      <Word>rename</Word>
+      <Word>flush</Word>
+      <Word>seek</Word>
+      <Word>tmpfile</Word>
+      <Word>tmpname</Word>
+      <Word>read</Word>
+      <Word>write</Word>
+      <Word>clock</Word>
+      <Word>date</Word>
+      <Word>difftime</Word>
+      <Word>execute</Word>
+      <Word>exit</Word>
+      <Word>getenv</Word>
+      <Word>setlocale</Word>
+      <Word>time</Word>
+      <Word>coroutine.create</Word>
+      <Word>coroutine.resume</Word>
+      <Word>coroutine.status</Word>
+      <Word>coroutine.wrap</Word>
+      <Word>coroutine.yield</Word>
+      <Word>io.close</Word>
+      <Word>io.flush</Word>
+      <Word>io.input</Word>
+      <Word>io.lines</Word>
+      <Word>io.open</Word>
+      <Word>io.output</Word>
+      <Word>io.read</Word>
+      <Word>io.tmpfile</Word>
+      <Word>io.type</Word>
+      <Word>io.write</Word>
+      <Word>io.stdin</Word>
+      <Word>io.stdout</Word>
+      <Word>io.stderr</Word>
+      <Word>os.clock</Word>
+      <Word>os.date</Word>
+      <Word>os.difftime</Word>
+      <Word>os.execute</Word>
+      <Word>os.exit</Word>
+      <Word>os.getenv</Word>
+      <Word>os.remove</Word>
+      <Word>os.rename</Word>
+      <Word>os.setlocale</Word>
+      <Word>os.time</Word>
+      <Word>os.tmpname</Word>
+    </Keywords>
+    
+    <Keywords color="Control">
+      <Word>and</Word>
+      <Word>break</Word>
+      <Word>continue</Word>
+      <Word>do</Word>
+      <Word>else</Word>
+      <Word>elseif</Word>
+      <Word>end</Word>
+      <Word>false</Word>
+      <Word>for</Word>
+      <Word>function</Word>
+      <Word>if</Word>
+      <Word>in</Word>
+      <Word>local</Word>
+      <Word>nil</Word>
+      <Word>not</Word>
+      <Word>or</Word>
+      <Word>repeat</Word>
+      <Word>return</Word>
+      <Word>then</Word>
+      <Word>true</Word>
+      <Word>until</Word>
+      <Word>while</Word>
+    </Keywords>
+
+    <Keywords foreground="#FF0092B2">
+      <Word>_VERSION</Word>
+      <Word>assert</Word>
+      <Word>collectgarbage</Word>
+      <Word>dofile</Word>
+      <Word>error</Word>
+      <Word>gcinfo</Word>
+      <Word>loadfile</Word>
+      <Word>loadstring</Word>
+      <Word>print</Word>
+      <Word>tonumber</Word>
+      <Word>tostring</Word>
+      <Word>type</Word>
+      <Word>unpack</Word>
+      <Word>_ALERT</Word>
+      <Word>_ERRORMESSAGE</Word>
+      <Word>_INPUT</Word>
+      <Word>_PROMPT</Word>
+      <Word>_OUTPUT</Word>
+      <Word>_STDERR</Word>
+      <Word>_STDIN</Word>
+      <Word>_STDOUT</Word>
+      <Word>call</Word>
+      <Word>dostring</Word>
+      <Word>foreach</Word>
+      <Word>foreachi</Word>
+      <Word>getn</Word>
+      <Word>globals</Word>
+      <Word>newtype</Word>
+      <Word>rawget</Word>
+      <Word>rawset</Word>
+      <Word>require</Word>
+      <Word>sort</Word>
+      <Word>tinsert</Word>
+      <Word>tremove</Word>
+      <Word>_G</Word>
+      <Word>getfenv</Word>
+      <Word>getmetatable</Word>
+      <Word>ipairs</Word>
+      <Word>loadlib</Word>
+      <Word>next</Word>
+      <Word>pairs</Word>
+      <Word>pcall</Word>
+      <Word>rawegal</Word>
+      <Word>rawget</Word>
+      <Word>rawset</Word>
+      <Word>require</Word>
+      <Word>setfenv</Word>
+      <Word>setmetatable</Word>
+      <Word>xpcall</Word>
+      <Word>table</Word>
+      <Word>math</Word>
+      <Word>coroutine</Word>
+      <Word>io</Word>
+      <Word>os</Word>
+      <Word>debug</Word>
+    </Keywords>
+
+    <Keywords color="Function">
+      <Word>abs</Word>
+      <Word>acos</Word>
+      <Word>asin</Word>
+      <Word>atan</Word>
+      <Word>atan2</Word>
+      <Word>ceil</Word>
+      <Word>cos</Word>
+      <Word>deg</Word>
+      <Word>exp</Word>
+      <Word>floor</Word>
+      <Word>format</Word>
+      <Word>frexp</Word>
+      <Word>gsub</Word>
+      <Word>ldexp</Word>
+      <Word>log</Word>
+      <Word>log10</Word>
+      <Word>max</Word>
+      <Word>min</Word>
+      <Word>mod</Word>
+      <Word>rad</Word>
+      <Word>random</Word>
+      <Word>randomseed</Word>
+      <Word>sin</Word>
+      <Word>sqrt</Word>
+      <Word>strbyte</Word>
+      <Word>strchar</Word>
+      <Word>strfind</Word>
+      <Word>strlen</Word>
+      <Word>strlower</Word>
+      <Word>strrep</Word>
+      <Word>strsub</Word>
+      <Word>strupper</Word>
+      <Word>tan</Word>
+      <Word>string.byte</Word>
+      <Word>string.char</Word>
+      <Word>string.dump</Word>
+      <Word>string.find</Word>
+      <Word>string.len</Word>
+      <Word>string.lower</Word>
+      <Word>string.rep</Word>
+      <Word>string.sub</Word>
+      <Word>string.upper</Word>
+      <Word>string.format</Word>
+      <Word>string.gfind</Word>
+      <Word>string.gsub</Word>
+      <Word>table.concat</Word>
+      <Word>table.foreach</Word>
+      <Word>table.foreachi</Word>
+      <Word>table.getn</Word>
+      <Word>table.sort</Word>
+      <Word>table.insert</Word>
+      <Word>table.remove</Word>
+      <Word>table.setn</Word>
+      <Word>math.abs</Word>
+      <Word>math.acos</Word>
+      <Word>math.asin</Word>
+      <Word>math.atan</Word>
+      <Word>math.atan2</Word>
+      <Word>math.ceil</Word>
+      <Word>math.cos</Word>
+      <Word>math.deg</Word>
+      <Word>math.exp</Word>
+      <Word>math.floor</Word>
+      <Word>math.frexp</Word>
+      <Word>math.ldexp</Word>
+      <Word>math.log</Word>
+      <Word>math.log10</Word>
+      <Word>math.max</Word>
+      <Word>math.min</Word>
+      <Word>math.mod</Word>
+      <Word>math.pi</Word>
+      <Word>math.rad</Word>
+      <Word>math.random</Word>
+      <Word>math.randomseed</Word>
+      <Word>math.sin</Word>
+      <Word>math.sqrt</Word>
+      <Word>math.tan</Word>
+    </Keywords>
+
+
+    <!-- Digits -->
+		<Rule color="Digit">
+            \b0[xX][0-9a-fA-F]+  # hex number
+        |    \b
+            (    \d+(\.[0-9]+)?   #number with optional floating point
+            |    \.[0-9]+         #or just starting with floating point
+            )
+            ([eE][+-]?[0-9]+)? # optional exponent
+        </Rule>
+	</RuleSet>
+</SyntaxDefinition>

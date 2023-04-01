@@ -1,0 +1,29 @@
+﻿<PreviewTabs:FilePreviewTab x:Class="GRFEditor.WPF.PreviewTabs.PreviewEditSprite"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+             xmlns:WPF="clr-namespace:GRFEditor.WPF" xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
+                    mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+            <Styles:TkProgressBar x:Name="_progress" Margin="1" Width="250" Visibility="Collapsed" />
+            <DockPanel>
+                <Styles:FancyButton x:Name="_buttonSave" Click="_buttonSave_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Save" TextDescription="Save in the GRF" Margin="2" />
+                <Styles:FancyButton x:Name="_buttonSaveTo" Click="_buttonSaveTo_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Save..." TextDescription="Save to..." Margin="2" />
+                <Styles:FancyButton x:Name="_buttonExportAll" Click="_buttonExportAll_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Export" TextDescription="Export all sprites to..." Margin="2" HorizontalAlignment="Left" />
+            </DockPanel>
+            <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <TabControl Name="_primary" Grid.Row="1" Style="{StaticResource TabControlStyled2}" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+        </TabControl>
+    </Grid>
+</PreviewTabs:FilePreviewTab>

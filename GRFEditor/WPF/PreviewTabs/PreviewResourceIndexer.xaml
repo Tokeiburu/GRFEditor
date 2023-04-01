@@ -1,0 +1,92 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.PreviewTabs.PreviewResourceIndexer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" AllowDrop="True"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                            xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:WPF1="clr-namespace:GRFEditor.WPF"
+                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" mc:Ignorable="d" 
+             Width="550" Height="500"  Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+            <WrapPanel>
+                <Styles:FancyButton x:Name="_buttonExport" Click="_buttonExport_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Export" TextDescription="Export files directy" Margin="2" />
+                <Styles:FancyButton x:Name="_buttonExportAt" Click="_buttonExportAt_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Export..." TextDescription="Export files to..." Margin="2" HorizontalAlignment="Left" />
+                <Styles:FancyButton x:Name="_buttonRebuild" TextHeader="Rebuild indexes" TextDescription="Rebuilds the index files for each GRF." Click="_buttonRebuild_Click" />
+            </WrapPanel>
+            <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <Grid Grid.Row="2">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="300" />
+                </Grid.ColumnDefinitions>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Content="Usages : " />
+                    <WPF:TkView MouseRightButtonUp="_tree_MouseRightButtonUp" BorderThickness="0" MultiSelection="True" SelectedItemChanged="_tree_SelectedItemChanged"  x:Name="_tree" Grid.Row="1">
+                        <WPF:TkView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Name="_menuItemsSelectRootFiles" Header="Select root files" Click="_menuItemsSelectRootFiles_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/empty.png"  />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Name="_menuItemsSelectInGrf" Header="Select in project" Click="_menuItemsSelectInGrf_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/arrowdown.png"  />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </WPF:TkView.ContextMenu>
+                    </WPF:TkView>
+                </Grid>
+                <Grid Grid.Column="1">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="auto" />
+                        <RowDefinition Height="100" />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). This provides additional resources." TextWrapping="Wrap" />
+                    <ListView Name="_itemsResources" Margin="3" Grid.Row="2" PreviewMouseRightButtonUp="_itemsResources_PreviewMouseRightButtonUp" DragEnter="_itemsResources_DragEnter" Drop="_itemsResources_Drop"  AllowDrop="True">
+                        <ListView.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Name="_menuItemsDelete" Header="Delete" Click="_menuItemsDelete_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/delete.png"  />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Name="_menuItemsMoveUp" Header="Move up" Click="_menuItemsMoveUp_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/arrowup.png"  />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Name="_menuItemsMoveDown" Header="Move down" Click="_menuItemsMoveDown_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/arrowdown.png"  />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </ListView.ContextMenu>
+                    </ListView>
+                    <WPF1:QuickPreview x:Name="_quickPreview" Grid.Row="3" />
+                    <Styles:TkProgressBar x:Name="_progressBarComponent" Grid.Row="1" Margin="1" />
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>

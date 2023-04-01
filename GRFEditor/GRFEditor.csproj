@@ -1,0 +1,986 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DF235568-1F35-4308-B118-5AE7992C2530}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GRFEditor</RootNamespace>
+    <AssemblyName>GRF Editor</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <WarningLevel>4</WarningLevel>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject>GRFEditor.GRFEditorMain</StartupObject>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup />
+  <PropertyGroup>
+    <ApplicationIcon>Resources\app.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
+    <OutputPath>bin\x86\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\GRF Editor.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
+    <OutputPath>bin\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\GRF Editor.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </ApplicationDefinition>
+    <Compile Include="ApplicationConfiguration\GrfEditorIconProvider.cs" />
+    <Compile Include="ApplicationConfiguration\PathRequest.cs" />
+    <Compile Include="ApplicationConfiguration\SelfPatcher.cs" />
+    <Compile Include="Core\Avalon\AvalonDefaultLoading.cs" />
+    <Compile Include="Core\Avalon\RegexSearchStrategy.cs" />
+    <Compile Include="Core\KnownPositionComponent.cs" />
+    <Compile Include="Core\AsyncOperationReturnState.cs" />
+    <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
+    <Compile Include="Core\GrfLoadingSettings.cs" />
+    <Compile Include="Tools\GrfValidation\Validation.cs" />
+    <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
+      <DependentUpon>ValidationDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\GrfValidation\ValidationView.cs" />
+    <Compile Include="Tools\SpriteEditor\SpriteEditorHelper.cs" />
+    <Compile Include="Core\Services\EncryptionService.cs" />
+    <Compile Include="Core\Services\ExtractingService.cs" />
+    <Compile Include="Core\Services\OpeningService.cs" />
+    <Compile Include="Core\Services\PreviewDisplayConfiguration.cs" />
+    <Compile Include="Core\Services\PreviewItem.cs" />
+    <Compile Include="Core\Services\PreviewService.cs" />
+    <Compile Include="Core\Services\PreviewServiceReadAs.cs" />
+    <Compile Include="Core\Services\RenamingService.cs" />
+    <Compile Include="Tools\SpriteEditor\SpriteEditorConfiguration.cs" />
+    <Compile Include="Core\VirtualFileDataObject.cs" />
+    <Compile Include="EditorMainWindow.xaml.cs">
+      <DependentUpon>EditorMainWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\MapExtractor\MapExtractorTreeViewItem.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="ECallbacks.cs" />
+    <Compile Include="EListViewInteraction.cs" />
+    <Compile Include="EMenuInteraction.cs" />
+    <Compile Include="ESearchInteraction.cs" />
+    <Compile Include="ETreeViewInteraction.cs" />
+    <Compile Include="Tools\Map\MapEditor.cs" />
+    <Compile Include="Tools\Map\MapEditorWindow.xaml.cs">
+      <DependentUpon>MapEditorWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\SpriteEditor\SpriteEditorTabInteraction.cs" />
+    <Compile Include="WPF\AddFileDialog.xaml.cs">
+      <DependentUpon>AddFileDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLBackground.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLHelper.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLLayer.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLLine.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLObject.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\Shader.cs" />
+    <Compile Include="WPF\PreviewTabs\MeshRawData2.cs" />
+    <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
+      <DependentUpon>OpenGLViewport.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewStr.xaml.cs">
+      <DependentUpon>PreviewStr.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\SubtractDialog.xaml.cs">
+      <DependentUpon>SubtractDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\ESearchResult.cs" />
+    <Compile Include="WPF\PreviewTabs\PreviewSprites.xaml.cs">
+      <DependentUpon>PreviewSprites.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\SearchDialog.xaml.cs">
+      <DependentUpon>SearchDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\ViewEncodingDialog.xaml.cs">
+      <DependentUpon>ViewEncodingDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\EncryptorDialog.xaml.cs">
+      <DependentUpon>EncryptorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\EncryptorInputKeyDialog.xaml.cs">
+      <DependentUpon>EncryptorInputKeyDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\HashDialog.xaml.cs">
+      <DependentUpon>HashDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\ImageConverter.xaml.cs">
+      <DependentUpon>ImageConverter.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tools\MapExtractor\MapExtractor.xaml.cs">
+      <DependentUpon>MapExtractor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\MapExtractor\MapExtractorDialog.xaml.cs">
+      <DependentUpon>MapExtractorDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\LeftComboBox.cs" />
+    <Compile Include="WPF\MergeDialog.xaml.cs">
+      <DependentUpon>MergeDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\MultiProgressWindow.xaml.cs">
+      <DependentUpon>MultiProgressWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PatcherDialog.xaml.cs">
+      <DependentUpon>PatcherDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Core\Avalon\AvalonLoader.cs" />
+    <Compile Include="WPF\PreviewTabs\DecompilerSettings.xaml.cs">
+      <DependentUpon>DecompilerSettings.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\GrfClusterView.xaml.cs">
+      <DependentUpon>GrfClusterView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\FilePreviewTab.cs" />
+    <Compile Include="WPF\PreviewTabs\GrfIndexor.cs" />
+    <Compile Include="WPF\PreviewTabs\IFolderPreviewTab.cs" />
+    <Compile Include="WPF\PreviewTabs\IPreviewTab.cs" />
+    <Compile Include="WPF\PreviewTabs\MeshesDrawer.xaml.cs">
+      <DependentUpon>MeshesDrawer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\ModelViewerHelper.cs" />
+    <Compile Include="WPF\PreviewTabs\PreviewAct.xaml.cs">
+      <DependentUpon>PreviewAct.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewContainer.xaml.cs">
+      <DependentUpon>PreviewContainer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewEditSprite.xaml.cs">
+      <DependentUpon>PreviewEditSprite.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewFolderItems.xaml.cs">
+      <DependentUpon>PreviewFolderItems.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewFolderStructure.xaml.cs">
+      <DependentUpon>PreviewFolderStructure.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewGnd.xaml.cs">
+      <DependentUpon>PreviewGnd.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewGRFProperties.xaml.cs">
+      <DependentUpon>PreviewGRFProperties.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewImage.xaml.cs">
+      <DependentUpon>PreviewImage.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewMapExtractor.xaml.cs">
+      <DependentUpon>PreviewMapExtractor.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewMapGat.xaml.cs">
+      <DependentUpon>PreviewMapGat.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewRawStructure.xaml.cs">
+      <DependentUpon>PreviewRawStructure.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewResource.xaml.cs">
+      <DependentUpon>PreviewResource.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewResourceIndexer.xaml.cs">
+      <DependentUpon>PreviewResourceIndexer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewRsm.xaml.cs">
+      <DependentUpon>PreviewRsm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewText.xaml.cs">
+      <DependentUpon>PreviewText.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewThumbDb.xaml.cs">
+      <DependentUpon>PreviewThumbDb.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewWav.xaml.cs">
+      <DependentUpon>PreviewWav.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\TypeExplorer.xaml.cs">
+      <DependentUpon>TypeExplorer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PropertiesDialog.xaml.cs">
+      <DependentUpon>PropertiesDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="WPF\QuickColorSelector.xaml.cs">
+      <DependentUpon>QuickColorSelector.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\QuickPreview.xaml.cs">
+      <DependentUpon>QuickPreview.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\SearchPanel.xaml.cs">
+      <DependentUpon>SearchPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\SettingsDialog.xaml.cs">
+      <DependentUpon>SettingsDialog.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tools\SpriteEditor\SpriteConverter.xaml.cs">
+      <DependentUpon>SpriteConverter.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Tools\SpriteEditor\SpriteConverterFormatDialog.xaml.cs">
+      <DependentUpon>SpriteConverterFormatDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\SpriteEditor\SpriteEditorTab.xaml.cs">
+      <DependentUpon>SpriteEditorTab.xaml</DependentUpon>
+    </Compile>
+    <Page Include="EditorMainWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Compile Include="App.xaml.cs">
+      <DependentUpon>App.xaml</DependentUpon>
+      <SubType>Code</SubType>
+    </Compile>
+    <Page Include="Tools\GrfValidation\ValidationDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\Map\MapEditorWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\AddFileDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\OpenGLViewport.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewStr.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\SubtractDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewSprites.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\SearchDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\Styles\StyleDark.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\Styles\StyleLightBlue.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\ViewEncodingDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="WPF\EncryptorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\EncryptorInputKeyDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\HashDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\ImageConverter.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\MapExtractor\MapExtractor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\MapExtractor\MapExtractorDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\MergeDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\MultiProgressWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PatcherDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\DecompilerSettings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\GrfClusterView.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\MeshesDrawer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewAct.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewContainer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewEditSprite.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewFolderItems.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewFolderStructure.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewGnd.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewGRFProperties.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewImage.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewMapExtractor.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewMapGat.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewRawStructure.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewResource.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewResourceIndexer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewRsm.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewText.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewThumbDb.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewWav.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\TypeExplorer.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PropertiesDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\QuickColorSelector.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\QuickPreview.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\SearchPanel.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\SettingsDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\SpriteEditor\SpriteConverter.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\SpriteEditor\SpriteConverterFormatDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\SpriteEditor\SpriteEditorTab.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\Styles\GRFEditorStyles.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <None Include="app.config">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="app.manifest" />
+    <AppDesigner Include="Properties\" />
+    <EmbeddedResource Include="Resources\Lua.xshd" />
+    <EmbeddedResource Include="Resources\Imf.xshd" />
+    <EmbeddedResource Include="Files\Compressed\default.pal" />
+    <EmbeddedResource Include="Resources\Json.xshd" />
+    <Resource Include="Resources\shader.frag" />
+    <Resource Include="Resources\shader.vert" />
+    <Resource Include="Resources\shader_color.frag" />
+    <Resource Include="Resources\shader_color.vert" />
+    <Resource Include="Resources\shader_empty.frag" />
+    <Resource Include="Resources\shader_empty.vert" />
+    <Resource Include="Resources\shader_line.frag" />
+    <Resource Include="Resources\shader_line.vert" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\ActImaging.dll" />
+    <EmbeddedResource Include="Files\cps.dll" />
+    <None Include="Files\default.pal" />
+    <EmbeddedResource Include="Files\Encryption.dll" />
+    <None Include="Files\Gif.Components.dll" />
+    <None Include="Files\gpf.ico" />
+    <None Include="Files\GRF.dll" />
+    <None Include="Files\grf.ico" />
+    <None Include="Files\grfkey.ico" />
+    <None Include="Files\ICSharpCode.AvalonEdit.dll" />
+    <None Include="Files\rgz.ico" />
+    <None Include="Files\TokeiLibrary.dll" />
+    <None Include="Files\Utilities.dll" />
+    <None Include="Files\zlib.net.dll" />
+    <EmbeddedResource Include="Resources\add.ico" />
+    <Resource Include="Resources\add.png" />
+    <Resource Include="Resources\app.ico" />
+    <EmbeddedResource Include="Resources\archive.ico" />
+    <Resource Include="Resources\archive.png" />
+    <EmbeddedResource Include="Resources\c-1.bmp" />
+    <EmbeddedResource Include="Resources\c0.bmp" />
+    <EmbeddedResource Include="Resources\c1.bmp" />
+    <EmbeddedResource Include="Resources\c2.bmp" />
+    <EmbeddedResource Include="Resources\c3.bmp" />
+    <EmbeddedResource Include="Resources\c4.bmp" />
+    <EmbeddedResource Include="Resources\c5.bmp" />
+    <EmbeddedResource Include="Resources\c6.bmp" />
+    <EmbeddedResource Include="Resources\convert.ico" />
+    <Resource Include="Resources\convert.png" />
+    <EmbeddedResource Include="Resources\cx.bmp" />
+    <Resource Include="Resources\delete.png" />
+    <EmbeddedResource Include="Resources\diff.ico" />
+    <Resource Include="Resources\diff.png" />
+    <Resource Include="Resources\document-new.png" />
+    <Resource Include="Resources\document.png" />
+    <Resource Include="Resources\empty.png" />
+    <Resource Include="Resources\export.png" />
+    <Resource Include="Resources\filter.png" />
+    <Resource Include="Resources\find.png" />
+    <Resource Include="Resources\folderClosed.png" />
+    <Resource Include="Resources\folderOpened.png" />
+    <EmbeddedResource Include="Resources\hash.ico" />
+    <Resource Include="Resources\hash.png" />
+    <EmbeddedResource Include="Resources\help.ico" />
+    <Resource Include="Resources\help.png" />
+    <EmbeddedResource Include="Resources\imconvert.ico" />
+    <Resource Include="Resources\imconvert.png" />
+    <EmbeddedResource Include="Resources\mapEditor.ico" />
+    <Resource Include="Resources\mapEditor.png" />
+    <Resource Include="Resources\newFile.png" />
+    <Resource Include="Resources\newFolder.png" />
+    <Resource Include="Resources\open.png" />
+    <Resource Include="Resources\properties.png" />
+    <Resource Include="Resources\redo.png" />
+    <EmbeddedResource Include="Resources\refresh.ico" />
+    <Resource Include="Resources\refresh.png" />
+    <EmbeddedResource Include="Resources\rename.ico" />
+    <Resource Include="Resources\rename.png" />
+    <Resource Include="Resources\save.png" />
+    <EmbeddedResource Include="Resources\settings.ico" />
+    <Resource Include="Resources\settings.png" />
+    <EmbeddedResource Include="Resources\spritemaker.ico" />
+    <Resource Include="Resources\spritemaker.png" />
+    <Resource Include="Resources\undo.png" />
+    <Resource Include="Resources\validity.png" />
+    <Resource Include="Resources\warning16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\properties.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\internalapp.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\lock.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\lock.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\gpf-16.png" />
+    <Resource Include="Resources\grf-16.png" />
+    <Resource Include="Resources\rgz-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\pal.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\error16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\flip.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\flip2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\background.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\c-2.bmp" />
+    <EmbeddedResource Include="Resources\c-3.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\spr.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\XDMessaging.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\scale.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\arrowdown.png" />
+    <Resource Include="Resources\arrowup.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\Compressed\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\dbBlack.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cde.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\Database.dll" />
+    <None Include="Files\Lua.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\tree.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\forward.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_gnd.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_rsw.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_gat.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_rsm.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_imf.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\Be.Windows.Forms.HexBox.dll" />
+    <EmbeddedResource Include="Files\Compressed\Gif.Components.dll" />
+    <EmbeddedResource Include="Files\Compressed\ICSharpCode.AvalonEdit.dll" />
+    <EmbeddedResource Include="Files\Compressed\XDMessaging.dll" />
+    <EmbeddedResource Include="Files\Compressed\zlib.net.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\Be.Windows.Forms.HexBox.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\ActImaging.dll" />
+    <EmbeddedResource Include="Files\Compressed\Database.dll" />
+    <EmbeddedResource Include="Files\Compressed\GRF.dll" />
+    <EmbeddedResource Include="Files\Compressed\Lua.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\TokeiLibrary.dll" />
+    <EmbeddedResource Include="Files\Compressed\Utilities.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\collection_bg.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\arrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\arrowoblique.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\properties_e.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\backward.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\treeClass.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\treeList.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\ColorPicker.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\syn-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\cw.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\System.Threading.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\System.Threading.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\validity.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_lua.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_lub.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_xml.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\pack.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\renameMap.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_str.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\search.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\replace.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\smallArrow.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\replaceSingle.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\replaceAll.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\GrfToWpfBridge.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\GrfToWpfBridge.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\GrfMenuHandler32.dll" />
+    <None Include="Files\GrfMenuHandler64.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\msvcp100.dll" />
+    <None Include="Files\msvcr100.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\GrfMenuHandler32.dll" />
+    <EmbeddedResource Include="Files\Compressed\GrfMenuHandler64.dll" />
+    <EmbeddedResource Include="Files\Compressed\msvcp100.dll" />
+    <EmbeddedResource Include="Files\Compressed\msvcr100.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\gpf.ico" />
+    <EmbeddedResource Include="Files\Compressed\grf.ico" />
+    <EmbeddedResource Include="Files\Compressed\grfkey.ico" />
+    <EmbeddedResource Include="Files\Compressed\rgz.ico" />
+    <EmbeddedResource Include="Files\Compressed\spr.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\thor-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\thor.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\home.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\sde.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\c8w.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\c8wall.bmp" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\DownloadManager.dll" />
+    <EmbeddedResource Include="Files\Compressed\Ftp.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\copy.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\defrag.png" />
+    <Resource Include="Resources\redirect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_spr.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_act.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\file_gif.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\font.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\reset.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\addgrf.png" />
+    <EmbeddedResource Include="Resources\subgrf.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\play.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\line.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\OpenTK.dll" />
+    <None Include="Files\OpenTK.GLControl.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\OpenTK.dll" />
+    <EmbeddedResource Include="Files\Compressed\OpenTK.GLControl.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="ActImaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\ActImaging.dll</HintPath>
+    </Reference>
+    <Reference Include="ColorPicker">
+      <HintPath>..\Libraries\ColorPicker.dll</HintPath>
+    </Reference>
+    <Reference Include="Be.Windows.Forms.HexBox, Version=1.5.0.34411, Culture=neutral, PublicKeyToken=e0e5adf0ebc99863, processorArchitecture=MSIL" />
+    <Reference Include="Encryption">
+      <HintPath>..\Libraries\Encryption.dll</HintPath>
+    </Reference>
+    <Reference Include="ErrorManager">
+      <HintPath>..\Libraries\ErrorManager.dll</HintPath>
+    </Reference>
+    <Reference Include="GRF, Version=1.2.8491.21364, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\GRF.dll</HintPath>
+    </Reference>
+    <Reference Include="GrfToWpfBridge, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\GrfToWpfBridge.dll</HintPath>
+    </Reference>
+    <Reference Include="ICSharpCode.AvalonEdit, Version=4.3.1.9429, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\ICSharpCode.AvalonEdit.dll</HintPath>
+    </Reference>
+    <Reference Include="Lua, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\Lua.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Threading">
+      <HintPath>..\packages\TaskParallelLibrary.1.0.2856.0\lib\Net35\System.Threading.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="TokeiLibrary, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\Libraries\TokeiLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Utilities, Version=1.2.8491.21318, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Libraries\Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
+    <Reference Include="XDMessaging, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\Librairies\XDMessaging.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\ErrorManager.dll" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+    </VisualStudio>
+  </ProjectExtensions>
+  <PropertyGroup>
+    <PreBuildEvent>cd "$(SolutionDir)..\Libraries\"
+xcopy "*.dll" "$(SolutionDir)GRFEditor\Files\" /E /Y
+cd "$(SolutionDir)GRFEditor\Files\"
+start _Compress.bat</PreBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

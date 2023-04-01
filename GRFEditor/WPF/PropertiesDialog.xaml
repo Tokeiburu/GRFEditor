@@ -1,0 +1,15 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.PropertiesDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="450" MaxWidth="450">
+    <StackPanel>
+        <TextBox Grid.Row="1" Margin="0 0 0 0" Height="150" IsReadOnly="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Name="_properties" TextWrapping="Wrap" />
+
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button Content="Close" Height="24" Margin="3" Width="100" Click="_buttonClose" />
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

@@ -1,0 +1,176 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.Tools.GrfValidation.ValidationDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+        xmlns:MultiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge" MinHeight="400" Height="400" Width="750" MinWidth="750">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Border Background="{DynamicResource TabControlBackground}">
+            <TabControl Name="_tabControl" Style="{DynamicResource TabControlStyled}">
+                <TabItem Header="Find errors" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <StackPanel>
+                            <Label Content="Find errors" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                        </StackPanel>
+                        <Styles:FancyButton Click="_buttonFindErrors_Click" x:Name="_buttonFindErrors" TextHeader="Find errors" TextDescription="Finds inconsistencies within the Grf" Margin="3" HorizontalAlignment="Left" />
+                        <TextBlock Text="Errors to look for :" Margin="3" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <CheckBox Name="_cbFeNoExtension" Content="File names with no extension" Margin="3" />
+                                <CheckBox Name="_cbFeDuplicateFiles" Content="Duplicate file names" Margin="3" />
+                                <CheckBox Name="_cbFeDuplicatePaths" Content="Duplicate path names" Margin="3" />
+                                <CheckBox Name="_cbFeEmptyFiles" Content="Empty files" Margin="3" />
+                                <CheckBox Name="_cbFeRootFiles" Content="Files at the root of the container" Margin="3" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <CheckBox Name="_cbFeMissingSprAct" Content="Missing corresponding Act or Spr files" Margin="3" />
+                                <CheckBox Name="_cbFeSvn" Content="Subversion files (.svn)" Margin="3" />
+                                <CheckBox Name="_cbFeDb" Content="Windows's hidden database files for thumbnails (.db)" Margin="3" />
+                                <CheckBox Name="_cbFeSpaceSaved" Content="Calculate space saved if repacking" Margin="3" />
+                                <CheckBox Name="_cbFeInvalidFileTable" Content="Invalid information in the file table (entries)" Margin="3" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Validate content" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <StackPanel>
+                            <Label Content="Validate content" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                        </StackPanel>
+                        <Styles:FancyButton Click="_buttonValidateContent_Click" x:Name="_buttonValidateContent" TextHeader="Validate" TextDescription="Validate the content of the GRF" Margin="3" HorizontalAlignment="Left" />
+                        <TextBlock Text="Validation items :" Margin="3" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="auto" />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel>
+                                <CheckBox Name="_cbVcDecompressEntries" Content="Decompress entries" IsChecked="True" IsEnabled="False" Margin="3" />
+                                <CheckBox Name="_cbVcInvalidEntryMetadata" Content="Detect invalid entry information (file size, cycle, etc)" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcChecksum" Content="Detect invalid zlib checksum" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcLoadEntries" Content="Load entries (reads the file format and open the file)" Margin="3" />
+                                <CheckBox Name="_cbVcResourcesModelFiles" Content="Detect missing resources in model files" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcResourcesMapFiles" Content="Detect missing resources in map files" Margin="23 3 3 3" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <CheckBox Name="_cbVcSpriteIssues" Content="Detect sprite issues" Margin="3" />
+                                <CheckBox Name="_cbVcSpriteIssuesRle" Content="Detect early ending RLE encoding" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcSpriteSoundIndex" Content="Detect invalid sound index in Act files" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcSpriteSoundMissing" Content="Detect missing sound files" Margin="23 3 3 3" />
+                                <CheckBox Name="_cbVcSpriteIndex" Content="Detect invalid sprite index in Act files" Margin="23 3 3 3" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Validate extraction" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <StackPanel>
+                            <Label Content="Validate extraction" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                        </StackPanel>
+                        <WrapPanel>
+                            <Styles:FancyButton Click="_buttonValidateExtraction_Click" x:Name="_buttonValidateExtraction" TextHeader="Validate" TextDescription="Compares files in the GRF" Margin="3" HorizontalAlignment="Left" />
+                            <Styles:FancyButton Click="_buttonPrintHash_Click" x:Name="_buttonPrintHash" TextHeader="Hash view" TextDescription="Computes the hash of each file" Margin="3" HorizontalAlignment="Left" />
+                            <Grid HorizontalAlignment="Left" >
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Text="Comparison algorithm" Margin="3" Width="120" TextAlignment="Center" TextWrapping="Wrap" />
+                                <ComboBox Name="_cbComparisonAlrightm" Width="120" Margin="3" Grid.Row="1" />
+                            </Grid>
+                        </WrapPanel>
+                        <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                        <DockPanel>
+                            <Label Content="Path of the data folder" VerticalAlignment="Center" />
+                            <Styles:PathBrowser x:Name="_pbValidation" />
+                        </DockPanel>
+                        <TextBlock Text="Validation settings" Margin="3" />
+                        <Grid>
+                            <StackPanel>
+                                <RadioButton Name="_rbGrfFolder" IsChecked="True" Content="Compare files from the GRF against a hard drive folder" Margin="3" />
+                                <RadioButton Name="_rbFolderGrf" Content="Compare files from a hard drive folder against the GRF" Margin="3" />
+                            </StackPanel>
+                        </Grid>
+                        <TextBlock Text="" Margin="3" />
+                        <Grid>
+                            <StackPanel>
+                                <CheckBox Name="_cbVeIgnoreFilesNotFound" Content="Ignore files not found" Margin="3" />
+                                <CheckBox Name="_cbVeFilesDifferentSize" Content="Do not compute hash if the files have different sizes" Margin="3" />
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Meta Grf" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="140" />
+                            <RowDefinition Height="auto" />
+                        </Grid.RowDefinitions>
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="Meta Grf" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <WrapPanel>
+                            </WrapPanel>
+                            <TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). The validation will only be applied to the currently opened GRF, but providing additional resources will be used to locate textures, sound files, models, etc." TextWrapping="Wrap" />
+                        </StackPanel>
+                        <MultiGrf:MetaGrfResourcesViewer x:Name="_mViewer" Grid.Row="1" />
+                    </Grid>
+                </TabItem>
+                <TabItem Name="_tabItemResults" Header="Results" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition Height="auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <StackPanel Grid.Row="0">
+                            <Label Content="Results" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                        </StackPanel>
+                        <WrapPanel Grid.Row="1">
+                            <Styles:FancyButton x:Name="_buttonRawView" Click="_buttonRawView_Click" Height="43" TextHeader="Raw view" TextDescription="Show the raw view" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                        </WrapPanel>
+                        <ListView Foreground="{StaticResource TextForeground}" ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" PreviewMouseRightButtonUp="_listViewResults_PreviewMouseRightButtonUp"  Name="_listViewResults" BorderThickness="0" Grid.Row="2">
+                            <ListView.ContextMenu>
+                                <ContextMenu Name="_cmResults">
+                                    <MenuItem Header="Select" Name="_menuItemSelect" Click="_menuItemSelect_Click">
+                                        <MenuItem.Icon>
+                                            <Image Source="../../Resources/arrowdown.png"  />
+                                        </MenuItem.Icon>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </ListView.ContextMenu>
+                        </ListView>
+                        <TextBox BorderThickness="0" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Name="_tbResults" IsReadOnly="True" Grid.Row="2" AcceptsTab="True" />
+                    </Grid>
+                </TabItem>
+            </TabControl>
+        </Border>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="300" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Styles:TkProgressBar x:Name="_progressBar" Margin="3 0 0 0" />
+                <DockPanel HorizontalAlignment="Right" Grid.Column="1" Margin="0 0 3 0">
+                    <Button Name="_buttonCancel" Content="Close" Height="24" Width="100" Click="_buttonCancel_Click" Margin="3" />
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>

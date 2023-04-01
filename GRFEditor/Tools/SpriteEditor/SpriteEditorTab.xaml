@@ -1,0 +1,182 @@
+﻿<TabItem x:Class="GRFEditor.Tools.SpriteEditor.SpriteEditorTab"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Builder="clr-namespace:GRF.FileFormats.SprFormat.Builder;assembly=GRF"
+             KeyUp="_keyUp" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}" Style="{DynamicResource TabItemStyled2}">
+    <TabItem.Resources>
+        <Style TargetType="{x:Type ListViewItem}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+        <Style TargetType="{x:Type ListView}">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+    </TabItem.Resources>
+    <Grid AllowDrop="False" Background="{StaticResource TabItemBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <DockPanel HorizontalAlignment="Left" Grid.Row="1">
+            <TextBlock Margin="3" Text="Version" VerticalAlignment="Center" />
+            <ComboBox Name="_cbVersions" Width="100" Margin="3"
+                                      DisplayMemberPath="DisplayName"
+                                        ItemsSource="{Binding Source={x:Static Builder:SprBuilderInterface.Instance}, Path=Converters}"
+                                        SelectionChanged="_cbVersions_SelectionChanged" SelectedIndex="0" />
+        </DockPanel>
+        <Grid Name="_gridLists" Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition Width="300" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Indexed8" Margin="3" Grid.Row="0" />
+                <ListView Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}" Drop="_imSprList1_Drop" SelectionMode="Extended" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Grid.Row="1" Name="_imSprList1" MinHeight="125" Margin="3 0 3 3" SelectionChanged="_imSprList1_SelectionChanged" AllowDrop="True">
+                    <ListView.ContextMenu>
+                        <ContextMenu Name="_imSprList1ContextMenu">
+                            <MenuItem Name="_menuDelete1" Header="Delete" Click="_menuDelete1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/delete.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuInsertBefore1" Header="Insert before" Click="_menuInsertBefore1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/add.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuInsertAfter1" Header="Insert after" Click="_menuInsertAfter1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/add.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuReplace1" Header="Replace with..." Click="_menuReplace1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/refresh.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuChangeId1" Header="Set ID..." Click="_menuChangeId1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/hash.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Name="_menuExtract1" Header="Extract..." Click="_menuExtract1_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/export.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuToBgra32" Header="Convert to Bgra32" Click="_menuToBgra32_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/export.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="Transform">
+                                <MenuItem Name="_menuToFlipVert1" Header="Flip vertically" Click="_menuToFlipVert1_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/flip.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Name="_menuToFlipHoriz1" Header="Flip horizontally" Click="_menuToFlipHoriz1_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/flip2.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <!-- 
+                                <MenuItem Name="_menuScale1" Header="Scale..." Click="_menuScale1_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/scale.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                !-->
+                            </MenuItem>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Text="Bgra32" Margin="3" Grid.Row="0" />
+                <ListView  Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}" Drop="_imSprList2_Drop" AllowDrop="True" SelectionMode="Extended" Grid.Row="1" ScrollViewer.HorizontalScrollBarVisibility="Hidden" Name="_imSprList2" MinHeight="125" Margin="3 0 3 3" SelectionChanged="_imSprList2_SelectionChanged">
+                    <ListView.ContextMenu>
+                        <ContextMenu Name="_imSprList2ContextMenu">
+                            <MenuItem Name="_menuDelete2" Header="Delete" Click="_menuDelete2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/delete.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuInsertBefore2" Header="Insert before" Click="_menuInsertBefore2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/add.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuInsertAfter2" Header="Insert after" Click="_menuInsertAfter2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/add.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuReplace2" Header="Replace with..." Click="_menuReplace2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/refresh.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuChangeId2" Header="Set ID..." Click="_menuChangeId2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/hash.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Name="_menuExtract2" Header="Extract..." Click="_menuExtract2_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/export.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <MenuItem Name="_menuToIndexed8" Header="Convert to Indexed8" Click="_menuToIndexed8_Click" >
+                                <MenuItem.Icon>
+                                    <Image Source="../../Resources/export.png" />
+                                </MenuItem.Icon>
+                            </MenuItem>
+                            <Separator />
+                            <MenuItem Header="Transform">
+                                <MenuItem Name="_menuToFlipVert2" Header="Flip horizontally" Click="_menuToFlipVert2_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/flip.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem Name="_menuToFlipHoriz2" Header="Flip vertically" Click="_menuToFlipHoriz2_Click" >
+                                    <MenuItem.Icon>
+                                        <Image Source="../../Resources/flip2.png" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </MenuItem>
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+            </Grid>
+            <Grid Grid.Column="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Name="_imSprInfo" Margin="3" />
+                <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                    <ScrollViewer.Background>
+                        <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                    </ScrollViewer.Background>
+                    <Image Name="_imSprImage" Margin="3" RenderOptions.BitmapScalingMode="NearestNeighbor" HorizontalAlignment="Left" VerticalAlignment="Top" SnapsToDevicePixels="True" Stretch="None" RenderTransformOrigin="0.5,0.5" />
+                </ScrollViewer>
+            </Grid>
+        </Grid>
+    </Grid>
+</TabItem>

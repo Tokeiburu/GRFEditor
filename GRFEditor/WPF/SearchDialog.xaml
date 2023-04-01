@@ -1,0 +1,120 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.SearchDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+                 xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
+                 xmlns:WPF1="clr-namespace:GRFEditor.WPF" Height="485" Width="660" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="150" />
+            </Grid.RowDefinitions>
+            
+            <Label Content="Search" VerticalAlignment="Center" Padding="0" Margin="3" HorizontalAlignment="Left" Grid.Row="0" />
+            <DockPanel HorizontalAlignment="Left" Grid.Column="1" Grid.Row="0">
+                <Border Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left"  Margin="3 0 3 0" Name="_border1" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
+                    <Grid>
+                        <WPF1:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
+                            <Border Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="#9AA6B6" Background="{StaticResource SearchDialogSubmenuBackgroundBrush}" FocusVisualStyle="{x:Null}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="2 6 2 2" Text="Search options" Foreground="Gray" />
+                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" Name="_cbRegex" Grid.Row="1" Content="Use Regular Expression">
+                                        <CheckBox.ToolTip>
+                                            Search using .NET regular expression syntax.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" Name="_cbWholeWord" Grid.Row="2" Content="Match Whole Words">
+                                        <CheckBox.ToolTip>
+                                            Only find results that are whole words.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                    <CheckBox Margin="2 2 2 6" Foreground="{StaticResource TextForeground}" Name="_cbMatchCase" Grid.Row="3" Content="Match Case">
+                                        <CheckBox.ToolTip>
+                                            Perform case sensitive searches.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                </Grid>
+                            </Border>
+                        </WPF1:LeftComboBox>
+                        <TextBox AcceptsReturn="False" AcceptsTab="False" Padding="3" BorderThickness="0" Name="_tbSearchPattern" VerticalAlignment="Center" HorizontalAlignment="Left" Width="145">
+                        </TextBox>
+                        <TextBlock  Name="_labelFind" Margin="3 0 0 0" VerticalAlignment="Center" Text="Find..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
+                        <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="White" BorderThickness="0">
+                            <Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Button Margin="3" Content="Search (Enter)" Name="_buttonSearch" Click="_buttonSearch_Click" Width="100" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" />
+            </DockPanel>
+
+            <Label Content="File filter" VerticalAlignment="Center" Padding="0" Margin="3" HorizontalAlignment="Left" Grid.Row="1" />
+
+            <DockPanel Grid.Row="1" Grid.Column="1" >
+                <Border HorizontalAlignment="Left"  Margin="3 0 3 0" Name="_border2" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
+                    <Grid>
+                        <TextBox AcceptsReturn="False" AcceptsTab="False" Padding="3" BorderThickness="0" Name="_tbFilePattern" VerticalAlignment="Center" HorizontalAlignment="Stretch">
+                        </TextBox>
+                        <TextBlock  Name="_labelFilePattern" Margin="3 0 0 0" VerticalAlignment="Center" Text="File filter (*.txt;*.lua;*.lub)..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+                <Styles:FancyButton HorizontalAlignment="Left" Width="22" Height="22" ImagePath="reset.png" x:Name="_fbReset" Click="_fbReset_Click" VerticalAlignment="Center" />
+            </DockPanel>
+            
+            <Styles:TkProgressBar Margin="0 0 3 0" x:Name="_progressBar" Grid.Column="1" HorizontalAlignment="Right" Width="250" />
+            
+            <Rectangle Grid.Row="2" Height="2" Grid.ColumnSpan="3" Margin="0 10 0 0" VerticalAlignment="Top" Fill="{x:Static TokeiLibrary:Configuration.UIGridBackground}" HorizontalAlignment="Stretch" />
+            <ListView Name="_listViewResults" Grid.Row="2" Grid.ColumnSpan="2" TextSearch.TextPath="FileName" ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                      FocusVisualStyle="{x:Null}"  BorderThickness="0" Margin="0 12 0 0">
+                <ListView.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem ListView:WpfUtils.ImagePath="arrowdown.png" Header="Select in GRF" Name="_miSelect" Click="_miSelect_Click" />
+                        <MenuItem ListView:WpfUtils.ImagePath="archive.png" Header="Extract" Name="_miExtract" Click="_miExtract_Click" />
+                        <MenuItem ListView:WpfUtils.ImagePath="archive.png" Header="Extract..." Name="_miExtractTo" Click="_miExtractTo_Click" />
+                    </ContextMenu>
+                </ListView.ContextMenu>
+            </ListView>
+            <GridSplitter Grid.Row="3" Height="2" Grid.ColumnSpan="3" VerticalAlignment="Top" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" HorizontalAlignment="Stretch" />
+            <Grid Grid.Row="3" Grid.ColumnSpan="2" Margin="0 2 0 0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Label Content="Preview" VerticalAlignment="Center" Padding="0" Margin="3" HorizontalAlignment="Left" Grid.Row="0" />
+                <avalonedit:TextEditor x:Name="_tbPreview"   Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" />
+            </Grid>
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <Grid Margin="0 0 3 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="2">
+                    <Button HorizontalAlignment="Right" Content="Close" Width="100" Height="24" Margin="3" Click="_buttonClose"/>
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>

@@ -1,0 +1,41 @@
+﻿<PreviewTabs:FilePreviewTab x:Class="GRFEditor.WPF.PreviewTabs.PreviewGRFProperties"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" xmlns:WPF="clr-namespace:GRFEditor.WPF"
+             xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
+                            xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                            xmlns:avalon="clr-namespace:GRFEditor.Core.Avalon"
+                            mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <StackPanel>
+                <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+            </StackPanel>
+            <WrapPanel Grid.Row="0">
+                <Styles:FancyButton x:Name="_buttonRawView" Click="_buttonRawView_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Raw view" TextDescription="Show the raw view" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <Styles:FancyButton x:Name="_buttonSaveAs" Click="_buttonSaveAs_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Save as..." TextDescription="Save file to another location" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                <CheckBox Name="_cbWordWrap" VerticalAlignment="Center" Content="Word wrap" IsChecked="{Binding ElementName=_textEditor, Path=WordWrap}" />
+            </WrapPanel>
+            <Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <ComboBox Grid.Column="2" HorizontalAlignment="Right" Margin="0 3 4 15" VerticalAlignment="Bottom" Name="_highlightingComboBox" Visibility="{Binding Visibility, ElementName=_textEditor}" SelectedItem="{Binding SyntaxHighlighting, ElementName=_textEditor}" ItemsSource="{Binding Source={x:Static avalon:AvalonHelper.Instance}, Path=HighlightingDefinitions}" Width="60" SelectionChanged="_highlightingComboBox_SelectionChanged" />
+        <Grid Grid.Row="1">
+               <avalonedit:TextEditor Grid.Row="1"
+					Name="_textEditor"
+                    Visibility="Hidden"
+					FontFamily="Consolas"
+					SyntaxHighlighting="XML"
+					ShowLineNumbers="True">
+        </avalonedit:TextEditor>
+            <PreviewTabs:TypeExplorer x:Name="_typeExplorer" />
+        </Grid>
+    </Grid>
+</PreviewTabs:FilePreviewTab>

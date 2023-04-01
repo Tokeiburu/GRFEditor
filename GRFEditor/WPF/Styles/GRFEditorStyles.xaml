@@ -1,0 +1,422 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style TargetType="{x:Type ComboBox}">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+    <Style TargetType="{x:Type TabControl}">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+    <Style TargetType="{x:Type TabItem}">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+    </Style>
+    
+    <Style x:Key="ButtonStyledXP" TargetType="{x:Type Button}" BasedOn="{x:Null}">
+        <Setter Property="Padding" Value="3"/>
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template" Value="{DynamicResource ButtonTemplateXP}" />
+    </Style>
+    
+    <Style x:Key="ButtonStyled" TargetType="{x:Type Button}" BasedOn="{x:Null}">
+        <Setter Property="Padding" Value="3"/>
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template" Value="{DynamicResource ButtonTemplate}" />
+    </Style>
+
+    <LinearGradientBrush x:Key="MouseOverBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#E8F5FC" Offset="0" />
+        <GradientStop Color="#E0F2FB" Offset="0.318" />
+        <GradientStop Color="#D8EFFB" Offset="0.488" />
+        <GradientStop Color="#BDE5FC" Offset="0.502" />
+        <GradientStop Color="#AFDDF7" Offset="0.834" />
+        <GradientStop Color="#A7D9F4" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="MouseOverBorderBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#3C7EB0" Offset="0" />
+        <GradientStop Color="#3C7EB0" Offset="0.536" />
+        <GradientStop Color="#3C7EB0" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="MouseOverHighlightBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#FDFEFE" Offset="0" />
+        <GradientStop Color="#D4ECF9" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PressedBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#AFCCDC" Offset="0" />
+        <GradientStop Color="#C1E3F5" Offset="0.046" />
+        <GradientStop Color="#C1E3F5" Offset="0.488" />
+        <GradientStop Color="#AAD9F2" Offset="0.502" />
+        <GradientStop Color="#9CD1EE" Offset="0.724" />
+        <GradientStop Color="#8FCAEA" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PressedBorderBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#2C628A" Offset="0" />
+        <GradientStop Color="#2C628A" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="ButtonBorderBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#B0B0B0" Offset="0" />
+        <GradientStop Color="#8C8C8C" Offset="1" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="PressedHighlightBrush" EndPoint="0.5,1" StartPoint="0.5,0">
+        <GradientStop Color="#556974" Offset="0" />
+        <GradientStop Color="#556974" Offset="0.665" />
+    </LinearGradientBrush>
+    <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#A5FFFFFF"/>
+    <SolidColorBrush x:Key="DisabledBorderBrush" Color="#66FFFFFF"/>
+    <SolidColorBrush x:Key="FocusBrush" Color="#06CCFE"/>
+
+    <SolidColorBrush x:Key="CellBrushDefault" Color="Black"/>
+    <SolidColorBrush x:Key="CellBrushLzma" Color="#FF9A0096"/>
+    <SolidColorBrush x:Key="CellBrushEncrypted" Color="#FFE08000"/>
+    <SolidColorBrush x:Key="CellBrushRemoved" Color="Red"/>
+    <SolidColorBrush x:Key="CellBrushAdded" Color="Blue"/>
+    <SolidColorBrush x:Key="CellBrushModified" Color="Green"/>
+    <SolidColorBrush x:Key="CellBrushMvp" Color="#FFBA6200"/>
+
+    <ControlTemplate x:Key="ButtonTemplate" TargetType="{x:Type Button}">
+        <ControlTemplate.Resources>
+            <Storyboard x:Key="HoverOn">
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgroundOver" Storyboard.TargetProperty="Opacity" To="1" />
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgroundOver_Highlight" Storyboard.TargetProperty="Opacity" To="0.65" />
+            </Storyboard>
+            <Storyboard x:Key="HoverOff">
+                <DoubleAnimation Duration="00:00:00.4000000" Storyboard.TargetName="BackgroundOver" Storyboard.TargetProperty="Opacity" To="0" />
+                <DoubleAnimation Duration="00:00:00.4000000" Storyboard.TargetName="BackgroundOver_Highlight" Storyboard.TargetProperty="Opacity" To="0" />
+            </Storyboard>
+            <Storyboard x:Key="PressedOn">
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgroundPressed" Storyboard.TargetProperty="Opacity" To="0.84" />
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgoundPressed_Highlight" Storyboard.TargetProperty="Opacity" To="0.65" />
+            </Storyboard>
+            <Storyboard x:Key="PressedOff">
+                <DoubleAnimation Duration="00:00:00.4000000" Storyboard.TargetName="BackgroundPressed" Storyboard.TargetProperty="Opacity" To="0" />
+                <DoubleAnimation Duration="00:00:00.4000000" Storyboard.TargetName="BackgoundPressed_Highlight" Storyboard.TargetProperty="Opacity" To="0" />
+            </Storyboard>
+
+            <Storyboard x:Key="FocusedOn">
+                <DoubleAnimation Duration="00:00:01.5000000" AutoReverse="True" RepeatBehavior="Forever" Storyboard.TargetName="BackgroundOver" Storyboard.TargetProperty="Opacity" To="0.84" />
+                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="FocusVisualElement" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="FocusedOn2">
+                <DoubleAnimation Duration="00:00:01.5000000" AutoReverse="True" RepeatBehavior="Forever" Storyboard.TargetName="BackgroundOver2" Storyboard.TargetProperty="Opacity" To="0.84" />
+                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="FocusVisualElement2" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="1" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+
+            <Storyboard x:Key="FocusedOff">
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgroundOver" Storyboard.TargetProperty="Opacity" To="0" />
+                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="FocusVisualElement" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+            <Storyboard x:Key="FocusedOff2">
+                <DoubleAnimation Duration="00:00:00.1000000" Storyboard.TargetName="BackgroundOver2" Storyboard.TargetProperty="Opacity" To="0" />
+                <DoubleAnimationUsingKeyFrames BeginTime="00:00:00" Storyboard.TargetName="FocusVisualElement2" Storyboard.TargetProperty="(UIElement.Opacity)">
+                    <SplineDoubleKeyFrame KeyTime="00:00:00.1000000" Value="0" />
+                </DoubleAnimationUsingKeyFrames>
+            </Storyboard>
+        </ControlTemplate.Resources>
+        <Grid x:Name="Grid">
+            <Border x:Name="BackgroundNorm" BorderThickness="1" CornerRadius="0 3 3 0" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ButtonBorderBrush}"/>
+            <Border x:Name="BackgroundNorm_highlight" Margin="1" BorderBrush="White" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0.65" />
+            <Border x:Name="BackgroundOver" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0" Background="{DynamicResource MouseOverBrush}" BorderBrush="{DynamicResource MouseOverBorderBrush}"/>
+            <Border x:Name="BackgroundOver_Highlight" Margin="1" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0" BorderBrush="{DynamicResource MouseOverHighlightBrush}"/>
+            <Border x:Name="BackgroundOver2" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0" Background="{DynamicResource MouseOverBrush}" BorderBrush="{DynamicResource MouseOverBorderBrush}"/>
+            <Border x:Name="BackgroundOver_Highlight2" Margin="1" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0" BorderBrush="{DynamicResource MouseOverHighlightBrush}"/>
+            <Border x:Name="BackgroundPressed" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0" Background="{DynamicResource PressedBrush}" BorderBrush="{DynamicResource PressedBorderBrush}"/>
+            <Border x:Name="DisabledVisualElement" IsHitTestVisible="false" Background="{DynamicResource DisabledBackgroundBrush}" BorderBrush="{DynamicResource DisabledBorderBrush}" BorderThickness="1" Opacity="0" />
+
+            <TextBlock Panel.ZIndex="1" x:Name="DisabledOverlay" Text="{TemplateBinding Content}" Foreground="#FF8E96A2" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" Margin="{TemplateBinding Padding}" Visibility="Collapsed" />
+            <Border x:Name="FocusVisualElement" Margin="1" BorderBrush="{DynamicResource FocusBrush}" BorderThickness="1" CornerRadius="0 2 2 0" IsHitTestVisible="false" Opacity="0" />
+            <Border x:Name="FocusVisualElement2" Margin="1" BorderBrush="{DynamicResource FocusBrush}" BorderThickness="1" CornerRadius="0 2 2 0" IsHitTestVisible="false" Opacity="0" />
+            <Border x:Name="BackgoundPressed_Highlight" Margin="1" BorderThickness="1.5,1.5,0,0" CornerRadius="0 3 3 0" Opacity="0" BorderBrush="{DynamicResource PressedHighlightBrush}"/>
+            <Border x:Name="DefaultBorder" Margin="-1" BorderBrush="Black" BorderThickness="1" CornerRadius="0 3 3 0" IsHitTestVisible="false" Opacity="0" />
+            <ContentPresenter x:Name="contentPresenter" ContentTemplate="{TemplateBinding ContentTemplate}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}"  />
+        </Grid>
+
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsDefault" Value="True">
+                <Setter Property="Opacity" TargetName="DefaultBorder" Value="1" />
+            </Trigger>
+            <!--<Trigger Property="IsFocused" Value="True">
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="FocusedOn_BeginStoryboard" Storyboard="{StaticResource FocusedOn2}" />
+                </Trigger.EnterActions>
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="FocusedOff_BeginStoryboard" Storyboard="{StaticResource FocusedOff2}" />
+                    <StopStoryboard BeginStoryboardName="FocusedOn_BeginStoryboard" />
+                </Trigger.ExitActions>
+            </Trigger>
+            <Trigger Property="IsKeyboardFocused" Value="true">
+
+                <Trigger.ExitActions>
+                    <BeginStoryboard x:Name="FocusedOff_BeginStoryboard1" Storyboard="{StaticResource FocusedOff}" />
+                </Trigger.ExitActions>
+                <Trigger.EnterActions>
+                    <BeginStoryboard x:Name="FocusedOn_BeginStoryboard1" Storyboard="{StaticResource FocusedOn}" />
+                    <StopStoryboard BeginStoryboardName="FocusedOn_BeginStoryboard1" />
+                </Trigger.EnterActions>
+
+            </Trigger>-->
+            <Trigger Property="IsMouseOver" Value="true">
+                <Trigger.ExitActions>
+                    <BeginStoryboard Storyboard="{StaticResource HoverOff}" x:Name="HoverOff_BeginStoryboard" />
+                </Trigger.ExitActions>
+                <Trigger.EnterActions>
+                    <BeginStoryboard Storyboard="{StaticResource HoverOn}" />
+                </Trigger.EnterActions>
+
+            </Trigger>
+            <Trigger Property="IsPressed" Value="true">
+                <Trigger.ExitActions>
+                    <BeginStoryboard Storyboard="{StaticResource PressedOff}" />
+                </Trigger.ExitActions>
+                <Trigger.EnterActions>
+                    <BeginStoryboard Storyboard="{StaticResource PressedOn}" />
+                </Trigger.EnterActions>
+            </Trigger>
+
+            <Trigger Property="IsEnabled" Value="false">
+                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush_Button}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <ControlTemplate x:Key="ButtonTemplateXP" TargetType="{x:Type Button}">
+        <Grid x:Name="Grid">
+            <Border x:Name="BackgroundNorm" BorderThickness="1" CornerRadius="0 3 3 0" Background="{TemplateBinding Background}" BorderBrush="{DynamicResource ButtonBorderBrush}"/>
+            <Border x:Name="BackgroundNorm_highlight" Margin="1" BorderBrush="White" BorderThickness="1" CornerRadius="0 3 3 0" Opacity="0.65" />
+
+            <ContentPresenter x:Name="contentPresenter"  VerticalAlignment="{TemplateBinding VerticalContentAlignment}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" Content="{TemplateBinding Content}"  />
+        </Grid>
+
+        <ControlTemplate.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter TargetName="BackgroundNorm" Property="Background" Value="{DynamicResource MouseOverBrush}" />
+                <Setter TargetName="BackgroundNorm_highlight" Property="BorderBrush" Value="{DynamicResource MouseOverBorderBrush}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter TargetName="BackgroundNorm" Property="Background" Value="{DynamicResource PressedBrush}" />
+                <Setter TargetName="BackgroundNorm_highlight" Property="BorderBrush" Value="{DynamicResource PressedBorderBrush}" />
+            </Trigger>
+        </ControlTemplate.Triggers>
+    </ControlTemplate>
+
+    <Style x:Key="TabControlStyled" TargetType="{x:Type TabControl}">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}" />
+        <Setter Property="BorderThickness" Value="1,0,0,0" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TabControlBorder}" />
+        <Setter Property="Padding" Value="4 0 0 0" />
+        <Setter Property="TabStripPlacement" Value="Left" />
+    </Style>
+
+    <Style x:Key="TabItemStyled" TargetType="{x:Type TabItem}">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}" />
+        <!--<Setter Property="ListView:WpfUtils.IsMouseEffectOn" Value="True" />-->
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TabItem}">
+                    <Grid>
+                        <Border x:Name="Border" Margin="0,0,0,0" BorderBrush="Transparent" BorderThickness="1,1,0,1">
+                            <Border Name="SubBorder" Margin="5">
+                                <ContentPresenter x:Name="ContentSite" TextElement.FontSize="13" VerticalAlignment="Center" ContentSource="Header" Margin="5 6 15 6" RecognizesAccessKey="False">
+                                </ContentPresenter>
+                            </Border>
+                        </Border>
+                        <Canvas Name="Canva" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 10.5 0">
+                            <Path Stroke="{DynamicResource TabControlBorder}" StrokeThickness="1" Data="M 0,0 12,12 12,-12 0,0 12,12" Fill="{DynamicResource TabItemBackground}" />
+                            <Path Stroke="{DynamicResource TabItemBackground}" StrokeThickness="1" Data="M 12,16 12,-16" Fill="{DynamicResource TabItemBackground}" />
+                        </Canvas>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="False">
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabItemMouseOverBackground}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource TabItemMouseOverBorder}" />
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Panel.ZIndex" Value="100" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabItemSelectedBackground}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource TabItemSelectedBorder}" />
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="{DynamicResource TabItemTextSelectedForeground}" />
+                            <Setter TargetName="Canva" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="False">
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="{DynamicResource TabItemTextNormalForeground}" />
+                            <Setter TargetName="Canva" Property="Visibility" Value="Hidden" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TabItemStyled2" TargetType="{x:Type TabItem}">
+    </Style>
+
+    <Style x:Key="TabControlStyled2" TargetType="{x:Type TabControl}">
+    </Style>
+
+    <Style x:Key="TabControlSprite" TargetType="{x:Type TabControl}">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="#CED6E3" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style x:Key="TabItemSprite" TargetType="{x:Type TabItem}">
+        <Setter Property="Background" Value="Blue" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TabItem}">
+                    <Grid x:Name="Grid">
+                        <Border x:Name="Border" Margin="-1,0,0,0" Background="#F8F8F8" BorderBrush="#CED6E3" BorderThickness="1,1,1,0">
+                            <Border Name="SubBorder" Margin="1,1,1,1">
+                                <ContentPresenter x:Name="ContentSite" TextElement.FontSize="13" VerticalAlignment="Center" ContentSource="Header" Margin="3 2 23 2" RecognizesAccessKey="False">
+                                </ContentPresenter>
+                            </Border>
+                        </Border>
+                        <Border Name="_borderButton" Background="Transparent" HorizontalAlignment="Right" VerticalAlignment="Center" Width="16" Height="16" CornerRadius="2" Margin="0 0 4 0">
+                            <Canvas Name="Canva" Background="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Line Name="_line1" Stroke="#CED6E3" StrokeThickness="2" X1="-3" X2="3" Y1="-3" Y2="3" StrokeEndLineCap="Round" StrokeStartLineCap="Round" />
+                                <Line Name="_line2" Stroke="#CED6E3" StrokeThickness="2" X1="-3" X2="3" Y1="3" Y2="-3" StrokeEndLineCap="Round" StrokeStartLineCap="Round" />
+                            </Canvas>
+                        </Border>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger SourceName="_borderButton" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="_borderButton" Property="Background" Value="#B6BEC9" />
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter TargetName="Border" Property="Background" Value="#FAFCFF" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#D6DFEC" />
+                            <Setter TargetName="_line1" Property="Stroke" Value="White" />
+                            <Setter TargetName="_line2" Property="Stroke" Value="White" />
+                        </Trigger>
+                        <Trigger SourceName="_borderButton" Property="IsMouseOver" Value="False">
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="#FAFCFF" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#D6DFEC" />
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Panel.ZIndex" Value="100" />
+                            <Setter TargetName="Border" Property="Background" Value="White" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#CED6E3" />
+                            <Setter TargetName="Border" Property="Margin" Value="-1,0,0,-1" />
+                            <Setter TargetName="SubBorder" Property="Margin" Value="1,1,1,2" />
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="Black" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="False">
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="#626262" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style x:Key="TabItemStyledLess" TargetType="{x:Type TabItem}">
+        <Setter Property="Background" Value="{DynamicResource TabItemBackground}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type TabItem}">
+                    <Grid>
+                        <Border x:Name="Border" Margin="0,0,0,0" BorderBrush="Transparent" BorderThickness="1,1,0,1">
+                            <Border Name="SubBorder" Margin="5">
+                                <ContentPresenter x:Name="ContentSite" TextElement.FontSize="13" VerticalAlignment="Center" ContentSource="Header" Margin="5 0 15 0" RecognizesAccessKey="False">
+                                </ContentPresenter>
+                            </Border>
+                        </Border>
+                        <Canvas Name="Canva" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 10.5 0">
+                            <Path Stroke="{DynamicResource TabControlBorder}" StrokeThickness="1" Data="M 0,0 12,12 12,-12 0,0 12,12" Fill="{DynamicResource TabItemBackground}" />
+                            <Path Stroke="{DynamicResource TabItemBackground}" StrokeThickness="1" Data="M 12,16 12,-16" Fill="{DynamicResource TabItemBackground}" />
+                        </Canvas>
+                        <TextBox Name="Dummy" Visibility="Collapsed" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="False">
+                            <Setter Property="Cursor" Value="Arrow" />
+                        </Trigger>
+                        <Trigger SourceName="Border" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabItemMouseOverBackground}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource TabItemMouseOverBorder}" />
+                            <Setter Property="Cursor" Value="Hand" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter Property="Panel.ZIndex" Value="100" />
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabItemSelectedBackground}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource TabItemSelectedBorder}" />
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="{DynamicResource TabItemTextSelectedForeground}" />
+                            <Setter TargetName="Canva" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="Dummy" Property="Text" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="False">
+                            <Setter TargetName="ContentSite" Property="TextElement.Foreground" Value="{DynamicResource TabItemTextNormalForeground}" />
+                            <Setter TargetName="Canva" Property="Visibility" Value="Hidden" />
+                            <Setter TargetName="Dummy" Property="Text" Value="Hidden" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <SolidColorBrush x:Key="TabControlBackground" Color="#F7F9FD"/>
+    <SolidColorBrush x:Key="TabControlBorder" Color="#CED6E3"/>
+    <SolidColorBrush x:Key="TabItemBackground" Color="White"/>
+    <SolidColorBrush x:Key="TabItemMouseOverBackground" Color="#F3F5F8"/>
+    <SolidColorBrush x:Key="TabItemMouseOverBorder" Color="#CED6E3"/>
+    <SolidColorBrush x:Key="TabItemSelectedBackground" Color="#E9ECF2"/>
+    <SolidColorBrush x:Key="TabItemSelectedBorder" Color="#CED6E3"/>
+    <SolidColorBrush x:Key="TabItemTextSelectedForeground" Color="Black"/>
+    <SolidColorBrush x:Key="TabItemTextNormalForeground" Color="#626262"/>
+    <SolidColorBrush x:Key="SeperatorBrush" Color="#E3E9F1"/>
+    <SolidColorBrush x:Key="ListItemSearchBackground" Color="White"/>
+    <SolidColorBrush x:Key="MouseOverTextBrush" Color="Blue" />
+    <SolidColorBrush x:Key="AvalonEditorBackground" Color="White"/>
+    <SolidColorBrush x:Key="AvalonEditorSelectionBrush" Color="#A0ACD5FE" />
+    <SolidColorBrush x:Key="AvalonEditorMarkerBrush" Color="#8FFF8F" />
+    <SolidColorBrush x:Key="ImageConverterGrayBrush" Color="Gray" />
+    <SolidColorBrush x:Key="EncryptionDialogBorderBrush" Color="#CDD5E2" />
+
+    <SolidColorBrush x:Key="TextForeground" Color="Black"/>
+    <SolidColorBrush x:Key="UIBackgroundBrush" Color="White" />
+    <SolidColorBrush x:Key="FancyButtonHeaderForeground" Color="#0577C1"/>
+    <SolidColorBrush x:Key="FancyButtonDisabledBackgroundBrush" Color="#81F3F3F3"/>
+    <SolidColorBrush x:Key="FancyButtonDisabledBorderBrush" Color="#81F3F3F3"/>
+
+    <SolidColorBrush x:Key="FancyButtonMouseOverBackgroundBrush" Color="#F3F6FB"/>
+    <SolidColorBrush x:Key="FancyButtonMouseOverBorderBrush" Color="#DDE4EE"/>
+
+    <SolidColorBrush x:Key="FancyButtonPressedBackgroundBrush" Color="#E3EAF6"/>
+    <SolidColorBrush x:Key="FancyButtonPressedBorderBrush" Color="#C9D5E5"/>
+
+    <SolidColorBrush x:Key="UIDialogBackground" Color="#FFF0F0F0"/>
+
+    <SolidColorBrush x:Key="ToggleMemoryBorderBrush" Color="#9AA6B6"/>
+    <SolidColorBrush x:Key="UIDragDropBrush" Color="#FFD3FDC5"/>
+
+    <LinearGradientBrush x:Key="SearchDialogSubmenuBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#DEDEDE" />
+        <GradientStop Offset="0.5" Color="White" />
+    </LinearGradientBrush>
+    
+    <LinearGradientBrush x:Key="ToggleMemoryBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#DEDEDE" />
+        <GradientStop Offset="0.5" Color="White" />
+    </LinearGradientBrush>
+    
+    <Style x:Key="MenuHeaderStyle" TargetType="Label">
+    </Style>
+
+    <Style x:Key="DefaultListViewItemStyle" TargetType="{x:Type ListViewItem}">
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    </Style>
+    <SolidColorBrush x:Key="TextBoxOverlayBrush" Color="#8C8C8C"/>
+</ResourceDictionary>

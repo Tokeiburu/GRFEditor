@@ -1,0 +1,72 @@
+﻿<PreviewTabs:FilePreviewTab x:Class="GRFEditor.WPF.PreviewTabs.DecompilerSettings"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                    xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs" mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+            <WrapPanel>
+                <StackPanel VerticalAlignment="Center">
+                </StackPanel>
+            </WrapPanel>
+            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <StackPanel>
+                <StackPanel>
+                    <CheckBox Name="_cbUseCodeReconstructor" Content="Use the code reconstructor" Margin="3">
+                        <CheckBox.ToolTip>
+                            Translates the jump statements to loops, elseif branches, etc.
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Name="_cbUseDefaultDecompiler" Content="Use GRF Editor Decompiler" Margin="3" IsEnabled="False" IsChecked="True" />
+                </StackPanel>
+                <StackPanel>
+                    <Label Content="Formatting" FontWeight="Bold" FontSize="14" Margin="3 5 0 0" />
+                    <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                    <CheckBox Name="_cbShowGrfHeader" Content="Show GRF Editor's header" Margin="3">
+                        <CheckBox.ToolTip>
+                            Shows or hides the GRF Editor header (the version number, etc).
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Name="_cbFunctionNumber" Content="Write the function number" Margin="3">
+                        <CheckBox.ToolTip>
+                            Appends --Function # before each function.
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Name="_cbGroupAllValues" Content="Always group if dictionaries are all constants" Margin="3">
+                        <CheckBox.ToolTip>
+                            Always group dictionaries if the items are all constants.
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <CheckBox Name="_cbGroupAllKeyValues" Content="Always group if dictionaries are all key values" Margin="3">
+                        <CheckBox.ToolTip>
+                            Always group dictionaries if the items are all key values > dico = { ex = 20, ex2 = 30 }.
+                        </CheckBox.ToolTip>
+                    </CheckBox>
+                    <DockPanel HorizontalAlignment="Left">
+                        <Label Content="Text length limit to break line" />
+                        <TextBox Name="_tbTextLengthLimit" Width="70" Margin="3" />
+                    </DockPanel>
+                </StackPanel>
+                <StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Grid>
+        <StackPanel Grid.Row="2">
+            <Label Content="Decompiler console" FontWeight="Bold" FontSize="14" Margin="3 5 0 0" />
+            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <TextBox Name="_tbConsole" Grid.Row="3" AcceptsReturn="True" AcceptsTab="True" IsReadOnly="True" HorizontalScrollBarVisibility="Visible" FontFamily="Courier New">
+        </TextBox>
+    </Grid>
+</PreviewTabs:FilePreviewTab>

@@ -1,0 +1,208 @@
+﻿<Window x:Class="GRFEditor.EditorMainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+               SnapsToDevicePixels="True"
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+        xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" xmlns:WPF1="clr-namespace:GRFEditor.WPF"
+        xmlns:WpfBugFix="clr-namespace:TokeiLibrary.WpfBugFix;assembly=TokeiLibrary" Title="GRF Editor" Height="549" Width="730" Icon="Resources\internalapp.png" MinWidth="680">
+    <Window.Resources>
+        <Style TargetType="ListViewItem">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+    </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="Undo" Executed="Undo" />
+        <CommandBinding Command="Redo" Executed="Redo" />
+        <CommandBinding Command="BrowseBack" Executed="Backward" />
+        <CommandBinding Command="BrowseForward" Executed="Forward" />
+        <CommandBinding Command="Save" Executed="_menuItemSave_Click" />
+        <CommandBinding Command="Open" Executed="_menuItemOpenFrom_Click" />
+        <CommandBinding Command="New" Executed="_menuItemNewGrf_Click" />
+        <CommandBinding Command="Properties"  Executed="_menuItemMerge_Click" />
+        <CommandBinding Command="NavigateJournal"  Executed="_menuFocus" />
+    </Window.CommandBindings>
+    <Window.InputBindings>
+        <KeyBinding Command="Redo"  Modifiers="Ctrl" Key="Y" />
+        <KeyBinding Command="Undo"  Modifiers="Ctrl" Key="Z" />
+        <KeyBinding Command="Save"  Modifiers="Ctrl" Key="S" />
+        <KeyBinding Command="Properties"  Modifiers="Ctrl" Key="M" />
+        <KeyBinding Command="Open" Modifiers="Ctrl" Key="O" />
+        <KeyBinding Command="New"  Modifiers="Ctrl" Key="N" />
+        <KeyBinding Command="BrowseBack"  Modifiers="Alt" Key="Z" />
+        <KeyBinding Command="BrowseForward"  Modifiers="Alt" Key="Y" />
+        <KeyBinding Command="NavigateJournal"  Modifiers="Ctrl" Key="F" />
+    </Window.InputBindings>
+    <Grid   DragEnter="_menu_DragEnter" Drop="_menu_Drop">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Menu Height="30" AllowDrop="True">
+            <MenuItem Margin="0 0 0 0">
+                <MenuItem.Header>
+                    <Label Content="File" Name="_miFile" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                </MenuItem.Header>
+                <MenuItem ListView:WpfUtils.ImagePath="add.png">
+                    <MenuItem.Header>
+                        <TextBlock Text="New" Margin="3 0 0 0" VerticalAlignment="Center" />
+                    </MenuItem.Header>
+                    <MenuItem Name="_menuItemNewGrf" ListView:WpfUtils.ImagePath="grf-16.png" Header="New Grf" InputGestureText="Ctrl-N" Click="_menuItemNewGrf_Click" />
+                    <MenuItem ListView:WpfUtils.ImagePath="gpf-16.png" Header="New Gpf" Click="_menuItemNewGpf_Click" />
+                    <MenuItem Name="_menuItemNewRgz" ListView:WpfUtils.ImagePath="rgz-16.png" Header="New Rgz" Click="_menuItemNewRgz_Click" />
+                    <MenuItem Name="_menuItemNewThor" ListView:WpfUtils.ImagePath="thor-16.png" Header="New Thor" Click="_menuItemNewThor_Click" />
+                </MenuItem>
+                <MenuItem Name="_menuItemOpenFrom" ListView:WpfUtils.ImagePath="newFile.png" Header="Open..." InputGestureText="Ctrl-O" Click="_menuItemOpenFrom_Click" />
+                <MenuItem Name="_menuItemRecentFiles" ListView:WpfUtils.ImagePath="empty.png" Header="Open recent" />
+                <Separator />
+                <MenuItem Name="_menuItemCloseGrf" ListView:WpfUtils.ImagePath="empty.png" Header="Close Grf" Click="_menuItemCloseGrf_Click" />
+                <Separator />
+                <MenuItem Name="_menuItemSave" ListView:WpfUtils.ImagePath="save.png" Header="Save" InputGestureText="Ctrl-S" Click="_menuItemSave_Click" />
+                <MenuItem Name="_menuItemSaveAs" ListView:WpfUtils.ImagePath="empty.png" Header="Save as..." Click="_menuItemSaveAs_Click" />
+                <MenuItem Header="Save advanced" ListView:WpfUtils.ImagePath="empty.png">
+                    <MenuItem Name="_menuItemCompress" ListView:WpfUtils.ImagePath="defrag.png" Header="Defragment (quick)" Click="_menuItemCompress_Click" InputGestureText="Ctrl-Shift-S" />
+                    <MenuItem Name="_menuItemCompact" ListView:WpfUtils.ImagePath="redirect.png" Header="Compact (redirect indexes)" Click="_menuItemCompact_Click" InputGestureText="Ctrl-Alt-S" />
+                    <MenuItem Name="_menuItemRepack" ListView:WpfUtils.ImagePath="pack.png" Header="Repack (recompress)" Click="_menuItemRepack_Click" />
+                    <MenuItem Name="_menuItemEncryptTable" ListView:WpfUtils.ImagePath="lock.png" Header="Encrypt File Table" Click="_menuItemTableEncrypt_Click" />
+                </MenuItem>
+                <Separator />
+                <MenuItem Name="_menuItemAbout" ListView:WpfUtils.ImagePath="help.png" Header="About..." Click="_menuItemAbout_Click" />
+                <MenuItem Name="_menuItemQuit" ListView:WpfUtils.ImagePath="empty.png" Header="Quit" Click="_menuItemQuit_Click" />
+            </MenuItem>
+            <MenuItem VerticalAlignment="Center" Visibility="Visible">
+                <MenuItem.Header>
+                    <Label Content="Edit" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                </MenuItem.Header>
+                <MenuItem Name="_buttonUndo" ListView:WpfUtils.ImagePath="undo.png" IsEnabled="false" Header="Undo" InputGestureText="Ctrl-Z" Click="_buttonUndo_Click" />
+                <MenuItem Name="_buttonRedo" ListView:WpfUtils.ImagePath="redo.png" IsEnabled="false" Header="Redo" InputGestureText="Ctrl-Y" Click="_buttonRedo_Click" />
+                <MenuItem Name="_buttonPositionUndo" IsEnabled="false" Header="Navigate backward" InputGestureText="Alt-Z" Click="_buttonPositionUndo_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Resources\forward.png" Width="16" Height="16" RenderTransformOrigin="0.5,0.5">
+                            <Image.RenderTransform>
+                                <ScaleTransform ScaleX="-1"/>
+                            </Image.RenderTransform>
+                        </Image>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Name="_buttonPositionRedo" ListView:WpfUtils.ImagePath="forward.png" IsEnabled="false" Header="Navigate forward" InputGestureText="Alt-Y" Click="_buttonPositionRedo_Click" />
+                <MenuItem Name="_menuItemMerge" ListView:WpfUtils.ImagePath="addgrf.png" Header="Merge" InputGestureText="Ctrl-M" Click="_menuItemMerge_Click" />
+                <MenuItem Name="_menuItemSoustract" ListView:WpfUtils.ImagePath="subgrf.png" Header="Subtract" Click="_menuItemSoustract_Click" />
+                <Separator />
+                <MenuItem Name="_menuItemExtractRgz" ListView:WpfUtils.ImagePath="archive.png" Header="Extract Rgz" IsEnabled="False" Click="_menuItemExtractRgz_Click" />
+            </MenuItem>
+            <MenuItem VerticalAlignment="Center" Visibility="Visible">
+                <MenuItem.Header>
+                    <Label Content="Tools" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                </MenuItem.Header>
+                <MenuItem Name="_menuItemValidateGrf" ListView:WpfUtils.ImagePath="validity.png" Header="Grf validation" Click="_menuItemValidateGrf_Click" />
+                <MenuItem Name="_menuItemOpenProgramData" ListView:WpfUtils.ImagePath="newFolder.png" Click="_menuItemOpenProgramData_Click" Header="Open roaming data" />
+                <Separator />
+                <MenuItem Name="_menuItemImportSprite" ListView:WpfUtils.ImagePath="convert.png" Header="Import sprite..." Click="_menuItemImportSprite_Click" />
+                <Separator />
+                <MenuItem Name="_menuItemSpriteConverter" ListView:WpfUtils.ImagePath="spritemaker.png" Header="Sprite editor" Click="_menuItemSpriteConverter_Click" />
+                <MenuItem Name="_menuItemFlatMapsMaker" ListView:WpfUtils.ImagePath="mapEditor.png" Header="Flat maps maker" Click="_menuItemFlatMapsMaker_Click" />
+                <MenuItem Name="_menuItemPatchMaker" ListView:WpfUtils.ImagePath="diff.png" Header="Patch maker" Click="_menuItemPatchMaker_Click" />
+                <MenuItem Name="_menuItemHash" ListView:WpfUtils.ImagePath="hash.png" Header="Hash viewer" Click="_menuItemHash_Click" />
+                <MenuItem Name="_menuItemEncoding" ListView:WpfUtils.ImagePath="refresh.png" Header="Text encoding" Click="_menuItemEncoding_Click" />
+                <MenuItem Name="_menuItemSearch" ListView:WpfUtils.ImagePath="search.png" Header="Advanced search" Click="_menuItemSearch_Click" />
+                <MenuItem Name="_menuItemImageConverter" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image converter" Click="_menuItemImageConverter_Click" />
+                <!--<MenuItem Name="_menuItemImageRecon" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image finder" Click="_menuItemImageRecon_Click" />-->
+                <MenuItem Name="_menuItemEncryptor" ListView:WpfUtils.ImagePath="lock.png" IsEnabled="True" Header="GRF Encryption" Click="_menuItemEncryptor_Click" />
+                <!--<MenuItem Name="_menuItemPatcher" IsEnabled="True" Header="Grf patcher" Click="_menuItemPatcher_Click">
+                    <MenuItem.Icon>
+                        <Image Source="Resources\lock.png" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>-->
+                <Separator />
+                <MenuItem Name="_menuItemSettings" Header="Settings" Click="_menuItemSettings_OnClick">
+                    <MenuItem.Icon>
+                        <Image Source="Resources\settings.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <Image Margin="114,0,0,0" Source="Resources\find.png" Height="16" Width="16"  HorizontalAlignment="Left" />
+        <TextBox Name="_textBoxMainSearch"  Width="130" Margin="133,3,0,3" Height="24" TextChanged="_textBox_TextChanged" VerticalAlignment="Center" HorizontalAlignment="Left" VerticalContentAlignment="Center" />
+        <DockPanel Grid.Row="0" HorizontalAlignment="Left" Margin="265 0 0 0">
+            <WpfBugFix:ToggleMemoryButton x:Name="_tmbUndo" IsEnabled="false" PrimaryButtonImagePath="undo.png" DisplayFormat="Undo {0} action" />
+            <WpfBugFix:ToggleMemoryButton x:Name="_tmbRedo" IsEnabled="false" PrimaryButtonImagePath="redo.png" DisplayFormat="Redo {0} action" />
+            <Styles:FancyButton x:Name="_buttonFancyBackward" Height="24" Width="24" ImagePath="backward.png" Click="_buttonPositionUndo_Click" IsButtonEnabled="False" />
+            <Styles:FancyButton x:Name="_buttonFancyForward" Height="24" Width="24" ImagePath="forward.png" Click="_buttonPositionRedo_Click" IsButtonEnabled="False" />
+        </DockPanel>
+        <DockPanel Grid.Row="0" HorizontalAlignment="Right" Margin="0 0 2 0">
+            <Styles:TkProgressBar x:Name="_progressBarComponent" Width="300" />
+        </DockPanel>
+        <Line Stretch="Fill" Grid.Row="2" StrokeThickness="2" Stroke="{x:Static TokeiLibrary:Configuration.UIGridBackground}" X2="1" StrokeStartLineCap="Square" StrokeEndLineCap="Square" />
+        <Grid Grid.Row="3" Name="_primaryGrid">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="468" />
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <!-- Left Panel -->
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Name="_rDefSearch" Height="auto" />
+                    <RowDefinition Name="_rDefSearchSplitter" Height="auto" />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                
+                <!-- Set to hidden to force render the size on loading -->
+                <ListView
+                    Visibility="Hidden"
+                    TextSearch.TextPath="DisplayRelativePath"
+                    Grid.Row="2"
+                    Name="_listBoxResults"
+                    SelectionChanged="_listBoxResults_SelectionChanged"
+                    SelectionMode="Extended"
+                    BorderThickness="0"
+                    FocusVisualStyle="{x:Null}"
+                    ListView:WpfUtils.IsGridSortable="True"
+                    VirtualizingStackPanel.IsVirtualizing="True"
+                    ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                    KeyDown="_listBoxResults_KeyDown" PreviewMouseRightButtonUp="_listBoxResults_PreviewMouseRightButtonUp">
+                </ListView>
+
+                <GridSplitter Name="_gridSplitterSearch" Visibility="Collapsed" MinHeight="0" Height="2" HorizontalAlignment="Stretch" Grid.Row="1" VerticalAlignment="Stretch" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
+
+                <Grid Grid.Row="2">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="198" />
+                        <ColumnDefinition Width="2" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <!-- TreeView and ListView -->
+                    <WPF:TkView Grid.Column="0" BorderThickness="0" Margin="0" Name="_treeView" Drop="_treeView_Drop" SelectedItemChanged="_treeView_SelectedItemChanged" KeyDown="_treeView_KeyDown" PreviewMouseRightButtonUp="_treeView_PreviewMouseRightButtonUp" PreviewMouseRightButtonDown="_treeView_PreviewMouseRightButtonDown" />
+                    <GridSplitter Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
+                    <Grid Grid.Column="2" Background="{StaticResource ListItemSearchBackground}">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto" />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <DockPanel Grid.Row="0">
+                            <Image Margin="5,0,0,0" Source="Resources\filter.png" Height="16" Width="16"  />
+                            <TextBox Name="_textBoxSearch"  Margin="3" TextChanged="_textBoxSearch_TextChanged" />
+                        </DockPanel>
+                        <ListView TextSearch.TextPath="DisplayRelativePath" AllowDrop="True" Grid.Row="1" Name="_items" SelectionChanged="_items_SelectionChanged"  SelectionMode="Extended" DragEnter="_items_DragEnter" DragLeave="_items_DragLeave" Drop="_items_Drop"
+		                    PreviewMouseLeftButtonDown="_items_PreviewMouseLeftButtonDown" BorderThickness="0" PreviewMouseRightButtonUp="_items_PreviewMouseRightButtonUp" KeyDown="_items_KeyDown" FocusVisualStyle="{x:Null}"
+		                    ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        </ListView>
+                    </Grid>
+                </Grid>
+            </Grid>
+            <GridSplitter Name="_gridSplitterPanels" Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
+            <Grid Grid.Column="2">
+                <Border Background="{DynamicResource TabControlBackground}">
+                    <Grid>
+                        <TabControl Name="_tabControlPreview" Style="{DynamicResource TabControlStyled}">
+                        </TabControl>
+                        <Styles:FancyButton x:Name="_buttonExpand" Click="_buttonExpand_Click" TextHeader="Hide" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="35" Width="70" />
+                    </Grid>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

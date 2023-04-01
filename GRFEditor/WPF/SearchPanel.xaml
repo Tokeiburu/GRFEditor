@@ -1,0 +1,95 @@
+﻿<UserControl x:Class="GRFEditor.WPF.SearchPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:WPF1="clr-namespace:GRFEditor.WPF"
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary">
+    <Border Height="32" BorderBrush="#BEBEBE" BorderThickness="1" VerticalAlignment="Top" HorizontalAlignment="Right">
+        <Grid Background="{StaticResource TabControlBackground}">
+            <DockPanel>
+                <Styles:FancyButton Margin="3 0 0 0" x:Name="_buttonFancyMode" Height="24" Width="24" ImagePath="replace.png" Click="_buttonFancyMode_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Toggle to switch between replace and find modes.
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+                <Border  Margin="3 0 3 0" Name="_border1" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
+                    <Grid>
+                        <WPF1:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
+                            <Border Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="#9AA6B6" Background="{StaticResource SearchDialogSubmenuBackgroundBrush}" FocusVisualStyle="{x:Null}">
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <TextBlock Margin="2 6 2 2" Text="Search options" Foreground="Gray" />
+                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=UseRegex}" Grid.Row="1" Content="Use Regular Expression">
+                                        <CheckBox.ToolTip>
+                                            Search using .NET regular expression syntax.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=WholeWords}" Grid.Row="2" Content="Match Whole Words">
+                                        <CheckBox.ToolTip>
+                                            Only find results that are whole words.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                    <CheckBox Margin="2 2 2 6" Foreground="{StaticResource TextForeground}" IsChecked="{Binding  RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=MatchCase}" Grid.Row="3" Content="Match Case">
+                                        <CheckBox.ToolTip>
+                                            Perform case sensitive searches.
+                                        </CheckBox.ToolTip>
+                                    </CheckBox>
+                                </Grid>
+                            </Border>
+                        </WPF1:LeftComboBox>
+                        <TextBox AcceptsReturn="False" AcceptsTab="False" PreviewKeyDown="_textArea_PreviewKeyDown" Padding="3" BorderThickness="0" Name="_searchTextBox" VerticalAlignment="Center" HorizontalAlignment="Left" Width="145">
+                            <TextBox.Text>
+                                <Binding Path="SearchPattern" RelativeSource="{RelativeSource TemplatedParent}" UpdateSourceTrigger="PropertyChanged">
+                                    <Binding.ValidationRules>
+                                        <ExceptionValidationRule />
+                                    </Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
+                        <TextBlock  Name="_labelFind" Margin="3 0 0 0" VerticalAlignment="Center" Text="Find..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
+                        <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="White" BorderThickness="0">
+                            <Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
+                        </Border>
+                    </Grid>
+                </Border>
+                <Styles:FancyButton x:Name="_buttonPrev" Height="24" Width="24" ImagePath="arrowup.png" Click="_buttonPrev_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Find Preview (Shift+F3)
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+                <Styles:FancyButton x:Name="_buttonNext" Height="24" Width="24" ImagePath="arrowdown.png" Click="_buttonNext_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Find Next (F3)
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+                <Border Margin="3 0 3 0" Name="_border2" Visibility="{Binding ElementName=_replaceTextBox, Path=Visibility}" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1">
+                    <Grid>
+                        <TextBox AcceptsReturn="False" AcceptsTab="False" Padding="3" PreviewKeyDown="_replaceTextBox_PreviewKeyDown" Visibility="Collapsed" BorderThickness="0" Name="_replaceTextBox" VerticalAlignment="Center" Width="150">
+                    </TextBox>
+                    <TextBlock  Name="_labelReplace" Margin="3 0 0 0" VerticalAlignment="Center" Text="Replace..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
+                    </Grid>
+                </Border>
+                <Styles:FancyButton Visibility="{Binding ElementName=_replaceTextBox, Path=Visibility}" x:Name="_buttonReplaceSingle" Height="24" Width="24" ImagePath="replaceSingle.png" Click="_buttonReplaceSingle_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Replace Next
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+                <Styles:FancyButton Visibility="{Binding ElementName=_replaceTextBox, Path=Visibility}" x:Name="_buttonReplaceAll" Height="24" Width="24" ImagePath="replaceAll.png" Click="_buttonReplaceAll_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Replace All
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+                <Styles:FancyButton Margin="3" x:Name="_buttonClose" Height="24" Width="24" ImagePath="delete.png" Click="_buttonClose_Click" IsButtonEnabled="True">
+                    <Styles:FancyButton.ToolTip>
+                        Close
+                    </Styles:FancyButton.ToolTip>
+                </Styles:FancyButton>
+            </DockPanel>
+        </Grid>
+    </Border>
+</UserControl>

@@ -1,0 +1,105 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.Tools.SpriteEditor.SpriteConverter"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" AllowDrop="False"
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid AllowDrop="True" DragEnter="_presenter_DragEnter" Drop="_presenter_Drop">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Menu Margin="0 0 0 0" Height="30">
+            <MenuItem VerticalAlignment="Center">
+                <MenuItem.Header>
+                    <Label Content="File" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
+                </MenuItem.Header>
+                <MenuItem Click="_menuItemNew_Click" Name="_menuItemNew" Header="New">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\add.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Click="_menuItemOpen_Click" Name="_menuItemOpen" Header="Open">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\newFile.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem IsEnabled="False" Name="_menuItemRecent" Header="Open recent">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Click="_menuItemCloseSprite_Click" Name="_menuItemCloseSprite" Header="Close sprite">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Click="_menuItemSave_Click" Name="_menuItemSave" Header="Save">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\Save.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Click="_menuItemSaveAs_Click" Name="_menuItemSaveAs" Header="Save as...">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Click="_menuItemExportAll_Click" Name="_menuItemExportAll" Header="Export all...">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Click="_menuItemClose_Click" Name="_menuItemClose" Header="Close">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem VerticalAlignment="Center">
+                <MenuItem.Header>
+                    <Label Content="Options" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
+                </MenuItem.Header>
+                <MenuItem Name="_menuItem" Header="Palette">
+                    <MenuItem Name="_menuItemPalView" Click="_menuItemPalView_Click" Header="View">
+
+                    </MenuItem>
+                    <MenuItem Name="_menuItemPalReplaceWith" Click="_menuItemPalReplaceWith_Click" Header="Replace with...">
+
+                    </MenuItem>
+                    <MenuItem Name="_menuItemPalReplaceDefault" Click="_menuItemPalReplaceDefault_Click" Header="Replace with default">
+
+                    </MenuItem>
+                    <MenuItem Name="_menuItemPalClear" Click="_menuItemPalClear_Click" Header="Clear">
+
+                    </MenuItem>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem>
+                <MenuItem.Header>
+                    <Label Content="Help" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
+                </MenuItem.Header>
+                <MenuItem Name="_menuItemAbout" Click="_menuItemAbout_Click" Header="About...">
+                    <MenuItem.Icon>
+                        <Image Source="..\..\Resources\help.png" Width="16" Height="16"  />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <TabControl Background="{StaticResource TabItemBackground}" Name="_mainTabControl" Grid.Row="1" Style="{StaticResource TabControlSprite}">
+            <TabItem Header="Settings" Background="{StaticResource TabItemBackground}" Style="{StaticResource TabItemSprite}">
+                <StackPanel>
+                    <CheckBox Foreground="{StaticResource TextForeground}" Name="_cbUseTga" Content="Export semi-transparent images as TGA (instead of PNG)" Margin="3" />
+                    <CheckBox Foreground="{StaticResource TextForeground}" Content="Associate .spr files with this program" Margin="3" Name="_cbAssocSpr" Checked="_cbAssocSpr_Checked" Unchecked="_cbAssocSpr_Unchecked" />
+                </StackPanel>
+            </TabItem>
+        </TabControl>
+        <!--<Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button  Name="_buttonCancel" Content="Close" Height="24" Margin="3" Width="100" Click="_menuItemClose_Click" />
+            </DockPanel>
+        </Grid>-->
+    </Grid>
+</Styles:TkWindow>

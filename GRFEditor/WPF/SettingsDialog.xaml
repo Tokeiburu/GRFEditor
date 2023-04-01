@@ -1,0 +1,246 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.SettingsDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:WPF="clr-namespace:GRFEditor.WPF"
+                 xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge" MaxWidth="470" MinWidth="470" MinHeight="475" MaxHeight="475" Foreground="{StaticResource TextForeground}" SnapsToDevicePixels="True" >
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Border Background="{DynamicResource ResourceKey=TabControlBackground}">
+            <Grid>
+                <TabControl Style="{DynamicResource ResourceKey=TabControlStyled}">
+                    <TabItem Header="General" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <Grid Name="_gridGeneral">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Row="0">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <Label Content="Display encoding" />
+                                    <Image Name="_encodingImage" Grid.Column="1" VerticalAlignment="Center" Source="/Resources/help.png" Height="16" Width="16"  Margin="0 0 5 0" MouseDown="_encodingImage_MouseDown" />
+                                </Grid>
+                                <Label Grid.Row="2" Content="Save format" >
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                        The output format of the GRF.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <Label Grid.Row="3" Content="Compression method" >
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                        Determines how the container will be compressed.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <Label Grid.Row="4" Content="Theme" Visibility="Visible" >
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                        Determines GRF Editor's UI style.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <Label Grid.Row="5" Content="Maximum number of threads" >
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                    Default value is 10. This feature enables you to run more threads for the services. 
+                                    <LineBreak />
+                                    Too many threads and the whole system lags though, so there's a limit of 50.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <Label Grid.Row="6" Content="Preview panel background">
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                    The background color for previewing images.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <CheckBox Name="_cbOverrideExtractionPath" Margin="3 3 3 1" Grid.ColumnSpan="2" Grid.Row="7" Content="Override the extraction path">
+                                    <CheckBox.ToolTip>
+                                        <TextBlock>
+                                            Instead of extracting files to the current location of the GRF,
+                                            <LineBreak />
+                                            files will be extracted at the path below.
+                                        </TextBlock>
+                                    </CheckBox.ToolTip>
+                                </CheckBox>
+                                <Styles:PathBrowser Name="_pbExtration" Margin="20 0 0 3" Grid.Row="8" Grid.ColumnSpan="2" BrowseMode="Folder" />
+                                <Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" />
+                                <ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" VerticalAlignment="Center" Margin="3" >
+                                    <ComboBoxItem Content="0x200" />
+                                    <ComboBoxItem Content="0x103" />
+                                    <ComboBoxItem Content="0x102" />
+                                </ComboBox>
+                                <ComboBox Grid.Row="4" Grid.Column="1" Name="_comboBoxStyles" VerticalAlignment="Center" Margin="3" Visibility="Visible" >
+                                    <ComboBoxItem Content="Default" />
+                                    <ComboBoxItem Content="Dark theme" />
+                                </ComboBox>
+                                <Application:CompressionMethodPicker Grid.Row="3" Grid.Column="1" Name="_comboBoxCompression" VerticalAlignment="Center" Margin="3" />
+                                <TextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center"  Name="_textBoxMaxThreads" HorizontalAlignment="Stretch" Margin="3" />
+                                <WPF:QuickColorSelector Height="20" Margin="3" x:Name="_qcsBackground" Grid.Row="6" Grid.Column="1" ColorBrush="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" />
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Tree behavior" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <Grid Name="_gridTreeBehavior">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Button Name="_buttonTreeExpandSpecific" Click="_buttonTreeExpandSpecific_Click" Grid.Row="1" Width="80" Margin="3" Height="22" Content="Edit..." HorizontalAlignment="Right" Grid.Column="1" />
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Shell integration" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <Grid Grid.Row="2" Grid.ColumnSpan="2">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition Width="100" />
+                                        <ColumnDefinition />
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                        <RowDefinition />
+                                    </Grid.RowDefinitions>
+                                    <CheckBox Name="_assGrf" Content=".grf" Grid.Row="0" VerticalAlignment="Center" Margin="3" />
+                                    <CheckBox Name="_assGpf" Content=".gpf" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="3" />
+                                    <CheckBox Name="_assRgz" Content=".rgz" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="3" />
+                                    <CheckBox Name="_assGrfKey" Content=".grfkey" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="3" />
+                                    <CheckBox Name="_assThor" Content=".thor" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="3" />
+                                </Grid>
+                                <TextBlock Text="Associate these file extensions with GRF Editor." Margin="3" Grid.ColumnSpan="2" />
+                                <TextBlock Text="Context menus" Grid.Row="3" Margin="3 20 3 3" Grid.ColumnSpan="2" TextWrapping="Wrap" />
+                                <CheckBox Name="_assShellAll" Content="Use context menus in Windows Explorer for GRF Editor" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="3" />
+                                <Button Name="_buttonRemoveAllExtensions" Click="_buttonRemoveAllExtensions_Click" Grid.Row="8" Height="24" Margin="3 10 3 3" Width="auto" VerticalAlignment="Bottom" Content=" Remove all extensions " />
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Debugger" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <Grid Name="_gridDebugger">
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                    <TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                        <StackPanel>
+                            <StackPanel>
+                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            </StackPanel>
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="These settings cannot be modified because some of them depend of your OS settings and limitations." FontStyle="Italic" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="3" />
+                                <Label Content="Configuration file name" Grid.Row="1" />
+                                <Label Content=".NET Framework used" Grid.Row="2" />
+                                <Label Content="Bitmap pixel indexation" Grid.Row="3" />
+                                <Label Content="Bitmap rendering" Grid.Row="4" />
+                                <Label Grid.Row="5" Content="Warning level">
+                                    <Label.ToolTip>
+                                        <TextBlock>
+                                    The tolerance of the exceptions being shown.
+                                    <LineBreak />
+                                    Low = all exceptions are being shown. Critical = only exceptions 
+                                    <LineBreak />
+                                    with potential damage are being shown.
+                                        </TextBlock>
+                                    </Label.ToolTip>
+                                </Label>
+                                <TextBox Name="_tbConfig" Grid.Row="1" Grid.Column="1" Margin="3" IsReadOnly="True" />
+                                <TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" />
+                                <TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" />
+                                <TextBox Name="_tbRenderingMode" Grid.Row="4" Grid.Column="1" Margin="3" IsReadOnly="True" />
+                                <ComboBox Grid.Row="5" Grid.Column="1" Name="_comboBoxWarningLevel" SelectedIndex="0" VerticalAlignment="Center" Margin="3" >
+                                    <ComboBoxItem Content="Low" />
+                                    <ComboBoxItem Content="Warning" />
+                                    <ComboBoxItem Content="Critical" />
+                                </ComboBox>
+                            </Grid>
+                        </StackPanel>
+                    </TabItem>
+                </TabControl>
+                <!--<Image IsHitTestVisible="False" Source="../Resources/tree.png" Height="28" Width="28" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 52 0 0" />-->
+            </Grid>
+        </Border>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button Content="Ok" Height="24" Margin="3" Width="100" Click="_buttonClose" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>

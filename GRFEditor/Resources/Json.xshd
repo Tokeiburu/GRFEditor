@@ -1,0 +1,54 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<!-- syntaxdefinition for Json by alek kowalczyk -->
+<!-- update by zuijin in 2019.12.20 -->
+<SyntaxDefinition name="Json" extensions=".json" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="Bool" foreground="#FF50AFA0" exampleText="true | false" />
+  <Color name="Number" foreground="#FFDA7000" exampleText="3.14" />
+  <Color name="String" foreground="Gray" exampleText="" />
+  <Color name="Null" foreground="Olive" exampleText="" />
+  <Color name="FieldName" foreground="DarkMagenta" />
+
+  <RuleSet name="String">
+    <Span begin="\\" end="."/>
+  </RuleSet>
+
+  <RuleSet name="Object">
+    <Span color="FieldName" ruleSet="String">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+    <Span color="FieldName" ruleSet="String">
+      <Begin>'</Begin>
+      <End>'</End>
+    </Span>
+  </RuleSet>
+
+  <RuleSet name="Array">
+    <Import ruleSet="Expression"/>
+  </RuleSet>
+
+  <RuleSet name="Expression">
+    <Keywords color="Bool" >
+      <Word>true</Word>
+      <Word>false</Word>
+    </Keywords>
+    <Keywords color="Null" >
+      <Word>null</Word>
+    </Keywords>
+    <Span color="String" ruleSet="String">
+      <Begin>"</Begin>
+      <End>"</End>
+    </Span>
+    <Span color="String" ruleSet="String">
+      <Begin>'</Begin>
+      <End>'</End>
+    </Span>
+    <Rule color="Number">
+      \b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?
+    </Rule>
+  </RuleSet>
+
+  <RuleSet>
+    <Import ruleSet="Expression"/>
+  </RuleSet>
+</SyntaxDefinition>

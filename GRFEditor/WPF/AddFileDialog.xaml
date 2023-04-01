@@ -1,0 +1,42 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.AddFileDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" Drop="Window_Drop"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="450" MaxWidth="450" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <StackPanel>
+        <TextBlock TextWrapping="Wrap" Text="Drop your file or folder here. This way of adding files is deprecated, close this window and drop them on the tree view directly in the editor." Margin="3" />
+        <WPF:TkView Name="_treeView" Height="200" SelectedItemChanged="_treeView_SelectedItemChanged" />
+        <DockPanel>
+            <Label Width="130" Content="Source file / directory" />
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Name="_textBoxSourceFile" Margin="3 3 0 3" TextChanged="_textBoxSourceFile_TextChanged" />
+                <Button Name="_buttonFolderBrowse" Grid.Column="1" Content="Dir..." Width="40" Margin="3" Click="_buttonFolderBrowse_Click" />
+                <Button Name="_buttonFileBrowse" Grid.Column="2" Content="File..." Width="40" Margin="3" Click="_buttonFileBrowse_Click" />
+            </Grid>
+        </DockPanel>
+        <DockPanel>
+            <Label Width="130" Content="Grf path" />
+            <TextBox Name="_textBoxGrfPath" Margin="3 3 0 3" IsReadOnly="True" />
+        </DockPanel>
+        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <Grid Margin="0 0 3 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="2">
+                    <Button  Name="_buttonOK" Content="Add" Width="100" Height="24" Margin="3" Click="_buttonOK_Click" />
+                    <Button  Name="_buttonCancel" Content="Cancel" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

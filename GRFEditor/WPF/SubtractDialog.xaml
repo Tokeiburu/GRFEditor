@@ -1,0 +1,42 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.SubtractDialogCustom"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <StackPanel>
+        <TextBlock Margin="3" Text="Subtraction cannot be undone. GRF1 - GRF2 = Output" Grid.Row="1" TextWrapping="Wrap"/>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Label Content="GRF1" VerticalAlignment="Center" Grid.Row="0" />
+            <Label Content="GRF2" VerticalAlignment="Center" Grid.Row="1" />
+            <Label Grid.Row="2" Content="Output" />
+            <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf1" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserGrf1_TextChanged" Grid.Row="0" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
+            <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf2" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserGrf2_TextChanged" Grid.Row="1" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
+            <TextBox Grid.Row="2" Grid.Column="1" Name="_textBoxOutputName" Text="" Margin="3" />
+            <Styles:TkProgressBar x:Name="_progressBarComponent" Grid.Row="3" Grid.Column="1" Margin="3" />
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <Grid Margin="0 0 3 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="2">
+                    <Button  Name="_buttonOK" Content="Subtract" Width="100" Height="24" Margin="3" Click="_buttonOK_Click" />
+                    <Button HorizontalAlignment="Right" Name="_buttonCancel" Content="Close" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

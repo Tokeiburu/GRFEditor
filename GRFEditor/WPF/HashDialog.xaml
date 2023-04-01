@@ -1,0 +1,53 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.HashDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="350" MaxWidth="350" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <StackPanel>
+        <Grid Margin="2" Name="_grid1" DragEnter="_grid1_DragEnter" Drop="_grid1_Drop">
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Name="_buttonFile1" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile1_Click" />
+            <Label Content="Size" Grid.Row="1" Grid.Column="0" />
+            <Label Content="CRC32" Grid.Row="2" Grid.Column="0" />
+            <Label Content="MD5" Grid.Row="3" Grid.Column="0" />
+            <TextBox Name="_tbName1" IsReadOnly="True" Grid.Row="0" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbSize1" IsReadOnly="True" Grid.Row="1" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbCrc1" IsReadOnly="True" Grid.Row="2" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbMd51" IsReadOnly="True" Grid.Row="3" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+        </Grid>
+        <Grid Margin="2 25 2 2" Name="_grid2" DragEnter="_grid2_DragEnter" Drop="_grid2_Drop" >
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Button Name="_buttonFile2" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile2_Click" />
+            <Label Content="Size" Grid.Row="1" Grid.Column="0" />
+            <Label Content="CRC32" Grid.Row="2" Grid.Column="0" />
+            <Label Content="MD5" Grid.Row="3" Grid.Column="0" />
+            <TextBox Name="_tbName2" IsReadOnly="True" Grid.Row="0" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbSize2" IsReadOnly="True" Grid.Row="1" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbCrc2" IsReadOnly="True" Grid.Row="2" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+            <TextBox Name="_tbMd52" IsReadOnly="True" Grid.Row="3" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button Name="_buttonCancel" Click="_buttonClose" Content="Close" Height="24" Margin="3" MinWidth="100" />
+            </DockPanel>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

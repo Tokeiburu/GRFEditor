@@ -1,0 +1,58 @@
+﻿<UserControl x:Class="GRFEditor.WPF.PreviewTabs.PreviewSprites"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+             mc:Ignorable="d" 
+             d:DesignHeight="600" d:DesignWidth="300" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid Name="_primaryGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <StackPanel>
+            <DockPanel>
+                <Label Name="_labelHeader" FontWeight="Bold" Content="Sprites preview" FontSize="16" Margin="3 10 0 5" />
+                <Grid Margin="10 0 0 0" VerticalAlignment="Center" MinWidth="150">
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <DockPanel>
+                        <Label Padding="0" Margin="2" Content="Per line" VerticalAlignment="Center" />
+                        <Border Margin="1" BorderBrush="Transparent" BorderThickness="1" VerticalAlignment="Center" CornerRadius="1" HorizontalAlignment="Left" >
+                            <TextBox TextAlignment="Right" BorderThickness="0" x:Name="_tbPerLine" VerticalAlignment="Center" Width="50" />
+                        </Border>
+                    </DockPanel>
+                    <CheckBox Grid.Row="1" Name="_cbWrapImages" Content="Wrap images" Margin="1" />
+                    <CheckBox Grid.Row="1" Grid.Column="1" Name="_cbAuto" Content="Auto" Margin="1" />
+                </Grid>
+            </DockPanel>
+            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+        </StackPanel>
+        <ListView TextSearch.TextPath="RelativePath" Foreground="Black" AllowDrop="True" Grid.Row="1" Name="_items" SelectionMode="Extended"
+                              FocusVisualStyle="{x:Null}" MouseDoubleClick="_items_MouseDoubleClick"
+                              ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Select" Name="_miSelect" Click="_miSelect_Click" ListView:WpfUtils.ImagePath="arrowdown.png" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+
+        <ListView TextSearch.TextPath="RelativePath" Foreground="Black" AllowDrop="True" Grid.Row="1" Name="_itemsLarge" SelectionMode="Extended"
+                              FocusVisualStyle="{x:Null}" MouseDoubleClick="_items2_MouseDoubleClick"
+                              ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Select" Click="_miSelect2_Click" ListView:WpfUtils.ImagePath="arrowdown.png" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+    </Grid>
+</UserControl>

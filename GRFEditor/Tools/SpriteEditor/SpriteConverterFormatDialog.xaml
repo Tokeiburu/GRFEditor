@@ -1,0 +1,151 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.Tools.SpriteEditor.SpriteConverterFormatDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Width="900" Height="570"
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Styles:TkWindow.Resources>
+        <Style TargetType="{x:Type RadioButton}" >
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type RadioButton}">
+                        <Border Name="BorderSelected" BorderThickness="1" BorderBrush="White" CornerRadius="3" >
+                            <BulletDecorator Background="White" Cursor="Hand" Margin="3 0 0 0">
+                                <BulletDecorator.Bullet>
+                                    <CheckBox Name="Box" />
+                                </BulletDecorator.Bullet>
+
+                                <TextBlock Margin="3,1,0,0" Foreground="#FF3E3E3E" FontFamily="Calibri" FontSize="12">
+                                <ContentPresenter />
+                                </TextBlock>
+                            </BulletDecorator>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="true">
+                                <Setter TargetName="Box" Property="IsChecked" Value="True"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="BorderSelected" Property="BorderBrush" Value="Gainsboro" />
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Styles:TkWindow.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <StackPanel Grid.Row="0">
+                <TextBlock TextWrapping="Wrap" Name="_description" Margin="3" />
+                <DockPanel HorizontalAlignment="Left">
+                    <TextBlock TextWrapping="Wrap" Text="Original image " Margin="3" VerticalAlignment="Center" />
+                    <ScrollViewer MaxHeight="120" MaxWidth="120" Name="_sv0" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                        <ScrollViewer.Background>
+                            <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                        </ScrollViewer.Background>
+                        <Image Name="_imageReal" />
+                    </ScrollViewer>
+                    <TextBlock Name="_tbTransparent" VerticalAlignment="Center" Margin="10 3 3 3" />
+                    <Rectangle Width="100" Height="30" Fill="#FF00FF" Name="_imageTransparent" VerticalAlignment="Center" />
+                </DockPanel>
+                <DockPanel>
+                    <TextBlock Text="Transparency mode" VerticalAlignment="Center" Margin="3" />
+                    <ComboBox Name="_cbTransparency" Width="120" HorizontalAlignment="Left" Margin="3">
+                        <ComboBoxItem Content="None" />
+                        <ComboBoxItem Content="Use pixel index 0" />
+                        <ComboBoxItem Content="Use pixel pink (#FF00FF)" />
+                        <ComboBoxItem Content="Use first pixel in the image" />
+                        <ComboBoxItem Content="Use last pixel in the image" />
+                    </ComboBox>
+                </DockPanel>
+                <CheckBox Name="_cbDithering" Content="Dither indexed images (change the image to blend unexisting colors)" Margin="3" VerticalAlignment="Center" />
+            </StackPanel>
+            <Border Grid.Row="1" BorderBrush="#6F6F6F" CornerRadius="3" BorderThickness="2" Margin="3">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="166" />
+                    </Grid.ColumnDefinitions>
+                    <Image Name="_imagePalette" Grid.Column="2" Grid.RowSpan="3" Width="160" Height="160" Margin="3">
+
+                    </Image>
+                    <RadioButton Name="_rbOriginalPalette" Grid.Row="0" VerticalAlignment="Center" Margin="5" Checked="_rb_Checked" >
+                        <RadioButton.Content>
+                            <DockPanel>
+                                <TextBlock VerticalAlignment="Center" Margin="3" Text="Use the original palette" Width="180" TextWrapping="Wrap" />
+                                <ScrollViewer Name="_sv1" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"  RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <ScrollViewer.Background>
+                                        <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                                    </ScrollViewer.Background>
+                                    <Image Name="_imageOriginal" />
+                                </ScrollViewer>
+                            </DockPanel>
+                        </RadioButton.Content>
+                    </RadioButton>
+                    <RadioButton Name="_rbMatch" Checked="_rb_Checked" VerticalAlignment="Center" Grid.Column="1" Margin="5" Grid.Row="0">
+                        <RadioButton.Content>
+                            <DockPanel HorizontalAlignment="Left" >
+                                <TextBlock Margin="3" Text="Find the best matching colors in the original palette" VerticalAlignment="Center" Width="180" TextWrapping="Wrap" />
+                                <ScrollViewer Name="_sv3" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"  RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <ScrollViewer.Background>
+                                        <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                                    </ScrollViewer.Background>
+                                    <Image Name="_imageClosestMatch" />
+                                </ScrollViewer>
+                            </DockPanel>
+                        </RadioButton.Content>
+                    </RadioButton>
+
+                    <RadioButton Name="_rbMerge" Grid.Row="1" Grid.Column="1" Checked="_rb_Checked" VerticalAlignment="Center" Margin="5">
+                        <RadioButton.Content>
+                            <DockPanel HorizontalAlignment="Left" >
+                                <TextBlock Margin="3" Text="Merge palettes" VerticalAlignment="Center" Width="180" TextWrapping="Wrap" />
+                                <ScrollViewer Name="_sv4" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"  RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <ScrollViewer.Background>
+                                        <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                                    </ScrollViewer.Background>
+                                    <Image Name="_imageMergePalette" />
+                                </ScrollViewer>
+                            </DockPanel>
+                        </RadioButton.Content>
+                    </RadioButton>
+
+                    <RadioButton Grid.Column="0" Grid.Row="1" Name="_rbBgra32" Checked="_rb_Checked" VerticalAlignment="Center" Margin="5">
+                        <RadioButton.Content>
+                            <DockPanel HorizontalAlignment="Left" >
+                                <TextBlock  VerticalAlignment="Center" Margin="3" Text="Convert to Bgra32" Width="180" TextWrapping="Wrap" />
+                                <ScrollViewer Name="_sv2" HorizontalAlignment="Left" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" RenderOptions.BitmapScalingMode="NearestNeighbor">
+                                    <ScrollViewer.Background>
+                                        <ImageBrush ImageSource="../../Resources/background.png" TileMode="Tile" Stretch="None" Viewport="0,0,16,16" ViewportUnits="Absolute" />
+                                    </ScrollViewer.Background>
+                                    <Image Name="_imageToBgra32" />
+                                </ScrollViewer>
+                            </DockPanel>
+                        </RadioButton.Content>
+                    </RadioButton>
+                </Grid>
+            </Border>
+        </Grid>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <CheckBox Name="_cbRepeat" Checked="_cbRepeat_Checked" Unchecked="_cbRepeat_Unchecked" Content="Apply for all items" Margin="3" VerticalAlignment="Center" />
+                <Button  Name="_buttonOk" Content="OK" Height="24" Margin="3" Width="100" Click="_buttonOk_Click" />
+                <Button  Name="_buttonCancel" Content="Cancel" Height="24" Margin="3" Width="100" Click="_buttonCancel_Click" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>

@@ -1,0 +1,281 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.Tools.Map.MapEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        xmlns:WPF="clr-namespace:GRFEditor.WPF"
+        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Width="610" Height="480">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+        <Border Background="{DynamicResource TabControlBackground}">
+            <TabControl Style="{DynamicResource TabControlStyled}">
+                <TabItem Header="Generate maps" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <Styles:Header x:Name="_header" Text="Generate maps" />
+                        <Styles:HeaderSeparator />
+                        <StackPanel>
+                            <DockPanel >
+                                <Styles:FancyButton Margin="3" TextHeader="Generate maps" TextDescription="Generate the flat maps" Click="_buttonOk_Click" />
+                            </DockPanel>
+                            <DockPanel>
+                                <Styles:TkProgressBar DockPanel.Dock="Left" HorizontalAlignment="Stretch"  x:Name="_progressBar" Margin="3 3 3 3" />
+                            </DockPanel>
+                            <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <TextBlock Grid.Row="1" Margin="3" HorizontalAlignment="Left" VerticalAlignment="Center" Text="Location of the input maps :" TextWrapping="Wrap" />
+                                <DockPanel Grid.Row="2" LastChildFill="True" >
+                                    <Button  DockPanel.Dock="Right"  Name="_buttonBrowseIM" Content="..." Width="25" Margin="3" Click="_buttonBrowseIm_Click" DataContext="{Binding}" />
+                                    <Button DockPanel.Dock="Right"  Name="_buttonOpenIM" Content="Open" Width="50" Margin="3" Click="_buttonOpenIm_Click" />
+                                    <CheckBox DockPanel.Dock="Right" Name="_checkBoxGrfOnly" Content="Use this GRF" VerticalAlignment="Center"/>
+                                    <TextBox DockPanel.Dock="Left" Name="_textBoxIM" Margin="3" HorizontalContentAlignment="Stretch" />
+                                </DockPanel>
+                            </Grid>
+                        </StackPanel>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Options" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <StackPanel>
+                            <Styles:TabHeader />
+                            <WrapPanel>
+                                <Styles:FancyButton Margin="3" HorizontalAlignment="Left" TextHeader="Reset options" TextDescription="Sets the settings to their default values" x:Name="_buttonResetOptions" Click="_buttonResetOptions_Click" />
+                            </WrapPanel>
+                        </StackPanel>
+                        <TextBlock Margin="3" Text="Hover your mouse over a check box for more details about an option." HorizontalAlignment="Left" />
+                        <CheckBox Name="_cbFlattenGround" Content="Make the ground flat (sets the height to 0)." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    Makes the ground flat by setting the height of each
+                                    <LineBreak/>
+                                    cubes (surface) to 0.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbRemoveLighting" Content="Remove light and shadow maps." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    The light and shadow maps are used for the lighting 
+                                    <LineBreak/>
+                                    effects on the maps. If you remove the objects, 
+                                    <LineBreak/>
+                                    you'll probably want to enable this option.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbRemoveWater" Content="Remove water (ignored if 'Make ground flat' is checked)." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                Sets the water level below the ground, so that it cannot be seen.
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbRemoveObjects" Content="Remove all objects (ignored if 'Make ground flat' is checked)." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    All objects, effects, sounds, etc. will be removed from the map. 
+                                    <LineBreak/>
+                                    NPCs will still be loaded as this is server sided.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbResetGlobalLighting" Content="Reset global lighting to its default value." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    The global lighting will be put back to its default value in 
+                                    <LineBreak/>
+                                    the RSW file.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbUseCustomTextures" Content="Change the textures for custom ones." HorizontalAlignment="Left" Margin="3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    Changes the ground textures for the ones provided in the input 
+                                    <LineBreak/>
+                                    texture folder. These can be modified by yourself easily.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbGutterLines" Content="Show gutter lines." HorizontalAlignment="Left" VerticalAlignment="Center" Margin="23 3 3 3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    Gutter lines indicate where Bowling Bash will only hit one monster.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <CheckBox Name="_cbStickGatCells" Content="Make gat cells stick to the ground (ignored if 'Make ground flat' is checked)." HorizontalAlignment="Left" VerticalAlignment="Center" Margin="23 3 3 3">
+                            <CheckBox.ToolTip>
+                                <TextBlock>
+                                    The gat cells will stick to the ground level. If there's 
+                                    <LineBreak/>
+                                    a bench for instance, you won't see floating cells.
+                                </TextBlock>
+                            </CheckBox.ToolTip>
+                        </CheckBox>
+                        <Label Content="Wall textures:" Margin="23 0 0 0" Padding="0" />
+                        <RadioButton Name="_cbTextureBlack" Content="Use black texture on walls." VerticalAlignment="Center" HorizontalAlignment="Left" Margin="43 3 3 3">
+                            <RadioButton.ToolTip>
+                                The wall textures will be replaced by a black texture.
+                            </RadioButton.ToolTip>
+                        </RadioButton>
+                        <RadioButton Name="_cbTextureWalls" Content="Use custom texture on walls." VerticalAlignment="Center" HorizontalAlignment="Left" Margin="43 3 3 3">
+                            <RadioButton.ToolTip>
+                                The walls will use the texture cw.bmp if there are any.
+                            </RadioButton.ToolTip>
+                        </RadioButton>
+                        <RadioButton Name="_cbTextureOriginal" Content="Use original texture on walls." VerticalAlignment="Center" HorizontalAlignment="Left" Margin="43 3 3 3">
+                            <RadioButton.ToolTip>
+                                The walls will not be modified and keep their original texture.
+                            </RadioButton.ToolTip>
+                        </RadioButton>
+                        <DockPanel>
+                            <Label Content="Maps unique ID : ">
+                                <Label.ToolTip>
+                                    <TextBlock>
+                                        Adds an identifier for the textures, which allows maps to use different 
+                                        <LineBreak />
+                                        textures without interfering with each other.
+                                    </TextBlock>
+                                </Label.ToolTip>
+                            </Label>
+                            <TextBox Name="_mapId" TextChanged="_mapId_TextChanged" VerticalContentAlignment="Center" Margin="0 0 3 0" />
+                        </DockPanel>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Texture maker" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <Styles:TabHeader />
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+                            <WrapPanel>
+                                <Styles:FancyButton Margin="3" Click="_buttonResetTextures_Click" x:Name="_buttonResetTextures" HorizontalAlignment="Left" TextHeader="Reset textures" TextDescription="Resets all textures" />
+                                <Styles:FancyButton Margin="3" HorizontalAlignment="Left" TextHeader="Change textures" TextDescription="Open the input texture folder" x:Name="_buttonOpenTexturesFolder" Click="_buttonOpenTexturesFolder_Click" />
+                                <Styles:FancyButton Margin="3" HorizontalAlignment="Left" TextHeader="Rebuild textures" TextDescription="Generates the textures again" x:Name="_buttonRebuildTextures" Click="_buttonRebuildTextures_Click" />
+                            </WrapPanel>
+                            <Grid Grid.Row="1">
+                                <DockPanel>
+                                    <Label Content="Border width" Padding="0" Margin="3" />
+                                    <TextBox Name="_tbBorderWidth" HorizontalAlignment="Left" Width="50" Margin="3" />
+                                </DockPanel>
+                            </Grid>
+                            <Grid Grid.Row="2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Border" Grid.Row="0" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_cBorder" Grid.Row="0" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 0" Grid.Row="1" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c0" Grid.Row="1" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 1" Grid.Row="2" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c1" Grid.Row="2" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 2" Grid.Row="3" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c2" Grid.Row="3" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 3" Grid.Row="4" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c3" Grid.Row="4" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 4" Grid.Row="5" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c4" Grid.Row="5" Grid.Column="1" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 5" Grid.Row="6" Grid.Column="0" />
+                                <WPF:QuickColorSelector x:Name="_c5" Grid.Row="6" Grid.Column="1" Margin="3" />
+
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Cell type 6" Grid.Row="0" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_c6" Grid.Row="0" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Water background" Grid.Row="1" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cwater0" Grid.Row="1" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Water foreground" Grid.Row="2" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cwater1" Grid.Row="2" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Gutter line 1" Grid.Row="3" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cgutter1" Grid.Row="3" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Gutter line 2" Grid.Row="4" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cgutter2" Grid.Row="4" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Reserved" Grid.Row="5" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cx" Grid.Row="5" Grid.Column="3" Margin="3" />
+
+                                <TextBlock Margin="3 6 3 6" TextWrapping="Wrap" Text="Wall" Grid.Row="6" Grid.Column="2" />
+                                <WPF:QuickColorSelector x:Name="_cwall" Grid.Row="6" Grid.Column="3" Margin="3" />
+                            </Grid>
+                        </Grid>
+                    </StackPanel>
+                </TabItem>
+                <TabItem Header="Cell types" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <StackPanel>
+                        <Styles:TabHeader />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="170" />
+                                <ColumnDefinition Width="170" />
+                                <ColumnDefinition Width="140" />
+                                <ColumnDefinition />
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <Styles:FancyButton x:Name="_buttonCell_0" Grid.Row="0"  Grid.Column="0" HorizontalAlignment="Left" TextHeader="Cell type 0" TextDescription="Walkable" />
+                            <Styles:FancyButton x:Name="_buttonCell_1" Grid.Row="1"  Grid.Column="0" HorizontalAlignment="Left" TextHeader="Cell type 1" TextDescription="Not walkable" />
+                            <Styles:FancyButton x:Name="_buttonCell_2" Grid.Row="2"  Grid.Column="0" HorizontalAlignment="Left" TextHeader="Cell type 2" TextDescription="Not walkable - No snipable (works the same as c1)" />
+                            <Styles:FancyButton x:Name="_buttonCell_3" Grid.Row="3"  Grid.Column="0" HorizontalAlignment="Left" TextHeader="Cell type 3" TextDescription="Walkable (extremely rare, seen on hu_fild05)" />
+                            <Styles:FancyButton x:Name="_buttonCell_4" Grid.Row="0"  Grid.Column="1" HorizontalAlignment="Left" TextHeader="Cell type 4" TextDescription="Unknown (not used on any map as a matter of fact)" />
+                            <Styles:FancyButton x:Name="_buttonCell_5" Grid.Row="1"  Grid.Column="1" HorizontalAlignment="Left" TextHeader="Cell type 5" TextDescription="Not walkable - Snipable" />
+                            <Styles:FancyButton x:Name="_buttonCell_6" Grid.Row="2"  Grid.Column="1" HorizontalAlignment="Left" TextHeader="Cell type 6" TextDescription="Walkable (rare, seen near on anthell01)" />
+                            <Styles:FancyButton x:Name="_buttonCell_n1" Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" TextHeader="Special 1" TextDescription="Water cell (detected automatically)" />
+                            <Styles:FancyButton x:Name="_buttonCell_n2" Grid.Row="0" Grid.Column="2" HorizontalAlignment="Left" TextHeader="Special 2" TextDescription="Gutter cell" />
+                            <Styles:FancyButton x:Name="_buttonCell_n3" Grid.Row="1" Grid.Column="2" HorizontalAlignment="Left" TextHeader="Special 3" TextDescription="Gutter cell" />
+                            <Styles:FancyButton x:Name="_buttonCell_x" Grid.Row="2"  Grid.Column="2" HorizontalAlignment="Left" TextHeader="Reserved" TextDescription="Reserved for new or unknown cell types" />
+                        </Grid>
+                        <TextBlock Width="150" TextWrapping="Wrap" Text="" />
+                        <Styles:FancyButton HorizontalAlignment="Left" TextHeader="Change textures" TextDescription="Open the input texture folder" Click="_buttonOpenTexturesFolder_Click" />
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </Border>
+        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button DockPanel.Dock="Right" Name="_buttonCancel" Content="Close" Height="24" Width="100" Click="_buttonCancel_Click" Margin="3" />
+            </DockPanel>
+        </Grid>
+    </Grid>
+</Styles:TkWindow>
