@@ -1,0 +1,537 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F21476B8-04E5-43EE-AD1B-CF7BD2ED3D4F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>GRF</RootNamespace>
+    <AssemblyName>GRF</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
+    <OutputPath>bin\x86\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\GRF.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
+    <OutputPath>bin\Release_x64\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisLogFile>bin\Release\GRF.dll.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ErrorManager, Version=1.2.5494.34248, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\Librairies\ErrorManager.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="zlib.net">
+      <HintPath>..\Libraries\zlib.net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ContainerFormat\Commands\AddFiles.cs" />
+    <Compile Include="ContainerFormat\Commands\AddFolder.cs" />
+    <Compile Include="ContainerFormat\Commands\CCallbacks.cs" />
+    <Compile Include="ContainerFormat\Commands\ChangeVersion.cs" />
+    <Compile Include="ContainerFormat\Commands\CommandsHolder.cs" />
+    <Compile Include="ContainerFormat\Commands\AddFilesToRemove.cs" />
+    <Compile Include="ContainerFormat\ContainerResources.cs" />
+    <Compile Include="Core\Enums\ExtractOptions.cs" />
+    <Compile Include="Core\Enums\SavingMode.cs" />
+    <Compile Include="Core\Enums\SyncMode.cs" />
+    <Compile Include="FileFormats\BsonFormat\Bson.cs" />
+    <Compile Include="FileFormats\BsonFormat\BsonObject.cs" />
+    <Compile Include="FileFormats\BsonFormat\BsonType.cs" />
+    <Compile Include="FileFormats\BsonFormat\Json.cs" />
+    <Compile Include="FileFormats\BsonFormat\JsonTextReader.cs" />
+    <Compile Include="FileFormats\IcoFormat\Ico.cs" />
+    <Compile Include="FileFormats\IcoFormat\IcoType.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor2\AdvCodeFragment.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor\CodeReconstructorCommon.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\LubHelper.cs" />
+    <Compile Include="FileFormats\RsmFormat\TextureKeyFrameGroup.cs" />
+    <Compile Include="FileFormats\RsmFormat\TextureKeyFrame.cs" />
+    <Compile Include="FileFormats\RsmFormat\ScaleKeyFrame.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\AddKeyCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\BackupCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\CoordsCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\AnimationTypeCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\BezierCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\FlipVCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\FlipHCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\ScaleBiasCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\OffsetBiasCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\RotateBiasCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\CopyStructureStr.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\TextCoordsCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\DelayCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\SetInterpolatedCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\MaxFrameCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\FpsCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\InsertLayerCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\DeleteLayerCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\MoveLayerCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\TexturesCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\TextureCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\ScaleCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\DeleteKeyCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\StrGroupCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\ColorCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\CommandsHolder.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\BlendCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\OffsetCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\RotateCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\Commands\IStrCommand.cs" />
+    <Compile Include="FileFormats\StrFormat\DetectInterpolation.cs" />
+    <Compile Include="FileFormats\StrFormat\InterpolatedKeyFrame.cs" />
+    <Compile Include="FileFormats\StrFormat\IStrScript.cs" />
+    <Compile Include="Graphics\Quaternion.cs" />
+    <Compile Include="Image\Decoders\BmpDecoder.cs" />
+    <Compile Include="Image\Decoders\PngDecoder.cs" />
+    <Compile Include="Image\SpriteSheetGenerator.cs" />
+    <Compile Include="IO\GrfMemoryStream.cs" />
+    <Compile Include="IO\NonClosingBinaryWriter.cs" />
+    <Compile Include="MultiType.cs" />
+    <Compile Include="Core\GrfCompression\RecoveryCompression.cs" />
+    <Compile Include="Core\GrfCompression\LzmaCompression.cs" />
+    <Compile Include="Core\Enums\Modification.cs" />
+    <Compile Include="FileFormats\LubFormat\BlockDelimiter.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeLogic.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor\CodeFragment.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor\Condition.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor\FragmentType.cs" />
+    <Compile Include="FileFormats\LubFormat\Core\ExecutionState.cs" />
+    <Compile Include="FileFormats\LubFormat\EncodedMode.cs" />
+    <Compile Include="FileFormats\LubFormat\Endianess.cs" />
+    <Compile Include="FileFormats\LubFormat\LineHelper.cs" />
+    <Compile Include="FileFormats\LubFormat\Lub.cs" />
+    <Compile Include="FileFormats\LubFormat\LubErrorHandler.cs" />
+    <Compile Include="FileFormats\LubFormat\LubFunction.cs" />
+    <Compile Include="FileFormats\LubFormat\LubHeader.cs" />
+    <Compile Include="FileFormats\LubFormat\LubLine.cs" />
+    <Compile Include="FileFormats\LubFormat\LubSettings.cs" />
+    <Compile Include="FileFormats\LubFormat\OpCodesToLua.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\ILubObject.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\LubConstantTypes.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\LubObjects.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\LubSourceType.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\LubStack.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\LubValueType.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\Types.cs" />
+    <Compile Include="FileFormats\LubFormat\Types\ValueTypes.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpcodeMapper.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodes.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesConditional.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesGenerics.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesHelper.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesLoops.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesMath.cs" />
+    <Compile Include="FileFormats\LubFormat\VM\OpCodesStructures.cs" />
+    <Compile Include="FileFormats\ThorFormat\ThorPacker.cs" />
+    <Compile Include="GrfStrings.cs" />
+    <Compile Include="ContainerFormat\Commands\DecryptFiles.cs" />
+    <Compile Include="ContainerFormat\Commands\DeleteFiles.cs" />
+    <Compile Include="ContainerFormat\Commands\DeleteFolders.cs" />
+    <Compile Include="ContainerFormat\Commands\EncryptFiles.cs" />
+    <Compile Include="ContainerFormat\Commands\GroupCommand.cs" />
+    <Compile Include="ContainerFormat\Commands\IContainerCommand.cs" />
+    <Compile Include="ContainerFormat\Commands\MoveFile.cs" />
+    <Compile Include="ContainerFormat\Commands\MoveFiles.cs" />
+    <Compile Include="ContainerFormat\Commands\RenameFile.cs" />
+    <Compile Include="ContainerFormat\Commands\RenameFolder.cs" />
+    <Compile Include="ContainerFormat\Commands\ReplaceFile.cs" />
+    <Compile Include="ContainerFormat\ContainerAbstract.cs" />
+    <Compile Include="ContainerFormat\ContainerExceptions.cs" />
+    <Compile Include="ContainerFormat\ContainerState.cs" />
+    <Compile Include="ContainerFormat\ContainerTable.cs" />
+    <Compile Include="ContainerFormat\ContainerEntry.cs" />
+    <Compile Include="ContainerFormat\ContainerValidation.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Checksums\Adler32.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Checksums\CRC32.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Checksums\IChecksum.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Deflater.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\DeflaterConstants.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\DeflaterEngine.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\DeflaterHuffman.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\DeflaterPending.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Inflater.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\InflaterDynHeader.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\InflaterHuffmanTree.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\PendingBuffer.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Streams\DeflaterOutputStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Streams\InflaterInputStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Streams\OutputWindow.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Compression\Streams\StreamManipulator.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Encryption\PkzipClassic.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Encryption\ZipAESStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\Encryption\ZipAESTransform.cs" />
+    <Compile Include="Core\GrfCompression\GZip\FileSystemScanner.cs" />
+    <Compile Include="Core\GrfCompression\GZip\GZIPConstants.cs" />
+    <Compile Include="Core\GrfCompression\GZip\GZipException.cs" />
+    <Compile Include="Core\GrfCompression\GZip\GzipInputStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\GzipOutputStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\IEntryFactory.cs" />
+    <Compile Include="Core\GrfCompression\GZip\INameTransform.cs" />
+    <Compile Include="Core\GrfCompression\GZip\IScanFilter.cs" />
+    <Compile Include="Core\GrfCompression\GZip\NameFilter.cs" />
+    <Compile Include="Core\GrfCompression\GZip\PathFilter.cs" />
+    <Compile Include="Core\GrfCompression\GZip\SharpZipBaseException.cs" />
+    <Compile Include="Core\GrfCompression\GZip\StreamUtils.cs" />
+    <Compile Include="Core\GrfCompression\GZip\WindowsNameTransform.cs" />
+    <Compile Include="Core\GrfCompression\GZip\WindowsPathUtils.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipConstants.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipEntry.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipEntryFactory.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipException.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipExtraData.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipHelperStream.cs" />
+    <Compile Include="Core\GrfCompression\GZip\ZipNameTransform.cs" />
+    <Compile Include="Core\GrfContainerProvider.cs" />
+    <Compile Include="Core\GrfDirectory.cs" />
+    <Compile Include="Core\Enums\GrfOpenOptions.cs" />
+    <Compile Include="Core\ContainerSnapshot.cs" />
+    <Compile Include="Core\GroupedGrf\MultiFileTable.cs" />
+    <Compile Include="Core\GroupedGrf\MultiGrfReader.cs" />
+    <Compile Include="Core\QuickMergeHelper.cs" />
+    <Compile Include="FileFormats\ActFormat\ActConverter.cs" />
+    <Compile Include="FileFormats\ActFormat\ActIndex.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\ActGroupCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\ActionCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\AnchorCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\AnimationSpeedCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\BackupCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\ColorCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\CommandsHolder.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\CopyStructureAct.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\FrameCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\IActCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\MirrorCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\RotateCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\ScaleCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SetScaleCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SoundIdCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SpriteCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SpriteIdCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SpriteTypeCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\SubframeCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Commands\TranslateCommand.cs" />
+    <Compile Include="FileFormats\ActFormat\Anchor.cs" />
+    <Compile Include="FileFormats\ActFormat\IActScript.cs" />
+    <Compile Include="FileFormats\FileFormat.cs" />
+    <Compile Include="FileFormats\GatFormat\Commands\ChangeType.cs" />
+    <Compile Include="FileFormats\GatFormat\Commands\CommandsHolder.cs" />
+    <Compile Include="FileFormats\GatFormat\Commands\GroupCommand.cs" />
+    <Compile Include="FileFormats\GatFormat\GatPreviewImageMaker.cs" />
+    <Compile Include="FileFormats\GatFormat\GatType.cs" />
+    <Compile Include="FileFormats\GndFormat\TextureMapsGenerator.cs" />
+    <Compile Include="FileFormats\IPrintable.cs" />
+    <Compile Include="FileFormats\IWriteableFile.cs" />
+    <Compile Include="FileFormats\PalFormat\ColorChange.cs" />
+    <Compile Include="FileFormats\PalFormat\CommandsHolder.cs" />
+    <Compile Include="FileFormats\PalFormat\GroupCommand.cs" />
+    <Compile Include="FileFormats\RgzFormat\Rgz.cs" />
+    <Compile Include="FileFormats\RgzFormat\RgzEntry.cs" />
+    <Compile Include="FileFormats\TkPatchFormat\TkPatch.cs" />
+    <Compile Include="FileFormats\TkPatchFormat\TkPatchEntry.cs" />
+    <Compile Include="FileFormats\TkPatchFormat\TkPatchHeader.cs" />
+    <Compile Include="FileFormats\TkPatchFormat\TkPatchTable.cs" />
+    <Compile Include="FileFormats\StrFormat\Str.cs" />
+    <Compile Include="FileFormats\StrFormat\StrKeyFrame.cs" />
+    <Compile Include="FileFormats\StrFormat\StrHeader.cs" />
+    <Compile Include="FileFormats\StrFormat\StrLayer.cs" />
+    <Compile Include="FileFormats\ThorFormat\Thor.cs" />
+    <Compile Include="FileFormats\ThorFormat\ThorEntry.cs" />
+    <Compile Include="FileFormats\ThorFormat\ThorHeader.cs" />
+    <Compile Include="Graphics\Point3D.cs" />
+    <Compile Include="Graphics\Scalar.cs" />
+    <Compile Include="Hash\FolderHash.cs" />
+    <Compile Include="Hash\HashExploreMethod.cs" />
+    <Compile Include="Hash\HashObject.cs" />
+    <Compile Include="Hash\HashObjectComparer.cs" />
+    <Compile Include="Hash\HashObjectHeader.cs" />
+    <Compile Include="Image\GrfImageWrapper.cs" />
+    <Compile Include="Image\TrimDirection.cs" />
+    <Compile Include="IO\ByteReader.cs" />
+    <Compile Include="IO\ByteReaderStream.cs" />
+    <Compile Include="IO\ByteWriterStream.cs" />
+    <Compile Include="IO\ThreadSetLzma.cs" />
+    <Compile Include="IO\EntrySearchNode.cs" />
+    <Compile Include="IO\LineTextReader.cs" />
+    <Compile Include="IO\ThreadCompressFiles.cs" />
+    <Compile Include="IO\ThreadSetEncryption.cs" />
+    <Compile Include="IO\TableDictionary.cs" />
+    <Compile Include="IO\IBinaryReader.cs" />
+    <Compile Include="System\DisposableScope.cs" />
+    <Compile Include="System\TemporaryFilesManager.cs" />
+    <Compile Include="Core\GrfCompression\CpsCompression.cs" />
+    <Compile Include="Core\GrfCompression\CustomCompression.cs" />
+    <Compile Include="Core\GrfCompression\DotNetCompression.cs" />
+    <Compile Include="Core\GrfCompression\ICompression.cs" />
+    <Compile Include="Core\Exceptions\EncryptionException.cs" />
+    <Compile Include="FileFormats\ActFormat\Act.cs" />
+    <Compile Include="FileFormats\ActFormat\ActHeader.cs" />
+    <Compile Include="FileFormats\ActFormat\Action.cs" />
+    <Compile Include="FileFormats\ActFormat\Frame.cs" />
+    <Compile Include="FileFormats\ActFormat\Layer.cs" />
+    <Compile Include="FileFormats\CommonFormat.cs" />
+    <Compile Include="FileFormats\DbFormat\FileObject.cs" />
+    <Compile Include="FileFormats\DbFormat\FileObjectCollection.cs" />
+    <Compile Include="FileFormats\DbFormat\IBaseStorageWrapper.cs" />
+    <Compile Include="FileFormats\DbFormat\Interop.cs" />
+    <Compile Include="FileFormats\DbFormat\StorageWrapper.cs" />
+    <Compile Include="FileFormats\DbFormat\ItStorageWrapper.cs" />
+    <Compile Include="FileFormats\DbFormat\ThumbDB.cs" />
+    <Compile Include="FileFormats\Ebm.cs" />
+    <Compile Include="FileFormats\FileFormatParser.cs" />
+    <Compile Include="FileFormats\FileHeader.cs" />
+    <Compile Include="FileFormats\Fna.cs" />
+    <Compile Include="FileFormats\GatFormat\Gat.cs" />
+    <Compile Include="FileFormats\GatFormat\Cell.cs" />
+    <Compile Include="FileFormats\GatFormat\GatHeader.cs" />
+    <Compile Include="FileFormats\GatFormat\GatPreviewFormat.cs" />
+    <Compile Include="FileFormats\GndFormat\Cube.cs" />
+    <Compile Include="FileFormats\GndFormat\Gnd.cs" />
+    <Compile Include="FileFormats\GndFormat\GndHeader.cs" />
+    <Compile Include="FileFormats\GndFormat\GndMesh.cs" />
+    <Compile Include="FileFormats\GndFormat\Lightmap.cs" />
+    <Compile Include="FileFormats\GndFormat\LightmapContainer.cs" />
+    <Compile Include="FileFormats\GndFormat\Tile.cs" />
+    <Compile Include="Image\IImageable.cs" />
+    <Compile Include="Image\ImageProvider.cs" />
+    <Compile Include="FileFormats\PalFormat\IPaletteCommand.cs" />
+    <Compile Include="FileFormats\PalFormat\PaletteChange.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\ChangeId.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\ChangePalette.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\Flip.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\GroupCommand.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\Remove.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\ICommand.cs" />
+    <Compile Include="FileFormats\SprFormat\Commands\Insert.cs" />
+    <Compile Include="Graphics\Matrix3.cs" />
+    <Compile Include="Graphics\Matrix4.cs" />
+    <Compile Include="FileFormats\RsmFormat\MeshStructure\MeshTriangle.cs" />
+    <Compile Include="FileFormats\RsmFormat\MeshStructure\MeshRawData.cs" />
+    <Compile Include="Graphics\Plane.cs" />
+    <Compile Include="Graphics\Point.cs" />
+    <Compile Include="FileFormats\SprFormat\Builder\SprBuilderImage.cs" />
+    <Compile Include="FileFormats\SprFormat\Builder\SprBuilderInterface.cs" />
+    <Compile Include="FileFormats\SprFormat\Builder\SprException.cs" />
+    <Compile Include="System\IErrorListener.cs" />
+    <Compile Include="Image\Decoders\AbstractImageFormatConverter.cs" />
+    <Compile Include="Image\Decoders\Bgr32FormatConverter.cs" />
+    <Compile Include="Image\Decoders\Bgr24FormatConverter.cs" />
+    <Compile Include="Image\Decoders\Bgra32FormatConverter.cs" />
+    <Compile Include="Image\Decoders\Indexed8FormatConverter.cs" />
+    <Compile Include="Image\GrfImage.cs" />
+    <Compile Include="Image\GrfImageEnums.cs" />
+    <Compile Include="Image\AbstractConverter.cs" />
+    <Compile Include="Image\Decoders\IImageFormatConverter.cs" />
+    <Compile Include="Image\ImageConverterManager.cs" />
+    <Compile Include="FileFormats\ImfFormat\Imf.cs" />
+    <Compile Include="FileFormats\ImfFormat\ImfActionNode.cs" />
+    <Compile Include="FileFormats\ImfFormat\ImfFrameNode.cs" />
+    <Compile Include="FileFormats\ImfFormat\ImfNode.cs" />
+    <Compile Include="FileFormats\PalFormat\Pal.cs" />
+    <Compile Include="FileFormats\Rgz.cs" />
+    <Compile Include="FileFormats\Rle.cs" />
+    <Compile Include="Graphics\BoundingBox.cs" />
+    <Compile Include="FileFormats\RsmFormat\Face.cs" />
+    <Compile Include="FileFormats\RsmFormat\Mesh.cs" />
+    <Compile Include="FileFormats\RsmFormat\PosKeyFrame.cs" />
+    <Compile Include="FileFormats\RsmFormat\RotKeyFrame.cs" />
+    <Compile Include="FileFormats\RsmFormat\Rsm.cs" />
+    <Compile Include="FileFormats\RsmFormat\RsmHeader.cs" />
+    <Compile Include="Graphics\TextureVertex.cs" />
+    <Compile Include="Graphics\Vertex.cs" />
+    <Compile Include="FileFormats\RsmFormat\VolumeBox.cs" />
+    <Compile Include="FileFormats\RswFormat\DataHolder.cs" />
+    <Compile Include="FileFormats\RswFormat\QuadTree.cs" />
+    <Compile Include="FileFormats\RswFormat\QuadTreeNode.cs" />
+    <Compile Include="FileFormats\RswFormat\Rsw.cs" />
+    <Compile Include="FileFormats\RswFormat\RswGround.cs" />
+    <Compile Include="FileFormats\RswFormat\RswHeader.cs" />
+    <Compile Include="FileFormats\RswFormat\RswLight.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\Effect.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\Light.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\Model.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\RswObject.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\RswObjectType.cs" />
+    <Compile Include="FileFormats\RswFormat\RswObjects\Sound.cs" />
+    <Compile Include="FileFormats\RswFormat\RswWater.cs" />
+    <Compile Include="FileFormats\SprFormat\ISprConverter.cs" />
+    <Compile Include="FileFormats\SprFormat\Spr.cs" />
+    <Compile Include="FileFormats\SprFormat\SprAbstract.cs" />
+    <Compile Include="FileFormats\SprFormat\SprConverterV1M0.cs" />
+    <Compile Include="FileFormats\SprFormat\SprConverterV2M0.cs" />
+    <Compile Include="FileFormats\SprFormat\SprConverterV2M1.cs" />
+    <Compile Include="FileFormats\SprFormat\SprConverterProvider.cs" />
+    <Compile Include="FileFormats\SprFormat\SprHeader.cs" />
+    <Compile Include="FileFormats\TgaFormat\Tga.cs" />
+    <Compile Include="FileFormats\TgaFormat\TgaHeader.cs" />
+    <Compile Include="IO\GrfPath.cs" />
+    <Compile Include="Threading\ThreadGenericGrf.cs" />
+    <Compile Include="Threading\ThreadScanGrf.cs" />
+    <Compile Include="Threading\GrfWriterThread.cs" />
+    <Compile Include="Threading\ConditionalThread.cs" />
+    <Compile Include="Threading\GrfThread.cs" />
+    <Compile Include="Core\Compression.cs" />
+    <Compile Include="Core\Enums\EntryType.cs" />
+    <Compile Include="Image\GrfColor.cs" />
+    <Compile Include="Core\Container.cs" />
+    <Compile Include="Core\FileEntry.cs" />
+    <Compile Include="Core\FileTable.cs" />
+    <Compile Include="Core\GrfHeader.cs" />
+    <Compile Include="Core\GrfHolder.cs" />
+    <Compile Include="Core\GrfPatcher.cs" />
+    <Compile Include="System\Settings.cs" />
+    <Compile Include="Core\GrfWriter.cs" />
+    <Compile Include="Image\Decoders\ImageFormatProvider.cs" />
+    <Compile Include="IO\ThreadRepack.cs" />
+    <Compile Include="System\CpuPerformance.cs" />
+    <Compile Include="Threading\StreamReadBlockInfo.cs" />
+    <Compile Include="Threading\GrfThreadExtract.cs" />
+    <Compile Include="Threading\ThreadCompressSmallFiles.cs" />
+    <Compile Include="Threading\PausableThread.cs" />
+    <Compile Include="Threading\IProgress.cs" />
+    <Compile Include="Threading\ProgressDummy.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Threading\GrfThreadPool.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="FileFormats\LubFormat\Core\CodeReconstructor2\Patterns.txt" />
+    <Content Include="FileFormats\LubFormat\Core\CodeReconstructor\Patterns.txt" />
+    <EmbeddedResource Include="Files\msvcp100.dll" />
+    <EmbeddedResource Include="Files\msvcr100.dll" />
+    <EmbeddedResource Include="Files\lzma.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\cps.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Encryption\Encryption.csproj">
+      <Project>{A7AFAA8D-B8BA-4695-B721-73CBD5334E1B}</Project>
+      <Name>Encryption</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{CD1BA63F-AB33-4EF4-98BC-CF851F51B38A}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)\Libraries\$(TargetFileName)"
+echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)..\Libraries\$(TargetFileName)"</PostBuildEvent>
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,411 @@
+﻿Patterns :
+
+#1
+This pattern removes the useless else
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition) then
+		goto 2
+	else
+		goto 3
+	end
+lab_2
+	Method1()
+	Method2()
+lab_3
+	return -1
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition) then
+		goto 2
+	end
+	goto 3
+lab_2
+	Method1()
+	Method2()
+lab_3
+	return -1
+end
+
+
+#2
+This pattern removes the useless if (pretty rare)
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition) then
+		goto 3
+	else
+		goto 2
+	end
+lab_2
+	Method1()
+	Method2()
+lab_3
+	return -1
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if not (condition) then
+		goto 2
+	end
+	goto 3
+lab_2
+	Method1()
+	Method2()
+lab_3
+	return -1
+end
+
+#AND.1
+This pattern merges if statements
+Based on the AND operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 2
+	else
+		goto 20
+	end
+lab_2
+	if (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) and (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#AND.2
+This pattern merges if statements
+Based on the AND operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 2
+	else
+		goto 20
+	end
+lab_2
+	if (condition2) then
+		goto 20
+	else
+		goto 3
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) and not (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#AND.3
+This pattern merges if statements
+Based on the AND operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 2
+	else
+		goto 20
+	end
+lab_2
+	if (condition2) then
+		goto 3
+	end
+	goto 20
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) and (condition2) then
+		goto 3
+	end
+	goto 20
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#AND.4
+This pattern merges if statements
+Based on the AND operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 20
+	else
+		goto 2
+	end
+lab_2
+	if (condition2) then
+		goto 20
+	end
+	goto 3
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if not (condition1) and (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#OR.1
+This pattern merges if statements
+Based on the OR operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 3
+	else
+		goto 2
+	end
+lab_2
+	if (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) or (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#OR.2
+This pattern merges if statements
+Based on the OR operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 3
+	else
+		goto 2
+	end
+lab_2
+	if (condition2) then
+		goto 20
+	else
+		goto 3
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) or not (condition2) then
+		goto 3
+	else
+		goto 20
+	end
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#5
+This pattern merges if statements
+Based on the AND operations
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) then
+		goto 20
+	else
+		goto 2
+	end
+lab_2
+	if (condition2) then
+		goto 3
+	end
+	goto 20
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition1) and (condition2) then
+		goto 3
+	end
+	goto 20
+lab_3
+	x = 4
+lab_20
+	return
+end
+
+#5
+This pattern removes another kind of useless else
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition) then
+		goto 2
+	else
+		goto 3
+	end
+lab_2
+	return 0
+lab_3
+	return -1
+end
+
+>
+
+lab_0
+function()
+	goto 1
+lab_1
+	if (condition) then
+		goto 2
+	end
+	goto 3
+lab_2
+	return 0
+lab_3
+	return -1
+end
