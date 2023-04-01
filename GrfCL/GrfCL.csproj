@@ -105,12 +105,30 @@
     <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ErrorManager, Version=1.2.5494.34248, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Librairies\ErrorManager.dll</HintPath>
+    <Reference Include="ActImaging">
+      <HintPath>..\Libraries\ActImaging.dll</HintPath>
+    </Reference>
+    <Reference Include="Encryption">
+      <HintPath>..\Libraries\Encryption.dll</HintPath>
+    </Reference>
+    <Reference Include="ErrorManager">
+      <HintPath>..\Libraries\ErrorManager.dll</HintPath>
+    </Reference>
+    <Reference Include="GRF">
+      <HintPath>..\Libraries\GRF.dll</HintPath>
+    </Reference>
+    <Reference Include="GrfToWpfBridge">
+      <HintPath>..\Libraries\GrfToWpfBridge.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="TokeiLibrary">
+      <HintPath>..\Libraries\TokeiLibrary.dll</HintPath>
+    </Reference>
+    <Reference Include="Utilities">
+      <HintPath>..\Libraries\Utilities.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -165,32 +183,6 @@
   <ItemGroup>
     <EmbeddedResource Include="Files\GrfToWpfBridge.dll" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\ActImaging\ActImaging.csproj">
-      <Project>{2D16AF7F-FD66-4D3B-AB6D-22C1CF73DAED}</Project>
-      <Name>ActImaging</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Encryption\Encryption.csproj">
-      <Project>{A7AFAA8D-B8BA-4695-B721-73CBD5334E1B}</Project>
-      <Name>Encryption</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GrfToWpfBridge\GrfToWpfBridge.csproj">
-      <Project>{EC4E062E-A9A8-4C70-A91A-59C64BAFD38A}</Project>
-      <Name>GrfToWpfBridge</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\GRF\GRF.csproj">
-      <Project>{F21476B8-04E5-43EE-AD1B-CF7BD2ED3D4F}</Project>
-      <Name>GRF</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\TokeiLibrary\TokeiLibrary.csproj">
-      <Project>{812355C7-A277-4E8C-B6A0-306310F8F183}</Project>
-      <Name>TokeiLibrary</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{CD1BA63F-AB33-4EF4-98BC-CF851F51B38A}</Project>
-      <Name>Utilities</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>cd "$(SolutionDir)..\Librairies\"
@@ -199,7 +191,7 @@ cd "$(SolutionDir)GrfCL\Files\"</PreBuildEvent>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
