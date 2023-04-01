@@ -1,0 +1,21 @@
+﻿<UserControl x:Class="GrfToWpfBridge.MultiGrf.MetaGrfResourcesViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <ListView AllowDrop="True" Name="_itemsResources" Margin="3" PreviewMouseRightButtonUp="_itemsResources_PreviewMouseRightButtonUp" DragEnter="_itemsResources_DragEnter" Drop="_itemsResources_Drop">
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <Styles:TkMenuItem Name="_menuItemsDelete" Header="Delete" Click="_menuItemsDelete_Click" IconPath="delete.png" />
+                    <Styles:TkMenuItem Name="_menuItemsMoveUp" Header="Move up" Click="_menuItemsMoveUp_Click" IconPath="arrowup.png" />
+                    <Styles:TkMenuItem Name="_menuItemsMoveDown" Header="Move down" Click="_menuItemsMoveDown_Click"  IconPath="arrowdown.png" />
+                    <Styles:TkMenuItem Name="_menuItemsSelectInExplorer" Header="Select in explorer" Click="_menuItemsSelectInExplorer_Click" IconPath="find.png" />
+                    <Styles:TkMenuItem Name="_menuItemsAdd" Header="Add..." Click="_menuItemsAdd_Click" IconPath="add.png" />
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+    </Grid>
+</UserControl>
