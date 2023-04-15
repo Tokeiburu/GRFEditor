@@ -151,7 +151,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.4.7"; }
+			get { return "1.8.4.8"; }
 		}
 
 		public static string Author {
