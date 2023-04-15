@@ -162,17 +162,10 @@ namespace GRF.FileFormats.RswFormat {
 		}
 
 		private void _save(BinaryWriter stream) {
-			Header.Write(stream);
-
-			if (Header.IsCompatibleWith(2, 6)) {
-				// Water gone!
-			}
-			else {
-				Water.Write(stream);
-			}
-
-			Light.Write(stream);
-			Ground.Write(stream);
+			Header.Write(stream, Header);
+			Water.Write(stream, Header);
+			Light.Write(stream, Header);
+			Ground.Write(stream, Header);
 
 			stream.Write(Objects.Count);
 

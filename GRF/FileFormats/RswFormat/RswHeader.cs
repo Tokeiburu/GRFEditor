@@ -5,7 +5,7 @@ using GRF.IO;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.RswFormat {
-	public class RswHeader : FileHeader, IWriteableObject {
+	public class RswHeader : FileHeader {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RswHeader" /> class.
 		/// </summary>
@@ -82,7 +82,8 @@ namespace GRF.FileFormats.RswFormat {
 		/// Writes the specified object to the stream.
 		/// </summary>
 		/// <param name="writer">The writer.</param>
-		public void Write(BinaryWriter writer) {
+		/// <param name="header">The RSW header.</param>
+		public void Write(BinaryWriter writer, RswHeader header) {
 			writer.Write(Encoding.ASCII.GetBytes(Magic));
 			writer.Write(MajorVersion);
 			writer.Write(MinorVersion);

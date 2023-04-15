@@ -2,7 +2,7 @@
 using GRF.IO;
 
 namespace GRF.FileFormats.RswFormat {
-	public class RswGround : IWriteableObject {
+	public class RswGround {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RswGround" /> class.
 		/// </summary>
@@ -59,11 +59,14 @@ namespace GRF.FileFormats.RswFormat {
 		/// Writes the specified object to the stream.
 		/// </summary>
 		/// <param name="writer">The writer.</param>
-		public void Write(BinaryWriter writer) {
-			writer.Write(Top);
-			writer.Write(Bottom);
-			writer.Write(Left);
-			writer.Write(Right);
+		/// <param name="header">The header.</param>
+		public void Write(BinaryWriter writer, RswHeader header) {
+			if (header.IsCompatibleWith(1, 6)) {
+				writer.Write(Top);
+				writer.Write(Bottom);
+				writer.Write(Left);
+				writer.Write(Right);
+			}
 		}
 	}
 }

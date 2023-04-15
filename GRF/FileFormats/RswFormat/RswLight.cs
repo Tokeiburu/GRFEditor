@@ -2,7 +2,7 @@
 using GRF.IO;
 
 namespace GRF.FileFormats.RswFormat {
-	public class RswLight : IWriteableObject{
+	public class RswLight {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RswLight" /> class.
 		/// </summary>
@@ -96,16 +96,22 @@ namespace GRF.FileFormats.RswFormat {
 		/// Writes the specified object to the stream.
 		/// </summary>
 		/// <param name="writer">The writer.</param>
-		public void Write(BinaryWriter writer) {
-			writer.Write(Longitude);
-			writer.Write(Latitude);
-			writer.Write(DiffuseRed);
-			writer.Write(DiffuseGreen);
-			writer.Write(DiffuseBlue);
-			writer.Write(AmbientRed);
-			writer.Write(AmbientGreen);
-			writer.Write(AmbientBlue);
-			writer.Write(Ignored);
+		/// <param name="header">The header.</param>
+		public void Write(BinaryWriter writer, RswHeader header) {
+			if (header.IsCompatibleWith(1, 5)) {
+				writer.Write(Longitude);
+				writer.Write(Latitude);
+				writer.Write(DiffuseRed);
+				writer.Write(DiffuseGreen);
+				writer.Write(DiffuseBlue);
+				writer.Write(AmbientRed);
+				writer.Write(AmbientGreen);
+				writer.Write(AmbientBlue);
+			}
+
+			if (header.IsCompatibleWith(1, 7)) {
+				writer.Write(Ignored);
+			}
 		}
 	}
 }
