@@ -236,16 +236,34 @@ namespace GRFEditor.Tools.Map {
 						else {
 							switch(gatCell.Type) {
 								case GatType.Weird0:
-								case GatType.Weird1:
-								case GatType.Weird2:
-								case GatType.Weird3:
-								case GatType.Weird4:
-								case GatType.Weird5:
-								case GatType.Weird6:
-								case GatType.Weird7:
-								case GatType.Weird8:
-								case GatType.Weird9:
 									cellTypes[i] = (int)GatType.Walkable;
+									break;
+								case GatType.Weird1:
+									cellTypes[i] = (int)GatType.NoWalkable;
+									break;
+								case GatType.Weird2:
+									cellTypes[i] = (int)GatType.NoWalkableNoSnipable;
+									break;
+								case GatType.Weird3:
+									cellTypes[i] = (int)GatType.Walkable2;
+									break;
+								case GatType.Weird4:
+									cellTypes[i] = (int)GatType.Unknown;
+									break;
+								case GatType.Weird5:
+									cellTypes[i] = (int)GatType.NoWalkableSnipable;
+									break;
+								case GatType.Weird6:
+									cellTypes[i] = (int)GatType.Walkable3;
+									break;
+								case GatType.Weird7:
+									cellTypes[i] = (int)GatType.NoWalkable;
+									break;
+								case GatType.Weird8:
+									cellTypes[i] = (int)GatType.NoWalkable;
+									break;
+								case GatType.Weird9:
+									cellTypes[i] = (int)GatType.NoWalkable;
 									break;
 								default:
 									cellTypes[i] = (int)gatCell.Type;
