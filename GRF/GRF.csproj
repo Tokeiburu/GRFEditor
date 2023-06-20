@@ -107,8 +107,11 @@
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
   </PropertyGroup>
   <ItemGroup>
+	<Reference Include="Encryption">
+      <HintPath>..\Libraries\Encryption.dll</HintPath>
+    </Reference>
     <Reference Include="ErrorManager, Version=1.2.5494.34248, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Librairies\ErrorManager.dll</HintPath>
+      <HintPath>..\Librairies\ErrorManager.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
