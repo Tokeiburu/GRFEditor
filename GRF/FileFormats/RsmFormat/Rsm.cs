@@ -161,7 +161,7 @@ namespace GRF.FileFormats.RsmFormat {
 				}
 			}
 
-			_uniqueTextures();
+			//_uniqueTextures();
 			Box = new BoundingBox();
 		}
 
