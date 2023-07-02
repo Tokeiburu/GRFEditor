@@ -134,9 +134,6 @@
     <Compile Include="Core\AsyncOperationReturnState.cs" />
     <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
     <Compile Include="Core\GrfLoadingSettings.cs" />
-    <Compile Include="Core\MapRenderer\MapGnd.cs" />
-    <Compile Include="Core\MapRenderer\MapLightmap.cs" />
-    <Compile Include="Core\MapRenderer\MapTile.cs" />
     <Compile Include="Tools\GrfValidation\Validation.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
@@ -177,7 +174,6 @@
     <Compile Include="WPF\PreviewTabs\GLGroup\GLLayer.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\GLLine.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\GLObject.cs" />
-    <Compile Include="WPF\PreviewTabs\GLGroup\GLTexture.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\Shader.cs" />
     <Compile Include="WPF\PreviewTabs\MeshRawData2.cs" />
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
