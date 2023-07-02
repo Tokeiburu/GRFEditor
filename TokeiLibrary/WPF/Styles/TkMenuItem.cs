@@ -7,6 +7,81 @@ using Utilities;
 
 namespace TokeiLibrary.WPF.Styles {
 	public class TkMenuItem : MenuItem {
+		public TkMenuItem() {
+			// Ideally open we want the event to trigger from the parent's context menu
+			var contextMenu = WpfUtilities.FindDirectParentControl<ContextMenu>(this);
+
+			if (contextMenu != null) {
+				contextMenu.Opened += _menuOpened;
+			}
+			else {
+				this.Loaded += _menuOpened;
+			}
+		}
+
+		private bool _assigned;
+
+		private void _menuOpened(object sender, RoutedEventArgs e) {
+			if (String.IsNullOrEmpty(Shortcut) && String.IsNullOrEmpty(ShortcutCmd))
+				return;
+
+			var parent = WpfUtilities.FindDirectParentControl<Window>(this) ?? WpfUtilities.TopWindow;
+
+			if (parent != null) {
+				var name = this.HeaderText;
+				if (String.IsNullOrEmpty(name)) {
+					name = (this.Header ?? "").ToString();
+				}
+
+				if (String.IsNullOrEmpty(name)) {
+					name = this.Name;
+				}
+
+				string gestureCmd = String.IsNullOrEmpty(ShortcutCmd) ? (name ?? "") : ShortcutCmd;
+
+				if (!_assigned && !String.IsNullOrEmpty(Shortcut)) {
+					ApplicationShortcut.Link(ApplicationShortcut.FromString(String.IsNullOrEmpty(Shortcut) ? "NULL" : Shortcut, gestureCmd), () => {
+						RoutedEventArgs arg = new RoutedEventArgs(ClickEvent, this);
+						this.RaiseEvent(arg);
+					}, parent);
+					_assigned = true;
+				}
+
+				var gesture = ApplicationShortcut.GetGesture(gestureCmd);
+
+				this.InputGestureText = ApplicationShortcut.FindDislayNameMenuItem(gesture);
+			}
+
+			if (!this._isInputStyleSet) {
+				try {
+					var grid = WpfUtilities.FindFirstChild<Grid>(this);
+
+					if (grid != null) {
+						var last = grid.Children.Cast<UIElement>().Last() as Grid;
+
+						if (last != null) {
+							var tb = last.Children.Cast<UIElement>().Last() as TextBlock;
+
+							if (tb != null) {
+								tb.VerticalAlignment = VerticalAlignment.Center;
+								this._isInputStyleSet = true;
+							}
+						}
+					}
+				}
+				catch {
+					this._isInputStyleSet = true;
+				}
+			}
+
+			//var contextMenu = WpfUtilities.FindDirectParentControl<ContextMenu>(this);
+			//
+			//if (contextMenu != null) {
+			//	RoutedEventArgs arg = new RoutedEventArgs(SizeChangedEvent, contextMenu);
+			//	contextMenu.RaiseEvent(arg);
+			//}
+		}
+
 		public Func<bool> CanExecute {
 			get { return (Func<bool>)GetValue(CanExecuteProperty); }
 			set { SetValue(CanExecuteProperty, value); }
@@ -37,59 +112,13 @@ namespace TokeiLibrary.WPF.Styles {
 			get { return (string)GetValue(ShortcutProperty); }
 			set { SetValue(ShortcutProperty, value); }
 		}
-		public static DependencyProperty ShortcutProperty = DependencyProperty.Register("Shortcut", typeof(string), typeof(TkMenuItem), new PropertyMetadata(new PropertyChangedCallback(OnShortcutChanged)));
+		public static DependencyProperty ShortcutProperty = DependencyProperty.Register("Shortcut", typeof(string), typeof(TkMenuItem), null);
 
-		private static void OnShortcutChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkMenuItem menuItem = d as TkMenuItem;
-
-			if (menuItem != null) {
-				menuItem.InputGestureText = e.NewValue.ToString();
-				menuItem.Loaded += delegate {
-					var parent = WpfUtilities.FindDirectParentControl<Window>(menuItem);
-
-					if (parent != null) {
-						var name = menuItem.HeaderText;
-
-						if (String.IsNullOrEmpty(name)) {
-							name = (menuItem.Header ?? "").ToString();
-						}
-
-						if (String.IsNullOrEmpty(name)) {
-							name = menuItem.Name;
-						}
-
-						ApplicationShortcut.Link(ApplicationShortcut.FromString(e.NewValue.ToString(), name ?? ""), () => {
-							RoutedEventArgs arg = new RoutedEventArgs(ClickEvent, menuItem);
-							menuItem.RaiseEvent(arg);
-						}, parent);
-
-						menuItem.InputGestureText = ApplicationShortcut.FindDislayName(ApplicationShortcut.FromString(e.NewValue.ToString(), name ?? ""));
-					}
-
-					if (!menuItem._isInputStyleSet) {
-						try {
-							var grid = WpfUtilities.FindFirstChild<Grid>(menuItem);
-
-							if (grid != null) {
-								var last = grid.Children.Cast<UIElement>().Last() as Grid;
-
-								if (last != null) {
-									var tb = last.Children.Cast<UIElement>().Last() as TextBlock;
-
-									if (tb != null) {
-										tb.VerticalAlignment = VerticalAlignment.Center;
-										menuItem._isInputStyleSet = true;
-									}
-								}
-							}
-						}
-						catch {
-							menuItem._isInputStyleSet = true;
-						}
-					}
-				};
-			}
+		public string ShortcutCmd {
+			get { return (string)GetValue(ShortcutCmdProperty); }
+			set { SetValue(ShortcutCmdProperty, value); }
 		}
+		public static DependencyProperty ShortcutCmdProperty = DependencyProperty.Register("ShortcutCmd", typeof(string), typeof(TkMenuItem), null);
 
 		private bool _isInputStyleSet = false;
 

@@ -842,6 +842,56 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		}
 
 		/// <summary>
+		/// Mirrors the layers with at a specific offset (0 by default).
+		/// </summary>
+		/// <param name="actionIndex">Index of the action.</param>
+		/// <param name="frameIndex">Index of the frame.</param>
+		/// <param name="layerIndexFrom">The layer index source.</param>
+		/// <param name="offset">The mirror offset.</param>
+		/// <param name="direction">The flip direction.</param>
+		/// <returns></returns>
+		public bool MirrorFromOffset(int actionIndex, int frameIndex, int layerIndexFrom, int offset, FlipDirection direction) {
+			_act.Commands.StoreAndExecute(new FlipCommand(actionIndex, frameIndex, layerIndexFrom, offset, direction));
+			return true;
+		}
+
+		/// <summary>
+		/// Mirrors the layers with at a specific offset (0 by default).
+		/// </summary>
+		/// <param name="actionIndex">Index of the action.</param>
+		/// <param name="frameIndex">Index of the frame.</param>
+		/// <param name="offset">The mirror offset.</param>
+		/// <param name="direction">The flip direction.</param>
+		/// <returns></returns>
+		public bool MirrorFromOffset(int actionIndex, int frameIndex, int offset, FlipDirection direction) {
+			_act.Commands.StoreAndExecute(new FlipCommand(actionIndex, frameIndex, offset, direction));
+			return true;
+		}
+
+		/// <summary>
+		/// Mirrors the layers with at a specific offset (0 by default).
+		/// </summary>
+		/// <param name="actionIndex">Index of the action.</param>
+		/// <param name="offset">The mirror offset.</param>
+		/// <param name="direction">The flip direction.</param>
+		/// <returns></returns>
+		public bool MirrorFromOffset(int actionIndex, int offset, FlipDirection direction) {
+			_act.Commands.StoreAndExecute(new FlipCommand(actionIndex, offset, direction));
+			return true;
+		}
+
+		/// <summary>
+		/// Mirrors the layers with at a specific offset (0 by default).
+		/// </summary>
+		/// <param name="offset">The mirror offset.</param>
+		/// <param name="direction">The flip direction.</param>
+		/// <returns></returns>
+		public bool MirrorFromOffset(int offset, FlipDirection direction) {
+			_act.Commands.StoreAndExecute(new FlipCommand(offset, direction));
+			return true;
+		}
+
+		/// <summary>
 		/// Deletes a layer.
 		/// </summary>
 		/// <param name="actionIndex">Index of the action.</param>
@@ -872,7 +922,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// </summary>
 		/// <param name="image">The image.</param>
 		public void SpriteAdd(GrfImage image) {
-			_act.Commands.StoreAndExecute(new SpriteCommand(image.GrfImageType == GrfImageType.Indexed8 ? _act.Sprite.NumberOfIndexed8Images : _act.Sprite.NumberOfImagesLoaded, image, SpriteCommand.SpriteEdit.InsertAt));
+			_act.Commands.StoreAndExecute(new SpriteCommand(image.GrfImageType == GrfImageType.Indexed8 ? _act.Sprite.NumberOfIndexed8Images : _act.Sprite.NumberOfImagesLoaded - _act.Sprite.NumberOfIndexed8Images, image, SpriteCommand.SpriteEdit.InsertAt));
 		}
 
 		/// <summary>

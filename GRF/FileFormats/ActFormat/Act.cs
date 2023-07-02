@@ -52,6 +52,7 @@ namespace GRF.FileFormats.ActFormat {
 
 		public Act(MultiType actData, MultiType sprData)
 			: this(actData.Data, sprData.Data) {
+			LoadedPath = actData.Path;
 		}
 
 		public Act(Act act) {

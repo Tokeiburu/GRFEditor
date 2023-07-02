@@ -778,6 +778,10 @@ namespace Utilities {
 		}
 
 		public static bool ByteArrayCompare(byte[] b1, byte[] b2) {
+			if (b1 == null && b2 == null)
+				return true;
+			if (b1 == null || b2 == null)
+				return false;
 			return b1.Length == b2.Length && NativeMethods.memcmp(b1, b2, b1.Length) == 0;
 		}
 		public static bool ByteArrayCompare(byte[] b1, int offset1, int length, byte[] b2, int offset2) {

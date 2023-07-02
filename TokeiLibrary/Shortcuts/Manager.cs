@@ -97,6 +97,16 @@ namespace TokeiLibrary.Shortcuts {
 		public KeyGesture KeyGesture { get; private set; }
 		public System.Windows.Input.KeyBinding KeyBinding { get; private set; }
 
+		public Shortcut(string cmdName) {
+			CommandName = cmdName;
+			DisplayString = "Not assigned";
+			KeyGesture = new KeyGesture(Key.SelectMedia, ModifierKeys.Windows | ModifierKeys.Shift | ModifierKeys.Control | ModifierKeys.Alt, "Not assigned");
+		}
+
+		public bool IsAssigned {
+			get { return DisplayString != "Not assigned"; }
+		}
+
 		public Shortcut(Shortcut shortcut, string cmdName) {
 			CommandName = cmdName;
 			DisplayString = shortcut.DisplayString;
@@ -360,6 +370,21 @@ namespace TokeiLibrary.Shortcuts {
 			return gesture.DisplayString;
 		}
 
+		public static string FindDislayNameMenuItem(Shortcut gesture) {
+			if (gesture == null)
+				return "NA";
+
+			if (_override.ContainsKey(gesture.CommandName))
+				return _override[gesture.CommandName];
+
+			if (_keyBindings2.ContainsKey(gesture.CommandName)) {
+				var bind = _keyBindings2[gesture.CommandName].KeyGesture;
+				return bind.IsAssigned ? bind.DisplayString : "NA";
+			}
+
+			return gesture.IsAssigned ? gesture.DisplayString : "NA";
+		}
+
 		public static bool Is(Shortcut shortcut) {
 			if (shortcut.KeyGesture != null) {
 				return (Keyboard.Modifiers & shortcut.KeyGesture.Modifiers) == shortcut.KeyGesture.Modifiers && Keyboard.IsKeyDown(shortcut.KeyGesture.Key);
@@ -385,6 +410,10 @@ namespace TokeiLibrary.Shortcuts {
 		}
 
 		public static Shortcut FromString(string keyGesture, string cmdName) {
+			if (keyGesture == "NULL" || keyGesture == "NA") {
+				return new Shortcut(cmdName);
+			}
+
 			List<string> gesture = keyGesture.Split(new char[] { '-' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 
 			ModifierKeys keys = 0;
@@ -394,11 +423,9 @@ namespace TokeiLibrary.Shortcuts {
 				if (String.Compare(gesture[i], "shift", StringComparison.OrdinalIgnoreCase) == 0) {
 					keys |= ModifierKeys.Shift;
 				}
-
 				else if (String.Compare(gesture[i], "ctrl", StringComparison.OrdinalIgnoreCase) == 0) {
 					keys |= ModifierKeys.Control;
 				}
-
 				else if (String.Compare(gesture[i], "alt", StringComparison.OrdinalIgnoreCase) == 0) {
 					keys |= ModifierKeys.Alt;
 				}

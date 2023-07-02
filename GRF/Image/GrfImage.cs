@@ -507,6 +507,10 @@ namespace GRF.Image {
 			_bufferedSimilarities.Clear();
 		}
 
+		public bool IsIdentical(GrfImage image) {
+			return Methods.ByteArrayCompare(image.Pixels, this.Pixels) && Methods.ByteArrayCompare(image.Palette, this.Palette);
+		}
+
 		/// <summary>
 		/// Compares this image with the one specified.
 		/// </summary>
@@ -879,6 +883,29 @@ namespace GRF.Image {
 			}
 
 			return new GrfColor(Pixels, bpp * pixelIndex, GrfImageType);
+		}
+
+		/// <summary>
+		/// Sets the color at the requested pixel index.
+		/// </summary>
+		/// <param name="pixelIndex">Index of the pixel.</param>
+		/// <param name="color">The requested color.</param>
+		public void SetColor(int pixelIndex, GrfColor color) {
+			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
+			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
+
+			int bpp = GetBpp();
+
+			if (GrfImageType == GrfImageType.Indexed8) {
+				throw GrfExceptions.__UnsupportedImageFormat.Create();
+			}
+
+			if (bpp == 4) {
+				Buffer.BlockCopy(color.ToBgraBytes(), 0, Pixels, bpp * pixelIndex, bpp);
+			}
+			else {
+				Buffer.BlockCopy(color.ToBgrBytes(), 0, Pixels, bpp * pixelIndex, bpp);
+			}
 		}
 
 		/// <summary>

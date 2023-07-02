@@ -3,14 +3,27 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" mc:Ignorable="d" >
+              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+              xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+              xmlns:listView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+              mc:Ignorable="d" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <TextBlock Name="_tbInfo" Text="Processing..." Margin="7 10 7 10" TextWrapping="Wrap" />
         <Styles:TkProgressBar Grid.Row="1" x:Name="_progressBar" Width="250" Margin="5 5 5 10" />
+        <Grid Name="_gridFooter" Visibility="Collapsed" listView:WpfUtils.IsDraggable="True" Grid.Row="3" Height="50" Background="{x:Static TokeiLibrary:Configuration.UIDialogBackground}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0" Grid.Column="1">
+                <Button Name="_buttonCancel" Click="_buttonCancel_Click" Content="Cancel" Height="24" Margin="3" MinWidth="100" />
+            </DockPanel>
+        </Grid>
     </Grid>
 </Styles:TkWindow>

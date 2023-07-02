@@ -31,6 +31,7 @@ namespace Database {
 
 		public void Add(DbAttribute attribute) {
 			attribute.Index = _attributes.Count;
+			attribute.Parent = this;
 
 			if (_closed)
 				throw new Exception("Trying to add an attribute after the list has been closed. Only access the attributes once you have finished adding the attribute to the list.");

@@ -91,7 +91,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					}
 					break;
 				case SpriteEdit.InsertAt:
-					act.RemoveSprite(_spriteIndex);
+					act.RemoveSprite(_spriteIndex + (_image.GrfImageType == GrfImageType.Indexed8 ? 0 : act.Sprite.NumberOfIndexed8Images));
 					break;
 				case SpriteEdit.ReplaceAt:
 					act.Sprite.Images[_spriteIndex] = _conflict;

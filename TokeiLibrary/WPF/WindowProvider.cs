@@ -22,7 +22,12 @@ namespace TokeiLibrary.WPF {
 
 				itemClicked.IsEnabled = false;
 				window.ShowInTaskbar = true;
-				window.Closed += (e, a) => itemClicked.IsEnabled = true;
+				window.Closed += delegate {
+					itemClicked.IsEnabled = true;
+
+					if (window.Owner != null)
+						window.Focus();
+				};
 				window.Show();
 			}
 		}
@@ -43,6 +48,9 @@ namespace TokeiLibrary.WPF {
 					foreach (Control item in buttons) {
 						item.IsEnabled = true;
 					}
+
+					if (window.Owner != null)
+						window.Focus();
 				};
 				window.Show();
 			}

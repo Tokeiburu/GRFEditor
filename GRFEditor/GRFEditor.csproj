@@ -134,6 +134,12 @@
     <Compile Include="Core\AsyncOperationReturnState.cs" />
     <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
     <Compile Include="Core\GrfLoadingSettings.cs" />
+    <Compile Include="Core\MapRenderer\MapGnd.cs" />
+    <Compile Include="Core\MapRenderer\MapLightmap.cs" />
+    <Compile Include="Core\MapRenderer\MapTile.cs" />
+    <Compile Include="MapTest.xaml.cs">
+      <DependentUpon>MapTest.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\GrfValidation\Validation.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
@@ -174,6 +180,7 @@
     <Compile Include="WPF\PreviewTabs\GLGroup\GLLayer.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\GLLine.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\GLObject.cs" />
+    <Compile Include="WPF\PreviewTabs\GLGroup\GLTexture.cs" />
     <Compile Include="WPF\PreviewTabs\GLGroup\Shader.cs" />
     <Compile Include="WPF\PreviewTabs\MeshRawData2.cs" />
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
@@ -331,6 +338,10 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="MapTest.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Tools\GrfValidation\ValidationDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -918,10 +929,6 @@
     <Reference Include="ErrorManager">
       <HintPath>..\Libraries\ErrorManager.dll</HintPath>
     </Reference>
-    <Reference Include="GRF, Version=1.2.8491.21364, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\GRF.dll</HintPath>
-    </Reference>
     <Reference Include="GrfToWpfBridge, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\Libraries\GrfToWpfBridge.dll</HintPath>
     </Reference>
@@ -948,9 +955,6 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="TokeiLibrary, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Libraries\TokeiLibrary.dll</HintPath>
-    </Reference>
     <Reference Include="Utilities, Version=1.2.8491.21318, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Libraries\Utilities.dll</HintPath>
@@ -964,10 +968,20 @@
   <ItemGroup>
     <EmbeddedResource Include="Files\ErrorManager.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GRF\GRF.csproj">
+      <Project>{F21476B8-04E5-43EE-AD1B-CF7BD2ED3D4F}</Project>
+      <Name>GRF</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TokeiLibrary\TokeiLibrary.csproj">
+      <Project>{812355C7-A277-4E8C-B6A0-306310F8F183}</Project>
+      <Name>TokeiLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

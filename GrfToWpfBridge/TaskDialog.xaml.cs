@@ -15,6 +15,10 @@ namespace GrfToWpfBridge {
 		private readonly AsyncOperation _async;
 		private bool _enableClosing;
 
+		public void ShowFooter(bool value) {
+			_gridFooter.Visibility = value ? Visibility.Visible : Visibility.Collapsed;
+		}
+
 		public TaskDialog() {
 			InitializeComponent();
 		}
@@ -105,6 +109,10 @@ namespace GrfToWpfBridge {
 			Progress = 100f;
 			_enableClosing = true;
 			Dispatcher.Invoke(new Action(Close));
+		}
+
+		private void _buttonCancel_Click(object sender, RoutedEventArgs e) {
+			Close();
 		}
 	}
 }

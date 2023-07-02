@@ -135,6 +135,9 @@
     <Compile Include="Paths\TkPathRequest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Shortcuts\Manager.cs" />
+    <Compile Include="WpfBugFix\ToggleMemoryPopup.xaml.cs">
+      <DependentUpon>ToggleMemoryPopup.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WpfUtilities.cs" />
     <Compile Include="WpfImaging.cs" />
     <Compile Include="WPF\AboutDialog.xaml.cs">
@@ -142,6 +145,10 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="WPF\DaDExtensions.cs" />
+    <Compile Include="WPF\HyperlinkTextBlock.xaml.cs">
+      <DependentUpon>HyperlinkTextBlock.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\LeftComboBox.cs" />
     <Compile Include="WPF\SelectTextBox.cs" />
     <Compile Include="WPF\EncodingSelector.cs" />
     <Compile Include="WPF\ErrorDialog.cs">
@@ -288,9 +295,17 @@
     <EmbeddedResource Include="Resources\folderOpened.png" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="WpfBugFix\ToggleMemoryPopup.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WPF\AboutDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\HyperlinkTextBlock.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="WPF\InputDialog.xaml">
       <SubType>Designer</SubType>
