@@ -137,9 +137,6 @@
     <Compile Include="Core\MapRenderer\MapGnd.cs" />
     <Compile Include="Core\MapRenderer\MapLightmap.cs" />
     <Compile Include="Core\MapRenderer\MapTile.cs" />
-    <Compile Include="MapTest.xaml.cs">
-      <DependentUpon>MapTest.xaml</DependentUpon>
-    </Compile>
     <Compile Include="Tools\GrfValidation\Validation.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
@@ -338,10 +335,6 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="MapTest.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
     <Page Include="Tools\GrfValidation\ValidationDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -981,7 +974,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
