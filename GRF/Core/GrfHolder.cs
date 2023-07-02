@@ -286,7 +286,7 @@ namespace GRF.Core {
 
 					AProgress.Init(_grf);
 					GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
-					pool.Initialize<ThreadSetEncryption>(_grf, FileTable.Entries, Settings.MaximumNumberOfThreads);
+					pool.Initialize<ThreadSetEncryption>(_grf, FileTable.Entries, 1);
 					pool.Start(v => _grf.Progress = v, () => _grf.IsCancelling);
 
 					using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
