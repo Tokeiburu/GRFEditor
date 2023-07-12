@@ -187,13 +187,13 @@
   <PropertyGroup>
     <PreBuildEvent>cd "$(SolutionDir)GrfCL\Files\"
 del *.dll
-cd "$(SolutionDir)..\Libraries\"
+cd "$(SolutionDir)\Libraries\"
 xcopy "*.dll" "$(SolutionDir)GrfCL\Files\" /E /Y
 cd "$(SolutionDir)GrfCL\Files\"</PreBuildEvent>
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
