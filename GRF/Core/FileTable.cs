@@ -237,9 +237,9 @@ namespace GRF.Core {
 				}
 
 				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile)) > 0) {
-					if (_indexedEntries.ContainsKey(fileEntry.RelativePath)) {
-						FileEntry conflict = _indexedEntries[fileEntry.RelativePath];
+					FileEntry conflict;
 
+					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out conflict)) {
 						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
 							_indexedEntries[fileEntry.RelativePath] = fileEntry;
 						}

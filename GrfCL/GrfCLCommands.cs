@@ -151,7 +151,7 @@ namespace GrfCL {
 			}
 			else if (clOption == CommandLineOptions.SaveAs) {
 				if (clOption.Args.Count == 0) {
-					string randomFile = Path.Combine(Settings.TempPath, Path.GetRandomFileName());
+					string randomFile = Path.Combine(Settings.TempPath, Path.GetRandomFileName() + Path.GetExtension(_grf.FileName));
 					string oldGrfFilename = _grf.FileName;
 
 					_grf.Save(randomFile, SyncMode.Asynchronous);
@@ -789,6 +789,24 @@ namespace GrfCL {
 				}
 
 				CLHelper.Log = "All files have been compared.";
+			}
+			else if (clOption == CommandLineOptions.SetEncryptionKey) {
+				_grf.Header.SetKey(Ee322.fc598f9d7ea7a3dfb74fd71f285c0d77(File.ReadAllBytes(clOption.Args[0])), _grf);
+				CLHelper.Log = "Encryption key set.";
+			}
+			else if (clOption == CommandLineOptions.Encrypt) {
+				if (_grf.Header.EncryptionKey == null)
+					throw new Exception("Encryption key file has not been set. Use the -setKey command first.");
+
+				_grf.Header.SetEncryption(_grf.Header.EncryptionKey, _grf);
+				CLHelper.Log = "All file entries have been encrypted.";
+			}
+			else if (clOption == CommandLineOptions.Decrypt) {
+				if (_grf.Header.EncryptionKey == null)
+					throw new Exception("Encryption key file has not been set. Use the -setKey command first.");
+
+				_grf.Header.SetDecryption(_grf.Header.EncryptionKey, _grf);
+				CLHelper.Log = "All file entries have been decrypted.";
 			}
 			else {
 				return false;

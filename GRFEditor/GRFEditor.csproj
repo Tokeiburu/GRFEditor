@@ -816,9 +816,6 @@
     <EmbeddedResource Include="Resources\replaceAll.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\GrfToWpfBridge.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\GrfToWpfBridge.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -918,9 +915,6 @@
     <Reference Include="ErrorManager">
       <HintPath>..\Libraries\ErrorManager.dll</HintPath>
     </Reference>
-    <Reference Include="GrfToWpfBridge, Version=1.0.0.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Libraries\GrfToWpfBridge.dll</HintPath>
-    </Reference>
     <Reference Include="ICSharpCode.AvalonEdit, Version=4.3.1.9429, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
       <HintPath>..\Libraries\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
@@ -958,6 +952,10 @@
     <EmbeddedResource Include="Files\ErrorManager.dll" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\GrfToWpfBridge\GrfToWpfBridge.csproj">
+      <Project>{EC4E062E-A9A8-4C70-A91A-59C64BAFD38A}</Project>
+      <Name>GrfToWpfBridge</Name>
+    </ProjectReference>
     <ProjectReference Include="..\GRF\GRF.csproj">
       <Project>{F21476B8-04E5-43EE-AD1B-CF7BD2ED3D4F}</Project>
       <Name>GRF</Name>
@@ -966,6 +964,9 @@
       <Project>{812355C7-A277-4E8C-B6A0-306310F8F183}</Project>
       <Name>TokeiLibrary</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\dos.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

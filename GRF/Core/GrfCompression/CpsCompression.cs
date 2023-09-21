@@ -50,7 +50,7 @@ namespace GRF.Core.GrfCompression {
 			_hModule = NativeMethods.LoadLibrary(outputPath);
 
 			if (_hModule == 0) {
-				ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed.Display(ResourceName));
+				ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2010 (x86) | downloading the x64 version will not be compatible"));
 				Success = false;
 				return;
 			}

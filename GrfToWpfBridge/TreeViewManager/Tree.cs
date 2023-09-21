@@ -160,5 +160,11 @@ namespace GrfToWpfBridge.TreeViewManager {
 			node.GetAllNodes(nodes);
 			nodes.ForEach(p => p.Set());
 		}
+
+		public void AddTvisToTree() {
+			TreeView.Dispatch(delegate {
+				TreeNode.AddTvisToTree();
+			});
+		}
 	}
 }

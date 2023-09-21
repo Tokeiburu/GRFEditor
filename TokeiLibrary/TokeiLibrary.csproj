@@ -246,9 +246,7 @@
     <Compile Include="WPF\TkInfoBlock.xaml.cs">
       <DependentUpon>TkInfoBlock.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WPF\TkTreeViewItem.cs">
-      <SubType>Code</SubType>
-    </Compile>
+    <Compile Include="WPF\TkTreeViewItem.cs" />
     <Compile Include="WPF\TkView.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -49,9 +49,6 @@ namespace TokeiLibrary.WPF {
 			get { return _tbDisplay; }
 		}
 
-		//public TkTreeViewItem() : this(null) {
-		//}
-
 		private static Brush _bufferBrush(Color color) {
 			var brush = new SolidColorBrush(color);
 			brush.Freeze();

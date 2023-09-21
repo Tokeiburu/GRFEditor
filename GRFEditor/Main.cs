@@ -97,50 +97,50 @@ namespace GRFEditor {
 
 			AppDomain.CurrentDomain.AssemblyResolve += (sender, arguments) => {
 				AssemblyName assemblyName = new AssemblyName(arguments.Name);
-
+				
 				if (_preloadedAssemblies.ContainsKey(assemblyName.Name))
 					return _preloadedAssemblies[assemblyName.Name];
-
+				
 				if (assemblyName.Name.EndsWith(".resources"))
 					return null;
-
+				
 				string resourceName = "GRFEditor.Files." + assemblyName.Name + ".dll";
-
+				
 				using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName)) {
 					if (stream != null) {
 						byte[] assemblyData = new Byte[stream.Length];
 						stream.Read(assemblyData, 0, assemblyData.Length);
-
+				
 						if (_assemblyValidation.ContainsKey(assemblyName.Name)) {
 							if (_assemblyValidation[assemblyName.Name] != assemblyData.Length) {
 								MessageBox.Show("Assembly mismatch: " + assemblyName.Name);
 							}
 						}
-
+				
 						_preloadedAssemblies[assemblyName.Name] = Assembly.Load(assemblyData);
 						return _preloadedAssemblies[assemblyName.Name];
 					}
 				}
-
+				
 				string compressedResourceName = "GRFEditor.Files.Compressed." + new AssemblyName(arguments.Name).Name + ".dll";
-
+				
 				using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(compressedResourceName)) {
 					if (stream != null) {
 						byte[] assemblyData = new Byte[stream.Length];
 						stream.Read(assemblyData, 0, assemblyData.Length);
 						assemblyData = Decompress(assemblyData);
-
+				
 						if (_assemblyValidation.ContainsKey(assemblyName.Name)) {
 							if (_assemblyValidation[assemblyName.Name] != assemblyData.Length) {
 								MessageBox.Show("Assembly mismatch: " + assemblyName.Name);
 							}
 						}
-
+				
 						_preloadedAssemblies[assemblyName.Name] = Assembly.Load(assemblyData);
 						return _preloadedAssemblies[assemblyName.Name];
 					}
 				}
-
+				
 				if (_registeredAssemblies.ToList().Contains(assemblyName.Name)) {
 					MessageBox.Show("Failed to load assembly : " + resourceName + "\r\n\r\nThe application will now shutdown.", "Assembly loader");
 					Process.GetCurrentProcess().Kill();

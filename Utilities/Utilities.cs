@@ -26,9 +26,13 @@ namespace Utilities {
 		/// <param name="sender">Any variable or simply none. Useful when the compiler ignores unused variables.</param>
 		public static void F(object sender = null) {
 		}
+
+		/// <summary>
+		/// Starts a stopwatch with the specified ID.
+		/// </summary>
+		/// <param name="opId">The stopwatch ID.</param>
 		public static void Start(int opId) {
 			if (_watches.ContainsKey(opId)) {
-				_watches[opId].Reset();
 				_watches[opId].Start();
 			}
 			else {
@@ -37,25 +41,23 @@ namespace Utilities {
 			}
 		}
 
-		public static void Stop(int opId) {
+		/// <summary>
+		/// Stops a stopwatch with the specified ID.
+		/// </summary>
+		/// <param name="opId">The stopwatch ID.</param>
+		/// <param name="display">Display the stopwatch duration or not.</param>
+		public static void Stop(int opId, bool display = false) {
 			if (_watches.ContainsKey(opId)) {
 				_watches[opId].Stop();
-				Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
-				_watches.Remove(opId);
+
+				if (display) {
+					Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
+				}
 			}
 		}
 
-		public static Stopwatch StopWithoutDisplay(int opId) {
+		public static void Delete(int opId) {
 			if (_watches.ContainsKey(opId)) {
-				_watches[opId].Stop();
-				return _watches[opId];
-			}
-			return null;
-		}
-
-		public static void StopAndRemoveWithoutDisplay(int opId) {
-			if (_watches.ContainsKey(opId)) {
-				_watches[opId].Stop();
 				_watches.Remove(opId);
 			}
 		}
@@ -70,16 +72,6 @@ namespace Utilities {
 
 		public static int GetRandomInteger(int from, int to) {
 			return (_rnd.Next() % (to - @from)) + @from;
-		}
-
-		public static void Resume(int opId) {
-			if (_watches.ContainsKey(opId)) {
-				_watches[opId].Start();
-			}
-			else {
-				_watches.Add(opId, new Stopwatch());
-				_watches[opId].Start();
-			}
 		}
 
 		public static bool CounterExists(int opId) {

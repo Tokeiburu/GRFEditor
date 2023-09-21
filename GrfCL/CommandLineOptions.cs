@@ -137,6 +137,22 @@ namespace GrfCL {
 		);
 
 		// Encryption
+		public static readonly CommandLineOptions SetEncryptionKey = new CommandLineOptions(
+			"setKey", "Sets the encryption key.",
+			1, 1, true,
+			"Encryption key file path."
+		);
+
+		public static readonly CommandLineOptions Encrypt = new CommandLineOptions(
+			"encrypt", "Encrypts an entire GRF or a Thor file. An encryption key must be set with -setKey.",
+			0, 0, true
+		);
+
+		public static readonly CommandLineOptions Decrypt = new CommandLineOptions(
+			"decrypt", "Decrypts an entire GRF or a Thor file. An encryption key must be set with -setKey.",
+			0, 0, true
+		);
+
 		public static readonly CommandLineOptions ExtractDllInfo = new CommandLineOptions(
 			"extractDllInfo,eDllInfo", "Extracts information from the DLL.",
 			1, 1, false,

@@ -57,16 +57,36 @@ namespace GRF.Core {
 		public int Seed { get; set; }
 		private int _filesCount { get; set; }
 		internal int RealFilesCount { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the GrfWriter should encrypt all data using the assigned encryption key.
+		/// </summary>
 		public bool IsEncrypting { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the GrfWriter should decrypt all data using the assigned encryption key.
+		/// </summary>
 		public bool IsDecrypting { get; set; }
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the GRF should enable the encryption feature. It is enabled if the hidden encryption file is present (GrfStrings.EncryptionFilename) or if the EncryptFiles/DecryptFiles commands have been used. Do not set manually, and rather use EncryptionCheckFlag for personal use.
+		/// </summary>
 		public bool IsEncrypted { get; set; }
 
 		public bool FoundErrors {
 			get { return _errors.Count > 0; }
 		}
 
+		/// <summary>
+		/// Gets or sets the 256-byte encryption key.
+		/// </summary>
 		public byte[] EncryptionKey { get; set; }
 
+		/// <summary>
+		/// If enabled, FileEntry will check for potential encrypted content when being decompressed. This flag is required whether a key is set or not (use the SetKey function first).
+		/// If disabled, the encryption feature will not be available.
+		/// GRF Editor will turn off this flag after scanning the entire GRF for encrypted files and will use a different system to check whether an entry is encrypted or not. Therefore, this flag is only relevant if you aren't using the UI and rather the GRF library directly.
+		/// </summary>
 		public bool EncryptionCheckFlag { get; set; }
 
 		public ReadOnlyCollection<string> Errors {
@@ -117,6 +137,12 @@ namespace GRF.Core {
 			}
 		}
 
+		/// <summary>
+		/// Sets the encryption key for encrypting the entire GRF. This is a special function only used for forcing the the GrfWriter to encrypt all the entries after saving.
+		/// Since it ignores the command stack, the GRF should be reloaded after using this function.
+		/// </summary>
+		/// <param name="key">The 256-byte encryption key.</param>
+		/// <param name="grf">The GRF.</param>
 		public void SetEncryption(byte[] key, GrfHolder grf) {
 			try {
 				IsDecrypting = false;
@@ -130,6 +156,12 @@ namespace GRF.Core {
 			}
 		}
 
+		/// <summary>
+		/// Sets the encryption key for decrypting the entire GRF. This is a special function only used for forcing the the GrfWriter to decrypt all the entries after saving.
+		/// Since it ignores the command stack, the GRF should be reloaded after using this function.
+		/// </summary>
+		/// <param name="key">The 256-byte encryption key.</param>
+		/// <param name="grf">The GRF.</param>
 		public void SetDecryption(byte[] key, GrfHolder grf) {
 			try {
 				IsDecrypting = true;
@@ -143,6 +175,10 @@ namespace GRF.Core {
 			}
 		}
 
+		/// <summary>
+		/// Sets whether or not the file table should be encrypted.
+		/// </summary>
+		/// <param name="value">Flag.</param>
 		public void SetFileTableEncryption(bool value) {
 			EncryptFileTable = value;
 		}

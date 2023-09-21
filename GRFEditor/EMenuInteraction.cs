@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -13,6 +14,7 @@ using GRF.Core;
 using GRF.FileFormats;
 using GRF.FileFormats.ActFormat;
 using GRF.Image;
+using GRF.IO;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
@@ -330,6 +332,20 @@ namespace GRFEditor {
 
 		private void _menuItemImageConverter_Click(object sender, RoutedEventArgs e) {
 			WindowProvider.Show(new ImageConverter(), _menuItemImageConverter, this);
+		}
+
+		private void _menuItemGrfCL_Click(object sender, RoutedEventArgs e) {
+			try {
+				string grfClPath = GrfPath.Combine(TokeiLibrary.Configuration.ApplicationPath, "GrfCL.exe");
+
+				if (!File.Exists(grfClPath))
+					throw new Exception("Executable not found: " + grfClPath);
+
+				Process.Start(grfClPath);
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
 		}
 
 		private void _menuItemImageRecon_Click(object sender, RoutedEventArgs e) {

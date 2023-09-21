@@ -82,6 +82,13 @@ namespace TokeiLibrary {
 				source.Dispatcher.Invoke(func, source);
 		}
 
+		public static void Dispatch<TSource>(this TSource source, DispatcherPriority priority, Action<TSource> func) where TSource : DispatcherObject {
+			if (source.Dispatcher.CheckAccess())
+				func(source);
+			else
+				source.Dispatcher.Invoke(func, priority, source);
+		}
+
 		public static void Dispatch<TSource, T1>(this TSource source, Action<TSource, T1> func, T1 param1) where TSource : DispatcherObject {
 			if (source.Dispatcher.CheckAccess())
 				func(source, param1);

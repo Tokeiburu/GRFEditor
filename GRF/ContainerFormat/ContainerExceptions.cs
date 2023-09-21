@@ -57,6 +57,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __UnknownHashAlgorithm = "Unknown hash algorithm.";
 		public static readonly FormattedExceptionMessage __UnsupportedFileVersion = "Unsupported file version.";
 		public static readonly FormattedExceptionMessage __CompressionDllFailed = "Failed to load the decompression library ({0}).";
+		public static readonly FormattedExceptionMessage __CompressionDllFailed2 = "Failed to load the decompression library ({0}).\r\n\r\nYou are most likely missing the following VC++ Redistributable: {1}.";
 		public static readonly FormattedExceptionMessage __FailedToCompressData = "Failed to compress data.";
 		public static readonly FormattedExceptionMessage __FailedToDecompressData = "Failed to decompress data.";
 		public static readonly FormattedExceptionMessage __MergeVersionEncryptionException = "The destination GRF must have a version higher than 0x100 when merging with an ecrypted GRF.";

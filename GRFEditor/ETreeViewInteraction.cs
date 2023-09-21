@@ -585,8 +585,6 @@ namespace GRFEditor {
 							hasAKey = true;
 					}
 
-					//_progressBarComponent.DisplayProgress(-1);
-
 					if (_grfLoadingSettings.VisualReloadRequired)
 						_progressBarComponent.Progress = -1;
 
@@ -595,10 +593,6 @@ namespace GRFEditor {
 					_grfHolder.Close();
 
 					_grfHolder.Open(settings.FileName);
-					//_grfHolder.Commands.AddFileAbsolute("data\\111.rsw", @"C:\RO\RO\data\gm_room.rsw");
-					//_grfHolder.Commands.AddFileAbsolute("data\\111.gnd", @"C:\RO\RO\data\gm_room.gnd");
-					//_grfHolder.Commands.AddFileAbsolute("data\\111.gat", @"C:\RO\RO\data\gm_room.gat");
-					//_grfHolder.Commands.AddFileAbsolute(@"data\model\¿ÜºÎ¼ÒÇ°\¾Ëµ¥¹Ù¶õµµ±¸Á¡_.rsm", @"C:\RO\RO\data\model\¿ÜºÎ¼ÒÇ°\¾Ëµ¥¹Ù¶õµµ±¸Á¡.rsm");
 					
 					if (_grfHolder.Header == null) {
 						this.Dispatch(p => p.Title = "GRF Editor");
@@ -631,10 +625,7 @@ namespace GRFEditor {
 
 						if (settings.VisualReloadRequired) {
 							_treeViewPathManager.AddPath(new TkPath { FilePath = settings.FileName, RelativePath = "" });
-
-							foreach (string pathname in _grfHolder.FileTable.Files.Select(GrfPath.GetDirectoryName).Distinct().Where(p => !String.IsNullOrEmpty(p))) {
-								_treeViewPathManager.AddPath(new TkPath { FilePath = settings.FileName, RelativePath = pathname });
-							}
+							_treeViewPathManager.AddPaths(settings.FileName, _grfHolder.FileTable.Files.Select(GrfPath.GetDirectoryName).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList());
 						}
 
 						if (settings.VisualReloadRequired) {
