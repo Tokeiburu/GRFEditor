@@ -142,6 +142,7 @@
     <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor2\AdvCodeFragment.cs" />
     <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor\CodeReconstructorCommon.cs" />
     <Compile Include="FileFormats\LubFormat\Core\LubHelper.cs" />
+    <Compile Include="FileFormats\LubFormat\Preset\LubPreset.cs" />
     <Compile Include="FileFormats\RsmFormat\TextureKeyFrameGroup.cs" />
     <Compile Include="FileFormats\RsmFormat\TextureKeyFrame.cs" />
     <Compile Include="FileFormats\RsmFormat\ScaleKeyFrame.cs" />
@@ -510,6 +511,7 @@
   <ItemGroup>
     <Content Include="FileFormats\LubFormat\Core\CodeReconstructor2\Patterns.txt" />
     <Content Include="FileFormats\LubFormat\Core\CodeReconstructor\Patterns.txt" />
+    <EmbeddedResource Include="Files\comp_x64.dll" />
     <EmbeddedResource Include="Files\msvcp100.dll" />
     <EmbeddedResource Include="Files\msvcr100.dll" />
     <EmbeddedResource Include="Files\lzma.dll" />

@@ -13,7 +13,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 		private TypeUtility<T>.MemberGetDelegate<string> _getDelegateString;
 		private TypeUtility<T>.MemberGetDelegate<float> _getDelegateFloat;
 		private TypeUtility<T>.MemberGetDelegate<long> _getDelegateLong;
-		private AlphanumComparator _alphanumComparer = new AlphanumComparator();
+		private AlphanumComparator _alphanumComparer = new AlphanumComparator(StringComparison.OrdinalIgnoreCase);
 		protected PropertyInfo _property;
 		private int _use;
 

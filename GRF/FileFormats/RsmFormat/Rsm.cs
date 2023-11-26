@@ -54,7 +54,7 @@ namespace GRF.FileFormats.RsmFormat {
 			get { return _scaleKeyFrames; }
 		}
 
-		private Rsm(IBinaryReader reader) {
+		public Rsm(IBinaryReader reader) {
 			int count;
 
 			Header = new RsmHeader(reader);
@@ -185,6 +185,8 @@ namespace GRF.FileFormats.RsmFormat {
 		}
 
 		public void Save(string file) {
+			GrfPath.CreateDirectoryFromFile(file);
+
 			using (var stream = File.Create(file)) {
 				Save(stream);
 			}

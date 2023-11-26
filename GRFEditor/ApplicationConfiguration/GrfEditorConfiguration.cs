@@ -38,6 +38,17 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[Style - Panel preview background str]"] = XamlWriter.Save(value).Replace(Environment.NewLine, ""); }
 		}
 
+		public static Brush UIPanelPreviewBackgroundMap {
+			get { return (Brush)XamlReader.Parse(ConfigAsker["[Style - UIPanelPreviewBackgroundMap]", XamlWriter.Save(new SolidColorBrush(Color.FromArgb(204, 0, 0, 0))).Replace(Environment.NewLine, "")]); }
+			set {
+				ConfigAsker["[Style - UIPanelPreviewBackgroundMap]"] = XamlWriter.Save(value).Replace(Environment.NewLine, "");
+				if (value is SolidColorBrush) {
+					var sc = (SolidColorBrush)value;
+					MapBackgroundColorQuick.Update(new Vector4(sc.Color.R / 255f, sc.Color.G / 255f, sc.Color.B / 255f, sc.Color.A / 255f));
+				}
+			}
+		}
+
 		public static bool StrEditorShowGrid {
 			get { return Boolean.Parse(ConfigAsker["[GrfEditor - StrEditorShowGrid]", true.ToString()]); }
 			set { ConfigAsker["[GrfEditor - StrEditorShowGrid]"] = value.ToString(); }
@@ -46,9 +57,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public class QuickColorSetting {
 			private readonly ConfigAskerSetting _setting;
 			private Vector4? _color;
-			
-			public QuickColorSetting(ConfigAskerSetting setting) {
-				_setting = setting;
+			private Func<object> _getValue;
+
+			public QuickColorSetting(Func<object> ret) {
+				_getValue = ret;
+				_setting = ConfigAsker.RetrieveSetting(ret);
 			}
 
 			public void SetNull() {
@@ -62,11 +75,15 @@ namespace GRFEditor.ApplicationConfiguration {
 				string new_ = _setting.Get();
 				_setting.OnPreviewPropertyChanged(old, new_);
 			}
-			
+
+			public void Update(Vector4 color) {
+				_color = color;
+			}
+
 			public Vector4 Get() {
 				if (_color == null) {
 					try {
-						var color = ((SolidColorBrush)UIPanelPreviewBackgroundStr).Color;
+						var color = ((SolidColorBrush)_getValue()).Color;
 						_color = new Vector4(color.R / 255f, color.G / 255f, color.B / 255f, color.A / 255f);
 					}
 					catch {
@@ -82,7 +99,8 @@ namespace GRFEditor.ApplicationConfiguration {
 			}
 		}
 
-		public static QuickColorSetting StrEditorBackgroundColorQuick = new QuickColorSetting(ConfigAsker.RetrieveSetting(() => UIPanelPreviewBackgroundStr));
+		public static QuickColorSetting StrEditorBackgroundColorQuick = new QuickColorSetting(() => UIPanelPreviewBackgroundStr);
+		public static QuickColorSetting MapBackgroundColorQuick = new QuickColorSetting(() => UIPanelPreviewBackgroundMap);
 
 		#region TreeBehavior
 
@@ -151,7 +169,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.5.2"; }
+			get { return "1.8.5.7"; }
 		}
 
 		public static string Author {
@@ -325,6 +343,86 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool ShowGrfEditorHeader {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Show header in text files]", true.ToString()]); }
 			set { ConfigAsker["[GRFEditor - Show header in text files]"] = value.ToString(); }
+		}
+
+		public static bool PreviewActScaleType {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActScaleType]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - PreviewActScaleType]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererGlobalLighting {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGlobalLighting]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererGlobalLighting]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererRotateCamera {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRotateCamera]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererRotateCamera]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererMipmap {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererMipmap]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererMipmap]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererWater {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererWater]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererWater]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererGround {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGround]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererGround]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererObjects {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererObjects]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererObjects]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererAnimateMap {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererAnimateMap]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererAnimateMap]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererLightmap {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererLightmap]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererLightmap]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererShadowmap {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShadowmap]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererShadowmap]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererShowFps {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShowFps]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererShowFps]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererTileUp {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererTileUp]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererTileUp]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererRenderLub {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRenderLub]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererRenderLub]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererClientPov {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererClientPov]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererClientPov]"] = value.ToString(); }
+		}
+
+		public static bool MapRendererStickToGround {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererStickToGround]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRendererStickToGround]"] = value.ToString(); }
+		}
+
+		public static bool MapRenderSkyMap {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSkyMap]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderSkyMap]"] = value.ToString(); }
 		}
 
 		public static int MaximumNumberOfThreads {

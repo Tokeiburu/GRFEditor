@@ -97,14 +97,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				int imageOffsetX;
 
-				int totalImageLenght = _physicalX * _numberOfLines;
+				int totalImageLength = _physicalX * _numberOfLines;
 
 				int positionX;
 				int lineOffset;
 
 				for (int i = 0; i < offsets.Length; i++) {
-					positionX = (int) ((float) offsets[i] / totalSize * totalImageLenght);
-					int lengthToDraw = (int) Math.Ceiling(((float) lengths[i] / totalSize * totalImageLenght));
+					positionX = (int) ((float) offsets[i] / totalSize * totalImageLength);
+					int lengthToDraw = (int) Math.Ceiling(((float) lengths[i] / totalSize * totalImageLength));
 					lengthToDraw = lengthToDraw == 0 ? 1 : lengthToDraw;
 
 					for (int x = positionX; x < positionX + lengthToDraw; x++) {

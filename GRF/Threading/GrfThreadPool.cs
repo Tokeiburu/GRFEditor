@@ -221,7 +221,7 @@ namespace GRF.Threading {
 			Start(null, () => false);
 		}
 
-		public void Start(Action<float> progressUpdate, Func<bool> isCancelling) {
+		public void Start(Action<float> progressUpdate, Func<bool> isCancelling, int delay = -1) {
 			const int DelayThreads = 2;
 			for (int index = 0; index < _threads.Count; index++) {
 				AGenericThreadPool<TObj> t = _threads[index];
@@ -244,7 +244,12 @@ namespace GRF.Threading {
 
 				// We have to detect if there are too many _threads being ran at the same time, 
 				// this affects the computer's performance way too much.
-				Thread.Sleep(_numberOfFiles < 25 ? 75 : 200);
+				if (delay < 0) {
+					Thread.Sleep(_numberOfFiles < 25 ? 75 : 200);
+				}
+				else {
+					Thread.Sleep(delay);
+				}
 
 				if (Settings.CpuMonitoringEnabled) {
 					ignore--;

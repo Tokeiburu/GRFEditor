@@ -30,6 +30,10 @@ namespace Utilities {
 		public object Get() {
 			return _get != null ? _get() : _property.GetValue(_obj, null);
 		}
+
+		public static Setting Make<T>(string propertyName) {
+			return new Setting(null, typeof(T).GetProperty(propertyName));
+		}
 	}
 
 	public class TypeSetting<T> {

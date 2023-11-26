@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Utilities {
 	public class AlphanumComparator : IComparer<string> {
+		private StringComparison _comparison;
+
 		private enum ChunkType { Alphanumeric, Numeric };
 		private bool InChunk(char ch, char otherCh) {
 			ChunkType type = ChunkType.Alphanumeric;
@@ -20,6 +22,10 @@ namespace Utilities {
 			}
 
 			return true;
+		}
+
+		public AlphanumComparator(StringComparison comparison) {
+			_comparison = comparison;
 		}
 
 		public int Compare(string s1, string s2) {
@@ -79,11 +85,11 @@ namespace Utilities {
 						}
 					}
 					catch {
-						result = String.CompareOrdinal(thisChunk.ToString(), thatChunk.ToString());
+						result = String.Compare(thisChunk.ToString(), thatChunk.ToString(), _comparison);
 					}
 				}
 				else {
-					result = String.CompareOrdinal(thisChunk.ToString(), thatChunk.ToString());
+					result = String.Compare(thisChunk.ToString(), thatChunk.ToString(), _comparison);
 				}
 
 				if (result != 0) {

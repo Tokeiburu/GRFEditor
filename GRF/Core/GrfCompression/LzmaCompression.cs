@@ -22,12 +22,11 @@ namespace GRF.Core.GrfCompression {
 		}
 
 		protected void _init() {
-			string outputPath = Path.Combine(GrfPath.GetDirectoryName(Settings.TempPath), "Resources.lzma.dll");
-
+			string dllName = IntPtr.Size == 4 ? "lzma.dll" : "comp_x64.dll";
+			string outputPath = Path.Combine(GrfPath.GetDirectoryName(Settings.TempPath), dllName);
 			Assembly currentAssembly = Assembly.GetAssembly(typeof (Compression));
-
 			string[] names = currentAssembly.GetManifestResourceNames();
-			const string ResourceName = "Files.lzma.dll";
+			string ResourceName = "Files." + dllName;
 			byte[] cps = null;
 
 			if (names.Any(p => p.EndsWith(ResourceName))) {
@@ -49,21 +48,30 @@ namespace GRF.Core.GrfCompression {
 
 			_hModule = NativeMethods.LoadLibrary(outputPath);
 
-			if (_hModule == 0) {
-				ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2005 (x86) | downloading the x64 version will not be compatible"));
+			if (_hModule == IntPtr.Zero) {
+				if (IntPtr.Size == 4) {
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2005 (x86) | downloading the x64 version will not be compatible"));
+				}
+				else {
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2022 (x64) | downloading the x86 version will not be compatible\r\n\r\nLink: https://aka.ms/vs/17/release/vc_redist.x64.exe"));
+				}
 				Success = false;
 				return;
 			}
 
 			IntPtr intPtr = NativeMethods.GetProcAddress(_hModule, "uncompress");
-			_decompress = (DecompressMethod) Marshal.GetDelegateForFunctionPointer(intPtr, typeof (DecompressMethod));
+			_decompress = (DecompressMethod)Marshal.GetDelegateForFunctionPointer(intPtr, typeof(DecompressMethod));
 
-			intPtr = NativeMethods.GetProcAddress(_hModule, "compress2");
+			_compressionLevel = 9;
+			intPtr = NativeMethods.GetProcAddress(_hModule, "lzma_compress");
+
+			if (intPtr == IntPtr.Zero)
+				intPtr = NativeMethods.GetProcAddress(_hModule, "compress2");
 
 			if (intPtr == IntPtr.Zero)
 				intPtr = NativeMethods.GetProcAddress(_hModule, "compress");
 
-			_compress = (CompressMethod) Marshal.GetDelegateForFunctionPointer(intPtr, typeof (CompressMethod));
+			_compress = (CompressMethod)Marshal.GetDelegateForFunctionPointer(intPtr, typeof(CompressMethod));
 
 			Success = true;
 		}

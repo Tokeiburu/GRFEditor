@@ -11,6 +11,7 @@ using GRF.Core;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
+using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
@@ -94,7 +95,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							button.Width = 125;
 							button.Click += delegate { PreviewService.Select(_treeView, _items, filename); };
 
-							button.ImageIcon.Source = image != null ? image.Cast<BitmapSource>() : GrfEditorIconProvider.GetLargeIcon(entry.RelativePath.GetExtension());
+							button.ImageIcon.Source = image != null ? image.Cast<BitmapSource>() : IconProvider.GetLargeIcon(entry.RelativePath.GetExtension());
 							button.ImageIcon.Height = 100;
 							button.ImageIcon.Width = 100;
 

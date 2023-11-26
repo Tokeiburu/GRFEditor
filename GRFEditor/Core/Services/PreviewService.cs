@@ -72,9 +72,8 @@ namespace GRFEditor.Core.Services {
 				if (_tabItemMapGatPreview.Content != null) scrolls.Add(((PreviewMapGat)_tabItemMapGatPreview.Content).BackgroundBrushFunction);
 				if (_tabItemImagePreview.Content != null) scrolls.Add(((PreviewImage)_tabItemImagePreview.Content).BackgroundBrushFunction);
 				if (_tabItemActPreview.Content != null) scrolls.Add(((PreviewAct)_tabItemActPreview.Content).BackgroundBrushFunction);
-				if (_tabItemRsmPreview.Content != null) scrolls.Add(((PreviewRsm) _tabItemRsmPreview.Content).BackgroundBrushFunction);
 				if (_tabItemMapExtractorPreview.Content != null) scrolls.Add(((PreviewMapExtractor) _tabItemMapExtractorPreview.Content).BackgroundBrushFunction);
-				if (_tabItemGndPreview.Content != null) scrolls.Add(((PreviewGnd)_tabItemGndPreview.Content).BackgroundBrushFunction);
+				//if (_tabItemGndPreview.Content != null) scrolls.Add(((PreviewGnd)_tabItemGndPreview.Content).BackgroundBrushFunction);
 				
 				return scrolls.ToArray();
 			};
@@ -233,10 +232,11 @@ namespace GRFEditor.Core.Services {
 											case ".gnd":
 											case ".rsw":
 											case ".gat":
-												previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowRawStructureTextEditor = true, ShowMapExtractor = true, ShowGnd = true };
+												previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowRawStructureTextEditor = true, ShowMapExtractor = true, ShowRsm = true };
 												_readAsRawStructure(node);
 												_readAsMapFile(node);
-												_readAsGnd(node);
+												//_readAsGnd(node);
+												_readAsRsm(node);
 
 												try {
 													string possibleGatName = Path.Combine(Path.GetDirectoryName(_previewItem.FileName), Path.GetFileNameWithoutExtension(_previewItem.FileName)) + ".gat";
@@ -244,10 +244,7 @@ namespace GRFEditor.Core.Services {
 													if (_grfData.FileTable.ContainsFile(possibleGatName)) {
 														FileEntry tempNode = _grfData.FileTable[possibleGatName];
 														_readAsMapGat(tempNode);
-														//_readAsGatEditor(tempNode);
-
 														previewDisplayConfiguration.ShowGat = true;
-														//previewDisplayConfiguration.ShowGatEditor = true;
 													}
 												}
 												catch {
@@ -411,7 +408,7 @@ namespace GRFEditor.Core.Services {
 			if (res.HasValueChanged(new { conf.ShowStr })) _tabItemStrPreview.Dispatch(p => p.Visibility = conf.ShowStr ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowSoundPreview })) _tabItemWavPreview.Dispatch(p => p.Visibility = conf.ShowSoundPreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowLubDecompiler })) _tabItemLubPreview.Dispatch(p => p.Visibility = conf.ShowLubDecompiler ? Visibility.Visible : Visibility.Collapsed);
-			if (res.HasValueChanged(new { conf.ShowGnd })) _tabItemGndPreview.Dispatch(p => p.Visibility = conf.ShowGnd ? Visibility.Visible : Visibility.Collapsed);
+			//if (res.HasValueChanged(new { conf.ShowGnd })) _tabItemGndPreview.Dispatch(p => p.Visibility = conf.ShowGnd ? Visibility.Visible : Visibility.Collapsed);
 
 			_tabControlPreview.Dispatcher.Invoke(new Action(delegate {
 				if (previewItem.FileName != _previewItem.FileName || _previewItems.Count != 0) return;
@@ -498,7 +495,7 @@ namespace GRFEditor.Core.Services {
 
 						for (int i = 0; i < folders.Length; i++) {
 							foreach (TkTreeViewItem item in node.Items) {
-								if (item.HeaderText == folders[i]) {
+								if (String.Compare(item.HeaderText, folders[i], StringComparison.OrdinalIgnoreCase) == 0) {
 									node.IsExpanded = true;
 									node = item;
 									break;

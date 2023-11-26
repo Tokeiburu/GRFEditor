@@ -1,0 +1,34 @@
+﻿<Window x:Class="GRFEditor.OpenGL.WPF.LightingOptions"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
+        xmlns:wpf="clr-namespace:GRFEditor.WPF" SizeToContent="WidthAndHeight"
+        Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+    <Grid Name="_gridLight" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="120" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Ambient" Margin="3" TextAlignment="Right" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="Diffuse" Margin="3" TextAlignment="Right" VerticalAlignment="Center" />
+        
+        <wpf:QuickColorSelector Grid.Row="0" Grid.Column="1" Height="20" Width="100" Margin="0" x:Name="_qcsAmbient" VerticalAlignment="Center" />
+        <wpf:QuickColorSelector Grid.Row="1" Grid.Column="1" Height="20" Width="100" Margin="0" x:Name="_qcsDiffuse" VerticalAlignment="Center" />
+
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="Latitude" Margin="3" TextAlignment="Right" VerticalAlignment="Center" />
+        <TextBlock Grid.Row="1" Grid.Column="2" Text="Longitude" Margin="3" TextAlignment="Right" VerticalAlignment="Center" />
+        
+        <sliders:SliderColor Grid.Row="0" Grid.Column="3" x:Name="_sliderLatitude" Width="120" Height="19.5" Margin="2" VerticalAlignment="Center" />
+        <sliders:SliderColor Grid.Row="1" Grid.Column="3" x:Name="_sliderLongitude" Width="120" Height="19.5" Margin="2" VerticalAlignment="Center" />
+        
+        <TextBlock Name="_tbLatitude" Grid.Row="0" Grid.Column="4" Text="" Margin="3" TextAlignment="Left" VerticalAlignment="Center" />
+        <TextBlock Name="_tbLongitude" Grid.Row="1" Grid.Column="4" Text="" Margin="3" TextAlignment="Left" VerticalAlignment="Center" />
+    </Grid>
+</Window>

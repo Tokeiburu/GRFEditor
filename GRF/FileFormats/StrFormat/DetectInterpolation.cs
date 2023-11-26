@@ -554,7 +554,7 @@ namespace GRF.FileFormats.StrFormat {
 				}
 
 				// Too small to determine anything honestly
-				if ((p1 - p0).Lenght < 2 && (p2 - p3).Lenght < 2)
+				if ((p1 - p0).Length < 2 && (p2 - p3).Length < 2)
 					continue;
 
 				bool fail = false;

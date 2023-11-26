@@ -1,12 +1,11 @@
 ﻿using System.Windows;
-using System.Windows.Media;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
-using OpenTK;
+using GRFEditor.WPF.PreviewTabs;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
 
-namespace GRFEditor.WPF.PreviewTabs.GLGroup {
+namespace GRFEditor.OpenGL.StrGroup {
 	public class GLBackground : GLObject {
 		private int _textId;
 

@@ -4,9 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:WPF="clr-namespace:GRFEditor.WPF"
                     xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
-                            xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                             xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
+                            xmlns:mapGlGroup="clr-namespace:GRFEditor.OpenGL.MapGLGroup"
+                            xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
+                            xmlns:wpf="clr-namespace:GRFEditor.OpenGL.WPF"
                             mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
     <Grid>
@@ -16,18 +18,53 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+            <TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-            <WrapPanel>
-                <Styles:FancyButton Click="_shader1_Click" x:Name="_shader1" Width="160" TextHeader="Flat shading" HorizontalAlignment="Left" TextDescription="Overrides the default shader and use the flat shading" />
-                <Styles:FancyButton Click="_shader2_Click" x:Name="_shader2" Width="160" TextHeader="Smooth shading" HorizontalAlignment="Left" TextDescription="Overrides the default shader and use the smooth shading" />
-                <StackPanel VerticalAlignment="Center">
-                    <CheckBox Name="_checkBoxRotateCamera" IsChecked="True" Content="Rotate camera" Margin="3" VerticalAlignment="Center" />
-                    <CheckBox Name="_checkBoxUseGlobalLighting" IsChecked="False" Content="Use global lighting" Margin="3" VerticalAlignment="Center" />
-                </StackPanel>
-            </WrapPanel>
+            <Grid>
+                <WrapPanel>
+                    <StackPanel VerticalAlignment="Center">
+                        <CheckBox Name="_checkBoxRotateCamera" IsChecked="True" Content="Rotate camera" Margin="3" VerticalAlignment="Center" />
+                        <CheckBox Name="_checkBoxUseGlobalLighting" IsChecked="False" Content="Use global lighting" Margin="3" VerticalAlignment="Center" />
+                        <CheckBox Name="_checkBoxEnableMipmap" IsChecked="False" Content="Enable mipmaping" Margin="3" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition />
+                            <RowDefinition />
+                            <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Background" Grid.Column="1" Margin="3" TextAlignment="Right" HorizontalAlignment="Left" />
+                        <WPF:QuickColorSelector Grid.Row="0" Grid.Column="0" Height="16" Width="100" Margin="0" x:Name="_qcsBackground" VerticalAlignment="Center" />
+                        <Button Name="_buttonLighting" Content="Lighting options..." Grid.Row="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
+                        <Button Name="_buttonRenderOptions" Content="Render options..." Grid.Row="2" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
+                        <Button Name="_buttonSkyMap" Content="Sky map..." Grid.Row="1" Grid.Column="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
+                        <Button Name="_buttonShading" Content="Normal options..." Grid.Row="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" >
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Name="_shader1" Header="Flat normals" IsCheckable="true" Click="_shader1_Click">
+                                        <MenuItem.ToolTip>
+                                            Overrides the default normals from the RSM file and use flat normals.
+                                        </MenuItem.ToolTip>
+                                    </MenuItem>
+                                    <MenuItem Name="_shader2" Header="Smooth normals" IsCheckable="true" Click="_shader2_Click">
+                                        <MenuItem.ToolTip>
+                                            Overrides the default normals from the RSM file and use smooth normals.
+                                        </MenuItem.ToolTip>
+                                    </MenuItem>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </Grid>
+                </WrapPanel>
+                <TextBlock Name="_tbFps" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextAlignment="Right" />
+            </Grid>
             <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
+        <Border Height="1" Width="1" BorderThickness="0" BorderBrush="Transparent" Name="_grid" Visibility="Collapsed" />
         <Grid Grid.Row="1" Name="_gridAnimation">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -35,24 +72,13 @@
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Label Name="_sliderPosition" Width="100" />
+                <Label Name="_sliderPosition" MinWidth="100" />
                 <Styles:FancyButton x:Name="_playAnimation" ImagePath="play.png"  Tag="7" Click="_playAnimation_Click" Height="20" Width="20" Grid.Column="1" />
                 <sliders:SliderColor Grid.Column="2" x:Name="_sliderAnimation"  Height="19.5" Margin="2" />
             </Grid>
         </Grid>
-        <Grid Grid.Row="2" RenderOptions.BitmapScalingMode="NearestNeighbor">
-            <Grid.Background>
-                <VisualBrush TileMode="Tile" Viewport="0,0,16,16" ViewportUnits="Absolute">
-                    <VisualBrush.Visual>
-                        <Grid>
-                            <Image Source="../../Resources/background.png" RenderOptions.BitmapScalingMode="NearestNeighbor" Width="256" Height="256" />
-                        </Grid>
-                    </VisualBrush.Visual>
-                </VisualBrush>
-            </Grid.Background>
-            <Border BorderThickness="0" BorderBrush="Transparent" Name="_grid" Background="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}">
-                <PreviewTabs:MeshesDrawer x:Name="_meshesDrawer" />
-            </Border>
+        <Grid Name="_viewportGrid" Grid.Row="2">
+            <wpf:OpenGLViewport x:Name="_viewport" FocusVisualStyle="{x:Null}" Focusable="False" />
         </Grid>
     </Grid>
 </PreviewTabs:FilePreviewTab>

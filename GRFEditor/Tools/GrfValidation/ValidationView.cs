@@ -6,7 +6,7 @@ using Utilities.Extension;
 
 namespace GRFEditor.Tools.GrfValidation {
 	public class ValidationView {
-		public ValidationView(Tuple<ValidationTypes, string, string> info) {
+		public ValidationView(Utilities.Extension.Tuple<ValidationTypes, string, string> info) {
 			try {
 				OriginalData = info;
 
@@ -55,7 +55,7 @@ namespace GRFEditor.Tools.GrfValidation {
 		public string ValidationType { get; set; }
 		public object DataImage { get; set; }
 
-		public Tuple<ValidationTypes, string, string> OriginalData { get; private set; }
+		public Utilities.Extension.Tuple<ValidationTypes, string, string> OriginalData { get; private set; }
 
 		public string Description { get; set; }
 

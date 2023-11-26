@@ -85,18 +85,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 				string rswName = GrfPath.Combine(GrfPath.GetDirectoryName(entry.RelativePath), Path.GetFileNameWithoutExtension(entry.RelativePath)) + ".rsw";
 				Rsw rsw = new Rsw(_grfData.FileTable[rswName].GetDecompressedData());
 
-				//CLHelper.CStart(-11);
 				allMeshData = _gnd.Compile(rsw.Water.Level / 5f, rsw.Water.WaveHeight / 5f, true);
-				//CLHelper.CStop(-11);
-
-				//CLHelper.CStart(-12);
 				_meshesDrawer.AddObjectSub(allMeshData.MeshRawData.Values, _modelRotation);
-				//CLHelper.CStop(-12);
 
 				if (GrfEditorConfiguration.ShowRswObjects) {
 					Dictionary<string, Rsm> models = new Dictionary<string, Rsm>();
 
-					//CLHelper.CStart(-5);
 					foreach (var model in rsw.Objects.OfType<Model>().OrderBy(p => p.ModelName)) {
 						var name = model.ModelName;
 
@@ -113,26 +107,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 							models[name] = null;
 					}
 
-					//CLHelper.CStop(-5);
-					//CLHelper.CReset(-6);
-					//CLHelper.CReset(-7);
-					//CLHelper.CReset(-8);
-					//CLHelper.CReset(-9);
-
 					Dictionary<string, MeshRawData> merged = new Dictionary<string, MeshRawData>();
 
 					foreach (var model in rsw.Objects.OfType<Model>().OrderBy(p => p.ModelName)) {
 						var rsm = models[model.ModelName];
 
 						if (rsm != null) {
-							//var rsm = new Rsm(rsmEntry);
-							//CLHelper.CResume(-6);
 							Matrix4 m = Matrix4.Identity;
-
-							if (model.Name.Contains("bathwall_s_08.0") || model.Name.Contains("bathwall_s_08.1")) {
-								Z.F();
-								//rsm.Header.SetVersion(2, 3);
-							}
 
 							if (rsm.Header.IsCompatibleWith(2, 2)) {
 								// Do nothing
@@ -144,9 +125,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							m = Matrix4.Scale(m, new Vertex(-.2 * model.Scale.X, -.2 * model.Scale.Y, .2 * model.Scale.Z));
 
 							var stuff = rsm.Compile(m, 0);
-							//CLHelper.CStop(-6);
 
-							//CLHelper.CResume(-7);
 							m = Matrix4.Identity;
 
 							m = Matrix4.RotateZ(m, ModelViewerHelper.ToRad(model.Rotation.Z));
@@ -159,15 +138,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 							    trans.X > _gnd.Header.Width ||
 							    trans.Z < -_gnd.Header.Height ||
 							    trans.Z > _gnd.Header.Height) {
-								Z.F();
 								continue;
 							}
 
 							m.Offset += trans;
-							//CLHelper.CStop(-7);
-
-							//CLHelper.CResume(-9);
-							//Matrix4 
 
 							Vertex v;
 							Vertex v2 = new Vertex();
@@ -197,43 +171,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 									merged[keyPair.Key] = item;
 								}
 							}
-
-							//CLHelper.CStop(-9);
 						}
 					}
 
-					//CLHelper.CResume(-8);
-					//_meshesDrawer.Dispatch(() => _meshesDrawer.AddObject(items, Matrix4.Identity));
 					_meshesDrawer.AddObjectSub(merged.Values, Matrix4.Identity);
-					//CLHelper.CStop(-8);
 
-					//CLHelper.CStopAndDisplay("Loading models", -5);
-					//CLHelper.CStopAndDisplay("Compiling ground", -11);
-					//CLHelper.CStopAndDisplay("Add ground to the world", -12);
-					//CLHelper.CStopAndDisplay("Compiling models", -6);
-					//CLHelper.CStopAndDisplay("Calculate transform matrix", -7);
-					//CLHelper.CStopAndDisplay("Apply transform matrix", -9);
-					//CLHelper.CStopAndDisplay("Add models to the world", -8);
-					//CLHelper.WL = "";
-
-					//var t = new[] {
-					//	"Loading models",
-					//	"Compiling ground",
-					//	"Add ground to the world",
-					//	"Compiling models",
-					//	"Calculate transform matrix",
-					//	"Apply transform matrix",
-					//	"Add models to the world",
-					//	"Library conversions"
-					//};
-					//var n = new[] { -5, -11, -12, -6, -7, -9, -8, -99 };
-					//
-					//string text = "";
-					//for (int i = 0; i < t.Length; i++) {
-					//	text += t[i] + " : " + //CLHelper.CDisplay(n[i]) + " ms; \r\n";
-					//}
-					//
-					//ErrorHandler.HandleException(text);
+					Z.Stop(700, true);
 				}
 			}
 			catch (Exception err) {

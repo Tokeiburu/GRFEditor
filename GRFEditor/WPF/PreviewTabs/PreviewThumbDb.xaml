@@ -15,7 +15,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+            <TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <WrapPanel Grid.Row="0">
                 <Styles:FancyButton x:Name="_buttonExportAt" Click="_buttonExportAt_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Export" TextDescription="Export image to..." Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />

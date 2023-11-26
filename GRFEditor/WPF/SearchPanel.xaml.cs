@@ -7,6 +7,7 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using GRFEditor.ApplicationConfiguration;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
@@ -18,27 +19,27 @@ using Utilities;
 namespace GRFEditor.WPF {
 	public partial class SearchPanel : UserControl {
 		public static readonly DependencyProperty MatchCaseProperty =
-			DependencyProperty.Register("MatchCase", typeof (bool), typeof (SearchPanel),
-			                            new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
+			DependencyProperty.Register("MatchCase", typeof(bool), typeof(SearchPanel),
+										new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
 
 		public static readonly DependencyProperty SearchPatternProperty =
-			DependencyProperty.Register("SearchPattern", typeof (string), typeof (SearchPanel),
-			                            new FrameworkPropertyMetadata("", _searchPatternChangedCallback));
+			DependencyProperty.Register("SearchPattern", typeof(string), typeof(SearchPanel),
+										new FrameworkPropertyMetadata("", _searchPatternChangedCallback));
 
 		public static readonly DependencyProperty WholeWordsProperty =
-			DependencyProperty.Register("WholeWords", typeof (bool), typeof (SearchPanel),
-			                            new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
+			DependencyProperty.Register("WholeWords", typeof(bool), typeof(SearchPanel),
+										new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
 
 		public static readonly DependencyProperty UseRegexProperty =
-			DependencyProperty.Register("UseRegex", typeof (bool), typeof (SearchPanel),
-			                            new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
+			DependencyProperty.Register("UseRegex", typeof(bool), typeof(SearchPanel),
+										new FrameworkPropertyMetadata(false, _searchPatternChangedCallback));
 
 		public static readonly RoutedCommand Find = new RoutedCommand(
-			"Find", typeof (SearchPanel),
+			"Find", typeof(SearchPanel),
 			new InputGestureCollection { new KeyGesture(Key.F, ModifierKeys.Control) }
 			);
 
-		private readonly ToolTip _messageView = new ToolTip { Placement = PlacementMode.Bottom, StaysOpen = false };
+		readonly ToolTip _messageView = new ToolTip { Placement = PlacementMode.Bottom, StaysOpen = false };
 		private SearchPanelAdorner _adorner;
 
 		private TextDocument _currentDocument;
@@ -49,6 +50,10 @@ namespace GRFEditor.WPF {
 
 		public SearchPanel() {
 			InitializeComponent();
+
+			if (GrfEditorConfiguration.ThemeIndex == 1) {
+				_unclickableBorder.Margin = new Thickness(-6, -4, -6, -4);
+			}
 
 			_isSearch = true;
 
@@ -64,28 +69,28 @@ namespace GRFEditor.WPF {
 		public bool IsClosed { get; set; }
 
 		public string SearchPattern {
-			get { return (string) GetValue(SearchPatternProperty); }
+			get { return (string)GetValue(SearchPatternProperty); }
 			set { SetValue(SearchPatternProperty, value); }
 		}
 
 		public bool MatchCase {
-			get { return (bool) GetValue(MatchCaseProperty); }
+			get { return (bool)GetValue(MatchCaseProperty); }
 			set { SetValue(MatchCaseProperty, value); }
 		}
 
 		public bool WholeWords {
-			get { return (bool) GetValue(WholeWordsProperty); }
+			get { return (bool)GetValue(WholeWordsProperty); }
 			set { SetValue(WholeWordsProperty, value); }
 		}
 
 		public bool UseRegex {
-			get { return (bool) GetValue(UseRegexProperty); }
+			get { return (bool)GetValue(UseRegexProperty); }
 			set { SetValue(UseRegexProperty, value); }
 		}
 
 		private bool _isSearch { get; set; }
 
-		private static void _searchPatternChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+		static void _searchPatternChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			SearchPanel panel = d as SearchPanel;
 			if (panel != null) {
 				panel.ValidateSearchText();
@@ -151,6 +156,7 @@ namespace GRFEditor.WPF {
 			_searchTextBox.GotFocus += new RoutedEventHandler(_searchTextBox_GotFocus);
 			_replaceTextBox.GotFocus += new RoutedEventHandler(_replaceTextBox_GotFocus);
 			KeyDown += new KeyEventHandler(_searchPanel_KeyDown);
+			PreviewKeyDown += new KeyEventHandler(_searchPanel_PreviewKeyDown);
 
 			CommandBindings.Add(new CommandBinding(Find, (sender, e) => Open()));
 			CommandBindings.Add(new CommandBinding(SearchCommands.FindNext, (sender, e) => FindNext()));
@@ -166,15 +172,15 @@ namespace GRFEditor.WPF {
 		private void _replaceTextBox_GotFocus(object sender, RoutedEventArgs e) {
 			_labelReplace.Visibility = Visibility.Hidden;
 			_border2.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 186, 86, 0));
-			_replaceTextBox.Foreground = Application.Current.Resources["TextForeground"] as Brush;
-			_searchTextBox.Foreground = Application.Current.Resources["TextForeground"] as Brush;
+			_replaceTextBox.Foreground = (Brush)this.FindResource("TextForeground");
+			_searchTextBox.Foreground = (Brush)this.FindResource("TextForeground");
 		}
 
 		private void _searchTextBox_GotFocus(object sender, RoutedEventArgs e) {
 			_labelFind.Visibility = Visibility.Hidden;
 			_border1.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 186, 86, 0));
-			_replaceTextBox.Foreground = Application.Current.Resources["TextForeground"] as Brush;
-			_searchTextBox.Foreground = Application.Current.Resources["TextForeground"] as Brush;
+			_replaceTextBox.Foreground = (Brush)this.FindResource("TextForeground");
+			_searchTextBox.Foreground = (Brush)this.FindResource("TextForeground");
 		}
 
 		private void _replaceTextBox_LostFocus(object sender, RoutedEventArgs e) {
@@ -289,8 +295,7 @@ namespace GRFEditor.WPF {
 				OnSearchOptionsChanged(new SearchOptionsChangedEventArgs(SearchPattern, MatchCase, UseRegex, WholeWords));
 				DoSearch(true);
 			}
-			catch {
-			}
+			catch { }
 		}
 
 		public event EventHandler<SearchOptionsChangedEventArgs> SearchOptionsChanged;
@@ -339,6 +344,13 @@ namespace GRFEditor.WPF {
 			//_textArea.Caret.Show();
 		}
 
+		private void _searchPanel_PreviewKeyDown(object sender, KeyEventArgs e) {
+			if (e.Key == Key.Escape) {
+				e.Handled = true;
+				Close();
+			}
+		}
+
 		private void _searchPanel_KeyDown(object sender, KeyEventArgs e) {
 			switch (e.Key) {
 				case Key.Enter:
@@ -356,10 +368,6 @@ namespace GRFEditor.WPF {
 							_messageView.IsOpen = true;
 						}
 					}
-					break;
-				case Key.Escape:
-					e.Handled = true;
-					Close();
 					break;
 			}
 		}
@@ -518,7 +526,7 @@ namespace GRFEditor.WPF {
 		#region Nested type: SearchPanelAdorner
 
 		public class SearchPanelAdorner : Adorner {
-			private readonly SearchPanel _panel;
+			readonly SearchPanel _panel;
 
 			public SearchPanelAdorner(TextArea textArea, SearchPanel panel)
 				: base(textArea) {
@@ -540,7 +548,7 @@ namespace GRFEditor.WPF {
 
 			protected override Size ArrangeOverride(Size finalSize) {
 				_panel.Arrange(new Rect(new Point(0, 0), finalSize));
-				return new Size(_panel.ActualWidth < 0 ? 0 : _panel.ActualWidth, _panel.ActualHeight < 0 ? 0 : _panel.ActualHeight);
+				return new Size(_panel.ActualWidth, _panel.ActualHeight);
 			}
 		}
 
@@ -549,10 +557,10 @@ namespace GRFEditor.WPF {
 		#region Nested type: SearchResultBackgroundRenderer
 
 		public class SearchResultBackgroundRenderer : IBackgroundRenderer {
-			private readonly TextSegmentCollection<SearchResult> _currentResults = new TextSegmentCollection<SearchResult>();
+			readonly TextSegmentCollection<SearchResult> _currentResults = new TextSegmentCollection<SearchResult>();
 
-			private Brush _markerBrush;
-			private Pen _markerPen;
+			Brush _markerBrush;
+			Pen _markerPen;
 
 			public SearchResultBackgroundRenderer() {
 				_markerBrush = Brushes.LightGreen;

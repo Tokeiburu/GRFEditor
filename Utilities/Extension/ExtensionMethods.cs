@@ -37,6 +37,15 @@ namespace Utilities.Extension {
 			return text;
 		}
 
+		public static string RemoveComment(this String text) {
+			int start = text.IndexOf("//", System.StringComparison.Ordinal);
+
+			if (start >= 0)
+				return text.Substring(0, start);
+
+			return text;
+		}
+
 		public static byte[] Substr(this byte[] data, int offset, int length) {
 			byte[] ret = new byte[length];
 			Buffer.BlockCopy(data, offset, ret, 0, length);

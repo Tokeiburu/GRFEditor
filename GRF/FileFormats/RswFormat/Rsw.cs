@@ -33,6 +33,7 @@ namespace GRF.FileFormats.RswFormat {
 		public Rsw(IBinaryReader reader) {
 			Objects = new List<RswObject>();
 			ModelResources = new List<string>();
+			LubEffects = new List<Effect>();
 
 			Header = new RswHeader(reader);
 			Water = new RswWater(reader, Header);
@@ -87,6 +88,11 @@ namespace GRF.FileFormats.RswFormat {
 		/// Gets or sets the objects.
 		/// </summary>
 		public List<RswObject> Objects { get; set; }
+
+		/// <summary>
+		/// Gets or sets the lub effects.
+		/// </summary>
+		public List<Effect> LubEffects { get; private set; }
 		
 		/// <summary>
 		/// Gets or sets the model resources.
@@ -196,6 +202,11 @@ namespace GRF.FileFormats.RswFormat {
 						break;
 					case RswObjectType.Effect:
 						obj = new Effect(reader);
+
+						if (((Effect)obj).EffectNumber == 974) {
+							LubEffects.Add((Effect)obj);
+						}
+
 						break;
 				}
 

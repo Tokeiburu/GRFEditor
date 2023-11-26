@@ -180,13 +180,13 @@ namespace GRFEditor.Tools.GrfValidation {
 		}
 
 		private void _buttonFindErrors_Click(object sender, RoutedEventArgs e) {
-			List<Tuple<ValidationTypes, string, string>> errors = new List<Tuple<ValidationTypes, string, string>>();
+			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
 			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.FindErrors(errors, _grfHolder), _validation, 200, errors), _updateErrors);
 		}
 
 		private void _updateErrors(object state) {
 			try {
-				List<Tuple<ValidationTypes, string, string>> errors = (List<Tuple<ValidationTypes, string, string>>)state;
+				List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = (List<Utilities.Extension.Tuple<ValidationTypes, string, string>>)state;
 				errors = errors.Where(p => p != null).ToList();
 				List<ValidationView> errorsView = errors.Select(error => new ValidationView(error)).ToList();
 				StringBuilder builder = new StringBuilder();
@@ -205,12 +205,12 @@ namespace GRFEditor.Tools.GrfValidation {
 		}
 
 		private void _buttonValidateContent_Click(object sender, RoutedEventArgs e) {
-			List<Tuple<ValidationTypes, string, string>> errors = new List<Tuple<ValidationTypes, string, string>>();
+			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
 			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.ValidateContent(errors, _grfHolder, ref _metaGrf), _validation, 200, errors), _updateErrors);
 		}
 
 		private void _buttonValidateExtraction_Click(object sender, RoutedEventArgs e) {
-			List<Tuple<ValidationTypes, string, string>> errors = new List<Tuple<ValidationTypes, string, string>>();
+			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
 			bool direction = _rbGrfFolder.IsChecked == true;
 			IHash hash = _cbComparisonAlrightm.SelectedItem as IHash;
 			bool ignoreFilesNotFound = _cbVeIgnoreFilesNotFound.IsChecked == true;
@@ -219,7 +219,7 @@ namespace GRFEditor.Tools.GrfValidation {
 		}
 
 		private void _buttonPrintHash_Click(object sender, RoutedEventArgs e) {
-			List<Tuple<ValidationTypes, string, string>> errors = new List<Tuple<ValidationTypes, string, string>>();
+			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
 			IHash hash = _cbComparisonAlrightm.SelectedItem as IHash;
 			bool direction = _rbGrfFolder.IsChecked == true;
 			string text = _pbValidation.Text;

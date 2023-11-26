@@ -146,6 +146,13 @@
     <Compile Include="IndexProviders\SpecifiedIndexProvider.cs" />
     <Compile Include="IndexProviders\SpecifiedRangeIndexProvider.cs" />
     <Compile Include="IniConfigAsker.cs" />
+    <Compile Include="Parsers\Libconfig\LibconfigParser.cs" />
+    <Compile Include="Parsers\Lua\LuaParser.cs" />
+    <Compile Include="Parsers\Lua\LuaReader.cs" />
+    <Compile Include="Parsers\Lua\LuaWriter.cs" />
+    <Compile Include="Parsers\Lua\Structure\LuaElement.cs" />
+    <Compile Include="Parsers\ParserObject.cs" />
+    <Compile Include="Parsers\Yaml\YamlParser.cs" />
     <Compile Include="TextConfigAsker.cs" />
     <Compile Include="Hash\Crc32Hash.cs" />
     <Compile Include="Hash\FileSizeHash.cs" />

@@ -143,7 +143,7 @@ namespace GRF.FileFormats.ThorFormat {
 			}
 
 			Thor thor = new Thor();
-			bool repack = grf.GetAttachedProperty<bool>("Thor.Repack");;
+			bool repack = grf.GetAttachedProperty<bool>("Thor.Repack");
 
 			try {
 				_oldCompression = null;

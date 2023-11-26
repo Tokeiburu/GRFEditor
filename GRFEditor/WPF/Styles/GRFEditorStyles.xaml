@@ -261,6 +261,9 @@
     <Style x:Key="TabControlStyled2" TargetType="{x:Type TabControl}">
     </Style>
 
+    <Style x:Key="TabItemSimple" TargetType="{x:Type TabItem}">
+    </Style>
+
     <Style x:Key="TabControlSprite" TargetType="{x:Type TabControl}">
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="BorderBrush" Value="#CED6E3" />
@@ -400,11 +403,6 @@
 
     <SolidColorBrush x:Key="ToggleMemoryBorderBrush" Color="#9AA6B6"/>
     <SolidColorBrush x:Key="UIDragDropBrush" Color="#FFD3FDC5"/>
-
-    <LinearGradientBrush x:Key="SearchDialogSubmenuBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Offset="0" Color="#DEDEDE" />
-        <GradientStop Offset="0.5" Color="White" />
-    </LinearGradientBrush>
     
     <LinearGradientBrush x:Key="ToggleMemoryBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Offset="0" Color="#DEDEDE" />
@@ -419,4 +417,20 @@
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
     </Style>
     <SolidColorBrush x:Key="TextBoxOverlayBrush" Color="#8C8C8C"/>
+
+    <SolidColorBrush x:Key="GSearchEngineOk" Color="White"/>
+    <SolidColorBrush x:Key="GSearchEngineProcessing" Color="#DCFFCC"/>
+    <SolidColorBrush x:Key="GSearchEnginePredicate" Color="#32FFD400"/>
+    <SolidColorBrush x:Key="GSearchEngineError" Color="Pink"/>
+
+    <SolidColorBrush x:Key="GSearchEngineExtendBorder" Color="#9AA6B6"/>
+    <LinearGradientBrush x:Key="GSearchEngineExtendBackground" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#DEDEDE" />
+        <GradientStop Offset="0.5" Color="White" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="SearchDialogSubmenuBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
+        <GradientStop Offset="0" Color="#DEDEDE" />
+        <GradientStop Offset="0.5" Color="White" />
+    </LinearGradientBrush>
 </ResourceDictionary>

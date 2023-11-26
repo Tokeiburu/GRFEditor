@@ -13,6 +13,7 @@ using GRF.Core;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
+using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF;
@@ -188,7 +189,7 @@ namespace GRFEditor {
 						List<FileEntry> result;
 
 						if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
-							IEnumerable<Tuple<string, string, FileEntry>> res = _grfHolder.FileTable.FastTupleAccessEntries;
+							IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = _grfHolder.FileTable.FastTupleAccessEntries;
 
 							foreach (var query in search) {
 								if (query.Contains("*") || query.Contains("?")) {
@@ -221,7 +222,7 @@ namespace GRFEditor {
 
 						for (int i = 0; i < result.Count; i++) {
 							if (result[i].DataImage == null) {
-								result[i].DataImage = GrfEditorIconProvider.GetSmallIcon(result[i].RelativePath);
+								result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
 							}
 						}
 
@@ -253,12 +254,12 @@ namespace GRFEditor {
 
 						this.Dispatch(p => p._grfEntrySorter.SetOrder(WpfUtils.GetLastGetSearchAccessor(_items), WpfUtils.GetLastSortDirection(_items)));
 
-						List<Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
+						List<Utilities.Extension.Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
 						List<string> search = currentSearch.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
 						List<FileEntry> result;
 
 						if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
-							IEnumerable<Tuple<string, string, FileEntry>> res = entries.Where(p => p.Item1 == _searchSelectedPath);
+							IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = entries.Where(p => String.Compare(p.Item1, _searchSelectedPath, StringComparison.OrdinalIgnoreCase) == 0);
 
 							foreach (var query in search) {
 								if (query.Contains("*") || query.Contains("?")) {
@@ -273,7 +274,7 @@ namespace GRFEditor {
 							result = res.Select(p => p.Item3).ToList();
 						}
 						else {
-							var res = entries.Where(p => p.Item1 == _searchSelectedPath && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToList();
+							var res = entries.Where(p => String.Compare(p.Item1, _searchSelectedPath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToList();
 
 							if (res.Count < 10000) {
 								_grfEntrySorter.UseAlphaNum = true;
@@ -289,7 +290,7 @@ namespace GRFEditor {
 
 						for (int i = 0; i < result.Count; i++) {
 							if (result[i].DataImage == null) {
-								result[i].DataImage = GrfEditorIconProvider.GetSmallIcon(result[i].RelativePath);
+								result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
 							}
 						}
 						_items.Dispatch(p => p.ItemsSource = _itemEntries);
@@ -333,7 +334,7 @@ namespace GRFEditor {
 			private readonly DefaultListViewComparer<FileEntry> _internalSearch = new DefaultListViewComparer<FileEntry>();
 			private ListSortDirection _direction;
 			private string _searchGetAccessor;
-			private readonly AlphanumComparator _alphanumComparer = new AlphanumComparator();
+			private readonly AlphanumComparator _alphanumComparer = new AlphanumComparator(StringComparison.OrdinalIgnoreCase);
 			public bool UseAlphaNum { get; set; }
 
 			#region IComparer<FileEntry> Members

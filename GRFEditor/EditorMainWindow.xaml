@@ -44,7 +44,7 @@
         <Menu Height="30" AllowDrop="True">
             <MenuItem Margin="0 0 0 0">
                 <MenuItem.Header>
-                    <Label Content="File" Name="_miFile" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                    <Label Content="File" Name="_miFile" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
                 <MenuItem ListView:WpfUtils.ImagePath="add.png">
                     <MenuItem.Header>
@@ -74,7 +74,7 @@
             </MenuItem>
             <MenuItem VerticalAlignment="Center" Visibility="Visible">
                 <MenuItem.Header>
-                    <Label Content="Edit" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                    <Label Content="Edit" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
                 <MenuItem Name="_buttonUndo" ListView:WpfUtils.ImagePath="undo.png" IsEnabled="false" Header="Undo" InputGestureText="Ctrl-Z" Click="_buttonUndo_Click" />
                 <MenuItem Name="_buttonRedo" ListView:WpfUtils.ImagePath="redo.png" IsEnabled="false" Header="Redo" InputGestureText="Ctrl-Y" Click="_buttonRedo_Click" />
@@ -95,7 +95,7 @@
             </MenuItem>
             <MenuItem VerticalAlignment="Center" Visibility="Visible">
                 <MenuItem.Header>
-                    <Label Content="Tools" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" Style="{DynamicResource MenuHeaderStyle}" />
+                    <Label Content="Tools" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
                 <MenuItem Name="_menuItemValidateGrf" ListView:WpfUtils.ImagePath="validity.png" Header="Grf validation" Click="_menuItemValidateGrf_Click" />
                 <MenuItem Name="_menuItemOpenProgramData" ListView:WpfUtils.ImagePath="newFolder.png" Click="_menuItemOpenProgramData_Click" Header="Open roaming data" />

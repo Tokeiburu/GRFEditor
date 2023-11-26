@@ -58,7 +58,9 @@ namespace GrfToWpfBridge.Application {
 					WindowProvider.ShowWindow(_addDebugButton(new ErrorDialog("Information", _getHeader(errorLevel) + GetMessage(exception), errorLevel)));
 				}
 				else {
-					if (!(bool) System.Windows.Application.Current.Dispatcher.Invoke(new Func<bool>(() => System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded))) {
+					bool mainWindowVisible = (bool)System.Windows.Application.Current.Dispatcher.Invoke(new Func<bool>(() => System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded));
+					
+					if (!mainWindowVisible) {
 						Clipboard.SetDataObject(ErrorHandler.GenerateOutput(_recentDebugInfo.Exception, _recentDebugInfo.StackTrace));
 						_showBasicError(_getHeader(errorLevel) + GetMessage(exception), "Information");
 						return;
@@ -216,10 +218,10 @@ namespace GrfToWpfBridge.Application {
 
 			switch (level) {
 				case ErrorLevel.Warning:
-					headerMessage = "An unhandled exception has been thrown :\r\n\r\n";
+					headerMessage = "An unhandled exception has been thrown:\r\n\r\n";
 					break;
 				case ErrorLevel.Critical:
-					headerMessage = "A critical error has been encountered :\r\n\r\n";
+					headerMessage = "A critical error has been encountered:\r\n\r\n";
 					break;
 			}
 

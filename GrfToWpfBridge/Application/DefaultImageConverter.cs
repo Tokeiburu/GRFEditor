@@ -73,7 +73,7 @@ namespace GrfToWpfBridge.Application {
 				case GrfImageType.Indexed8:
 					return image;
 				case GrfImageType.NotEvaluated:
-				//case GrfImageType.NotEvaluatedBmp:
+				case GrfImageType.NotEvaluatedBmp:
 				case GrfImageType.NotEvaluatedPng:
 					bit = _readAsCommonFormat(image);
 					break;
@@ -83,8 +83,8 @@ namespace GrfToWpfBridge.Application {
 				case GrfImageType.NotEvaluatedTga:
 					bit = _readAsTgaFormat(image);
 					break;
-				case GrfImageType.NotEvaluatedBmp:
-					return new BmpDecoder(image.Pixels).ToGrfImage();
+				//case GrfImageType.NotEvaluatedBmp:
+				//	return new BmpDecoder(image.Pixels).ToGrfImage();
 				default:
 					throw new Exception("Unsupported pixel format");
 			}

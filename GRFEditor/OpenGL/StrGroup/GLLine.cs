@@ -1,15 +1,15 @@
 ﻿using System.Windows.Controls;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
+using GRFEditor.WPF.PreviewTabs;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
 
-namespace GRFEditor.WPF.PreviewTabs.GLGroup {
+namespace GRFEditor.OpenGL.StrGroup {
 	public class GLLine : GLObject {
 		private readonly Orientation _orientation;
 		private int _textId;
-		public Matrix4 Model = Matrix4.Identity;
 
 		static GLLine() {
 			LineShader = new Shader("shader.vert", "shader.frag");
@@ -36,7 +36,7 @@ namespace GRFEditor.WPF.PreviewTabs.GLGroup {
 			Shader.SetVector4("colorMult", new Vector4(0, 0, 0, 1f));
 
 			GL.BindTexture(TextureTarget.Texture2D, _textId);
-			GL.BlendFunc(BlendingFactorSrc.One, BlendingFactorDest.One);
+			GL.BlendFunc(BlendingFactor.One, BlendingFactor.One);
 
 			float relativeCenterX = 0.5f;
 			float relativeCenterY = 0.5f;

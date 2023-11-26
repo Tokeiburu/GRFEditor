@@ -89,8 +89,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 							resources.AddRange(str.Textures.Select(p => @"data\texture\effect\" + p));
 							break;
 						case ".gnd":
-							Gnd gnd = new Gnd(metaGrf.GetData(file));
-							resources.AddRange(gnd.TexturesPath.Select(p => @"data\texture\" + p));
+							var dataEntry = ((MultiType)metaGrf.GetData(file)).GetBinaryReader();
+							GndHeader gndHeader = new GndHeader(dataEntry);
+
+							for (int i = 0; i < gndHeader.TextureCount; i++) {
+								resources.Add(@"data\texture\" + dataEntry.String(gndHeader.TexturePathSize, '\0'));
+							}
+
 							break;
 						case ".rsw":
 							Rsw rsw = new Rsw(metaGrf.GetData(file));
@@ -98,8 +103,39 @@ namespace GRFEditor.WPF.PreviewTabs {
 							break;
 						case ".rsm":
 						case ".rsm2":
-							Rsm rsm = new Rsm(metaGrf.GetData(file));
-							resources.AddRange(rsm.Textures.Select(p => @"data\texture\" + p));
+							var byteData = metaGrf.GetData(file);
+
+							var binaryReader = ((MultiType)byteData).GetBinaryReader();
+							RsmHeader rsmHeader = new RsmHeader(binaryReader);
+
+							if (rsmHeader.Version < 2.0) {
+								binaryReader.Int32();
+								binaryReader.Int32();
+
+								if (rsmHeader.Version >= 1.4) {
+									binaryReader.Byte();
+								}
+
+								binaryReader.Bytes(16);
+								var count = binaryReader.Int32();
+
+								for (int i = 0; i < count; i++) {
+									resources.Add(@"data\texture\" + binaryReader.String(40, '\0'));
+								}
+							}
+							else {
+								binaryReader.Position = 0;
+								Rsm rsm2 = new Rsm(binaryReader);
+
+								resources.AddRange(rsm2.Textures.Select(p => @"data\texture\" + p));
+
+								foreach (var mesh in rsm2.Meshes) {
+									resources.AddRange(mesh.Textures.Select(p => @"data\texture\" + p));
+								}
+
+								resources = resources.Distinct().ToList();
+							}
+
 							break;
 					}
 

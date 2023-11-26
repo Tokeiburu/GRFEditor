@@ -3,7 +3,9 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:WPF1="clr-namespace:GRFEditor.WPF"
-             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary">
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+             xmlns:controls="clr-namespace:GRFEditor.Core.Avalon"
+             xmlns:wpf="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary">
     <Border Height="32" BorderBrush="#BEBEBE" BorderThickness="1" VerticalAlignment="Top" HorizontalAlignment="Right">
         <Grid Background="{StaticResource TabControlBackground}">
             <DockPanel>
@@ -14,8 +16,8 @@
                 </Styles:FancyButton>
                 <Border  Margin="3 0 3 0" Name="_border1" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
                     <Grid>
-                        <WPF1:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
-                            <Border Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="#9AA6B6" Background="{StaticResource SearchDialogSubmenuBackgroundBrush}" FocusVisualStyle="{x:Null}">
+                        <wpf:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
+                            <Border x:Name="_unclickableBorder" Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="{StaticResource GSearchEngineExtendBorder}" Background="{StaticResource GSearchEngineExtendBackground}" FocusVisualStyle="{x:Null}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -41,8 +43,8 @@
                                     </CheckBox>
                                 </Grid>
                             </Border>
-                        </WPF1:LeftComboBox>
-                        <TextBox AcceptsReturn="False" AcceptsTab="False" PreviewKeyDown="_textArea_PreviewKeyDown" Padding="3" BorderThickness="0" Name="_searchTextBox" VerticalAlignment="Center" HorizontalAlignment="Left" Width="145">
+                        </wpf:LeftComboBox>
+                        <TextBox AcceptsReturn="False" Foreground="{DynamicResource TextForeground}" AcceptsTab="False" PreviewKeyDown="_textArea_PreviewKeyDown" Padding="3" BorderThickness="0" Name="_searchTextBox" VerticalAlignment="Center" HorizontalAlignment="Left" Width="145">
                             <TextBox.Text>
                                 <Binding Path="SearchPattern" RelativeSource="{RelativeSource TemplatedParent}" UpdateSourceTrigger="PropertyChanged">
                                     <Binding.ValidationRules>
@@ -52,7 +54,7 @@
                             </TextBox.Text>
                         </TextBox>
                         <TextBlock  Name="_labelFind" Margin="3 0 0 0" VerticalAlignment="Center" Text="Find..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
-                        <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="White" BorderThickness="0">
+                        <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="{Binding ElementName=_searchTextBox, Path=Background}" BorderThickness="0">
                             <Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
                         </Border>
                     </Grid>
@@ -69,9 +71,9 @@
                 </Styles:FancyButton>
                 <Border Margin="3 0 3 0" Name="_border2" Visibility="{Binding ElementName=_replaceTextBox, Path=Visibility}" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1">
                     <Grid>
-                        <TextBox AcceptsReturn="False" AcceptsTab="False" Padding="3" PreviewKeyDown="_replaceTextBox_PreviewKeyDown" Visibility="Collapsed" BorderThickness="0" Name="_replaceTextBox" VerticalAlignment="Center" Width="150">
-                    </TextBox>
-                    <TextBlock  Name="_labelReplace" Margin="3 0 0 0" VerticalAlignment="Center" Text="Replace..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
+                        <TextBox Foreground="{DynamicResource TextForeground}" AcceptsReturn="False" AcceptsTab="False" Padding="3" PreviewKeyDown="_replaceTextBox_PreviewKeyDown" Visibility="Collapsed" BorderThickness="0" Name="_replaceTextBox" VerticalAlignment="Center" Width="150">
+                        </TextBox>
+                        <TextBlock  Name="_labelReplace" Margin="3 0 0 0" VerticalAlignment="Center" Text="Replace..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
                     </Grid>
                 </Border>
                 <Styles:FancyButton Visibility="{Binding ElementName=_replaceTextBox, Path=Visibility}" x:Name="_buttonReplaceSingle" Height="24" Width="24" ImagePath="replaceSingle.png" Click="_buttonReplaceSingle_Click" IsButtonEnabled="True">

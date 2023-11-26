@@ -23,6 +23,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 		public static DependencyProperty IsMouseEffectOnProperty;
 		public static DependencyProperty ImagePathProperty;
 		public static DependencyProperty ReverseMouseContextMenuProperty;
+		public static DependencyProperty IconPathProperty;
 		#endregion
 
 		#region Static Constructor
@@ -58,6 +59,11 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 				typeof(GridViewColumnHeader),
 				typeof(WpfUtils),
 				new PropertyMetadata());
+			IconPathProperty = DependencyProperty.Register(
+				"IconPath", 
+				typeof(string), 
+				typeof(MenuItem), 
+				new PropertyMetadata(new PropertyChangedCallback(OnIconPathChanged)));
 		}
 
 		private static void OnRegisterReverseMouseContextMenu(DependencyObject d, DependencyPropertyChangedEventArgs e) {
@@ -171,6 +177,14 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			obj.SetValue(ImagePathProperty, value);
 		}
 
+		public static string GetIconPath(DependencyObject obj) {
+			return (string)obj.GetValue(IconPathProperty);
+		}
+
+		public static void SetIconPath(DependencyObject obj, string value) {
+			obj.SetValue(IconPathProperty, value);
+		}
+
 		public static Boolean GetIsGridSortable(DependencyObject obj) {
 			return (Boolean)obj.GetValue(IsGridSortableProperty);
 		}
@@ -203,6 +217,18 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			System.Windows.Controls.ListView grid = sender as System.Windows.Controls.ListView;
 			if (grid != null) {
 				RegisterSortableGridview(grid, args);
+			}
+		}
+
+		private static void OnIconPathChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			MenuItem menuItem = d as MenuItem;
+
+			if (menuItem != null) {
+				Image image = new Image();
+				image.Source = ApplicationManager.GetResourceImage(e.NewValue.ToString());
+				image.Width = 16;
+				image.Height = 16;
+				menuItem.Icon = image;
 			}
 		}
 

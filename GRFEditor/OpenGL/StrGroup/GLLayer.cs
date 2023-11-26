@@ -3,10 +3,11 @@ using System.IO;
 using GRF.FileFormats.StrFormat;
 using GRF.Image;
 using GRF.IO;
+using GRFEditor.WPF.PreviewTabs;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.WPF.PreviewTabs.GLGroup {
+namespace GRFEditor.OpenGL.StrGroup {
 	public class GLLayer : GLObject {
 		private List<int> _textureIds = null;
 		private readonly StrLayer _layer;

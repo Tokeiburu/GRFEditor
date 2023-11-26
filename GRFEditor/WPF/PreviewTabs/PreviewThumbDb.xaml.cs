@@ -40,7 +40,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		protected override void _load(FileEntry entry) {
 			string fileName = entry.RelativePath;
-			_labelHeader.Dispatch(p => p.Content = "Image preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Image preview : " + Path.GetFileName(fileName));
 
 			_comboBoxActionIndex.Dispatch(p => p.Items.Clear());
 

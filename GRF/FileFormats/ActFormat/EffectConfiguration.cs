@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using GRF.Image;
 using Utilities;
 
@@ -27,9 +25,12 @@ namespace GRF.FileFormats.ActFormat {
 		public Action<Act> EffectFunc;
 		public static bool Displayed { get; set; }
 		public string ParentType { get; set; }
+		public bool ActIndexSelectorReadonly { get; set; }
+		public bool AutoPlay { get; set; }
 
 		public EffectConfiguration(string parent) {
 			ParentType = parent;
+			AutoPlay = true;
 		}
 
 		public void AddProperty<T>(string name, T defValue, T minValue, T maxValue) {

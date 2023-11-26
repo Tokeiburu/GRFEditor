@@ -197,7 +197,7 @@ namespace GRFEditor.WPF {
 			if (e.LeftButton == MouseButtonState.Pressed) {
 				GRF.Graphics.Point dist = e.GetPosition(this).ToGrfPoint() - _oldPosition.ToGrfPoint();
 
-				if (dist.Lenght > 4) {
+				if (dist.Length > 4) {
 					DataObject data = new DataObject();
 					data.SetData("GrfColor", Color.ToGrfColor());
 					data.SetText(Color.ToGrfColor().ToHexString());

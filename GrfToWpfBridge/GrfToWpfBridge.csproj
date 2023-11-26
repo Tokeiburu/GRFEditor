@@ -89,6 +89,7 @@
   <ItemGroup>
     <Compile Include="Act.cs" />
     <Compile Include="Application\AsyncOperation.cs" />
+    <Compile Include="IconProvider.cs" />
     <Compile Include="TreeViewManager\CompressionMethodPicker.cs" />
     <Compile Include="Application\EncodingPicker.cs" />
     <Compile Include="Application\DefaultErrorHandler.cs" />

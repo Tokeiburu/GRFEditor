@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="GRFEditor.OpenGL.WPF.OpenGLViewport"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>    
+        <WindowsFormsHost Name="_host">
+        </WindowsFormsHost>
+        <Grid Name="_crashGrid" Background="LightGray" Visibility="Collapsed">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <Button Name="_btnResume" Width="100" Height="24" Content="Resume" Click="_btnResume_Click" Margin="3" />
+                <TextBlock Text="A crash occured while rendering the map or the model. To prevent an infinite loop, the rendering thread has been paused. Click on a different map or model and then press 'Resume' to continue." TextWrapping="Wrap" MaxWidth="200" VerticalAlignment="Bottom" Foreground="Black" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</UserControl>

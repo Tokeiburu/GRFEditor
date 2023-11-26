@@ -36,7 +36,7 @@ namespace Utilities {
 		public static extern bool PathCompactPathEx([Out] StringBuilder pszOut, string szPath, int cchMax, int dwFlags);
 
 		[DllImport("kernel32.dll", EntryPoint = "LoadLibrary")]
-		public static extern int LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpLibFileName);
+		public static extern IntPtr LoadLibrary([MarshalAs(UnmanagedType.LPStr)] string lpLibFileName);
 
 		[DllImport("kernel32.dll")]
 		public static extern uint GetLastError();
@@ -44,8 +44,14 @@ namespace Utilities {
 		[DllImport("kernel32.dll", EntryPoint = "GetProcAddress")]
 		public static extern IntPtr GetProcAddress(int hModule, [MarshalAs(UnmanagedType.LPStr)] string lpProcName);
 
+		[DllImport("kernel32.dll", EntryPoint = "GetProcAddress")]
+		public static extern IntPtr GetProcAddress2(IntPtr hModule, IntPtr lpProcName);
+
 		[DllImport("kernel32.dll", EntryPoint = "FreeLibrary")]
 		public static extern bool FreeLibrary(int hModule);
+
+		[DllImport("kernel32.dll", EntryPoint = "FreeLibrary")]
+		public static extern bool FreeLibrary(IntPtr hModule);
 
 		[DllImport("pdh.dll", SetLastError = true, CharSet = CharSet.Unicode)]
 		public static extern UInt32 PdhLookupPerfNameByIndex(string szMachineName, uint dwNameIndex, StringBuilder szNameBuffer, ref uint pcchNameBufferSize);

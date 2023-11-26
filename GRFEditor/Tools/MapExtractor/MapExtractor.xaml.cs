@@ -215,7 +215,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			try {
 				Progress = -1;
 
-				List<Tuple<TkPath, string>> selectedNodes = _getSelectedNodes(null).GroupBy(p => p.Item1.GetFullPath()).Select(p => p.First()).ToList();
+				List<Utilities.Extension.Tuple<TkPath, string>> selectedNodes = _getSelectedNodes(null).GroupBy(p => p.Item1.GetFullPath()).Select(p => p.First()).ToList();
 				List<string> pathsToCreate = selectedNodes.Select(p => Path.Combine(_destinationPath, Path.GetDirectoryName(p.Item2))).Distinct().ToList();
 
 				foreach (string pathToCreate in pathsToCreate) {
@@ -401,9 +401,9 @@ namespace GRFEditor.Tools.MapExtractor {
 			}
 		}
 
-		private IEnumerable<Tuple<TkPath, string>> _getSelectedNodes(MapExtractorTreeViewItem node) {
-			return (List<Tuple<TkPath, string>>) _treeViewMapExtractor.Dispatcher.Invoke(new Func<List<Tuple<TkPath, string>>>(delegate {
-				List<Tuple<TkPath, string>> paths = new List<Tuple<TkPath, string>>();
+		private IEnumerable<Utilities.Extension.Tuple<TkPath, string>> _getSelectedNodes(MapExtractorTreeViewItem node) {
+			return (List<Utilities.Extension.Tuple<TkPath, string>>)_treeViewMapExtractor.Dispatcher.Invoke(new Func<List<Utilities.Extension.Tuple<TkPath, string>>>(delegate {
+				List<Utilities.Extension.Tuple<TkPath, string>> paths = new List<Utilities.Extension.Tuple<TkPath, string>>();
 
 				if (node == null) {
 					foreach (MapExtractorTreeViewItem mapNode in _treeViewMapExtractor.Items) {
@@ -412,7 +412,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				}
 				else {
 					if (node.CheckBoxHeader.IsChecked == true) {
-						paths.Add(new Tuple<TkPath, string>(node.ResourcePath, node.ResourcePath.RelativePath));
+						paths.Add(new Utilities.Extension.Tuple<TkPath, string>(node.ResourcePath, node.ResourcePath.RelativePath));
 					}
 
 					foreach (MapExtractorTreeViewItem mapNode in node.Items) {

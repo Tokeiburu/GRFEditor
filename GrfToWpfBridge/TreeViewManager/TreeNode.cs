@@ -11,7 +11,7 @@ using Utilities.Services;
 namespace GrfToWpfBridge.TreeViewManager {
 	public class TreeNode {
 		//private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
-		private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>();
+		private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
 		private readonly bool _enableDrop = true;
 		private readonly TkPath _path;
 		private readonly Tree _root;

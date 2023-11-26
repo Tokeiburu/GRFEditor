@@ -1126,9 +1126,12 @@ namespace GRF.Image {
 
 			if (GrfImageType == GrfImageType.Indexed8) {
 				for (int i = 0; i < 1024; i += 4) {
-					if (Palette[i] >= 252 &&
-						Palette[i + 1] <= 4 && 
-						Palette[i + 2] >= 252) {
+					if (Palette[i] > 250 &&
+						Palette[i + 1] < 5 && 
+						Palette[i + 2] > 250) {
+						Palette[i + 0] = 0;
+						Palette[i + 1] = 0;
+						Palette[i + 2] = 0;
 						Palette[i + 3] = 0;
 					}
 				}
@@ -1138,9 +1141,9 @@ namespace GRF.Image {
 				TransparentPixels = new bool[Width * Height];
 
 				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] == pink[0] &&
-						Pixels[i + 1] == pink[1] &&
-						Pixels[i + 2] == pink[2]) {
+					if (Pixels[i] > 250 &&
+						Pixels[i + 1] < 5 &&
+						Pixels[i + 2] > 250) {
 						TransparentPixels[i / bpp] = true;
 
 						for (int p = 0; p < bpp; p++) {
@@ -1153,9 +1156,9 @@ namespace GRF.Image {
 				int bpp = _getBpp();
 
 				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] == pink[0] &&
-						Pixels[i + 1] == pink[1] &&
-						Pixels[i + 2] == pink[2]) {
+					if (Pixels[i] > 250 &&
+						Pixels[i + 1] < 5 &&
+						Pixels[i + 2] > 250) {
 						for (int p = 0; p < bpp; p++) {
 							Pixels[p + i] = 0;
 						}
@@ -1459,8 +1462,8 @@ namespace GRF.Image {
 
 				for (int j = 0; j < newHeight; j++) {
 					for (int i = 0; i < newWidth; i++) {
-
 						int offset = bpp * ((int)((float)j / newHeight * Height) * Width + (int)((float)i / newWidth * Width));
+
 						for (int k = 0; k < bpp; k++) {
 							data[bpp * (j * newWidth + i) + k] = Pixels[offset + k];
 						}

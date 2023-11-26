@@ -1,8 +1,21 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.IO;
 using GRF.IO;
-using Utilities;
 
 namespace GRF.FileFormats.RswFormat {
+	public class WaterData {
+		public int WaterSplitWidth = 1;
+		public int WaterSplitHeight = 1;
+		public List<RswWater> Zones = new List<RswWater>();
+
+		public WaterData() {
+		}
+
+		public WaterData(RswWater water) {
+			Zones.Add(water);
+		}
+	};
+
 	/// <summary>
 	/// The RSW water information.
 	/// </summary>

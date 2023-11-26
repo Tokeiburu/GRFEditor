@@ -5,20 +5,18 @@ using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
 using Utilities.Services;
 
-namespace GRFEditor.WPF.PreviewTabs.GLGroup {
+namespace GRFEditor.OpenGL {
 	// A simple class meant to help create shaders.
 	public class Shader {
 		public readonly int Handle;
 
 		private readonly Dictionary<string, int> _uniformLocations;
-		private string _vertPath;
 
 		// This is how you create a simple shader.
 		// Shaders are written in GLSL, which is a language very similar to C in its semantics.
 		// The GLSL source is compiled *at runtime*, so it can optimize itself for the graphics card it's currently being used on.
 		// A commented example of GLSL can be found in shader.vert.
 		public Shader(string vertPath, string fragPath) {
-			_vertPath = vertPath;
 			// There are several different types of shaders, but the only two you need for basic rendering are the vertex and fragment shaders.
 			// The vertex shader is responsible for moving around vertices, and uploading that data to the fragment shader.
 			//   The vertex shader won't be too important here, but they'll be more important later.
@@ -143,12 +141,25 @@ namespace GRFEditor.WPF.PreviewTabs.GLGroup {
 		//     2. Get a handle to the location of the uniform with GL.GetUniformLocation.
 		//     3. Use the appropriate GL.Uniform* function to set the uniform.
 
+		public void SetBool(string name, bool data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
+			GL.UseProgram(Handle);
+			GL.Uniform1(_uniformLocations[name], data ? 1 : 0);
+		}
+
 		/// <summary>
 		/// Set a uniform int on this shader.
 		/// </summary>
 		/// <param name="name">The name of the uniform</param>
 		/// <param name="data">The data to set</param>
 		public void SetInt(string name, int data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
 			GL.UseProgram(Handle);
 			GL.Uniform1(_uniformLocations[name], data);
 		}
@@ -159,6 +170,10 @@ namespace GRFEditor.WPF.PreviewTabs.GLGroup {
 		/// <param name="name">The name of the uniform</param>
 		/// <param name="data">The data to set</param>
 		public void SetFloat(string name, float data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
 			GL.UseProgram(Handle);
 			GL.Uniform1(_uniformLocations[name], data);
 		}
@@ -174,8 +189,31 @@ namespace GRFEditor.WPF.PreviewTabs.GLGroup {
 		///   </para>
 		/// </remarks>
 		public void SetMatrix4(string name, Matrix4 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
 			GL.UseProgram(Handle);
 			GL.UniformMatrix4(_uniformLocations[name], true, ref data);
+		}
+
+		/// <summary>
+		/// Set a uniform Matrix4 on this shader
+		/// </summary>
+		/// <param name="name">The name of the uniform</param>
+		/// <param name="data">The data to set</param>
+		/// <remarks>
+		///   <para>
+		///   The matrix is transposed before being sent to the shader.
+		///   </para>
+		/// </remarks>
+		public void SetMatrix3(string name, Matrix3 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
+			GL.UseProgram(Handle);
+			GL.UniformMatrix3(_uniformLocations[name], true, ref data);
 		}
 
 		/// <summary>
@@ -184,11 +222,33 @@ namespace GRFEditor.WPF.PreviewTabs.GLGroup {
 		/// <param name="name">The name of the uniform</param>
 		/// <param name="data">The data to set</param>
 		public void SetVector3(string name, Vector3 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
 			GL.UseProgram(Handle);
 			GL.Uniform3(_uniformLocations[name], data);
 		}
 
+		/// <summary>
+		/// Set a uniform Vector3 on this shader.
+		/// </summary>
+		/// <param name="name">The name of the uniform</param>
+		/// <param name="data">The data to set</param>
+		public void SetVector2(string name, Vector2 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
+			GL.UseProgram(Handle);
+			GL.Uniform2(_uniformLocations[name], data);
+		}
+
 		public void SetVector4(string name, Vector4 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
+				return;
+			}
 			GL.UseProgram(Handle);
 			GL.Uniform4(_uniformLocations[name], data);
 		}

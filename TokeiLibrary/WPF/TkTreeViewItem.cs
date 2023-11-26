@@ -143,7 +143,7 @@ namespace TokeiLibrary.WPF {
 			{"여", "Female"},
 			{"기타마을", "Other towns"},
 			{"모험가배낭", "Adventurer's Backpack"},
-			{"로브", "Robes"},
+			{"로브", "Garments"},
 			{"내부소품", "Interior accessories"},
 			{"타락천사의날개", "Wings of fallen angels"},
 			{"천사날개", "Angel Wings"},

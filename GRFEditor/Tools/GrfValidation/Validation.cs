@@ -42,7 +42,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 		#endregion
 
-		public void FindErrors(List<Tuple<ValidationTypes, string, string>> errors, GrfHolder container) {
+		public void FindErrors(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder container) {
 			try {
 				_initProgress();
 				errors.Clear();
@@ -64,7 +64,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 					if (size > 0) {
 						string spaceSavedString = Methods.FileSizeToString(size);
-						errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.FeSpaceSaved, "", spaceSavedString));
+						errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeSpaceSaved, "", spaceSavedString));
 					}
 				}
 
@@ -72,19 +72,19 @@ namespace GRFEditor.Tools.GrfValidation {
 					List<FileEntry> entriesList = entries.Where(p => !p.Value.Added).Select(p => p.Value).ToList();
 
 					errors.AddRange(entriesList.Where(p => p.SizeCompressedAlignment < p.SizeCompressed)
-						                .Select(p => new Tuple<ValidationTypes, string, string>(
+										.Select(p => new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 							                             ValidationTypes.FeInvalidFileTable, p.RelativePath, "Invalid file alignment (lower than compressed size).")));
 
 					if (container.Header.IsMajorVersion(1)) {
 						errors.AddRange(entriesList.Where(p => p.SizeCompressedAlignment % 8 != 0)
-							                .Select(p => new Tuple<ValidationTypes, string, string>(
+											.Select(p => new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 								                             ValidationTypes.FeInvalidFileTable, p.RelativePath, "Invalid file alignment (misaligned bytes : " + (p.SizeCompressedAlignment % 8) + ").")));
 					}
 				}
 
 				if (GrfEditorConfiguration.FeNoExtension) {
 					errors.AddRange(entries.Where(p => !Path.GetFileName(p.Key).
-						                                    Contains('.')).Select(p => new Tuple<ValidationTypes, string, string>(
+															Contains('.')).Select(p => new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 							                                                               ValidationTypes.FeNoExtension, p.Key, "File name has no extension.")));
 				}
 
@@ -97,28 +97,28 @@ namespace GRFEditor.Tools.GrfValidation {
 					errors.AddRange(
 						from act in actFiles
 						where !sprFileNamesCut.Contains(act.RelativePath.Replace(Path.GetExtension(act.RelativePath), ""))
-						select new Tuple<ValidationTypes, string, string>(ValidationTypes.FeMissingSprAct, act.RelativePath, "Complementing Spr file missing."));
+						select new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeMissingSprAct, act.RelativePath, "Complementing Spr file missing."));
 
 					errors.AddRange(
 						from spr in sprFiles
 						where !actFileNamesCut.Contains(spr.RelativePath.Replace(Path.GetExtension(spr.RelativePath), ""))
-						select new Tuple<ValidationTypes, string, string>(ValidationTypes.FeMissingSprAct, spr.RelativePath, "Spr file is not used."));
+						select new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeMissingSprAct, spr.RelativePath, "Spr file is not used."));
 				}
 
 				if (GrfEditorConfiguration.FeEmptyFiles) {
 					string emptySizeString = Methods.FileSizeToString(0);
 					errors.AddRange(entries.Where(p => p.Value.DisplaySize == emptySizeString).Select(p =>
-					                                                                                  new Tuple<ValidationTypes, string, string>(ValidationTypes.FeEmptyFiles, p.Key, "Empty file (size = 0), remove it.")));
+																									  new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeEmptyFiles, p.Key, "Empty file (size = 0), remove it.")));
 				}
 
 				if (GrfEditorConfiguration.FeDb) {
 					errors.AddRange(entries.Where(p => Path.GetExtension(p.Key) != null && Path.GetExtension(p.Key).ToLower() == ".db").Select(p =>
-					                                                                                                                           new Tuple<ValidationTypes, string, string>(ValidationTypes.FeDb, p.Key, "Hidden database file for thumbnails, remove it.")));
+					                                                                                                                           new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeDb, p.Key, "Hidden database file for thumbnails, remove it.")));
 				}
 
 				if (GrfEditorConfiguration.FeSvn) {
 					errors.AddRange(entries.Where(p => Path.GetExtension(p.Key) != null && Path.GetExtension(p.Key).ToLower() == ".svn").Select(p =>
-					                                                                                                                            new Tuple<ValidationTypes, string, string>(ValidationTypes.FeSvn, p.Key, "Subversion file (usually hidden), remove it.")));
+					                                                                                                                            new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeSvn, p.Key, "Subversion file (usually hidden), remove it.")));
 				}
 
 				if (GrfEditorConfiguration.FeDuplicateFiles) {
@@ -137,13 +137,13 @@ namespace GRFEditor.Tools.GrfValidation {
 					}
 
 					errors.AddRange(entriesDuplicates.Where(p => p.Value > 0).Select(p =>
-					                                                                 new Tuple<ValidationTypes, string, string>(ValidationTypes.FeDuplicateFiles, p.Key, "This file has been found " + (p.Value + 1) + " times.")));
+					                                                                 new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeDuplicateFiles, p.Key, "This file has been found " + (p.Value + 1) + " times.")));
 				}
 
 				if (GrfEditorConfiguration.FeRootFiles) {
 					foreach (KeyValuePair<string, FileEntry> entry in entries) {
 						if (String.IsNullOrEmpty(Path.GetDirectoryName(entry.Key))) {
-							errors.Add(new Tuple<ValidationTypes, string, string>(
+							errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 								           ValidationTypes.FeRootFiles, entry.Key, "This file is at the root of the container, this is not recommended."));
 						}
 					}
@@ -167,7 +167,7 @@ namespace GRFEditor.Tools.GrfValidation {
 					}
 
 					errors.AddRange(entriesDuplicates.Where(p => p.Value > 0).Select(p =>
-					                                                                 new Tuple<ValidationTypes, string, string>(ValidationTypes.FeDuplicatePaths, p.Key, "This path has been found " + (p.Value + 1) + " times.")));
+					                                                                 new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.FeDuplicatePaths, p.Key, "This path has been found " + (p.Value + 1) + " times.")));
 				}
 			}
 			catch (Exception err) {
@@ -178,7 +178,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		public void ValidateContent(List<Tuple<ValidationTypes, string, string>> errors, GrfHolder container, ref MultiGrfReader metaGrf) {
+		public void ValidateContent(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder container, ref MultiGrfReader metaGrf) {
 			try {
 				_initProgress();
 				errors.Clear();
@@ -202,7 +202,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 									if (GrfEditorConfiguration.VcInvalidEntryMetadata) {
 										if (entryData.Length != entry.NewSizeDecompressed && !entry.Added) {
-											errors.Add(new Tuple<ValidationTypes, string, string>(
+											errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 														   ValidationTypes.VcInvalidEntryMetadata, entry.RelativePath, "Invalid size decompressed."));
 										}
 									}
@@ -211,17 +211,17 @@ namespace GRFEditor.Tools.GrfValidation {
 									entryData = null;
 
 									if (err == GrfExceptions.__ChecksumFailed) {
-										errors.Add(new Tuple<ValidationTypes, string, string>(
+										errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 												   ValidationTypes.VcZlibChecksum, entry.RelativePath, "The zlib checksum test has failed, try to repack the GRF."));
 									}
 									else {
-										errors.Add(new Tuple<ValidationTypes, string, string>(
+										errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 													   ValidationTypes.VcDecompressEntries, entry.RelativePath, "Couldn't decompress the file (corrupted entry)."));
 									}
 								}
 								catch {
 									entryData = null;
-									errors.Add(new Tuple<ValidationTypes, string, string>(
+									errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 												   ValidationTypes.VcDecompressEntries, entry.RelativePath, "Couldn't decompress the file (corrupted entry)."));
 								}
 
@@ -299,7 +299,7 @@ namespace GRFEditor.Tools.GrfValidation {
 													if (GrfEditorConfiguration.VcSpriteIssues) {
 														if (GrfEditorConfiguration.VcSpriteIssuesRle) {
 															if (spr.GetEarlyEndingEncoding().Cast<object>().Any()) {
-																errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteIssuesRle, entry.RelativePath, "Early ending RLE encoding (usually not an issue)."));
+																errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteIssuesRle, entry.RelativePath, "Early ending RLE encoding (usually not an issue)."));
 															}
 														}
 													}
@@ -345,7 +345,7 @@ namespace GRFEditor.Tools.GrfValidation {
 					}
 					catch (Exception err) {
 						//_failedLoading(errors, entry);
-						errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.VcUnknown, entry.RelativePath, err.Message));
+						errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcUnknown, entry.RelativePath, err.Message));
 					}
 
 					lock (_lock) {
@@ -377,7 +377,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		private void _validateAct(Act act, List<Tuple<ValidationTypes, string, string>> errors, FileEntry entry, MultiGrfReader metaGrfLocalCopy) {
+		private void _validateAct(Act act, List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, FileEntry entry, MultiGrfReader metaGrfLocalCopy) {
 			if (GrfEditorConfiguration.VcSpriteIssues) {
 				for (int i = 0; i < act.NumberOfActions; i++) {
 					for (int j = 0; j < act[i].NumberOfFrames; j++) {
@@ -385,7 +385,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 						if (GrfEditorConfiguration.VcSpriteSoundIndex) {
 							if (frame.SoundId >= act.SoundFiles.Count) {
-								errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteSoundIndex,
+								errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteSoundIndex,
 								                                                      entry.RelativePath, String.Format("Actions[{0}].Frames[{1}] is referring to an invalid sound index ({2}).",
 								                                                                                        i, j, frame.SoundId)));
 							}
@@ -394,7 +394,7 @@ namespace GRFEditor.Tools.GrfValidation {
 						if (GrfEditorConfiguration.VcSpriteIndex) {
 							for (int k = 0; k < frame.NumberOfLayers; k++) {
 								if (frame.Layers[k].SpriteIndex >= act.Sprite.NumberOfImagesLoaded) {
-									errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteIndex,
+									errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteIndex,
 									                                                      entry.RelativePath, String.Format("Actions[{0}].Frames[{1}].Layers[{2}] is referring to an invalid sprite index ({3}).",
 									                                                                                        i, j, k, frame.Layers[k].SpriteIndex)));
 								}
@@ -425,16 +425,16 @@ namespace GRFEditor.Tools.GrfValidation {
 				throw new NullReferenceException();
 		}
 
-		private void _validatePaths(MultiGrfReader metaGrf, IEnumerable<string> paths, ValidationTypes type, string file, string error, List<Tuple<ValidationTypes, string, string>> errors) {
+		private void _validatePaths(MultiGrfReader metaGrf, IEnumerable<string> paths, ValidationTypes type, string file, string error, List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors) {
 			foreach (string path in paths) {
 				if (!metaGrf.Exists(path)) {
-					errors.Add(new Tuple<ValidationTypes, string, string>(type, file, String.Format(error, path)));
+					errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(type, file, String.Format(error, path)));
 				}
 			}
 		}
 
-		private void _failedLoading(List<Tuple<ValidationTypes, string, string>> errors, FileEntry entry) {
-			errors.Add(new Tuple<ValidationTypes, string, string>(ValidationTypes.VcLoadEntries, entry.RelativePath, "Failed to load file's content (corrupted?)."));
+		private void _failedLoading(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, FileEntry entry) {
+			errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcLoadEntries, entry.RelativePath, "Failed to load file's content (corrupted?)."));
 		}
 
 		private void _finalizeProgress() {
@@ -451,7 +451,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			IsCancelled = false;
 		}
 
-		public void ValidateExtraction(List<Tuple<ValidationTypes, string, string>> errors, GrfHolder grfHolder,
+		public void ValidateExtraction(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder grfHolder,
 		                               string path, bool direction, IHash hash, bool ignoreFiles) {
 			try {
 				_initProgress();
@@ -477,7 +477,7 @@ namespace GRFEditor.Tools.GrfValidation {
 									if (GrfEditorConfiguration.VeFilesDifferentSize &&
 									    file1.Length != file2.Length) {
 										lock (_lock) {
-											errors.Add(new Tuple<ValidationTypes, string, string>(
+											errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 												           ValidationTypes.VeFilesDifferentSize, entry.RelativePath, "Different size (GRF: " +
 												                                                                     file2.Length + "; HD: " + file1.Length + ")."));
 										}
@@ -488,7 +488,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 										if (!Methods.ByteArrayCompare(hashString1, hashString2)) {
 											lock (_lock) {
-												errors.Add(new Tuple<ValidationTypes, string, string>(
+												errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 													           ValidationTypes.VeDifferentHashValue, entry.RelativePath, "Different hash value (GRF: " +
 													                                                                     Methods.ByteArrayToString(hashString2) + "; HD: " + Methods.ByteArrayToString(hashString1) + ")."));
 											}
@@ -497,7 +497,7 @@ namespace GRFEditor.Tools.GrfValidation {
 								}
 								else {
 									if (!ignoreFiles) {
-										errors.Add(new Tuple<ValidationTypes, string, string>(
+										errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 											           ValidationTypes.VeFileNotFound, entry.RelativePath, "File not found on the hard drive : " + fileName));
 									}
 								}
@@ -538,7 +538,7 @@ namespace GRFEditor.Tools.GrfValidation {
 									if (GrfEditorConfiguration.VeFilesDifferentSize &&
 									    file1.Length != file2.Length) {
 										lock (_lock) {
-											errors.Add(new Tuple<ValidationTypes, string, string>(
+											errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 												           ValidationTypes.VeFilesDifferentSize, entry.RelativePath, "Different size (GRF: " +
 												                                                                     file2.Length + "; HD: " + file1.Length + ")."));
 										}
@@ -549,7 +549,7 @@ namespace GRFEditor.Tools.GrfValidation {
 
 										if (!Methods.ByteArrayCompare(hashString1, hashString2)) {
 											lock (_lock) {
-												errors.Add(new Tuple<ValidationTypes, string, string>(
+												errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 													           ValidationTypes.VeDifferentHashValue, fileName, "Different hash value (GRF: " +
 													                                                           Methods.ByteArrayToString(hashString2) + "; HD: " + Methods.ByteArrayToString(hashString1) + ")."));
 											}
@@ -559,7 +559,7 @@ namespace GRFEditor.Tools.GrfValidation {
 								else {
 									if (!ignoreFiles) {
 										lock (_lock) {
-											errors.Add(new Tuple<ValidationTypes, string, string>(
+											errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 												           ValidationTypes.VeFileNotFound, fileName, "File not found in the GRF : " + relativePath));
 										}
 									}
@@ -591,7 +591,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		public void ComputeHash(List<Tuple<ValidationTypes, string, string>> errors, GrfHolder grfHolder, IHash hash, bool direction, string path) {
+		public void ComputeHash(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder grfHolder, IHash hash, bool direction, string path) {
 			try {
 				_initProgress();
 				errors.Clear();
@@ -608,7 +608,7 @@ namespace GRFEditor.Tools.GrfValidation {
 								string hashString2 = hash.ComputeHash(entry.GetDecompressedData());
 
 								lock (_lock) {
-									errors.Add(new Tuple<ValidationTypes, string, string>(
+									errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 										           ValidationTypes.VeComputeHash, entry.RelativePath, hashString2));
 									numberOfFilesProcessed++;
 								}
@@ -633,7 +633,7 @@ namespace GRFEditor.Tools.GrfValidation {
 								string hashString1 = hash.ComputeHash(File.ReadAllBytes(fileName));
 
 								lock (_lock) {
-									errors.Add(new Tuple<ValidationTypes, string, string>(
+									errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
 										           ValidationTypes.VeComputeHash, fileName, hashString1));
 									numberOfFilesProcessed++;
 								}
@@ -660,7 +660,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		public void ComputeHashQuick(List<Tuple<TkPath, byte[]>> errors, GrfHolder grfHolder, IHash hash) {
+		public void ComputeHashQuick(List<Utilities.Extension.Tuple<TkPath, byte[]>> errors, GrfHolder grfHolder, IHash hash) {
 			try {
 				_initProgress();
 				errors.Clear();
@@ -676,7 +676,7 @@ namespace GRFEditor.Tools.GrfValidation {
 							byte[] byteHash = hash.ComputeByteHash(entry.GetCompressedData());
 
 							lock (_lock) {
-								errors.Add(new Tuple<TkPath, byte[]>(
+								errors.Add(new Utilities.Extension.Tuple<TkPath, byte[]>(
 									           new TkPath { FilePath = filePath, RelativePath = entry.RelativePath }, byteHash));
 							}
 						}

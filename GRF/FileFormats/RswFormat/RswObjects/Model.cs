@@ -52,8 +52,8 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 		}
 
 		public string Name { get; set; }
-		public int AnimationType { get; private set; }
-		public float AnimationSpeed { get; private set; }
+		public int AnimationType { get; set; }
+		public float AnimationSpeed { get; set; }
 		public int BlockType { get; private set; }
 
 		public string ModelName { get; set; }

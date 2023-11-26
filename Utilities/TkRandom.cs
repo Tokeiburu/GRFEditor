@@ -27,5 +27,13 @@ namespace Utilities {
 		public static void SetSeed(int seed) {
 			_rnd = new Random(seed);
 		}
+
+		public static float Rand(float x1, float x2) {
+			return (float)(_rnd.NextDouble() * (x2 - x1)) + x1;
+		}
+
+		public static int Rand(int x1, int x2) {
+			return (int)(_rnd.NextDouble() * (x2 - x1)) + x1;
+		}
 	}
 }

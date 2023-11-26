@@ -127,7 +127,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			});
 
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
-			_labelHeader.Dispatch(p => p.Content = "Image preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Image preview : " + Path.GetFileName(fileName));
 
 			_buttonGroupImage.Dispatch(p => p.Visibility = PreviewService.IsImageCutable(entry.RelativePath, _grfData) ? Visibility.Visible : Visibility.Collapsed);
 
@@ -141,7 +141,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 						_updateZoom();
 					});
 
-					_labelHeader.Dispatch(p => p.Content = "Failed to decompressed data. Corrupted or encrypted entry.");
+					_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
 					return;
 				}
 

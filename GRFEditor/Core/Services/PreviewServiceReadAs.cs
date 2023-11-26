@@ -168,7 +168,8 @@ namespace GRFEditor.Core.Services {
 			_tabControlPreview.Items.Add(_tabContainerPreview);
 			_tabControlPreview.Items.Add(_tabSpritesPreview);
 			_tabControlPreview.Items.Add(_tabFolderPreview);
-			_tabControlPreview.Items.Add(_tabItemRsmPreview);
+
+
 			_tabControlPreview.Items.Add(_tabItemStrPreview);
 			_tabControlPreview.Items.Add(_tabItemActPreview);
 			_tabControlPreview.Items.Add(_tabItemImagePreview);
@@ -176,7 +177,10 @@ namespace GRFEditor.Core.Services {
 			_tabControlPreview.Items.Add(_tabItemDbPreview);
 			_tabControlPreview.Items.Add(_tabItemResourcePreview);
 			_tabControlPreview.Items.Add(_tabItemMapGatPreview);
+
+			_tabControlPreview.Items.Add(_tabItemRsmPreview);
 			_tabControlPreview.Items.Add(_tabItemGndPreview);
+
 			_tabControlPreview.Items.Add(_tabItemMapExtractorPreview);
 			_tabControlPreview.Items.Add(_tabItemTextPreview);
 			_tabControlPreview.Items.Add(_tabItemRawStructurePreview);
@@ -192,7 +196,7 @@ namespace GRFEditor.Core.Services {
 			_preferredOptions[".act"] = _tabControlPreview.Items.IndexOf(_tabItemActPreview);
 			_preferredOptions[".gat"] = _tabControlPreview.Items.IndexOf(_tabItemMapGatPreview);
 			_preferredOptions[".gnd"] = _tabControlPreview.Items.IndexOf(_tabItemGndPreview);
-			_preferredOptions[".rsw"] = _tabControlPreview.Items.IndexOf(_tabItemRawStructurePreview);
+			_preferredOptions[".rsw"] = _tabControlPreview.Items.IndexOf(_tabItemRsmPreview);
 
 			_tabControlPreview.SelectionChanged += new SelectionChangedEventHandler(_tabControlPreview_SelectionChanged);
 			_hasBeenLoaded = true;

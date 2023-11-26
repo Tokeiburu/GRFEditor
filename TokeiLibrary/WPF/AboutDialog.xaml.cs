@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Controls;
 using TokeiLibrary.WPF.Styles;
 
 namespace TokeiLibrary.WPF {
@@ -6,6 +7,10 @@ namespace TokeiLibrary.WPF {
 	/// Interaction logic for AboutDialog.xaml
 	/// </summary>
 	public partial class AboutDialog : TkWindow {
+		public TextBox AboutTextBox {
+			get { return _textBlock; }
+		}
+
 		public AboutDialog() : base("About", "help.ico") {
 			
 		}

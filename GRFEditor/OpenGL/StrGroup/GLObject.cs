@@ -1,7 +1,8 @@
-﻿using OpenTK;
+﻿using GRFEditor.WPF.PreviewTabs;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.WPF.PreviewTabs.GLGroup {
+namespace GRFEditor.OpenGL.StrGroup {
 	public abstract class GLObject {
 		protected int _vertexArrayObject;
 		protected int _vertexBufferObject;

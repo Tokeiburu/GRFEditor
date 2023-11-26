@@ -257,7 +257,7 @@ namespace GRFEditor.WPF {
 				
 				Regex filePattern = new Regex((@"^(" + Methods.WildcardToRegexLine(_fileFilter) + ")$").Replace(";", "|"), RegexOptions.IgnoreCase);
 
-				List<Tuple<string, string, FileEntry>> result1 = _grf.FileTable.FastTupleAccessEntries.Where(p => filePattern.IsMatch(p.Item2)).ToList();
+				List<Utilities.Extension.Tuple<string, string, FileEntry>> result1 = _grf.FileTable.FastTupleAccessEntries.Where(p => filePattern.IsMatch(p.Item2)).ToList();
 
 				if (result1.Count == 0) {
 					ErrorHandler.HandleException("No file extension matches your file pattern.");

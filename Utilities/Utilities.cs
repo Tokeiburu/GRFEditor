@@ -56,6 +56,14 @@ namespace Utilities {
 			}
 		}
 
+		public static void StopAndDisplayAll() {
+			foreach (var watch in _watches.OrderBy(p => p.Key)) {
+				watch.Value.Stop();
+
+				Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", watch.Value.ElapsedMilliseconds, watch.Value.ElapsedTicks, "Timer ID = " + watch.Key);
+			}
+		}
+
 		public static void Delete(int opId) {
 			if (_watches.ContainsKey(opId)) {
 				_watches.Remove(opId);

@@ -11,7 +11,8 @@ namespace GRF.Image.Decoders {
 		public enum PaletteOptions {
 			UseExistingPalette,
 			UseDithering,
-			AutomaticallyGeneratePalette
+			AutomaticallyGeneratePalette,
+			MergePalettes,
 		}
 
 		#endregion
@@ -21,6 +22,10 @@ namespace GRF.Image.Decoders {
 
 		public PaletteOptions Options;
 		public byte[] ExistingPalette { get; set; }
+
+		//public void SetMergePaletteData(HashSet<byte> unusedIndexes, ) {
+		//	this.Options |= PaletteOptions.MergePalettes;
+		//}
 
 		#region IImageFormatConverter Members
 

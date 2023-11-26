@@ -62,6 +62,15 @@ namespace GrfCL {
 			0, 1, true,
 			"Save path of the GRF (using the same filename as the opened GRF will overwrite it)."
 		);
+		public static readonly CommandLineOptions Options = new CommandLineOptions(
+			"options", "Adds a property or an option to a GRF/Thor container.",
+			0, 2, true,
+			new string[] {
+				"The patching mode used by the Thor file. If 'true', the Thor file will be merged in the target GRF set.",
+				"Name of the target GRF used by the Thor file while patching. Requires UseGrfMerging to be set to 'true'.",
+			},
+			"UseGrfMerging,TargetGrf"
+		);
 
 		// Batch mode
 		public static readonly CommandLineOptions SequenceMode = new CommandLineOptions(

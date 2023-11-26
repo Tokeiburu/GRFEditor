@@ -34,7 +34,7 @@ using Rgz = GRF.FileFormats.Rgz;
 
 namespace GrfCL {
 	static partial class GrfCL {
-		private static bool _parseCommand(CommandLineOptions clOption) {
+		private static bool? _parseCommand(CommandLineOptions clOption) {
 			if (clOption == CommandLineOptions.Help) {
 				if (clOption.Args.Count == 0) {
 					CLHelper.WriteLine = CommandLineOptions.GetHelp();
@@ -182,6 +182,15 @@ namespace GrfCL {
 					CLHelper.Log = "Saved the GRF to " + clOption.Args[0];
 				}
 			}
+			else if (clOption == CommandLineOptions.Options) {
+				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[0]] != null) {
+					_grf.Attached["Thor.UseGrfMerging"] = Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[0]]);
+				}
+
+				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[1]] != null) {
+					_grf.Attached["Thor.TargetGrf"] = clOption.Option.OptionalArgs[clOption.FullOptionIds[1]];
+				}
+			}
 			else if (clOption == CommandLineOptions.SequenceMode) {
 				CLHelper.Log = CLHelper.Indent("Entering the Sequence Mode, type -help for a list of commands or type -exit to leave this mode.", 7, true);
 				Encoding enc2 = Console.InputEncoding;
@@ -189,7 +198,8 @@ namespace GrfCL {
 
 				do {
 					Console.Write("Commands> ");
-				} while (_executeCommands(Console.ReadLine(), false));
+				}
+				while (_executeCommands(Console.ReadLine(), false));
 
 				Console.InputEncoding = enc2;
 				CLHelper.Log = "Exited the Sequence Mode.";
@@ -532,12 +542,12 @@ namespace GrfCL {
 
 						if (scale == -2) {
 							if (act[actionIndex].Frames.All(p => p.Layers.All(q => q.ScaleX == maxScaleX)) &&
-								act[actionIndex].Frames.All(p => p.Layers.All(q => q.ScaleY == maxScaleY))) {
+							    act[actionIndex].Frames.All(p => p.Layers.All(q => q.ScaleY == maxScaleY))) {
 								multiplyingFactor = 1 / maxScale;
 
 								if (multiplyingFactor != 1) {
 									CLHelper.Log = "Applying multiplying factor of " + multiplyingFactor +
-												   " on sprite " + Path.GetFileNameWithoutExtension(fullPath);
+									               " on sprite " + Path.GetFileNameWithoutExtension(fullPath);
 
 									act[actionIndex].Frames.ForEach(p => p.Layers.ForEach(q => q.ScaleX *= multiplyingFactor));
 									act[actionIndex].Frames.ForEach(p => p.Layers.ForEach(q => q.ScaleY *= multiplyingFactor));
@@ -548,7 +558,7 @@ namespace GrfCL {
 						}
 						else if (multiplyingFactor != 1) {
 							CLHelper.Log = "Applying multiplying factor of " + multiplyingFactor +
-										   " on sprite " + Path.GetFileNameWithoutExtension(fullPath);
+							               " on sprite " + Path.GetFileNameWithoutExtension(fullPath);
 
 							act[actionIndex].Frames.ForEach(p => p.Layers.ForEach(q => q.ScaleX *= multiplyingFactor));
 							act[actionIndex].Frames.ForEach(p => p.Layers.ForEach(q => q.ScaleY *= multiplyingFactor));
@@ -588,7 +598,7 @@ namespace GrfCL {
 					dum.Progress = -1;
 
 					new GrfThread(() => ActImaging.Imaging.SaveAsGif(destinationFile, act, actionIndex, dum, extra.ToArray()),
-								  dum, 200, null, true, true).Start();
+						dum, 200, null, true, true).Start();
 
 					while (dum.Progress < 100) {
 						CLHelper.Progress = dum.Progress;
@@ -634,7 +644,7 @@ namespace GrfCL {
 
 					Console.Write("Entry type : " + entryType);
 
-					switch (entryType) {
+					switch(entryType) {
 						case 'f':
 							RgzEntry entry = new RgzEntry(dataReader);
 							Console.Write(" - [" + entry.RelativePath + "], Size = " + entry.SizeDecompressed + " bytes");
@@ -809,7 +819,7 @@ namespace GrfCL {
 				CLHelper.Log = "All file entries have been decrypted.";
 			}
 			else {
-				return false;
+				return null;
 			}
 
 			return true;

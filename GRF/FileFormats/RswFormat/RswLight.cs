@@ -15,7 +15,7 @@ namespace GRF.FileFormats.RswFormat {
 			DiffuseBlue = 1f;
 			DiffuseGreen = 1f;
 			DiffuseRed = 1f;
-			Ignored = 0;
+			Intensity = 0;
 		}
 
 		/// <summary>
@@ -24,6 +24,8 @@ namespace GRF.FileFormats.RswFormat {
 		/// <param name="reader">The reader.</param>
 		/// <param name="header">The header.</param>
 		public RswLight(IBinaryReader reader, RswHeader header) {
+			Intensity = 0.5f;
+
 			if (header.IsCompatibleWith(1, 5)) {
 				Longitude = reader.Int32();
 				Latitude = reader.Int32();
@@ -46,7 +48,7 @@ namespace GRF.FileFormats.RswFormat {
 			}
 
 			if (header.IsCompatibleWith(1, 7)) {
-				Ignored = reader.Float();
+				Intensity = reader.Float();
 			}
 		}
 
@@ -90,7 +92,7 @@ namespace GRF.FileFormats.RswFormat {
 		/// </summary>
 		public float AmbientBlue { get; set; }
 
-		public float Ignored { get; set; }
+		public float Intensity { get; set; }
 
 		/// <summary>
 		/// Writes the specified object to the stream.
@@ -110,7 +112,7 @@ namespace GRF.FileFormats.RswFormat {
 			}
 
 			if (header.IsCompatibleWith(1, 7)) {
-				writer.Write(Ignored);
+				writer.Write(Intensity);
 			}
 		}
 	}

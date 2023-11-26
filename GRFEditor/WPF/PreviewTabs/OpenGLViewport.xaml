@@ -5,8 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:openTk="clr-namespace:OpenTK;assembly=OpenTK.GLControl"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300">
-    <WindowsFormsHost>
-        <openTk:GLControl x:Name="_primary"/>
+             d:DesignHeight="300" d:DesignWidth="300" Focusable="False">
+    <WindowsFormsHost FocusVisualStyle="{x:Null}" Focusable="False">
+        <openTk:GLControl x:Name="_primary" />
     </WindowsFormsHost>
 </UserControl>

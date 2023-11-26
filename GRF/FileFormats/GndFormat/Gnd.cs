@@ -5,8 +5,10 @@ using System.IO;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats.RsmFormat.MeshStructure;
+using GRF.FileFormats.RswFormat;
 using GRF.Graphics;
 using GRF.IO;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.GndFormat {
@@ -18,6 +20,7 @@ namespace GRF.FileFormats.GndFormat {
 		private readonly List<string> _texturesPath = new List<string>();
 		private readonly Dictionary<string, short> _texturesPathDico = new Dictionary<string, short>(StringComparer.OrdinalIgnoreCase);
 		private readonly List<Tile> _tiles = new List<Tile>();
+		public WaterData Water = new WaterData();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Gnd" /> class.
@@ -57,6 +60,7 @@ namespace GRF.FileFormats.GndFormat {
 			_loadLightmaps(data);
 			_loadTiles(data);
 			_loadCubes(data);
+			_loadWater(data);
 		}
 
 		/// <summary>
@@ -245,6 +249,46 @@ namespace GRF.FileFormats.GndFormat {
 			}
 		}
 
+		private void _loadWater(IBinaryReader data) {
+			if (Header.IsCompatibleWith(1, 8)) {
+				RswWater water = new RswWater();
+
+				water.Level = data.Float();
+				water.Type = data.Int32();
+				water.WaveHeight = data.Float();
+				water.WaveSpeed = data.Float();
+				water.WavePitch = data.Float();
+				water.TextureCycling = data.Int32();
+
+				Water.WaterSplitWidth = data.Int32();
+				Water.WaterSplitHeight = data.Int32();
+				Water.Zones.Add(water);
+
+				// Hmm, what about 1.9??
+
+				if (Header.IsCompatibleWith(1, 9)) {
+					Water.Zones.Clear();
+
+					int count = Water.WaterSplitWidth * Water.WaterSplitHeight;
+					for (int i = 0; i < count; i++) {
+						RswWater waterSub = new RswWater();
+
+						waterSub.Level = data.Float();
+						waterSub.Type = data.Int32();
+						waterSub.WaveHeight = data.Float();
+						waterSub.WaveSpeed = data.Float();
+						waterSub.WavePitch = data.Float();
+						waterSub.TextureCycling = data.Int32();
+
+						Water.Zones.Add(waterSub);
+					}
+				}
+				else {
+					water.Level = data.Float();
+				}
+			}
+		}
+
 		public string AddTexture(string name) {
 			if (!_texturesPathDico.ContainsKey(name)) {
 				_texturesPath.Add(name);
@@ -298,6 +342,37 @@ namespace GRF.FileFormats.GndFormat {
 
 			for (int i = 0; i < Header.Width * Header.Height; i++) {
 				_cubes[i].Write(stream);
+			}
+
+			if (Header.Version >= 1.8) {
+				if (Water.Zones.Count == 0)
+					throw new Exception("For GND version 1.8 and above, a water must be defined in Gnd.Water.Zones.");
+
+				var defWater = Water.Zones[0];
+
+				stream.Write(defWater.Level);
+				stream.Write(defWater.Type);
+				stream.Write(defWater.WaveHeight);
+				stream.Write(defWater.WaveSpeed);
+				stream.Write(defWater.WavePitch);
+				stream.Write(defWater.TextureCycling);
+				stream.Write(Water.WaterSplitWidth);
+				stream.Write(Water.WaterSplitHeight);
+
+				if (Header.Version >= 1.9) {
+					foreach (var water in Water.Zones) {
+						stream.Write(water.Level);
+						stream.Write(water.Type);
+						stream.Write(water.WaveHeight);
+						stream.Write(water.WaveSpeed);
+						stream.Write(water.WavePitch);
+						stream.Write(water.TextureCycling);
+					}
+				}
+				else {
+					// ??
+					stream.Write(defWater.Level);
+				}
 			}
 		}
 

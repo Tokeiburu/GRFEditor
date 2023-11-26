@@ -1,29 +1,36 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 using ErrorManager;
 using GRF.Core;
-using GRF.FileFormats.RsmFormat;
-using GRF.FileFormats.RsmFormat.MeshStructure;
-using GRF.Graphics;
+using GRF.IO;
+using GRFEditor.ApplicationConfiguration;
+using GRFEditor.OpenGL.MapComponents;
+using GRFEditor.OpenGL.MapGLGroup;
+using GRFEditor.OpenGL.WPF;
 using TokeiLibrary;
+using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF.Styles.ListView;
-using Utilities;
+using Utilities.Extension;
+using Binder = GrfToWpfBridge.Binder;
+using Button = System.Windows.Controls.Button;
+using RenderOptions = GRFEditor.OpenGL.WPF.RenderOptions;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
 	/// Interaction logic for PreviewRsm.xaml
 	/// </summary>
 	public partial class PreviewRsm : FilePreviewTab, IDisposable {
-		private Matrix4 _modelRotation = Matrix4.Identity;
 		private Rsm _rsm;
-		private int _shader = -1;
+		private int _shading = -1;
 		private readonly ManualResetEvent _animationThreadHandle = new ManualResetEvent(false);
 		private readonly Stopwatch _watch = new Stopwatch();
 		private bool _threadIsEnabled;
@@ -31,28 +38,256 @@ namespace GRFEditor.WPF.PreviewTabs {
 		private int _animationPosition = 0;
 		private readonly object _lockAnimation = new object();
 		private float _animationSpeed = 30;
+		private RendererLoadRequest _currentRequest;
+		private readonly Stopwatch _rsm1Watch = new Stopwatch();
+		private long _elapsedOffset;
 
 		public PreviewRsm() {
 			InitializeComponent();
-			_shader1.IsPressed = true;
-			_shader = 1;
 
-			_isInvisibleResult = () => _meshesDrawer.Dispatch(p => p.Visibility = Visibility.Hidden);
+			if (DesignerProperties.GetIsInDesignMode(this))
+				return;
 
-			_checkBoxRotateCamera.Checked += (e, a) => _meshesDrawer.SetCameraState(true, true, null);
-			_checkBoxRotateCamera.Unchecked += (e, a) => _meshesDrawer.SetCameraState(false, null, null);
-			_checkBoxUseGlobalLighting.Checked += (e, a) => _meshesDrawer.SetCameraState(null, null, true);
-			_checkBoxUseGlobalLighting.Unchecked += (e, a) => _meshesDrawer.SetCameraState(null, null, false);
+			_reloadOptions();
+			_shader2.IsChecked = true;
+			_shading = 2;
+
+			Binder.Bind(_checkBoxUseGlobalLighting, () => GrfEditorConfiguration.MapRendererGlobalLighting, v => GrfEditorConfiguration.MapRendererGlobalLighting = v, delegate {
+				_viewport.LightAmbient = GrfEditorConfiguration.MapRendererGlobalLighting ? new OpenTK.Vector3(1f) : new OpenTK.Vector3(0.5f);
+			}, true);
+
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("F11", "PreviewRsm.FullScreen"), _fullScreen, EditorMainWindow.Instance);
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("Space", "PreviewRsm.PlayPause"), () => _playAnimation_Click(null, null), this);
+
+			_viewport.RotateCamera = GrfEditorConfiguration.MapRendererRotateCamera;
+			Binder.Bind(_checkBoxRotateCamera, () => GrfEditorConfiguration.MapRendererRotateCamera, v => GrfEditorConfiguration.MapRendererRotateCamera = v, delegate {
+				if (GrfEditorConfiguration.MapRendererRotateCamera)
+					_viewport.StartRotatingCamera();
+				else
+					_viewport.RotateCamera = false;
+			});
+			Binder.Bind(_checkBoxEnableMipmap, () => GrfEditorConfiguration.MapRendererMipmap, v => GrfEditorConfiguration.MapRendererMipmap = v, () => Reload(false, false, true));
+
+			_qcsBackground.ColorBrush = GrfEditorConfiguration.UIPanelPreviewBackgroundMap;
+			_qcsBackground.PreviewColorChanged += (s, value) => {
+				GrfEditorConfiguration.UIPanelPreviewBackgroundMap = new SolidColorBrush(value);
+			};
+			_qcsBackground.ColorChanged += (s, value) => {
+				GrfEditorConfiguration.UIPanelPreviewBackgroundMap = new SolidColorBrush(value);
+			};
+
 			_sliderAnimation.ValueChanged += new ColorPicker.Sliders.SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
-			WpfUtils.AddMouseInOutEffectsBox(_checkBoxRotateCamera, _checkBoxUseGlobalLighting);
+			WpfUtils.AddMouseInOutEffectsBox(_checkBoxRotateCamera, _checkBoxUseGlobalLighting, _checkBoxEnableMipmap);
+			
+			this.IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
+			new Thread(_animationThread) { Name = "GrfEditor - RSM2 animation update thread" }.Start();
 
-			Dispatcher.ShutdownStarted += delegate {
+			_viewport.Loader.Loaded += _dataLoaded;
+
+			_buttonLighting.Click += delegate {
+				var dialog = new LightingOptions();
+				dialog.Load(_currentRequest);
+				_openDialog(dialog, _buttonLighting);
+			};
+
+			_buttonRenderOptions.Click += delegate {
+				var dialog = new RenderOptions();
+				dialog.Load(this);
+				_openDialog(dialog, _buttonRenderOptions);
+			};
+
+			this.Dispatcher.ShutdownStarted += delegate {
 				_isRunning = false;
 				_enableAnimationThread = true;
 			};
 
-			this.IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
-			new Thread(_animationThread) { Name = "GrfEditor - RSM2 animation update thread" }.Start();
+			_buttonShading.ContextMenu.PlacementTarget = _buttonShading;
+			_buttonShading.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+
+			_buttonShading.Click += delegate {
+				_buttonShading.IsEnabled = false;
+				_buttonShading.ContextMenu.IsOpen = true;
+			};
+
+			_buttonShading.ContextMenu.Closed += delegate {
+				_buttonShading.IsEnabled = true;
+			};
+
+			_shader1.StaysOpenOnClick = true;
+			_shader2.StaysOpenOnClick = true;
+
+			_buttonSkyMap.Click += delegate {
+				var dialog = new CloudEditDialog();
+				dialog.Init();
+				dialog.Show();
+				dialog.Owner = EditorMainWindow.Instance;
+				dialog.ShowInTaskbar = false;
+				_buttonSkyMap.IsEnabled = false;
+				dialog.Closed += delegate {
+					_buttonSkyMap.IsEnabled = true;
+				};
+			};
+		}
+
+		private void _fullScreen() {
+			if (_viewportGrid.Children.Count == 0)
+				return;
+
+			Window window = new Window();
+			_viewportGrid.Children.Clear();
+			window.Content = _viewport;
+			window.Loaded += delegate {
+				window.Topmost = false;
+			};
+			window.Title = "Preview";
+			window.ResizeMode = ResizeMode.NoResize;
+			window.Topmost = true;
+			window.WindowStyle = WindowStyle.None;
+			window.WindowState = WindowState.Maximized;
+			window.Show();
+			window.Closed += delegate {
+				window.Content = null;
+				_viewportGrid.Children.Add(_viewport);
+			};
+			window.KeyDown += (s, e) => {
+				if (e.Key == System.Windows.Input.Key.Escape) {
+					window.Close();
+				}
+				else if (e.Key == System.Windows.Input.Key.F11) {
+					window.Close();
+				}
+			};
+			window.StateChanged += delegate {
+
+			};
+		}
+
+		private void _openDialog(Window dialog, Button button) {
+			dialog.WindowStyle = WindowStyle.None;
+			var content = dialog.Content;
+
+			Border border = new Border { BorderBrush = Brushes.Black, BorderThickness = new Thickness(1) };
+			dialog.Content = null;
+			border.Child = content as UIElement;
+			dialog.Content = border;
+			dialog.Owner = null;
+			dialog.ShowInTaskbar = false;
+			dialog.ResizeMode = ResizeMode.NoResize;
+			dialog.SnapsToDevicePixels = true;
+			
+			EditorMainWindow.Instance.Activated += delegate {
+				dialog.Close();
+			};
+
+			Point p = button.PointToScreen(new Point(0, 0));
+			var par = WpfUtilities.FindParentControl<Window>(button);
+
+			dialog.Loaded += delegate {
+				button.IsEnabled = false;
+				dialog.WindowStartupLocation = WindowStartupLocation.Manual;
+
+				int dpiXI = (int)typeof(SystemParameters).GetProperty("DpiX", BindingFlags.NonPublic | BindingFlags.Static).GetValue(null, null);
+				double dpiX = dpiXI;
+				double ratio = dpiX / 96;
+
+				p.X /= ratio;
+				p.Y /= ratio;
+
+				// The dialog's position scales with the DPI
+				dialog.Left = p.X;
+				dialog.Top = p.Y + button.ActualHeight;
+
+				if (dialog.Left < 0) {
+					dialog.Left = 0;
+				}
+
+				if (dialog.Top + dialog.Height > SystemParameters.WorkArea.Bottom) {
+					dialog.Top = p.Y - dialog.ActualHeight;
+				}
+
+				if (dialog.Left + dialog.Width > SystemParameters.WorkArea.Right) {
+					dialog.Left = p.X - dialog.ActualWidth;
+				}
+
+				if (dialog.Top < 0) {
+					dialog.Top = 0;
+				}
+
+				dialog.Owner = par;
+			};
+
+			dialog.Closed += delegate {
+				button.IsEnabled = true;
+			};
+			//dialog.Deactivated += (sender, args) => GrfThread.Start(() => dialog.Dispatch(() => Utilities.Debug.Ignore(dialog.Close)));
+
+			dialog.Show();
+		}
+
+		private void _dataLoaded(RendererLoadRequest request) {
+			this.Dispatch(delegate {
+				_currentRequest = request;
+			});
+		}
+
+		public override void Load(GrfHolder grfData, FileEntry entry) {
+			base.Load(grfData, entry);
+
+			if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
+				((TabItem)this.Parent).Header = "Model preview";
+			}
+			else {
+				((TabItem)this.Parent).Header = "Map preview";
+			}
+		}
+
+		public void Reload(bool reloadAll = true, bool reloadGnd = false, bool reloadTexture = false) {
+			_reloadOptions();
+
+			if (reloadAll) {
+				_oldEntry = null;
+				_viewport.ResetCameraDistance = false;
+				_viewport.ResetCameraPosition = false;
+				Update();
+			}
+			else {
+				if (reloadGnd) {
+					foreach (var renderer in _viewport.GLObjects.OfType<GndRenderer>()) {
+						_viewport._primary.MakeCurrent();
+						renderer.Shader.SetFloat("showLightmap", MapRenderer.RenderOptions.Lightmap ? 1.0f : 0.0f);
+						renderer.Shader.SetFloat("showShadowmap", MapRenderer.RenderOptions.Shadowmap ? 1.0f : 0.0f);
+					}
+				}
+
+				if (reloadTexture) {
+					_viewport._primary.MakeCurrent();
+
+					foreach (var texture in TextureManager.BufferedTextures.Values) {
+						texture.Item1.ReloadParameter();
+					}
+				}
+			}
+		}
+
+		private void _reloadOptions() {
+			Texture.EnableMipmap = GrfEditorConfiguration.MapRendererMipmap;
+			MapRenderer.RenderOptions.Water = GrfEditorConfiguration.MapRendererWater;
+			MapRenderer.RenderOptions.Ground = GrfEditorConfiguration.MapRendererGround;
+			MapRenderer.RenderOptions.Objects = GrfEditorConfiguration.MapRendererObjects;
+			MapRenderer.RenderOptions.AnimateMap = GrfEditorConfiguration.MapRendererAnimateMap;
+			MapRenderer.RenderOptions.Lightmap = GrfEditorConfiguration.MapRendererLightmap;
+			MapRenderer.RenderOptions.Shadowmap = GrfEditorConfiguration.MapRendererShadowmap;
+			MapRenderer.RenderOptions.ShowFps = GrfEditorConfiguration.MapRendererShowFps;
+			MapRenderer.RenderOptions.ShowBlackTiles = GrfEditorConfiguration.MapRendererTileUp;
+			MapRenderer.RenderOptions.LubEffect = GrfEditorConfiguration.MapRendererRenderLub;
+			MapRenderer.RenderOptions.ViewStickToGround = GrfEditorConfiguration.MapRendererStickToGround;
+			MapRenderer.RenderOptions.RenderSkymapFeature = GrfEditorConfiguration.MapRenderSkyMap;
+			//MapRenderer.RenderOptions.UseClientPov = GrfEditorConfiguration.MapRendererClientPov;
+
+			if (MapRenderer.FpsTextBlock == null)
+				MapRenderer.FpsTextBlock = _tbFps;
+
+			MapRenderer.FpsTextBlock.Visibility = MapRenderer.RenderOptions.ShowFps ? Visibility.Visible : Visibility.Collapsed;
 		}
 
 		private void _previewRsm_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -70,136 +305,112 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_playAnimation.IsPressed = false;
 
 					int v = (int)Math.Round((value * _rsm.AnimationLength), MidpointRounding.AwayFromZero);
+					_sliderAnimation.SetPosition((float)v / _rsm.AnimationLength, true);
+					_sliderPosition.Content = "Frame: " + v + " / " + _rsm.AnimationLength;
 
 					if (v == _animationPosition)
 						return;
 
-					_sliderAnimation.SetPosition((float)v / _rsm.AnimationLength, true);
-					_sliderPosition.Content = "Frame: " + v + " / " + _rsm.AnimationLength;
 					_animationPosition = v;
-
-					_meshesDrawer.Dispatch(delegate {
-						_meshesDrawer.AddRsm2(_rsm, v, false);
-					});
+					_rsm.SetAnimationIndex(v, v);
+					_rsm.Dirty();
 				}
 			}
 			catch {
 			}
 		}
 
-		public Action<Brush> BackgroundBrushFunction {
-			get {
-				return v => _grid.Dispatch(p => _grid.Background = v);
-			}
-		}
-
 		protected override void _load(FileEntry entry) {
-			_meshesDrawer.Dispatch(p => p.Clear());
+			ResourceManager.SetMultiGrf(_grfData);
+
 			_enableAnimationThread = false;
 
-			_rsm = new Rsm(entry.GetDecompressedData());
-			
-			this.Dispatch(delegate {
-				if (_rsm.Header.IsCompatibleWith(2, 0)) {
-					_gridAnimation.Visibility = Visibility.Visible;
-					_sliderPosition.Content = "Frame: 0 / " + _rsm.AnimationLength;
-					_sliderAnimation.SetPosition(0, true);
+			if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
+				Rsm.ForceShadeType = _shading;
+				_rsm = new Rsm(entry.GetDecompressedData());
+				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = _rsm, CancelRequired = _isCancelRequired});
 
-					if (_playAnimation.IsPressed) {
-						_enableAnimationThread = true;
+				this.Dispatch(delegate {
+					_labelHeader.Text = "Model preview : " + entry.DisplayRelativePath;
+					_buttonShading.Visibility = Visibility.Visible;
+					_buttonLighting.Visibility = Visibility.Collapsed;
+					_buttonSkyMap.Visibility = Visibility.Collapsed;
+					_buttonRenderOptions.Visibility = Visibility.Collapsed;
+					_checkBoxUseGlobalLighting.IsEnabled = true;
+
+					if (_rsm.AnimationLength > 0) {
+						_gridAnimation.Visibility = Visibility.Visible;
+						_animationPosition = 0;
+						_sliderPosition.Content = "Frame: 0 / " + _rsm.AnimationLength;
+						_sliderAnimation.SetPosition(0, true);
+
+						if (_playAnimation.IsPressed) {
+							_enableAnimationThread = true;
+						}
+
+						_animationSpeed = _rsm.FramesPerSecond;
+
+						if (_animationSpeed != 0) {
+							_animationSpeed = 1000 / _animationSpeed;
+						}
+						else {
+							_animationSpeed = 1000;
+						}
 					}
-				}
-				else {
-					_gridAnimation.Visibility = Visibility.Collapsed;
-				}
-			});
-
-			if (_rsm.Header.IsCompatibleWith(2, 0)) {
-				if (_isCancelRequired()) return;
-
-				_labelHeader.Dispatch(p => p.Content = "Model preview : " + Path.GetFileName(entry.RelativePath));
-
-				_meshesDrawer.Dispatch(p => p.Update(_grfData, _isCancelRequired, 200));
-
-				if (_isCancelRequired()) return;
-
-				_animationSpeed = _rsm.FrameRatePerSecond;
-
-				if (_animationSpeed != 0) {
-					_animationSpeed = 1000 / _animationSpeed;
-				}
-				else {
-					_animationSpeed = 1000;
-				}
-
-				//_modelRotation = Matrix4.Identity;
-				//_modelRotation = Matrix4.RotateX(_modelRotation, ModelViewerHelper.ToRad(180));
-				//_modelRotation = Matrix4.RotateY(_modelRotation, ModelViewerHelper.ToRad(180));
-
-				//Dictionary<string, MeshRawData> allMeshData = _rsm.Compile(_modelRotation, _shader, 1);
-
-				// Render meshes
-				_meshesDrawer.Dispatch(p => p.AddRsm2(_rsm, 0, true));
+					else {
+						_gridAnimation.Visibility = Visibility.Collapsed;
+					}
+				});
 			}
 			else {
-				_rsm.CalculateBoundingBox();
+				// Map loading!
+				string mapName = GrfPath.Combine(Path.GetDirectoryName(entry.RelativePath), Path.GetFileNameWithoutExtension(entry.RelativePath));
 
-				if (_isCancelRequired()) return;
+				Rsm.ForceShadeType = -1;
+				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired });
 
-				_labelHeader.Dispatch(p => p.Content = "Model preview : " + Path.GetFileName(entry.RelativePath));
+				this.Dispatch(delegate {
+					_labelHeader.Text = "Map preview : " + entry.DisplayRelativePath;
+					_buttonShading.Visibility = Visibility.Collapsed;
+					_buttonLighting.Visibility = Visibility.Visible;
+					_buttonSkyMap.Visibility = Visibility.Visible;
+					_buttonRenderOptions.Visibility = Visibility.Visible;
+					_checkBoxUseGlobalLighting.IsEnabled = false;
 
-				_meshesDrawer.Dispatch(p => p.Update(_grfData, _isCancelRequired, Math.Max(Math.Max(_rsm.Box.Range[0], _rsm.Box.Range[1]), _rsm.Box.Range[2]) * 4));
-
-				if (_isCancelRequired()) return;
-
-				_modelRotation = Matrix4.Identity;
-				//_modelRotation[0, 0] = -1;
-				_modelRotation = Matrix4.RotateX(_modelRotation, ModelViewerHelper.ToRad(180));
-				_modelRotation = Matrix4.RotateY(_modelRotation, ModelViewerHelper.ToRad(180));
-
-				Dictionary<string, MeshRawData> allMeshData = _rsm.Compile(_modelRotation, _shader, 1);
-
-				// Render meshes
-				_meshesDrawer.Dispatch(p => p.AddObject(allMeshData.Values.ToList(), Matrix4.Identity));
+					_gridAnimation.Visibility = Visibility.Collapsed;
+				});
 			}
-
-			if (_isCancelRequired()) return;
-
-			_meshesDrawer.Dispatch(p => p.UpdateCamera());
-			_meshesDrawer.Dispatch(p => p.Visibility = Visibility.Visible);
 		}
 
 		private void _shader1_Click(object sender, RoutedEventArgs e) {
-			_shader1.IsPressed = !_shader1.IsPressed;
-			_shader2.IsPressed = false;
+			_shader2.IsChecked = false;
 
-			if (_shader1.IsPressed) {
-				_shader = 1;
+			if (_shader1.IsChecked) {
+				_shading = 1;
 			}
 			else {
-				_shader = -1;
+				_shading = -1;
 			}
 
 			_oldEntry = null;
-			_meshesDrawer.ResetCameraDistance(false);
-			_meshesDrawer.ReactivateRotatingCamera(false);
+			_viewport.ResetCameraDistance = false;
+			_viewport.ResetCameraPosition = false;
 			Update();
 		}
 
 		private void _shader2_Click(object sender, RoutedEventArgs e) {
-			_shader1.IsPressed = false;
-			_shader2.IsPressed = !_shader2.IsPressed;
+			_shader1.IsChecked = false;
 
-			if (_shader2.IsPressed) {
-				_shader = 2;
+			if (_shader2.IsChecked) {
+				_shading = 2;
 			}
 			else {
-				_shader = -1;
+				_shading = -1;
 			}
 
 			_oldEntry = null;
-			_meshesDrawer.ResetCameraDistance(false);
-			_meshesDrawer.ReactivateRotatingCamera(false);
+			_viewport.ResetCameraDistance = false;
+			_viewport.ResetCameraPosition = false;
 			Update();
 		}
 
@@ -207,6 +418,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_playAnimation.IsPressed = !_playAnimation.IsPressed;
 
 			if (_playAnimation.IsPressed) {
+				_elapsedOffset = (long)(_animationPosition * 1000d / Math.Max(1d, _rsm.FramesPerSecond));
+				_rsm1Watch.Reset();
 				_enableAnimationThread = true;
 			}
 			else {
@@ -234,31 +447,26 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (!_isRunning)
 					return;
 
-				if (_rsm != null && _rsm.Header.IsCompatibleWith(2, 0) && _rsm.AnimationLength > 0) {
+				if (_rsm != null && _rsm.AnimationLength > 0) {
 					_watch.Reset();
 					_watch.Start();
 
 					lock (_lockAnimation) {
-						_animationPosition++;
-
-						if (_animationPosition >= _rsm.AnimationLength) {
-							_animationPosition = 0;
-						}
-
-						Stopwatch watch = new Stopwatch();
+						if (!_rsm1Watch.IsRunning)
+							_rsm1Watch.Start();
+							
+						_rsm.SetAnimationIndex(_rsm1Watch.ElapsedMilliseconds + _elapsedOffset, 1f);
+						_animationPosition = _rsm.AnimationIndex;
 
 						_sliderPosition.Dispatch(delegate {
 							_sliderAnimation.SetPosition((float)_animationPosition / _rsm.AnimationLength, true);
 							_sliderPosition.Content = "Frame: " + _animationPosition + " / " + _rsm.AnimationLength;
 						});
 
-						_meshesDrawer.Dispatch(delegate {
-							try {
-								watch.Reset();
-								watch.Start();
-								_meshesDrawer.AddRsm2(_rsm, _animationPosition, false);
-								watch.Stop();
+						_rsm.Dirty();
 
+						this.Dispatch(delegate {
+							try {
 								if (!IsVisible)
 									_enableAnimationThread = false;
 							}
@@ -267,19 +475,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 								_enableAnimationThread = false;
 							}
 						});
-
-						//Console.WriteLine("Time spent (" + _animationPosition + "): " + watch.ElapsedMilliseconds);
 					}
 
 					_watch.Stop();
 
 					int delay = (int)(_animationSpeed - _watch.ElapsedMilliseconds);
 					delay = delay < 0 ? 0 : delay;
-
-					if (delay <= 0) {
-						// Too fast! Decrease the animation speed
-						//_animationSpeed *= 2;
-					}
 
 					if (delay < 20) {
 						delay = 20;	// Going any lower would freeze the computer
@@ -312,11 +513,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected void Dispose(bool disposing) {
-			if (disposing) {
-				if (_animationThreadHandle != null) {
-					_animationThreadHandle.Close();
-				}
-			}
 		}
 
 		#endregion

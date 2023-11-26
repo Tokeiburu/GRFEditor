@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows.Controls;
@@ -16,6 +17,7 @@ using GRF.FileFormats.RsmFormat.MeshStructure;
 using GRF.Graphics;
 using GRF.Image;
 using GRF.Image.Decoders;
+using GRF.IO;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using Utilities;
@@ -196,9 +198,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_angleYDegree = _angleYDegree > 89 ? 89 : _angleYDegree;
 				_angleYDegree = _angleYDegree < -89 ? -89 : _angleYDegree;
 
-				//_angleX = _angleX > 360f ? _angleX - 360f * (int) (_angleX / 360) : _angleX;
-				//_primaryCamera.Width = _distance;
-
 				double subDistance = _distance * Math.Cos(ModelViewerHelper.ToRad(_angleYDegree));
 				_cameraPosition.Y = _distance * Math.Sin(ModelViewerHelper.ToRad(_angleYDegree));
 
@@ -260,7 +259,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_viewport3D1.Dispatcher.Invoke(new Action(delegate {
 				try {
-					foreach (MeshRawData mesh in meshData) {
+					var meshDataList = meshData.ToList();
+
+					for (int index = 0; index < meshDataList.Count; index++) {
+						MeshRawData mesh = meshDataList[index];
 						if (_isCancelRequired()) return;
 
 						ModelVisual3D model = new ModelVisual3D();
@@ -268,11 +270,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 						model.Content = geoModel;
 
 						MeshGeometry3D meshGeo = new MeshGeometry3D();
-						object[] arrays = (object[]) mesh.Attached;
+						object[] arrays = (object[])mesh.Attached;
 
-						meshGeo.Positions = new Point3DCollection((Point3D[]) arrays[0]);
-						meshGeo.Normals = new Vector3DCollection((Vector3D[]) arrays[1]);
-						meshGeo.TextureCoordinates = new PointCollection((Point[]) arrays[2]);
+						meshGeo.Positions = new Point3DCollection((Point3D[])arrays[0]);
+						meshGeo.Normals = new Vector3DCollection((Vector3D[])arrays[1]);
+						meshGeo.TextureCoordinates = new PointCollection((Point[])arrays[2]);
 						mesh.Attached = null;
 
 						geoModel.Geometry = meshGeo;
@@ -280,16 +282,16 @@ namespace GRFEditor.WPF.PreviewTabs {
 						//bool isTransparent = false;
 
 						Material material = _generateMaterial(mesh.Texture, false);
-						
+
 						if (_isCancelRequired()) return;
 
 						geoModel.Material = material;
 						geoModel.BackMaterial = material;
-						
+
 						if (_isCancelRequired()) return;
-						
+
 						_viewport3D1.Children.Add(model);
-						
+
 						Matrix3D matrix3D = matrix.ToMatrix3D();
 						MatrixTransform3D mt = new MatrixTransform3D(matrix3D);
 						model.Transform = mt;
@@ -324,6 +326,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			var material = new DiffuseMaterial();
 			Brush materialBrush;
 			FileEntry entry = _grfData.FileTable.TryGet(Rsm.RsmTexturePath + "\\" + texture);
+			//FileEntry entry = null;
 
 			if (entry != null) {
 				ImageBrush imageBrush = new ImageBrush();
@@ -339,20 +342,24 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				byte[] fileData = entry.GetDecompressedData();
 
+				if (fileData.Length > 10000000) {
+					Console.WriteLine("Big ass texture: " + entry.RelativePath);
+					GC.Collect();
+					GC.WaitForPendingFinalizers();
+					GC.Collect();
+				}
+
 				try {
 					GrfImage image = new GrfImage(fileData);
+
+					if (fileData.Length > 5000000) {
+						Console.WriteLine("Reduced texture: " + entry.RelativePath);
+						image.Scale(0.25f, GrfScalingMode.NearestNeighbor);
+					}
 
 					if (image.GrfImageType == GrfImageType.Indexed8) {
 						image.MakePinkTransparent();
 						imageBrush.ImageSource = image.Cast<BitmapSource>();
-
-						bool[] trans = new bool[256];
-
-						for (int i = 0; i < image.Palette.Length; i += 4) {
-							if (image.Palette[i + 3] == 0) {
-								trans[i / 4] = true;
-							}
-						}
 					}
 					else if (image.GrfImageType == GrfImageType.Bgr24) {
 						image.Convert(new Bgra32FormatConverter());
@@ -461,10 +468,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 					return -1;
 				}
 				
-				var lenghtX = (x.Position - _origin).Length + x.BoundingBox.Range.Length;
-				var lenghtY = (y.Position - _origin).Length + y.BoundingBox.Range.Length;
+				var lengthX = (x.Position - _origin).Length + x.BoundingBox.Range.Length;
+				var lengthY = (y.Position - _origin).Length + y.BoundingBox.Range.Length;
 
-				if (Math.Abs(lenghtX - lenghtY) < 0.00001) {
+				if (Math.Abs(lengthX - lengthY) < 0.00001) {
 					if (x.Mesh.Parent != null && x.Mesh.Parent == y.Mesh) {
 						return 1;
 					}
@@ -476,14 +483,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 					return 0;
 				}
 
-				if (Math.Abs(lenghtX - lenghtY) < 5) {	// Both models are too close to tell, use model's hierarchy
+				if (Math.Abs(lengthX - lengthY) < 5) {	// Both models are too close to tell, use model's hierarchy
 					int i1 = _rsm.Meshes.IndexOf(x.Mesh);
 					int i2 = _rsm.Meshes.IndexOf(y.Mesh);
 
 					return i1 - i2 < 0 ? -1 : 1;
 				}
 
-				return lenghtX > lenghtY ? -1 : 1;
+				return lengthX > lengthY ? -1 : 1;
 			}
 
 			#endregion

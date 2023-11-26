@@ -50,7 +50,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			thread.Start();
 		}
 
-		public void Load(GrfHolder grfData, FileEntry entry) {
+		public virtual void Load(GrfHolder grfData, FileEntry entry) {
 			_entry = entry;
 			_grfData = grfData;
 

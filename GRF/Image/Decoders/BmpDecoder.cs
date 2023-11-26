@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.IO;
 using Utilities;
@@ -183,11 +184,19 @@ namespace GRF.Image.Decoders {
 							offset = (Dib.Height - y - 1) * stride;
 
 							for (int x = 0; x < Dib.Width; x++, offset += bpp) {
-								_reader.Bytes(data, 0, 2);
+								try {
+									if (_reader.LengthLong - _reader.PositionLong < 2)
+										break;
 
-								pixels[offset + 0] = (byte)((data[0] << 3) & 0xF8);
-								pixels[offset + 1] = (byte)((data[1] << 6) & 0xC0 | (data[0] >> 2) & 0x38);
-								pixels[offset + 2] = (byte)((data[1] << 1) & 0xF8);
+									_reader.Bytes(data, 0, 2);
+
+									pixels[offset + 0] = (byte)((data[0] << 3) & 0xF8);
+									pixels[offset + 1] = (byte)((data[1] << 6) & 0xC0 | (data[0] >> 2) & 0x38);
+									pixels[offset + 2] = (byte)((data[1] << 1) & 0xF8);
+								}
+								catch (Exception err) {
+									Z.F(err);
+								}
 							}
 
 							if (padding > 0)
