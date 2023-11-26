@@ -138,13 +138,13 @@
     <Compile Include="OpenGL\MapComponents\RenderInfo.cs" />
     <Compile Include="OpenGL\MapComponents\ResourceManager.cs" />
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />
+    <Compile Include="OpenGL\MapGLGroup\GndRenderer.cs" />
     <Compile Include="OpenGL\MapGLGroup\LubRenderer .cs" />
     <Compile Include="OpenGL\MapGLGroup\RsmRenderer.cs" />
     <Compile Include="OpenGL\MapComponents\Texture.cs" />
     <Compile Include="OpenGL\MapComponents\Vbo.cs" />
     <Compile Include="OpenGL\MapComponents\RendererLoader.cs" />
     <Compile Include="OpenGL\MapGLGroup\BackgroundRenderer.cs" />
-    <Compile Include="OpenGL\MapGLGroup\GndRenderer .cs" />
     <Compile Include="OpenGL\WPF\LightingOptions.xaml.cs">
       <DependentUpon>LightingOptions.xaml</DependentUpon>
     </Compile>
@@ -968,8 +968,8 @@
       <HintPath>..\Libraries\ActImaging.dll</HintPath>
     </Reference>
     <Reference Include="Be.Windows.Forms.HexBox, Version=1.5.0.34411, Culture=neutral, PublicKeyToken=e0e5adf0ebc99863, processorArchitecture=MSIL" />
-    <Reference Include="ColorPicker, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Libraries\ColorPicker.dll</HintPath>
+    <Reference Include="ColorPicker">
+      <HintPath>..\Libraries\ColorPicker.dll</HintPath>
     </Reference>
     <Reference Include="Encryption">
       <HintPath>..\Libraries\Encryption.dll</HintPath>
@@ -1033,7 +1033,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
