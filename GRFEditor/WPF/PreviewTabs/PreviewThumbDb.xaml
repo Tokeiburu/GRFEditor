@@ -7,7 +7,7 @@
              xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
                     xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

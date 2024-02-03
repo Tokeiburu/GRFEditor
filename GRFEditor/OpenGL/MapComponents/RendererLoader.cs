@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading;
+using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.RswFormat;
-using GRFEditor.OpenGL.MapGLGroup;
+using GRFEditor.OpenGL.MapRenderers;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class RendererLoadRequest {
@@ -11,8 +12,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Func<bool> CancelRequired { get; set; }
 		public Rsw Rsw { get; set; }
 		public Gnd Gnd { get; set; }
+		public Gat Gat { get; set; }
 		public GndRenderer GndRenderer { get; set; }
 		public MapRenderer MapRenderer { get; set; }
+		public object Context { get; set; }
 	}
 
 	public class RendererLoader {

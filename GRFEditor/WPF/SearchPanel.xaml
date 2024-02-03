@@ -7,7 +7,7 @@
              xmlns:controls="clr-namespace:GRFEditor.Core.Avalon"
              xmlns:wpf="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary">
     <Border Height="32" BorderBrush="#BEBEBE" BorderThickness="1" VerticalAlignment="Top" HorizontalAlignment="Right">
-        <Grid Background="{StaticResource TabControlBackground}">
+        <Grid Background="{DynamicResource TabControlBackground}">
             <DockPanel>
                 <Styles:FancyButton Margin="3 0 0 0" x:Name="_buttonFancyMode" Height="24" Width="24" ImagePath="replace.png" Click="_buttonFancyMode_Click" IsButtonEnabled="True">
                     <Styles:FancyButton.ToolTip>
@@ -17,7 +17,7 @@
                 <Border  Margin="3 0 3 0" Name="_border1" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
                     <Grid>
                         <wpf:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
-                            <Border x:Name="_unclickableBorder" Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="{StaticResource GSearchEngineExtendBorder}" Background="{StaticResource GSearchEngineExtendBackground}" FocusVisualStyle="{x:Null}">
+                            <Border x:Name="_unclickableBorder" Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="{DynamicResource GSearchEngineExtendBorder}" Background="{DynamicResource GSearchEngineExtendBackground}" FocusVisualStyle="{x:Null}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -26,17 +26,17 @@
                                         <RowDefinition />
                                     </Grid.RowDefinitions>
                                     <TextBlock Margin="2 6 2 2" Text="Search options" Foreground="Gray" />
-                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=UseRegex}" Grid.Row="1" Content="Use Regular Expression">
+                                    <CheckBox Margin="2" Foreground="{DynamicResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=UseRegex}" Grid.Row="1" Content="Use Regular Expression">
                                         <CheckBox.ToolTip>
                                             Search using .NET regular expression syntax.
                                         </CheckBox.ToolTip>
                                     </CheckBox>
-                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=WholeWords}" Grid.Row="2" Content="Match Whole Words">
+                                    <CheckBox Margin="2" Foreground="{DynamicResource TextForeground}" IsChecked="{Binding RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=WholeWords}" Grid.Row="2" Content="Match Whole Words">
                                         <CheckBox.ToolTip>
                                             Only find results that are whole words.
                                         </CheckBox.ToolTip>
                                     </CheckBox>
-                                    <CheckBox Margin="2 2 2 6" Foreground="{StaticResource TextForeground}" IsChecked="{Binding  RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=MatchCase}" Grid.Row="3" Content="Match Case">
+                                    <CheckBox Margin="2 2 2 6" Foreground="{DynamicResource TextForeground}" IsChecked="{Binding  RelativeSource={RelativeSource AncestorType={x:Type WPF1:SearchPanel}}, Path=MatchCase}" Grid.Row="3" Content="Match Case">
                                         <CheckBox.ToolTip>
                                             Perform case sensitive searches.
                                         </CheckBox.ToolTip>

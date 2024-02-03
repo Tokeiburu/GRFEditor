@@ -110,6 +110,7 @@
                 <MenuItem Name="_menuItemSearch" ListView:WpfUtils.ImagePath="search.png" Header="Advanced search" Click="_menuItemSearch_Click" />
                 <MenuItem Name="_menuItemImageConverter" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image converter" Click="_menuItemImageConverter_Click" />
                 <MenuItem Name="_menuItemGrfCL" ListView:WpfUtils.ImagePath="dos.png" Header="GRF Command Line" Click="_menuItemGrfCL_Click" />
+                <MenuItem Name="_menuItemOpenGL" ListView:WpfUtils.ImagePath="warning16.png" Header="OpenGL Logger" Click="_menuItemOpenGL_Click" />
                 <!--<MenuItem Name="_menuItemImageRecon" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image finder" Click="_menuItemImageRecon_Click" />-->
                 <MenuItem Name="_menuItemEncryptor" ListView:WpfUtils.ImagePath="lock.png" IsEnabled="True" Header="GRF Encryption" Click="_menuItemEncryptor_Click" />
                 <!--<MenuItem Name="_menuItemPatcher" IsEnabled="True" Header="Grf patcher" Click="_menuItemPatcher_Click">
@@ -178,7 +179,7 @@
                     <!-- TreeView and ListView -->
                     <WPF:TkView Grid.Column="0" BorderThickness="0" Margin="0" Name="_treeView" Drop="_treeView_Drop" SelectedItemChanged="_treeView_SelectedItemChanged" KeyDown="_treeView_KeyDown" PreviewMouseRightButtonUp="_treeView_PreviewMouseRightButtonUp" PreviewMouseRightButtonDown="_treeView_PreviewMouseRightButtonDown" />
                     <GridSplitter Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
-                    <Grid Grid.Column="2" Background="{StaticResource ListItemSearchBackground}">
+                    <Grid Grid.Column="2" Background="{DynamicResource ListItemSearchBackground}">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto" />
                             <RowDefinition />

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.ContainerFormat.Commands;
@@ -9,47 +13,113 @@ using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.IO;
 using GRF.System;
+using GRF.Threading;
 using GrfToWpfBridge.TreeViewManager;
+using TokeiLibrary;
 using TokeiLibrary.WPF;
 using Utilities.Extension;
+using System.Linq;
 
 namespace GRFEditor.Core.Services {
 	public class RenamingService {
-		public void RenameFolder(object selectedItem, GrfHolder grfData, Window owner, CCallbacks.RenameCallback callback, CCallbacks.DeleteCallback callbackDelete, CCallbacks.AddFilesCallback callbackAddFiles) {
-			try {
-				if (selectedItem == null) {
-					ErrorHandler.HandleException("Please select a folder.", ErrorLevel.Low);
-					return;
-				}
+		public void RenameFolder(object selectedItem, TreeView _treeView, GrfHolder grfData, Window owner, CCallbacks.RenameCallback callback, CCallbacks.DeleteCallback callbackDelete, CCallbacks.AddFilesCallback callbackAddFiles) {
+			if (_treeView.SelectedItem == null) {
+				ErrorHandler.HandleException("Please select a folder.", ErrorLevel.Low);
+			}
+			else if (_treeView.SelectedItem is ProjectTreeViewItem) {
+				ErrorHandler.HandleException("Only folders can be renamed.", ErrorLevel.Low);
+			}
+			else if (_treeView.SelectedItem is TkTreeViewItem) {
+				var tkTvi = ((TkTreeViewItem)_treeView.SelectedItem);
 
-				if ((selectedItem is ProjectTreeViewItem)) {
-					ErrorHandler.HandleException("Only folders can be renamed.", ErrorLevel.Low);
-					return;
-				}
+				tkTvi.IsEditMode = true;
 
-				string currentPath = TreeViewPathManager.GetTkPath(selectedItem).RelativePath;
-				string folderName = Path.GetFileName(currentPath);
-				InputDialog input = WindowProvider.ShowWindow<InputDialog>(new InputDialog("The current folder name is : \n" + folderName, "Rename", folderName, true), owner);
+				TextBox tb = null;
 
-				if (input.DialogResult == true) {
-					try {
-						grfData.Commands.Rename(currentPath, Path.Combine(GrfPath.GetDirectoryName(currentPath), input.Input), callback);
-					}
-					catch (GrfException grfErr) {
-						if (grfErr == GrfExceptions.__FolderNameAlreadyExists) {
-							if (WindowProvider.ShowDialog("A folder with this name already exists, do you want to merge them?", "Folder already exists", MessageBoxButton.YesNoCancel) == MessageBoxResult.Yes) {
-								grfData.Commands.MergeFolders(currentPath, Path.Combine(GrfPath.GetDirectoryName(currentPath), input.Input), callbackDelete, callbackAddFiles);
+				var isFirst = tkTvi.Get("_tbEdit", out tb);
+
+				tkTvi.CurrentPath = TreeViewPathManager.GetTkPath(_treeView.SelectedItem).RelativePath;
+				tkTvi.OldHeaderText = tkTvi.HeaderText;
+				tb.Text = tkTvi.HeaderText;
+				Keyboard.Focus(tb);
+				tb.Focus();
+				tb.SelectAll();
+
+				if (isFirst) {
+					tb.LostKeyboardFocus += delegate {
+						if (!tkTvi.IsEditMode) {
+							tkTvi.HeaderText = tkTvi.OldHeaderText;
+							return;
+						}
+
+						tkTvi.IsEditMode = false;
+
+						try {
+							foreach (char c in Path.GetInvalidFileNameChars()) {
+								if (tb.Text.Contains(c)) {
+									WindowProvider.ShowDialog("Invalid characters.");
+									return;
+								}
+							}
+
+							try {
+								grfData.Commands.Rename(tkTvi.CurrentPath, Path.Combine(GrfPath.GetDirectoryName(tkTvi.CurrentPath), tb.Text), callback);
+							}
+							catch (GrfException grfErr) {
+								if (grfErr == GrfExceptions.__FolderNameAlreadyExists) {
+									if (WindowProvider.ShowDialog("A folder with this name already exists, do you want to merge them?", "Folder already exists", MessageBoxButton.YesNoCancel) == MessageBoxResult.Yes) {
+										grfData.Commands.MergeFolders(tkTvi.CurrentPath, Path.Combine(GrfPath.GetDirectoryName(tkTvi.CurrentPath), tb.Text), callbackDelete, callbackAddFiles);
+									}
+								}
+								else throw;
+							}
+							catch (Exception err) {
+								ErrorHandler.HandleException(err);
 							}
 						}
-						else throw;
-					}
-					catch (Exception err) {
-						ErrorHandler.HandleException(err);
-					}
+						catch (Exception err) {
+							ErrorHandler.HandleException(err, ErrorLevel.Warning);
+						}
+
+						//RenameFolder(_treeView.SelectedItem, tkTvi.CurrentPath, tb.Text, grfData, this, _renameFolderCallback, _deleteFolderCallback, _addFilesCallback);
+					};
+
+					tb.PreviewTextInput += (s, g) => {
+						foreach (char c in Path.GetInvalidFileNameChars()) {
+							if (g.Text.Contains(c)) {
+								g.Handled = true;
+								ToolTip tooltip = new ToolTip { Content = "Invalid character: " + c };
+								tb.ToolTip = tooltip;
+								tooltip.PlacementTarget = tb;
+								tooltip.Placement = PlacementMode.Bottom;
+								tooltip.Opened += delegate {
+									GrfThread.Start(delegate {
+										Thread.Sleep(1500);
+										tb.Dispatch(delegate {
+											tooltip.IsOpen = false;
+											tb.ToolTip = null;
+										});
+									});
+								};
+								tooltip.IsOpen = true;
+								break;
+							}
+						}
+					};
+
+					tb.KeyDown += (s, g) => {
+						if (!tkTvi.IsEditMode)
+							return;
+
+						if (g.Key == Key.Enter) {
+							tkTvi.Focus();
+						}
+						else if (g.Key == Key.Escape) {
+							tkTvi.IsEditMode = false;
+							tkTvi.Focus();
+						}
+					};
 				}
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err, ErrorLevel.Warning);
 			}
 		}
 

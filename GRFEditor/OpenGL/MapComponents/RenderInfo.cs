@@ -3,10 +3,21 @@ using System.Collections.Generic;
 using System.Linq;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class RenderInfo {
+		/// <summary>
+		/// Gets the vertex array object.
+		/// </summary>
+		/// <value>
+		/// The vertex array object.
+		/// </value>
 		public int Vao { get; private set; }
+
+		/// <summary>
+		/// The vertex buffer object.
+		/// </summary>
 		public Vbo Vbo;
 		public List<VboIndex> Indices = new List<VboIndex>();
 		public Matrix4 Matrix = Matrix4.Identity;
@@ -61,6 +72,22 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[7] = n.Z;
 		}
 
+		public Vertex(Vector3 pos, Vector2 tex, Vector3 n, float twoSide) {
+			data = new float[9];
+			data[0] = pos.X;
+			data[1] = pos.Y;
+			data[2] = pos.Z;
+
+			data[3] = tex.X;
+			data[4] = tex.Y;
+
+			data[5] = n.X;
+			data[6] = n.Y;
+			data[7] = n.Z;
+
+			data[8] = twoSide;
+		}
+
 		public Vertex(Vector3 pos, Vector2 tex) {
 			data = new float[5];
 			data[0] = pos.X;
@@ -92,25 +119,44 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[12] = n.Y;
 			data[13] = n.Z;
 		}
+
+		public override string ToString() {
+			return "{(" + data[0] + "; " + data[1] + "; " + data[2] + ")}";
+		}
 	}
 
-	public class OpenGLMemoryManager {
-		public static Dictionary<int, int> VertexArrayObjects = new Dictionary<int, int>();
-		public static Dictionary<int, int> VertexBufferObjects = new Dictionary<int, int>();
-		public static Dictionary<int, int> TextureIds = new Dictionary<int, int>();
+	public sealed class OpenGLMemoryManager {
+		public Dictionary<int, int> VertexArrayObjects = new Dictionary<int, int>();
+		public Dictionary<int, int> VertexBufferObjects = new Dictionary<int, int>();
+		public Dictionary<int, int> TextureIds = new Dictionary<int, int>();
+		private static OpenGLMemoryManager _manager;
+
+		public static Dictionary<object, OpenGLMemoryManager> _managers = new Dictionary<object, OpenGLMemoryManager>();
+
+		public static void MakeCurrent(object context) {
+			_manager = _managers[context];
+		}
+
+		public static void Remove(object context) {
+			_managers.Remove(context);
+		}
+
+		public static void CreateInstance(object context) {
+			_managers[context] = new OpenGLMemoryManager();
+		}
 
 		public static void AddVao(int id) {
-			if (VertexArrayObjects.ContainsKey(id)) {
-				VertexArrayObjects[id]++;
+			if (_manager.VertexArrayObjects.ContainsKey(id)) {
+				_manager.VertexArrayObjects[id]++;
 			}
 			else {
-				VertexArrayObjects[id] = 1;
+				_manager.VertexArrayObjects[id] = 1;
 			}
 		}
 
 		public static void DelVao(int id) {
-			if (VertexArrayObjects.ContainsKey(id)) {
-				VertexArrayObjects[id]--;
+			if (_manager.VertexArrayObjects.ContainsKey(id)) {
+				_manager.VertexArrayObjects[id]--;
 			}
 			else {
 				Console.WriteLine("Attempted to remove a non-existing VAO: " + id);
@@ -118,19 +164,19 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public static int AddVbo(int id) {
-			if (VertexBufferObjects.ContainsKey(id)) {
-				VertexBufferObjects[id]++;
+			if (_manager.VertexBufferObjects.ContainsKey(id)) {
+				_manager.VertexBufferObjects[id]++;
 			}
 			else {
-				VertexBufferObjects[id] = 1;
+				_manager.VertexBufferObjects[id] = 1;
 			}
 
 			return id;
 		}
 
 		public static void DelVbo(int id) {
-			if (VertexBufferObjects.ContainsKey(id)) {
-				VertexBufferObjects[id]--;
+			if (_manager.VertexBufferObjects.ContainsKey(id)) {
+				_manager.VertexBufferObjects[id]--;
 			}
 			else {
 				Console.WriteLine("Attempted to remove a non-existing VBO: " + id);
@@ -138,27 +184,39 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public static void AddTextureId(int id) {
-			if (TextureIds.ContainsKey(id)) {
-				TextureIds[id]++;
+			if (_manager.TextureIds.ContainsKey(id)) {
+				_manager.TextureIds[id]++;
 			}
 			else {
-				TextureIds[id] = 1;
+				_manager.TextureIds[id] = 1;
 			}
 		}
 
+		public static int GetTextureIdInstanceCount(int id) {
+			if (_manager.TextureIds.ContainsKey(id)) {
+				return _manager.TextureIds[id];
+			}
+
+			return 0;
+		}
+
 		public static void DelTextureId(int id) {
-			if (TextureIds.ContainsKey(id)) {
-				TextureIds[id]--;
+			if (_manager.TextureIds.ContainsKey(id)) {
+				_manager.TextureIds[id]--;
+
+				if (_manager.TextureIds[id] == 0)
+					_manager.TextureIds.Remove(id);
 			}
 			else {
-				Console.WriteLine("Attempted to remove a non-existing texture: " + id);
+				// Happens with threads, not a big deal; the texture is deleted anyway
+				//Console.WriteLine("Attempted to remove a non-existing texture: " + id);
 			}
 		}
 
 		public static void PrintLeaked() {
-			_print(VertexArrayObjects, "Vao");
-			_print(VertexBufferObjects, "Vbo");
-			_print(TextureIds, "TextureIds");
+			_print(_manager.VertexArrayObjects, "Vao");
+			_print(_manager.VertexBufferObjects, "Vbo");
+			_print(_manager.TextureIds, "TextureIds");
 		}
 
 		private static void _print(Dictionary<int, int> buffer, string name) {
@@ -168,15 +226,15 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public static void Clear() {
-			foreach (var entry in VertexArrayObjects.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
+			foreach (var entry in _manager.VertexArrayObjects.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
 				DelVao(entry);
 			}
 
-			foreach (var entry in VertexBufferObjects.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
+			foreach (var entry in _manager.VertexBufferObjects.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
 				DelVbo(entry);
 			}
 
-			foreach (var entry in TextureIds.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
+			foreach (var entry in _manager.TextureIds.Where(p => p.Value > 0).Select(p => p.Key).ToList()) {
 				DelTextureId(entry);
 			}
 		}

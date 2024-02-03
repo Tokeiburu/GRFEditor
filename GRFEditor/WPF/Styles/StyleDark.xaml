@@ -37,15 +37,16 @@
     <Color x:Key="UIThemeListViewBorderColor">#242529</Color>
     <Color x:Key="UIThemeListViewMouseOverBackgroundColor">#4C4F57</Color>
     <Color x:Key="UIThemeComboBoxDisabled">#3D4146</Color>
-    
+    <Color x:Key="UIThemeAboutDialogColor">#484C52</Color>
+
     <SolidColorBrush x:Key="UIThemeBackground1Brush" Color="{StaticResource UIThemeBackground1Color}" />
     <SolidColorBrush x:Key="UIThemeBackground2Brush" Color="{StaticResource UIThemeBackground2Color}" />
-    <SolidColorBrush x:Key="UIThemeSelectBorderBrush" Color="{StaticResource UIThemeSelectBorderColor}" />
-    <SolidColorBrush x:Key="UIThemeSelectBackgroundBrush" Color="{StaticResource UIThemeSelectBackgroundColor}" />
+    <SolidColorBrush x:Key="UIThemeSelectBorderBrush" Color="{DynamicResource UIThemeSelectBorderColor}" />
+    <SolidColorBrush x:Key="UIThemeSelectBackgroundBrush" Color="{DynamicResource UIThemeSelectBackgroundColor}" />
     <SolidColorBrush x:Key="UIThemeSelectTextBrush" Color="{StaticResource UIThemeSelectTextColor}" />
     <SolidColorBrush x:Key="UIThemeFadeTextBrush" Color="{StaticResource UIThemeFadeTextColor}" />
-    <SolidColorBrush x:Key="UIThemeMouseOverBorderBrush" Color="{StaticResource UIThemeMouseOverBorderColor}" />
-    <SolidColorBrush x:Key="UIThemeMouseOverBackgroundBrush" Color="{StaticResource UIThemeMouseOverBackgroundColor}" />
+    <SolidColorBrush x:Key="UIThemeMouseOverBorderBrush" Color="{DynamicResource UIThemeMouseOverBorderColor}" />
+    <SolidColorBrush x:Key="UIThemeMouseOverBackgroundBrush" Color="{DynamicResource UIThemeMouseOverBackgroundColor}" />
     <SolidColorBrush x:Key="UIThemeMouseOverTextBrush" Color="{StaticResource UIThemeMouseOverTextColor}" />
     <SolidColorBrush x:Key="UIThemeSeparatorLineBrush" Color="{StaticResource UIThemeSeparatorLineColor}" />
     <SolidColorBrush x:Key="UIThemeSpriteEditorSeparatorBrush" Color="{StaticResource UIThemeSpriteEditorSeparatorColor}" />
@@ -61,6 +62,7 @@
     <SolidColorBrush x:Key="UIThemeListViewBorderBrush" Color="{StaticResource UIThemeListViewBorderColor}"/>
     <SolidColorBrush x:Key="UIThemeListViewMouseOverBackgroundBrush" Color="{StaticResource UIThemeListViewMouseOverBackgroundColor}"/>
     <SolidColorBrush x:Key="UIThemeComboBoxDisabledBrush" Color="{StaticResource UIThemeComboBoxDisabled}"/>
+    <SolidColorBrush x:Key="UIThemeAboutDialogBrush" Color="{DynamicResource UIThemeAboutDialogColor}"/>
 
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{StaticResource UIThemeMouseOverBorderColor}"/>
     <SolidColorBrush x:Key="{x:Static SystemColors.HighlightTextBrush}" Color="White"/>
@@ -113,14 +115,24 @@
     <TextBlock x:Key="AvalonLuaString" Foreground="#9AC968" FontWeight="Bold"/>
     <TextBlock x:Key="AvalonLuaFunction" Foreground="#7AA1F6" FontWeight="Bold"/>
 
+    <TextBlock x:Key="AvalonDebugDbComment" Foreground="#A0A0A0" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbString" Foreground="#E5DB6D" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbKeywordsStructure" Foreground="#FE9700" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbKeywordsDb" Foreground="#FB1E70" FontWeight="Bold" FontStyle="Italic"/>
+    <TextBlock x:Key="AvalonDebugDbKeywordsApi" Foreground="#60D8F0" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbKeywordsOthers" Foreground="#FB1E70" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbKeywordsDigit" Foreground="#AE7DFE" FontWeight="Bold"/>
+    <TextBlock x:Key="AvalonDebugDbCommentFont" Foreground="#A0A0A0" FontWeight="Bold" />
+    <TextBlock x:Key="AvalonDebugDbDefault" Foreground="{StaticResource TextForeground}" FontWeight="Bold" />
+
     <!-- GRF Editor style overrides - Avalon -->
     <Color x:Key="UIThemeAvalonSelectionColor">#A0AEB7C0</Color>
     <Color x:Key="UIThemeAvalonMarkerColor">#02A90B</Color>
-    
+
     <SolidColorBrush x:Key="AvalonEditorBackground" Color="{StaticResource UIThemeBackground2Color}"/>
     <SolidColorBrush x:Key="AvalonEditorSelectionBrush" Color="{StaticResource UIThemeAvalonSelectionColor}" />
     <SolidColorBrush x:Key="AvalonEditorMarkerBrush" Color="{StaticResource UIThemeAvalonMarkerColor}" />
-    
+
     <!-- GRF Editor style overrides - Others -->
     <SolidColorBrush x:Key="MouseOverTextBrush" Color="{StaticResource UIThemeHyperlinkColor}" />
     <SolidColorBrush x:Key="TextForeground" Color="{StaticResource UIThemeDefaultTextColor}"/>
@@ -135,7 +147,7 @@
         <GradientStop Offset="0" Color="{StaticResource UIThemePopupBackgroundColor}" />
         <GradientStop Offset="0.5" Color="{StaticResource UIThemePopupBackgroundColor}" />
     </LinearGradientBrush>
-    
+
     <!-- TreeView -->
     <SolidColorBrush x:Key="UITreeViewDefaultForegroundBrush" Color="{StaticResource UIThemeFadeTextColor}"/>
     <SolidColorBrush x:Key="UITreeViewSelectedBorderBrush" Color="{StaticResource UIThemeSelectBorderColor}"/>
@@ -150,62 +162,7 @@
     <SolidColorBrush x:Key="UITreeViewUnableBackgroundBrush" Color="{StaticResource UIThemeTreeViewDragUnableBackgroundColor}"/>
 
     <!-- Dark theme styles -->
-    <Style TargetType="WPF:TkTreeViewItem">
-        <Setter Property="DefaultTextForeground" Value="{StaticResource UITreeViewDefaultForegroundBrush}" />
-        <Setter Property="SelectBackgroundBrush" Value="{StaticResource UITreeViewSelectedBackgroundBrush}" />
-        <Setter Property="SelectBorderBrush" Value="{StaticResource UITreeViewSelectedBorderBrush}" />
-        <Setter Property="MouseOverBackgroundBrush" Value="{StaticResource UITreeViewMouseOverBackgroundBrush}" />
-        <Setter Property="MouseOverBorderBrush" Value="{StaticResource UITreeViewMouseOverBorderBrush}" />
-        <Setter Property="MouseOverTextForeground" Value="{StaticResource UITreeViewMouseOverForegroundBrush}" />
-        <Setter Property="SelectedTextForeground" Value="{StaticResource UITreeViewSelectedForegroundBrush}" />
-        <Setter Property="DragEnterBackgroundBrush" Value="{StaticResource UITreeViewDragEnterBackgroundBrush}" />
-        <Setter Property="DragEnterBorderBrush" Value="{StaticResource UITreeViewDragEnterBorderBrush}" />
-        <Setter Property="UnableBackgroundBrush" Value="{StaticResource UITreeViewUnableBackgroundBrush}" />
-        <Setter Property="UnableBorderBrush" Value="{StaticResource UITreeViewUnableBorderBrush}" />
-    </Style>
 
-    <Style TargetType="TreeViewManager:ProjectTreeViewItem">
-        <Setter Property="DefaultTextForeground" Value="{StaticResource UITreeViewDefaultForegroundBrush}" />
-        <Setter Property="SelectBackgroundBrush" Value="{StaticResource UITreeViewSelectedBackgroundBrush}" />
-        <Setter Property="SelectBorderBrush" Value="{StaticResource UITreeViewSelectedBorderBrush}" />
-        <Setter Property="MouseOverBackgroundBrush" Value="{StaticResource UITreeViewMouseOverBackgroundBrush}" />
-        <Setter Property="MouseOverBorderBrush" Value="{StaticResource UITreeViewMouseOverBorderBrush}" />
-        <Setter Property="MouseOverTextForeground" Value="{StaticResource UITreeViewMouseOverForegroundBrush}" />
-        <Setter Property="SelectedTextForeground" Value="{StaticResource UITreeViewSelectedForegroundBrush}" />
-        <Setter Property="DragEnterBackgroundBrush" Value="{StaticResource UITreeViewDragEnterBackgroundBrush}" />
-        <Setter Property="DragEnterBorderBrush" Value="{StaticResource UITreeViewDragEnterBorderBrush}" />
-        <Setter Property="UnableBackgroundBrush" Value="{StaticResource UITreeViewUnableBackgroundBrush}" />
-        <Setter Property="UnableBorderBrush" Value="{StaticResource UITreeViewUnableBorderBrush}" />
-    </Style>
-
-    <Style TargetType="TreeViewManager:TypeTreeViewItem">
-        <Setter Property="DefaultTextForeground" Value="{StaticResource UITreeViewDefaultForegroundBrush}" />
-        <Setter Property="SelectBackgroundBrush" Value="{StaticResource UITreeViewSelectedBackgroundBrush}" />
-        <Setter Property="SelectBorderBrush" Value="{StaticResource UITreeViewSelectedBorderBrush}" />
-        <Setter Property="MouseOverBackgroundBrush" Value="{StaticResource UITreeViewMouseOverBackgroundBrush}" />
-        <Setter Property="MouseOverBorderBrush" Value="{StaticResource UITreeViewMouseOverBorderBrush}" />
-        <Setter Property="MouseOverTextForeground" Value="{StaticResource UITreeViewMouseOverForegroundBrush}" />
-        <Setter Property="SelectedTextForeground" Value="{StaticResource UITreeViewSelectedForegroundBrush}" />
-        <Setter Property="DragEnterBackgroundBrush" Value="{StaticResource UITreeViewDragEnterBackgroundBrush}" />
-        <Setter Property="DragEnterBorderBrush" Value="{StaticResource UITreeViewDragEnterBorderBrush}" />
-        <Setter Property="UnableBackgroundBrush" Value="{StaticResource UITreeViewUnableBackgroundBrush}" />
-        <Setter Property="UnableBorderBrush" Value="{StaticResource UITreeViewUnableBorderBrush}" />
-    </Style>
-
-    <Style TargetType="mapExtractor:MapExtractorTreeViewItem">
-        <Setter Property="DefaultTextForeground" Value="{StaticResource UITreeViewDefaultForegroundBrush}" />
-        <Setter Property="SelectBackgroundBrush" Value="{StaticResource UITreeViewSelectedBackgroundBrush}" />
-        <Setter Property="SelectBorderBrush" Value="{StaticResource UITreeViewSelectedBorderBrush}" />
-        <Setter Property="MouseOverBackgroundBrush" Value="{StaticResource UITreeViewMouseOverBackgroundBrush}" />
-        <Setter Property="MouseOverBorderBrush" Value="{StaticResource UITreeViewMouseOverBorderBrush}" />
-        <Setter Property="MouseOverTextForeground" Value="{StaticResource UITreeViewMouseOverForegroundBrush}" />
-        <Setter Property="SelectedTextForeground" Value="{StaticResource UITreeViewSelectedForegroundBrush}" />
-        <Setter Property="DragEnterBackgroundBrush" Value="{StaticResource UITreeViewDragEnterBackgroundBrush}" />
-        <Setter Property="DragEnterBorderBrush" Value="{StaticResource UITreeViewDragEnterBorderBrush}" />
-        <Setter Property="UnableBackgroundBrush" Value="{StaticResource UITreeViewUnableBackgroundBrush}" />
-        <Setter Property="UnableBorderBrush" Value="{StaticResource UITreeViewUnableBorderBrush}" />
-    </Style>
-    
     <Style TargetType="styles:TkWindow">
         <Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
         <Setter Property="Background" Value="{DynamicResource TabControlBackground}" />
@@ -216,11 +173,15 @@
     </Style>
 
     <Style TargetType="WPF:TkView">
-        <Setter Property="Background" Value="{StaticResource UIThemeBackground1Brush}" />
+        <Setter Property="Background" Value="{DynamicResource UIThemeBackground1Brush}" />
+        <Style.Resources>
+            <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
+            <SolidColorBrush x:Key="{x:Static SystemColors.InactiveSelectionHighlightBrushKey}" Color="Transparent" />
+        </Style.Resources>
     </Style>
 
     <Style TargetType="Menu">
-        <Setter Property="Background" Value="{StaticResource UIThemeMenuBackgroundBrush}" />
+        <Setter Property="Background" Value="{DynamicResource UIThemeMenuBackgroundBrush}" />
     </Style>
 
     <!-- Menu and ContextMenu styles -->
@@ -230,10 +191,10 @@
 
     <Style TargetType="MenuItem">
         <Setter Property="Background" Value="Black" />
-        <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuDefaultTextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDefaultTextBrush}" />
         <Style.Triggers>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuDisabledTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -242,7 +203,7 @@
         <Setter Property="OverridesDefaultStyle" Value="True" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="Grid.IsSharedSizeScope" Value="True" />
-        <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuDefaultTextBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDefaultTextBrush}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type ContextMenu}">
@@ -276,14 +237,14 @@
                 <Setter TargetName="Popup" Property="PopupAnimation" Value="None"/>
             </Trigger>
             <Trigger Property="IsHighlighted" Value="true">
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource UIThemeContextMenuMouseOverBackgroundBrush}"/>
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeContextMenuMouseOverBackgroundBrush}"/>
                 <Setter TargetName="Border" Property="BorderBrush" Value="Transparent"/>
                 <Setter TargetName="Border" Property="CornerRadius" Value="3"/>
-                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{StaticResource UIThemeContextMenuMouseOverTextBrush}"/>
+                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{DynamicResource UIThemeContextMenuMouseOverTextBrush}"/>
             </Trigger>
             <Trigger Property="IsHighlighted" Value="false">
                 <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemePopupBackgroundBrush}"/>
-                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{StaticResource UIThemeContextMenuDefaultTextBrush}"/>
+                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{DynamicResource UIThemeContextMenuDefaultTextBrush}"/>
             </Trigger>
             <!--Snippettoplevelheader-->
             <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="True">
@@ -291,7 +252,7 @@
                 <Setter TargetName="SubmenuBorder" Property="Padding" Value="0,0,0,3"/>
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{StaticResource UIThemeContextMenuDisabledTextBrush}"/>
+                <Setter TargetName="_contentPresenter" Property="TextBlock.Foreground" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}"/>
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
@@ -308,7 +269,7 @@
                 </Grid.ColumnDefinitions>
                 <ContentPresenter Name="Icon" Margin="6,0,6,0" VerticalAlignment="Center" ContentSource="Icon" />
                 <Border Name="Check" Grid.Column="0" Width="13" Height="13" Visibility="Collapsed" Margin="6,0,6,0" BorderThickness="1">
-                    <Path Name="CheckMark" Width="7" Height="7" Visibility="Hidden" SnapsToDevicePixels="False" Stroke="{StaticResource UIThemeContextMenuDefaultTextBrush}" StrokeThickness="2" Data="M 0 0 L 7 7 M 0 7 L 7 0" />
+                    <Path Name="CheckMark" Width="7" Height="7" Visibility="Hidden" SnapsToDevicePixels="False" Stroke="{DynamicResource UIThemeContextMenuDefaultTextBrush}" StrokeThickness="2" Data="M 0 0 L 7 7 M 0 7 L 7 0" />
                 </Border>
                 <ContentPresenter Name="HeaderHost" Grid.Column="1" ContentSource="Header" Margin="3 5 3 5" RecognizesAccessKey="True" />
                 <TextBlock x:Name="InputGestureText" Grid.Column="3" Text="{TemplateBinding InputGestureText}" VerticalAlignment="Center" Margin="5,2,2,2" DockPanel.Dock="Right" />
@@ -326,12 +287,12 @@
                 <Setter TargetName="Icon" Property="Visibility" Value="Hidden" />
             </Trigger>
             <Trigger Property="IsHighlighted" Value="true">
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource UIThemeContextMenuMouseOverBackgroundBrush}" />
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeContextMenuMouseOverBackgroundBrush}" />
                 <Setter TargetName="Border" Property="CornerRadius" Value="3" />
-                <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuMouseOverTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuMouseOverTextBrush}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="false">
-                <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuDisabledTextBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}" />
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
@@ -349,7 +310,7 @@
                 <ContentPresenter Name="Icon" Margin="6,0,6,0" VerticalAlignment="Center" ContentSource="Icon" />
                 <ContentPresenter Name="HeaderHost" Grid.Column="1" ContentSource="Header" Margin="3 5 3 5" RecognizesAccessKey="True" />
                 <TextBlock x:Name="InputGestureText" Grid.Column="3" Text="{TemplateBinding InputGestureText}" VerticalAlignment="Center" Margin="5,2,2,2" DockPanel.Dock="Right" />
-                <Path Grid.Column="4" Name="Arrow" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 0 7 L 4 3.5 Z" Fill="{StaticResource UIThemeContextMenuDefaultTextBrush}" />
+                <Path Grid.Column="4" Name="Arrow" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 0 0 L 0 7 L 4 3.5 Z" Fill="{DynamicResource UIThemeContextMenuDefaultTextBrush}" />
                 <Popup Name="Popup" Grid.Column="0" Placement="Right" HorizontalOffset="-4" IsOpen="{TemplateBinding IsSubmenuOpen}" AllowsTransparency="True" Focusable="False" PopupAnimation="Fade">
                     <Border Name="SubmenuBorder" SnapsToDevicePixels="True" Background="{DynamicResource UIThemePopupBackgroundBrush}" BorderBrush="{DynamicResource UIThemePopupBorderBrush}" BorderThickness="1">
                         <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle" Grid.IsSharedSizeScope="true" />
@@ -363,16 +324,16 @@
                 <Setter TargetName="Icon" Property="Visibility" Value="Collapsed" />
             </Trigger>
             <Trigger Property="IsHighlighted" Value="true">
-                <Setter TargetName="RealBorder" Property="Background" Value="{StaticResource UIThemeContextMenuMouseOverBackgroundBrush}" />
+                <Setter TargetName="RealBorder" Property="Background" Value="{DynamicResource UIThemeContextMenuMouseOverBackgroundBrush}" />
                 <Setter TargetName="RealBorder" Property="CornerRadius" Value="3" />
-                <Setter TargetName="HeaderHost" Property="Control.Foreground" Value="{StaticResource UIThemeContextMenuMouseOverTextBrush}" />
-                <Setter TargetName="Arrow" Property="Fill" Value="{StaticResource UIThemeContextMenuMouseOverTextBrush}" />
+                <Setter TargetName="HeaderHost" Property="Control.Foreground" Value="{DynamicResource UIThemeContextMenuMouseOverTextBrush}" />
+                <Setter TargetName="Arrow" Property="Fill" Value="{DynamicResource UIThemeContextMenuMouseOverTextBrush}" />
             </Trigger>
             <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="True">
                 <Setter TargetName="SubmenuBorder" Property="CornerRadius" Value="4" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="false">
-                <Setter TargetName="HeaderHost" Property="Control.Foreground" Value="{StaticResource UIThemeContextMenuDisabledTextBrush}" />
+                <Setter TargetName="HeaderHost" Property="Control.Foreground" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}" />
             </Trigger>
         </ControlTemplate.Triggers>
     </ControlTemplate>
@@ -383,23 +344,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type Separator}">
-                    <Border Margin="30,0,3,0" BorderBrush="{StaticResource UIThemeContextMenuDefaultTextBrush}" BorderThickness="1"/>
+                    <Border Margin="30,0,3,0" BorderBrush="{DynamicResource UIThemeContextMenuDefaultTextBrush}" BorderThickness="1"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
     <!-- Scrollbar styles -->
-    <SolidColorBrush x:Key="ScrollbarForeground" Color="{StaticResource UIThemeBackground1Color}" />
-    <SolidColorBrush x:Key="ScrollbarBackground" Color="{StaticResource UIThemeSelectBackgroundColor}" />
+    <SolidColorBrush x:Key="ScrollbarForeground" Color="{DynamicResource UIThemeBackground1Color}" />
+    <SolidColorBrush x:Key="ScrollbarBackground" Color="{DynamicResource UIThemeSelectBackgroundColor}" />
     <SolidColorBrush x:Key="NormalBrush" Color="#555" />
     <SolidColorBrush x:Key="NormalBorderBrush" Color="#555" />
     <SolidColorBrush x:Key="HorizontalNormalBrush" Color="#555" />
     <SolidColorBrush x:Key="HorizontalNormalBorderBrush" Color="#555" />
-    <SolidColorBrush x:Key="GlyphBrush" Color="{StaticResource UIThemeSelectBackgroundColor}" />
-    <SolidColorBrush x:Key="HoverBrush2" Color="{StaticResource UIThemeBackground2Color}" />
-    <SolidColorBrush x:Key="PressedBrush2" Color="{StaticResource UIThemeBackground2Color}" />
-    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="{StaticResource UIThemeSelectBackgroundColor}"/>
+    <SolidColorBrush x:Key="GlyphBrush" Color="{DynamicResource UIThemeSelectBackgroundColor}" />
+    <SolidColorBrush x:Key="HoverBrush2" Color="{DynamicResource UIThemeBackground2Color}" />
+    <SolidColorBrush x:Key="PressedBrush2" Color="{DynamicResource UIThemeBackground2Color}" />
+    <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="{DynamicResource UIThemeSelectBackgroundColor}"/>
 
     <!-- SrollViewer ScrollBar Repeat Buttons (at each end) -->
     <Style x:Key="ScrollBarLineButton" TargetType="{x:Type RepeatButton}">
@@ -687,7 +648,7 @@
     </Style>
 
     <Style TargetType="ListView">
-        <Setter Property="Background" Value="{StaticResource UIThemeBackground2Brush}" />
+        <Setter Property="Background" Value="{DynamicResource UIThemeBackground2Brush}" />
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="{x:Type ListViewItem}">
@@ -718,12 +679,12 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="BorderListBox" Property="Background" Value="{StaticResource UIThemeMouseOverBackgroundBrush}" />
-                            <Setter TargetName="BorderListBox" Property="BorderBrush" Value="{StaticResource UIThemeMouseOverBorderBrush}" />
+                            <Setter TargetName="BorderListBox" Property="Background" Value="{DynamicResource UIThemeMouseOverBackgroundBrush}" />
+                            <Setter TargetName="BorderListBox" Property="BorderBrush" Value="{DynamicResource UIThemeMouseOverBorderBrush}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="true">
-                            <Setter TargetName="BorderListBox" Property="Background" Value="{StaticResource UIThemeSelectBackgroundBrush}" />
-                            <Setter TargetName="BorderListBox" Property="BorderBrush" Value="{StaticResource UIThemeSelectBorderBrush}" />
+                            <Setter TargetName="BorderListBox" Property="Background" Value="{DynamicResource UIThemeSelectBackgroundBrush}" />
+                            <Setter TargetName="BorderListBox" Property="BorderBrush" Value="{DynamicResource UIThemeSelectBorderBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -732,18 +693,21 @@
     </Style>
 
     <Style TargetType="{x:Type TextBox}">
-        <Setter Property="Foreground" Value="{StaticResource TextForeground}"/>
-        <Setter Property="Background" Value="{StaticResource UIThemeTextBoxBorderBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource UIThemeTextBoxBorderBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource TextForeground}"/>
+        <Setter Property="Background" Value="{DynamicResource UIThemeTextBoxBorderBrush}"/>
+        <Setter Property="BorderBrush" Value="{DynamicResource UIThemeTextBoxBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="1"/>
+        <Setter Property="SelectionBrush" Value="#DCDCFF"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBoxBase}">
                     <Border Name="Border"
-                CornerRadius="2"
-                Padding="1"
-                BorderThickness="1"
-				Background="{StaticResource UIThemeTextBoxBorderBrush}"
-				BorderBrush="{StaticResource UIThemeTextBoxBorderBrush}">
+                        CornerRadius="2"
+                        Padding="{Binding Path=Padding, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}"
+                        BorderThickness="{Binding Path=BorderThickness, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}"
+				        Background="{Binding Path=Background, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}"
+				        BorderBrush="{Binding Path=BorderBrush, RelativeSource={RelativeSource AncestorType={x:Type TextBox}}}">
                         <ScrollViewer Margin="0" x:Name="PART_ContentHost" />
                     </Border>
                 </ControlTemplate>
@@ -761,24 +725,87 @@
             Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>
     </Style>
 
+    <Style TargetType="CheckBox">
+        <Setter Property="Foreground"
+            Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>
+        <Setter Property="SnapsToDevicePixels" Value="true"/>
+        <Setter Property="OverridesDefaultStyle" Value="true"/>
+        <Setter Property="FocusVisualStyle"	Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <BulletDecorator Background="Transparent">
+                        <BulletDecorator.Bullet>
+                            <Border x:Name="Border"  
+                Width="14" 
+                Height="13"
+                CornerRadius="1" 
+                Background="White"
+                BorderThickness="1"
+                Margin="1 0 0 0"
+                BorderBrush="White">
+                                <Path
+                  x:Name="CheckMark"
+                  SnapsToDevicePixels="true" 
+                  Stroke="Black"
+                  StrokeThickness="1.8"
+                  Data="M 1.5,5 5.5,8.2 10,2" />
+                            </Border>
+                        </BulletDecorator.Bullet>
+                        <ContentPresenter Margin="6,-1,0,0"
+              HorizontalAlignment="Left"
+              RecognizesAccessKey="True"/>
+                    </BulletDecorator>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="false">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="{x:Null}">
+                            <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
+                            <Setter TargetName="Border" Property="BorderThickness" Value="3" />
+                            <Setter TargetName="Border" Property="Background" Value="White" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#626FFD" />
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="true">
+                            <Setter TargetName="CheckMark" Property="Stroke" Value="White" />
+                            <Setter TargetName="Border" Property="Background" Value="#626FFD" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#626FFD" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="true">
+                            <Setter TargetName="Border" Property="Background" Value="#8892FD" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="#8892FD" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDisabledTextBrush}"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!--
     <Style TargetType="{x:Type CheckBox}">
         <Setter Property="Foreground"
             Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>
     </Style>
+    -->
 
     <Style TargetType="{x:Type GridViewColumnHeader}">
-        <Setter Property="Foreground" Value="{StaticResource TextForeground}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
         <Setter Property="OverridesDefaultStyle" Value="True" />
 
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type GridViewColumnHeader}">
-                    <Border Name="BorderGrid" BorderThickness="0,0,1,1" BorderBrush="{StaticResource UIThemeListViewBorderBrush}" Background="{StaticResource UIThemeBackground1Brush}">
+                    <Border Name="BorderGrid" BorderThickness="0,0,1,1" BorderBrush="{DynamicResource UIThemeListViewBorderBrush}" Background="{DynamicResource UIThemeBackground1Brush}">
                         <ContentPresenter Name="HeaderContent" Margin="0,2,0,2"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
-                            <Setter TargetName="BorderGrid" Property="Background" Value="{StaticResource UIThemeListViewMouseOverBackgroundBrush}" />
+                            <Setter TargetName="BorderGrid" Property="Background" Value="{DynamicResource UIThemeListViewMouseOverBackgroundBrush}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -796,15 +823,15 @@
                   x:Name="Border" 
                   Grid.ColumnSpan="2"
                   CornerRadius="2"
-                  Background="{StaticResource UIThemeTextBoxBorderBrush}"
-                  BorderBrush="{StaticResource UIThemeMouseOverBorderBrush}"
+                  Background="{DynamicResource UIThemeTextBoxBorderBrush}"
+                  BorderBrush="{DynamicResource UIThemeMouseOverBorderBrush}"
                   BorderThickness="1" />
             <Border 
                   x:Name="ContentBorder"
                   Grid.Column="0"
                   CornerRadius="2 0 0 2" 
                   Margin="1" 
-                  Background="{StaticResource UIThemeTextBoxBorderBrush}"
+                  Background="{DynamicResource UIThemeTextBoxBorderBrush}"
                   BorderThickness="0" />
             <Path 
                   x:Name="Arrow"
@@ -830,10 +857,10 @@
                 <Setter TargetName="Border" Property="BorderThickness" Value="1 1 1 1" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
-                <Setter TargetName="Border" Property="Background" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                <Setter TargetName="ContentBorder" Property="Background" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource TextBoxOverlayBrush}"/>
+                <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                <Setter TargetName="ContentBorder" Property="Background" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextBoxOverlayBrush}"/>
                 <Setter TargetName="Arrow" Property="Fill" Value="#888888" />
             </Trigger>
         </ControlTemplate.Triggers>
@@ -857,7 +884,7 @@
                     <Grid>
                         <ToggleButton 
                             Name="ToggleButton" 
-                            Template="{StaticResource ComboBoxToggleButton}" 
+                            Template="{DynamicResource ComboBoxToggleButton}" 
                             Grid.Column="2" 
                             Focusable="false"
                             IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
@@ -871,13 +898,13 @@
                             HorizontalAlignment="Left" />
                         <TextBox x:Name="PART_EditableTextBox"
                             Style="{x:Null}" 
-                            Template="{StaticResource ComboBoxTextBox}" 
+                            Template="{DynamicResource ComboBoxTextBox}" 
                             HorizontalAlignment="Stretch" 
                             VerticalAlignment="Center" 
                             Margin="6,3,21,3"
                             Focusable="True" 
-                            Background="{StaticResource UIThemeTextBoxBorderBrush}"
-                            Foreground="{StaticResource CellBrushModified}"
+                            Background="{DynamicResource UIThemeTextBoxBorderBrush}"
+                            Foreground="{DynamicResource CellBrushModified}"
                             Visibility="Hidden"
                             IsReadOnly="{TemplateBinding IsReadOnly}"/>
                         <Popup 
@@ -894,10 +921,10 @@
                                       MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                 <Border
                                         x:Name="DropDownBorder"
-                                        Background="{StaticResource UIThemeBackground1Brush}"
+                                        Background="{DynamicResource UIThemeBackground1Brush}"
                                         CornerRadius="0 0 0 0"
                                         BorderThickness="1"
-                                        BorderBrush="{StaticResource UIThemePopupBorderBrush}"/>
+                                        BorderBrush="{DynamicResource UIThemePopupBorderBrush}"/>
                                 <ScrollViewer Margin="1" SnapsToDevicePixels="True">
                                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </ScrollViewer>
@@ -951,15 +978,15 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsSelected" Value="false">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemePopupBackgroundBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuDefaultTextBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuDefaultTextBrush}"/>
                         </Trigger>
                         <Trigger Property="IsSelected" Value="true">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource TabItemSelectedBackground}"/>
-                            <Setter Property="Foreground" Value="{StaticResource TabItemTextSelectedForeground}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource TabItemTextSelectedForeground}"/>
                         </Trigger>
                         <Trigger Property="IsHighlighted" Value="true">
                             <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeContextMenuMouseOverBackgroundBrush}"/>
-                            <Setter Property="Foreground" Value="{StaticResource UIThemeContextMenuMouseOverTextBrush}"/>
+                            <Setter Property="Foreground" Value="{DynamicResource UIThemeContextMenuMouseOverTextBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -983,9 +1010,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Border" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" ClipToBounds="True" Background="{DynamicResource UIThemeTextBoxBackgroundBrush}" BorderThickness="1" BorderBrush="{StaticResource UIThemeMouseOverBorderBrush}" CornerRadius="2">
+                    <Border x:Name="Border" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" ClipToBounds="True" Background="{DynamicResource UIThemeTextBoxBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource UIThemeMouseOverBorderBrush}" CornerRadius="2">
                         <Border BorderThickness="1" BorderBrush="Transparent">
-                            <ContentPresenter x:Name="myContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding  Content}" TextBlock.Foreground="{StaticResource TextForeground}" />
+                            <ContentPresenter x:Name="myContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding  Content}" TextBlock.Foreground="{DynamicResource TextForeground}" />
                         </Border>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -994,26 +1021,27 @@
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBoxOverlayBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextBoxOverlayBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
-    
+
     <Style TargetType="{x:Type Button}">
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
 
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Border" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" ClipToBounds="True" Background="{DynamicResource UIThemeTextBoxBackgroundBrush}" BorderThickness="1" BorderBrush="{StaticResource UIThemeMouseOverBorderBrush}" CornerRadius="2">
-                            <ContentPresenter x:Name="myContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding  Content}" TextBlock.Foreground="{StaticResource TextForeground}" />
+                    <Border x:Name="Border" Width="{TemplateBinding Width}" Height="{TemplateBinding Height}" ClipToBounds="True" Background="{DynamicResource UIThemeTextBoxBackgroundBrush}" BorderThickness="1" BorderBrush="{DynamicResource UIThemeMouseOverBorderBrush}" CornerRadius="2">
+                        <ContentPresenter x:Name="myContentPresenter" HorizontalAlignment="Center" VerticalAlignment="Center" Content="{TemplateBinding  Content}" TextBlock.Foreground="{DynamicResource TextForeground}" />
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
@@ -1021,9 +1049,9 @@
                         </Trigger>
 
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter TargetName="Border" Property="Background" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                            <Setter TargetName="Border" Property="BorderBrush" Value="{StaticResource UIThemeComboBoxDisabledBrush}" />
-                            <Setter Property="Foreground" Value="{StaticResource TextBoxOverlayBrush}"/>
+                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                            <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource UIThemeComboBoxDisabledBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource TextBoxOverlayBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1031,16 +1059,18 @@
         </Setter>
     </Style>
 
-    <SolidColorBrush x:Key="GSearchEngineOk" Color="{StaticResource UIThemeTextBoxBackgroundColor}"/>
+    <SolidColorBrush x:Key="GSearchEngineOk" Color="{DynamicResource UIThemeTextBoxBackgroundColor}"/>
     <SolidColorBrush x:Key="GSearchEngineProcessing" Color="#5020763E"/>
     <SolidColorBrush x:Key="GSearchEnginePredicate" Color="#306F0078"/>
     <SolidColorBrush x:Key="GSearchEngineError" Color="#50940000"/>
 
     <SolidColorBrush x:Key="GSearchEngineExtendBorder" Color="Black"/>
-    <SolidColorBrush x:Key="GSearchEngineExtendBackground" Color="{StaticResource UIThemeBackground2Color}"/>
+    <SolidColorBrush x:Key="GSearchEngineExtendBackground" Color="{DynamicResource UIThemeBackground2Color}"/>
+
+    <Thickness x:Key="CheckBoxMarginOffset" Left="0" Top="0" Right="0" Bottom="0" />
 
     <LinearGradientBrush x:Key="SearchDialogSubmenuBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Offset="0" Color="{StaticResource UIThemePopupBackgroundColor}" />
-        <GradientStop Offset="0.5" Color="{StaticResource UIThemePopupBackgroundColor}" />
+        <GradientStop Offset="0" Color="{DynamicResource UIThemePopupBackgroundColor}" />
+        <GradientStop Offset="0.5" Color="{DynamicResource UIThemePopupBackgroundColor}" />
     </LinearGradientBrush>
 </ResourceDictionary>

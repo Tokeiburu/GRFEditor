@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using GRF.FileFormats.RswFormat;
 using GRF.Image;
 using GRFEditor.OpenGL.MapComponents;
@@ -6,12 +7,12 @@ using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
-	public class GndRenderer : MapGLObject {
+namespace GRFEditor.OpenGL.MapRenderers {
+	public class GndRenderer : Renderer {
 		private readonly RendererLoadRequest _request;
 		private readonly Gnd _gnd;
 		private readonly Rsw _rsw;
-		public const int ShadowmapSize = 4096;
+		public int ShadowmapSize = 0;
 		private Texture _gndShadow;
 		private readonly Texture _black;
 		public List<VboIndex> VertIndices = new List<VboIndex>();
@@ -40,7 +41,9 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			if (_request.CancelRequired())
 				return;
 
-			_loadGround();
+			ShadowmapSize = Math.Max(_gnd.Width * _gnd.LightmapWidth, _gnd.Height * _gnd.LightmapHeight) * 2;
+
+			_loadGround(viewport);
 			_loadShadowmap();
 
 			if (_request.CancelRequired())
@@ -49,7 +52,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			IsLoaded = true;
 		}
 
-		private void _loadGround() {
+		private void _loadGround(OpenGLViewport viewport) {
 			var vertices = new List<Vertex>();
 			var verts = new Dictionary<int, List<Vertex>>();
 			VertIndices.Clear();
@@ -101,7 +104,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						l.Add(v4); l.Add(v2); l.Add(v1);
 						l.Add(v4); l.Add(v1); l.Add(v3);
 					}
-					else if (MapRenderer.RenderOptions.ShowBlackTiles) {
+					else if (viewport.RenderOptions.ShowBlackTiles) {
 						Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[2]);
 						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[3]);
 						Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[0]);
@@ -132,10 +135,10 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
 							c2 = new Vector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
 					
-						Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, new Vector3(1, 0, 0));
-						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, new Vector3(1, 0, 0));
-						Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, new Vector3(1, 0, 0));
-						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, new Vector3(1, 0, 0));
+						Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, new Vector3(-1, 0, 0));
+						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, new Vector3(-1, 0, 0));
+						Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, new Vector3(-1, 0, 0));
+						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, new Vector3(-1, 0, 0));
 					
 						List<Vertex> l;
 					
@@ -173,9 +176,9 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 							l = new List<Vertex>();
 							verts[tile.TextureIndex] = l;
 						}
-					
-						l.Add(v3); l.Add(v2); l.Add(v1);
-						l.Add(v4); l.Add(v2); l.Add(v3);
+
+						l.Add(v1); l.Add(v2); l.Add(v3);
+						l.Add(v3); l.Add(v2); l.Add(v4);
 					}
 				}
 			}
@@ -193,10 +196,10 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			int xs = 0;
 			int ys = 0;
+			int off = _gnd.LightmapOffset();
 
 			for (int i = 0; i < _gnd.Lightmaps.Count; i++) {
 				var lightMap = _gnd.Lightmaps[i];
-				int off = _gnd.LightmapOffset();
 
 				for (int xx = 0; xx < _gnd.LightmapWidth; xx++) {
 					for (int yy = 0; yy < _gnd.LightmapHeight; yy++) {
@@ -230,7 +233,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		}
 
 		public override void Render(OpenGLViewport viewport) {
-			if (IsUnloaded || !MapRenderer.RenderOptions.Ground)
+			if (IsUnloaded || !viewport.RenderOptions.Ground)
 				return;
 
 			if (!IsLoaded) {
@@ -275,8 +278,10 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				GL.Uniform1(textLocation, 0);
 				GL.Uniform1(shadowLocation, 1);
 
-				Shader.SetFloat("showLightmap", MapRenderer.RenderOptions.Lightmap ? 1.0f : 0.0f);
-				Shader.SetFloat("showShadowmap", MapRenderer.RenderOptions.Shadowmap ? 1.0f : 0.0f);
+				Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
+				Shader.SetFloat("showLightmap", viewport.RenderOptions.Lightmap ? 1.0f : 0.0f);
+				Shader.SetFloat("showShadowmap", viewport.RenderOptions.Shadowmap ? 1.0f : 0.0f);
+				Shader.SetFloat("enableCullFace", viewport.RenderOptions.EnableFaceCulling ? 1.0f : 0.0f);
 
 				_gndShadow = new Texture("Shadow", _shadow, true, TextureRenderMode.ShadowMapTexture);
 			}
@@ -301,12 +306,10 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			GL.ActiveTexture(TextureUnit.Texture0);
 
 			Shader.Use();
-			Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
 			Shader.SetMatrix4("cameraMatrix", viewport.View);
 			Shader.SetMatrix4("projectionMatrix", viewport.Projection);
 
 			_ri.BindVao();
-			_ri.Vbo.Bind();
 
 			foreach (var vboIndex in VertIndices) {
 				if (vboIndex.Texture != -1) {
@@ -330,13 +333,15 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			try {
 				foreach (var texture in Textures) {
-					TextureManager.UnloadTexture(texture.Resource);
+					TextureManager.UnloadTexture(texture.Resource, _request.Context);
 				}
 
 				_ri.Unload();
 			}
 			catch {
 			}
+
+			TextureManager.UnloadTexture(_black.Resource, _request.Context);
 
 			if (_gndShadow != null)
 				_gndShadow.Unload();

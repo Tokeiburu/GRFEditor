@@ -14,6 +14,7 @@ using GRF.Core;
 using GRF.Core.GrfCompression;
 using GRF.FileFormats.ActFormat;
 using GRF.FileFormats.GndFormat;
+using GRF.FileFormats.RswFormat;
 using GRF.Image;
 using GRF.System;
 using GRF.Threading;
@@ -65,6 +66,7 @@ namespace GRFEditor {
 			_loadEditorSettings();
 			_loadCpuPerformance();
 			_loadEvents();
+			_initSearchThreads();
 		}
 
 		private int _loadBasicSettings() {
@@ -204,6 +206,7 @@ namespace GRFEditor {
 			_openingService = new OpeningService();
 			_extractingService = new ExtractingService(_asyncOperation);
 			_renamingService = new RenamingService();
+			Configuration.Resources = new Configuration.GrfResources(_grfHolder);
 
 			PreviewService.ListView = _items;
 			PreviewService.TreeView = _treeView;

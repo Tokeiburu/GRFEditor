@@ -21,7 +21,7 @@ void main()
 	texCoord = a_texcoord;
 
 	float height = waterHeight;
-	height += amplitude*cos(radians((waveSpeed*33.3333*time)+(a_position.x-a_position.z)*.1*wavePitch));
+	height += amplitude*cos(radians((waveSpeed*50*time)+(a_position.x-a_position.z)*.1*wavePitch));
 	
 	gl_Position =  vec4(vec3(a_position.x, height, a_position.z),1) * modelMatrix * viewMatrix * projectionMatrix;
 }

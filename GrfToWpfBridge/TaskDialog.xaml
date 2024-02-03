@@ -16,7 +16,7 @@
         </Grid.RowDefinitions>
         <TextBlock Name="_tbInfo" Text="Processing..." Margin="7 10 7 10" TextWrapping="Wrap" />
         <Styles:TkProgressBar Grid.Row="1" x:Name="_progressBar" Width="250" Margin="5 5 5 10" />
-        <Grid Name="_gridFooter" Visibility="Collapsed" listView:WpfUtils.IsDraggable="True" Grid.Row="3" Height="50" Background="{x:Static TokeiLibrary:Configuration.UIDialogBackground}">
+        <Grid Name="_gridFooter" Visibility="Collapsed" listView:WpfUtils.IsDraggable="True" Grid.Row="3" Height="50" Background="{DynamicResource UIDialogBackground}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="auto" />

@@ -9,9 +9,14 @@ using Utilities;
 using Utilities.Services;
 
 namespace GrfToWpfBridge.TreeViewManager {
+	public class DeletedPath {
+		public TreeNode Node;
+		public int Index;
+	}
+
 	public class TreeViewPathManager {
 		private readonly List<List<TkPath>> _addedPaths = new List<List<TkPath>>();
-		private readonly List<TreeNode> _deletedPaths = new List<TreeNode>();
+		private readonly List<DeletedPath> _deletedPaths = new List<DeletedPath>();
 		private readonly Tree _tree;
 		private readonly TkView _treeView;
 		private string _container;
@@ -22,7 +27,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public string GetContainerPath() {
-			return ((ProjectTreeViewItem) _treeView.Items[0]).TKPath.FilePath;
+			return ((ProjectTreeViewItem) _treeView.Items[0]).TkPath.FilePath;
 		}
 
 		public void AddNewGrf(string name) {
@@ -122,7 +127,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 		public void Rename(TkPath oldName, TkPath newName) {
 			TreeNode node = _tree.GetNode(oldName);
-			TkTreeViewItem currentNode = node.Tvi;
+			var currentNode = node.Tvi;
 
 			if (Path.GetDirectoryName(oldName.RelativePath) == Path.GetDirectoryName(newName.RelativePath)) {
 				currentNode.HeaderText = Path.GetFileName(newName.RelativePath);
@@ -170,10 +175,15 @@ namespace GrfToWpfBridge.TreeViewManager {
 				return;
 			}
 
-			TkTreeViewItem item = _tree.GetNode(tkPath).Tvi;
+			var item = _tree.GetNode(tkPath).Tvi;
 			TkTreeViewItem itemParent = item.Parent as TkTreeViewItem;
 
-			if (itemParent != null) itemParent.Items.Remove(item);
+			int parentIndex = 0;
+
+			if (itemParent != null) {
+				parentIndex = itemParent.Items.IndexOf(item);
+				itemParent.Items.Remove(item);
+			}
 
 			if (itemParent != null && itemParent.Items.Count == 0)
 				itemParent.IsExpanded = false;
@@ -181,7 +191,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 			TreeNode node = _tree.GetNode(tkPath);
 
 			if (saveCommand)
-				_deletedPaths.Add(node);
+				_deletedPaths.Add(new DeletedPath { Node = node, Index = parentIndex });
 
 			node.Parent.Children.Remove(node.Header);
 		}
@@ -267,10 +277,10 @@ namespace GrfToWpfBridge.TreeViewManager {
 				if (item != null) {
 					if (item.Parent is ProjectTreeViewItem) {
 						relativePath = item.HeaderText + "\\" + relativePath;
-						return ((ProjectTreeViewItem)item.Parent).TKPath.FilePath + "?" + relativePath;
+						return ((ProjectTreeViewItem)item.Parent).TkPath.FilePath + "?" + relativePath;
 					}
 
-					return item.TKPath.FilePath + "?" + relativePath;
+					return item.TkPath.FilePath + "?" + relativePath;
 				}
 
 				return relativePath;
@@ -318,7 +328,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 					TkTreeViewItem item = (TkTreeViewItem) _treeView.Items[0];
 
 					if (item.Items.Count > 0) {
-						((TkTreeViewItem) item.Items[0]).IsSelected = true;
+						((TkTreeViewItem)item.Items[0]).IsSelected = true;
 					}
 				}
 			}));

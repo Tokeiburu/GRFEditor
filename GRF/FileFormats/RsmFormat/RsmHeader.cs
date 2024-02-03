@@ -12,8 +12,8 @@ namespace GRF.FileFormats.RsmFormat {
 		public RsmHeader(IBinaryReader data) {
 			Magic = data.StringANSI(4);
 
-			if (Magic != "GRSM")
-				GrfExceptions.__FileFormatException.Create("RSM");
+			if (Magic != "GRSM" && Magic != "GRSX")
+				throw GrfExceptions.__FileFormatException.Create("RSM");
 
 			MajorVersion = data.Byte();
 			MinorVersion = data.Byte();

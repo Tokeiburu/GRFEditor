@@ -6,11 +6,12 @@
                     xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                             xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
-                            xmlns:mapGlGroup="clr-namespace:GRFEditor.OpenGL.MapGLGroup"
                             xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
                             xmlns:wpf="clr-namespace:GRFEditor.OpenGL.WPF"
+                            SnapsToDevicePixels="True"
+                            UseLayoutRounding="True"
                             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -42,6 +43,7 @@
                         <Button Name="_buttonLighting" Content="Lighting options..." Grid.Row="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
                         <Button Name="_buttonRenderOptions" Content="Render options..." Grid.Row="2" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
                         <Button Name="_buttonSkyMap" Content="Sky map..." Grid.Row="1" Grid.Column="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
+                        <Button Name="_buttonMinimap" Content="Minimap..." Grid.Row="2" Grid.Column="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" />
                         <Button Name="_buttonShading" Content="Normal options..." Grid.Row="1" Height="20" Margin="3 1 3 1" Width="100" VerticalContentAlignment="Center" FontSize="11" >
                             <Button.ContextMenu>
                                 <ContextMenu>
@@ -60,7 +62,7 @@
                         </Button>
                     </Grid>
                 </WrapPanel>
-                <TextBlock Name="_tbFps" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextAlignment="Right" />
+                <TextBlock Name="_tbFps" HorizontalAlignment="Right" VerticalAlignment="Bottom" TextAlignment="Right" Margin="0 0 2 0" />
             </Grid>
             <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
@@ -70,11 +72,17 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />
                     <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="auto" />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Label Name="_sliderPosition" MinWidth="100" />
-                <Styles:FancyButton x:Name="_playAnimation" ImagePath="play.png"  Tag="7" Click="_playAnimation_Click" Height="20" Width="20" Grid.Column="1" />
-                <sliders:SliderColor Grid.Column="2" x:Name="_sliderAnimation"  Height="19.5" Margin="2" />
+                <TextBlock Grid.Column="0" Text="Frame: " Margin="4 3 0 3" Padding="0" />
+                <TextBlock Name="_sliderPosition" Grid.Column="1" Margin="0 3 0 3" Padding="0" Width="{Binding ElementName=_sliderPositionTotal, Path=ActualWidth}" TextAlignment="Right" />
+                <TextBlock Grid.Column="2" Margin="0 3 0 3" Padding="0" Text=" / " />
+                <TextBlock Name="_sliderPositionTotal" Grid.Column="3" Margin="0 3 0 3" Padding="0" />
+                <Styles:FancyButton x:Name="_playAnimation" ImagePath="play.png"  Tag="7" Click="_playAnimation_Click" Height="20" Width="20" Grid.Column="4" Margin="6 0 0 0" />
+                <sliders:SliderColor Grid.Column="5" x:Name="_sliderAnimation"  Height="19.5" Margin="2" />
             </Grid>
         </Grid>
         <Grid Name="_viewportGrid" Grid.Row="2">

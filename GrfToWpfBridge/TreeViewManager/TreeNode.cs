@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Windows.Controls;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
 using Utilities;
@@ -58,6 +59,15 @@ namespace GrfToWpfBridge.TreeViewManager {
 			
 		}
 
+		public void UndoDelete(int index) {
+			if (_parent == null) {
+				_root.TreeView.Items.Insert(index, Tvi);
+			}
+			else {
+				_parent.Tvi.Items.Insert(index, Tvi);
+			}
+		}
+
 		public void Set() {
 			if (_set)
 				return;
@@ -81,15 +91,17 @@ namespace GrfToWpfBridge.TreeViewManager {
 		private void _setTvi() {
 			if (Header.GetExtension() == null) {
 				if (Header == "root") {
-					Tvi = new ProjectTreeViewItem(_root.TreeView as TkView) { HeaderText = Header, TKPath = new TkPath { FilePath = ".root" }, Foreground = _root.Foreground };
+					Tvi = new ProjectTreeViewItem(new TkPath { FilePath = ".root" }, _root.TreeView as TkView) { HeaderText = Header };
 				}
 				else {
-					Tvi = new TkTreeViewItem(_root.TreeView as TkView) { HeaderText = Header, Foreground = _root.Foreground };
+					Tvi = new TkTreeViewItem(_root.TreeView as TkView) { HeaderText = Header };
 				}
 			}
 			else {
-				Tvi = new ProjectTreeViewItem(_root.TreeView as TkView) { HeaderText = Header, TKPath = _path, Foreground = _root.Foreground, CanBeDropped = _enableDrop };
+				Tvi = new ProjectTreeViewItem(_path, _root.TreeView as TkView) { HeaderText = Header, CanBeDropped = _enableDrop };
 			}
+
+			//Tvi = new TkTreeViewItem(_root.TreeView as TkView) { HeaderText = Header, Foreground = _root.Foreground };
 		}
 
 		public void GetAllNodes(List<TreeNode> nodes) {

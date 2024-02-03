@@ -7,6 +7,7 @@ using ErrorManager;
 using GRF.Core;
 using GRFEditor.Tools.MapExtractor;
 using TokeiLibrary;
+using TokeiLibrary.WPF.Styles;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -47,10 +48,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 					}
 					else if (_primary.Content == null) {
 						_primary.Content = _mapExtractor;
-						_mapExtractor.Reload(_grfData, entry.RelativePath, _isCancelRequired);
 					}
-					else
-						_mapExtractor.Reload(_grfData, entry.RelativePath, _isCancelRequired);
+
+					_mapExtractor.Reload(_grfData, entry.RelativePath, _isCancelRequired);
 
 					if (_isCancelRequired()) return;
 

@@ -15,13 +15,23 @@ uniform vec2 texTranslate = vec2(0);
 uniform vec2 texMult = vec2(1);
 uniform mat4 texRot;
 uniform float textureAnimToggle;
+uniform float billboard_off;
+uniform float enableCullFace = 0.0;
 
 in vec2 texCoord;
 in vec3 normal;
 in vec3 FragPos;
+in float cull;
 
 void main()
 {
+	if (enableCullFace > 0 && cull <= 0) {
+		if (cull >= 0 && !gl_FrontFacing)
+			discard;
+		if (cull < 0 && gl_FrontFacing)
+			discard;
+	}
+
 	vec2 texCoord2 = texCoord;
 	
 	if (textureAnimToggle == 1) {
@@ -48,11 +58,17 @@ void main()
 		color.rgb = color.rgb * lightAmbient + (1 - lightAmbient) * diffuse * color.rgb;
 	}
 	else if (shadeType == 0) {
-		color.rgb *= min(lightDiffuse, 1.0 - lightAmbient) * lightDiffuse + lightAmbient;
+		color.rgb *= min(max(lightDiffuse, lightAmbient) + (1.0 - max(lightDiffuse, lightAmbient)) * min(lightDiffuse, lightAmbient), 1.0);
 	}
 	else {
 		float NL = clamp(dot(normalize(normal), lightDirection),0.0,1.0);
-		color.rgb *= NL * min(lightDiffuse, 1.0 - lightAmbient) * lightDiffuse + lightAmbient;
+		vec3 ambientFactor = (1.0 - lightAmbient) * lightAmbient;
+		vec3 ambient = lightAmbient - ambientFactor + ambientFactor * lightDiffuse;
+		vec3 diffuseFactor = (1.0 - lightDiffuse) * lightDiffuse;
+		vec3 diffuse = lightDiffuse - diffuseFactor + diffuseFactor * lightAmbient;
+		vec3 mult1 = min(NL * diffuse + ambient, 1.0);
+		vec3 mult2 = min(max(lightDiffuse, lightAmbient) + (1.0 - max(lightDiffuse, lightAmbient)) * min(lightDiffuse, lightAmbient), 1.0);
+		color.rgb *= min(mult1, mult2);
 	}
 	
 	gl_FragData[0] = color;

@@ -7,7 +7,7 @@ namespace GRF.FileFormats.GndFormat {
 	/// Represents a lightmap for a tile
 	/// </summary>
 	public class Lightmap {
-		public readonly byte[] Data;
+		public byte[] Data;
 		private readonly List<GrfColor> _colors = new List<GrfColor>();
 		private Gnd _gnd;
 

@@ -5,8 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                  xmlns:WPF1="clr-namespace:GRFEditor.WPF"
-                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" mc:Ignorable="d" 
-             Width="550" Height="500"  Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
+                 xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 mc:Ignorable="d" 
+             Width="600" Height="550"  Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -28,8 +31,9 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition />
                     <ColumnDefinition Width="300" />
+                    <ColumnDefinition Width="2" />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Grid>
                     <Grid.RowDefinitions>
@@ -54,7 +58,8 @@
                         </WPF:TkView.ContextMenu>
                     </WPF:TkView>
                 </Grid>
-                <Grid Grid.Column="1">
+                <GridSplitter Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
+                <Grid Grid.Column="2" MinWidth="200">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="auto" />
                         <RowDefinition Height="auto" />
@@ -62,27 +67,7 @@
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). This provides additional resources." TextWrapping="Wrap" />
-                    <ListView Name="_itemsResources" Margin="3" Grid.Row="2" PreviewMouseRightButtonUp="_itemsResources_PreviewMouseRightButtonUp" DragEnter="_itemsResources_DragEnter" Drop="_itemsResources_Drop"  AllowDrop="True">
-                        <ListView.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Name="_menuItemsDelete" Header="Delete" Click="_menuItemsDelete_Click" >
-                                    <MenuItem.Icon>
-                                        <Image Source="../../Resources/delete.png"  />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Name="_menuItemsMoveUp" Header="Move up" Click="_menuItemsMoveUp_Click" >
-                                    <MenuItem.Icon>
-                                        <Image Source="../../Resources/arrowup.png"  />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Name="_menuItemsMoveDown" Header="Move down" Click="_menuItemsMoveDown_Click" >
-                                    <MenuItem.Icon>
-                                        <Image Source="../../Resources/arrowdown.png"  />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
-                        </ListView.ContextMenu>
-                    </ListView>
+                    <multiGrf:MetaGrfResourcesViewer Grid.Row="2" x:Name="_itemsResources2" />
                     <WPF1:QuickPreview x:Name="_quickPreview" Grid.Row="3" />
                     <Styles:TkProgressBar x:Name="_progressBarComponent" Grid.Row="1" Margin="1" />
                 </Grid>

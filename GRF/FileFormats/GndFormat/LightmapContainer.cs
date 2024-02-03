@@ -14,6 +14,15 @@ namespace GRF.FileFormats.GndFormat {
 		}
 
 		/// <summary>
+		/// Gets the raw lightmap in bytes.
+		/// </summary>
+		/// <param name="index">The index.</param>
+		/// <returns>The byte array data of the lightmap.</returns>
+		public byte[] GetRawLightmap(int index) {
+			return _lightmaps[index].Data;
+		}
+
+		/// <summary>
 		/// Gets the lightmaps.
 		/// </summary>
 		public List<Lightmap> Lightmaps {

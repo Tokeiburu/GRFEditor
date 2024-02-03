@@ -6,7 +6,7 @@
                     xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
                             xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
                             xmlns:WPF="clr-namespace:GRFEditor.WPF" mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

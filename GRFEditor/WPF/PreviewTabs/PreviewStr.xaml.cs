@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using ColorPicker.Sliders;
 using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats.StrFormat;
@@ -55,14 +56,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public PreviewStr() {
 			InitializeComponent();
 
-			_sliderAnimation.ValueChanged += new ColorPicker.Sliders.SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
+			_sliderAnimation.ValueChanged += new SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
 
 			Dispatcher.ShutdownStarted += delegate {
 				_isRunning = false;
 				_enableAnimationThread = true;
 			};
 
-			this.IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewStr_IsVisibleChanged);
+			IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewStr_IsVisibleChanged);
 			UIPanelPreviewBackgroundStrPick(_qcsBackground);
 			_qcsBackground.ColorBrush = GrfEditorConfiguration.UIPanelPreviewBackgroundStr;
 
@@ -89,7 +90,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _previewStr_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-			if (this.IsVisible) {
+			if (IsVisible) {
 				if (_playAnimation.IsPressed) {
 					_enableAnimationThread = true;
 				}

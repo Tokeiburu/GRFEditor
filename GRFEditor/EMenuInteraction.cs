@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF;
@@ -18,6 +19,7 @@ using GRF.IO;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
+using GRFEditor.OpenGL.WPF;
 using GRFEditor.Tools.GrfValidation;
 using GRFEditor.Tools.Map;
 using GRFEditor.Tools.SpriteEditor;
@@ -181,7 +183,9 @@ namespace GRFEditor {
 		}
 
 		private void _menuItemAbout_Click(object sender, RoutedEventArgs e) {
-			WindowProvider.ShowWindow(new AboutDialog(Configuration.PublicVersion, Configuration.RealVersion, Configuration.Author, Configuration.ProgramName), this);
+			var dialog = new AboutDialog(Configuration.PublicVersion, Configuration.RealVersion, Configuration.Author, Configuration.ProgramName);
+			dialog.AboutTextBox.Background = FindResource("UIThemeAboutDialogBrush") as Brush;
+			WindowProvider.ShowWindow(dialog, this);
 		}
 
 		private void _menuItemSettings_OnClick(object sender, RoutedEventArgs e) {
@@ -346,6 +350,10 @@ namespace GRFEditor {
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
+		}
+
+		private void _menuItemOpenGL_Click(object sender, RoutedEventArgs e) {
+			WindowProvider.Show(new OpenGLDebugDialog(), _menuItemImageConverter, this);
 		}
 
 		private void _menuItemImageRecon_Click(object sender, RoutedEventArgs e) {

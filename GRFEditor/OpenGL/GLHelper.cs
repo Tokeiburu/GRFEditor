@@ -5,10 +5,22 @@ using GRF.Image;
 using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
 
 namespace GRFEditor.OpenGL {
 	public static class GLHelper {
+		public static bool LogEnabled { get; set; }
+		public delegate void GLHelperEventHandler(object sender, string message);
+
+		public static event GLHelperEventHandler Log;
+
+		public static void OnLog(Func<string> message) {
+			if (!LogEnabled)
+				return;
+
+			GLHelperEventHandler handler = Log;
+			if (handler != null) handler(null, message());
+		}
+
 		public static Dictionary<string, int> IndexedTextures = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, GrfImage> IndexedImages = new Dictionary<string, GrfImage>(StringComparer.OrdinalIgnoreCase);
 
@@ -261,11 +273,39 @@ namespace GRFEditor.OpenGL {
 				m[0, 2] * v.X + m[1, 2] * v.Y + m[2, 2] * v.Z + m[3, 2]);
 		}
 
-		public static Vector3 MultiplyWithoutTranslate(Matrix4 m, Vector3 v) {
+		public static Vector3 MultiplyWithoutTranslate(Matrix4 m, ref Vector3 v) {
 			return new Vector3(
 				m[0, 0] * v.X + m[1, 0] * v.Y + m[2, 0] * v.Z,
 				m[0, 1] * v.X + m[1, 1] * v.Y + m[2, 1] * v.Z,
 				m[0, 2] * v.X + m[1, 2] * v.Y + m[2, 2] * v.Z);
+		}
+
+		public static Vector3 MultiplyWithTranslate2(Matrix4 m, ref Vertex v) {
+			return new Vector3(
+				m[0, 0] * v.data[0] + m[1, 0] * v.data[1] + m[2, 0] * v.data[2] + m[3, 0],
+				m[0, 1] * v.data[0] + m[1, 1] * v.data[1] + m[2, 1] * v.data[2] + m[3, 1],
+				m[0, 2] * v.data[0] + m[1, 2] * v.data[1] + m[2, 2] * v.data[2] + m[3, 2]);
+		}
+
+		public static Vector3 MultiplyWithoutTranslate2(Matrix4 m, ref Vertex v) {
+			return new Vector3(
+				m[0, 0] * v.data[5] + m[1, 0] * v.data[6] + m[2, 0] * v.data[7],
+				m[0, 1] * v.data[5] + m[1, 1] * v.data[6] + m[2, 1] * v.data[7],
+				m[0, 2] * v.data[5] + m[1, 2] * v.data[6] + m[2, 2] * v.data[7]);
+		}
+
+		public static Vector3 UnProject(Vector3 win, ref Matrix4 model, ref Matrix4 proj, ref Vector4 viewport) {
+			Matrix4 Inverse = Matrix4.Invert(model * proj);
+			Vector4 tmp = new Vector4(
+				(win.X - viewport[0]) / viewport[2] * 2f - 1f,
+				(win.Y - viewport[1]) / viewport[3] * 2f - 1f,
+				2f * win.Z - 1f,
+				1);
+
+			Vector4 obj = tmp * Inverse;
+			obj /= obj.W;
+
+			return new Vector3(obj);
 		}
 	}
 }

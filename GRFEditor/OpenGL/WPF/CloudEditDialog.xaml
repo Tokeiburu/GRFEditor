@@ -5,7 +5,7 @@
         xmlns:wpf1="clr-namespace:GRFEditor.OpenGL.WPF"
         Title="Sky map edit..." SizeToContent="WidthAndHeight"
         ResizeMode="NoResize" 
-        Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}"
+        Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}"
         >
     <Grid>
         <Grid.RowDefinitions>

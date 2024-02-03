@@ -131,7 +131,7 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		protected void _writeAsIndexed8(BinaryWriter writer, GrfImage image, int imageIndex, byte major, byte minor) {
-			if (Spr.EnableImageSizeCheck)
+			if (Spr.EnableImageSizeCheck && major >= 2 && minor >= 1)
 				if (image.Width * image.Height > UInt16.MaxValue) throw new SprImageOverflowException(imageIndex, image.Width, image.Height);
 			//if (image.Height > 256) throw new SprImageOverflowException(imageIndex, image.Width, image.Height);
 

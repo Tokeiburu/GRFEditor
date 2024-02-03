@@ -3,13 +3,14 @@ using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
-	public class ModelRenderer : MapGLObject {
+namespace GRFEditor.OpenGL.MapRenderers {
+	public class ModelRenderer : Renderer {
 		public readonly SharedRsmRenderer Renderer;
 		public readonly Model Model;
 		public Matrix4 MatrixCache;
 		public bool IsHidden { get; set; }
 		public bool IsMatrixCached { get; set; }
+		public bool ReverseCullFace { get; set; }
 
 		public ModelRenderer(Shader shader, Model model, SharedRsmRenderer renderer) {
 			Shader = shader;
@@ -47,13 +48,16 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			}
 			else {
 				if (Renderer.Rsm.Version < 2.2) {
+					MatrixCache = GLHelper.Translate(MatrixCache, -Renderer.Rsm.DrawnBox.Center);
 					MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(1, -1, 1));
-					MatrixCache = GLHelper.Translate(MatrixCache, new Vector3(-Renderer.Rsm.RealBox.Center.X, Renderer.Rsm.RealBox.Min.Y, -Renderer.Rsm.RealBox.Center.Z));
 				}
 				else {
 					MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(-1, 1, 1));
 				}
 			}
+
+			if (Model != null && (Model.Scale.X * Model.Scale.Y * Model.Scale.Z * (Renderer.Rsm.Version >= 2.2 ? -1 : 1) < 0))
+				ReverseCullFace = true;
 
 			IsMatrixCached = true;
 		}

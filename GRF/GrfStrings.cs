@@ -63,7 +63,7 @@ namespace GRF {
 		public const string DisplayNoFileType =  "None";
 		public const string EncryptionFilename = "__encryption.info";
 		public const string RgzRoot = "root\\";
-		public const string CurrentlyOpenedGrf = "Currently opened GRF: ";	// Used by MultiGrfReader
+		public const string CurrentlyOpenedGrf = "Loaded: ";	// Used by MultiGrfReader
 		public const string NoExceptions = "No exceptions.";
 		public const string DataStreamId = "[data stream]";
 		public const string EncryptionDbFile = "_encryptiondb.grf";

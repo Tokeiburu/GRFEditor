@@ -2,8 +2,8 @@
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
-	public abstract class MapGLObject {
+namespace GRFEditor.OpenGL.MapRenderers {
+	public abstract class Renderer {
 		public List<Texture> Textures = new List<Texture>();
 
 		public Shader Shader { get; set; }

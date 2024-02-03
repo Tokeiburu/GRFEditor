@@ -7,15 +7,19 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
+using System.Windows.Controls.Primitives;
+using System.Windows.Input;
 using System.Windows.Media;
+using ColorPicker.Sliders;
 using ErrorManager;
 using GRF.Core;
+using GRF.FileFormats.GatFormat;
 using GRF.IO;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL.MapComponents;
-using GRFEditor.OpenGL.MapGLGroup;
+using GRFEditor.OpenGL.MapRenderers;
 using GRFEditor.OpenGL.WPF;
+using OpenTK;
 using TokeiLibrary;
 using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF.Styles.ListView;
@@ -23,12 +27,13 @@ using Utilities.Extension;
 using Binder = GrfToWpfBridge.Binder;
 using Button = System.Windows.Controls.Button;
 using RenderOptions = GRFEditor.OpenGL.WPF.RenderOptions;
+using WindowState = System.Windows.WindowState;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
 	/// Interaction logic for PreviewRsm.xaml
 	/// </summary>
-	public partial class PreviewRsm : FilePreviewTab, IDisposable {
+	public partial class PreviewRsm : FilePreviewTab {
 		private Rsm _rsm;
 		private int _shading = -1;
 		private readonly ManualResetEvent _animationThreadHandle = new ManualResetEvent(false);
@@ -53,18 +58,23 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_shading = 2;
 
 			Binder.Bind(_checkBoxUseGlobalLighting, () => GrfEditorConfiguration.MapRendererGlobalLighting, v => GrfEditorConfiguration.MapRendererGlobalLighting = v, delegate {
-				_viewport.LightAmbient = GrfEditorConfiguration.MapRendererGlobalLighting ? new OpenTK.Vector3(1f) : new OpenTK.Vector3(0.5f);
+				_viewport.LightAmbient = GrfEditorConfiguration.MapRendererGlobalLighting ? new Vector3(1f) : new Vector3(0.5f);
 			}, true);
 
 			ApplicationShortcut.Link(ApplicationShortcut.FromString("F11", "PreviewRsm.FullScreen"), _fullScreen, EditorMainWindow.Instance);
 			ApplicationShortcut.Link(ApplicationShortcut.FromString("Space", "PreviewRsm.PlayPause"), () => _playAnimation_Click(null, null), this);
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("C", "PreviewRsm.DebugCopyCamera"), () => _viewport.Camera.Copy(), this);
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("V", "PreviewRsm.DebugPasteCamera"), () => _viewport.Camera.Paste(), this);
 
 			_viewport.RotateCamera = GrfEditorConfiguration.MapRendererRotateCamera;
 			Binder.Bind(_checkBoxRotateCamera, () => GrfEditorConfiguration.MapRendererRotateCamera, v => GrfEditorConfiguration.MapRendererRotateCamera = v, delegate {
-				if (GrfEditorConfiguration.MapRendererRotateCamera)
-					_viewport.StartRotatingCamera();
-				else
+				if (GrfEditorConfiguration.MapRendererRotateCamera) {
+					_viewport.RotateCamera = true;
+					_viewport.IsRotatingCamera = true;
+				}
+				else {
 					_viewport.RotateCamera = false;
+				}
 			});
 			Binder.Bind(_checkBoxEnableMipmap, () => GrfEditorConfiguration.MapRendererMipmap, v => GrfEditorConfiguration.MapRendererMipmap = v, () => Reload(false, false, true));
 
@@ -76,10 +86,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 				GrfEditorConfiguration.UIPanelPreviewBackgroundMap = new SolidColorBrush(value);
 			};
 
-			_sliderAnimation.ValueChanged += new ColorPicker.Sliders.SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
+			_sliderAnimation.ValueChanged += new SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
 			WpfUtils.AddMouseInOutEffectsBox(_checkBoxRotateCamera, _checkBoxUseGlobalLighting, _checkBoxEnableMipmap);
 			
-			this.IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
+			IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
 			new Thread(_animationThread) { Name = "GrfEditor - RSM2 animation update thread" }.Start();
 
 			_viewport.Loader.Loaded += _dataLoaded;
@@ -91,18 +101,18 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 
 			_buttonRenderOptions.Click += delegate {
-				var dialog = new RenderOptions();
+				var dialog = new RenderOptions(_viewport);
 				dialog.Load(this);
 				_openDialog(dialog, _buttonRenderOptions);
 			};
 
-			this.Dispatcher.ShutdownStarted += delegate {
+			Dispatcher.ShutdownStarted += delegate {
 				_isRunning = false;
 				_enableAnimationThread = true;
 			};
 
 			_buttonShading.ContextMenu.PlacementTarget = _buttonShading;
-			_buttonShading.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+			_buttonShading.ContextMenu.Placement = PlacementMode.Bottom;
 
 			_buttonShading.Click += delegate {
 				_buttonShading.IsEnabled = false;
@@ -118,7 +128,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_buttonSkyMap.Click += delegate {
 				var dialog = new CloudEditDialog();
-				dialog.Init();
+				dialog.Init(_viewport);
 				dialog.Show();
 				dialog.Owner = EditorMainWindow.Instance;
 				dialog.ShowInTaskbar = false;
@@ -127,6 +137,70 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_buttonSkyMap.IsEnabled = true;
 				};
 			};
+
+			_buttonMinimap.Click += delegate {
+				CreateMinimap();
+			};
+		}
+
+		public void CreateMinimap() {
+			try {
+				OpenGL.WPF.OpenGLViewport nViewport = new OpenGL.WPF.OpenGLViewport(0);
+				nViewport.RenderOptions = _viewport.RenderOptions;
+				nViewport.Load(_viewport._request);
+
+				var current = _viewport._host.Child;
+				var newPrimary = nViewport._host.Child;
+				nViewport._host.Child = null;
+				_viewport._host.Child = newPrimary;
+
+				var gnd = _viewport._request.Gnd;
+
+				float w = 512.0f / Math.Max(gnd.Width, gnd.Height);
+
+				nViewport._primary.Width = (int)(w * gnd.Width);
+				nViewport._primary.Height = (int)(w * gnd.Height);
+				_viewport.EnableRenderThread = false;
+
+				nViewport.Camera.LookAt.X = gnd.Width * 5f;
+				nViewport.Camera.LookAt.Y = 0 * 5f;
+				nViewport.Camera.LookAt.Z = gnd.Height * 5f + 10f;
+
+				nViewport.Camera.Position = new Vector3(0);
+				int removeEdge = GrfEditorConfiguration.MapRendererMinimapBorderCut;
+				nViewport.Camera.Distance = Math.Max(gnd.Header.Height - removeEdge, gnd.Header.Width - removeEdge) * 10f;
+				float ratio = gnd.Height < gnd.Width ? (float)gnd.Height / gnd.Width : 1f;
+				nViewport.Camera.Distance *= ratio;
+				_viewport.RenderOptions.MinimapMode = true;
+
+				nViewport.Camera.AngleX_Degree = 0;
+				nViewport.Camera.AngleY_Degree = 90;
+
+				if (_viewport._request.Gat == null) {
+					_viewport._request.Gat = new Gat(ResourceManager.GetData(_viewport._request.Resource + ".gat"));
+				}
+
+				var gatRenderer = new GatRenderer(_viewport._request, nViewport.Shader_simple, _viewport._request.Gat, _viewport._request.Gnd);
+				nViewport.Renderers.Add(gatRenderer);
+
+				MinimapDialog diag = new MinimapDialog();
+				diag.Owner = WpfUtilities.TopWindow;
+				diag.Init(nViewport, Path.GetFileNameWithoutExtension(_viewport._request.Resource));
+				diag.Closed += delegate {
+					nViewport.UnloadAndStopViewport();
+					nViewport = null;
+
+					_viewport.RenderOptions.MinimapMode = false;
+					_viewport._host.Child = current;
+					newPrimary.Dispose();
+
+					_viewport.EnableRenderThread = true;
+				};
+				diag.ShowDialog();
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
 		}
 
 		private void _fullScreen() {
@@ -150,10 +224,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_viewportGrid.Children.Add(_viewport);
 			};
 			window.KeyDown += (s, e) => {
-				if (e.Key == System.Windows.Input.Key.Escape) {
+				if (e.Key == Key.Escape) {
 					window.Close();
 				}
-				else if (e.Key == System.Windows.Input.Key.F11) {
+				else if (e.Key == Key.F11) {
 					window.Close();
 				}
 			};
@@ -219,7 +293,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 			dialog.Closed += delegate {
 				button.IsEnabled = true;
 			};
-			//dialog.Deactivated += (sender, args) => GrfThread.Start(() => dialog.Dispatch(() => Utilities.Debug.Ignore(dialog.Close)));
 
 			dialog.Show();
 		}
@@ -234,11 +307,24 @@ namespace GRFEditor.WPF.PreviewTabs {
 			base.Load(grfData, entry);
 
 			if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
-				((TabItem)this.Parent).Header = "Model preview";
+				((TabItem)Parent).Header = "Model preview";
 			}
 			else {
-				((TabItem)this.Parent).Header = "Map preview";
+				((TabItem)Parent).Header = "Map preview";
 			}
+		}
+
+		public void ReloadViewport() {
+			var camera = _viewport.Camera;
+			var renderOptions = _viewport.RenderOptions;
+			_viewport.UnloadAndStopViewport();
+			_viewportGrid.Children.Clear();
+			_viewport = new OpenGL.WPF.OpenGLViewport(GrfEditorConfiguration.MapRenderEnableFSAA ? 8 : 0);
+			_viewport.Camera = camera;
+			_viewport.RenderOptions = renderOptions;
+			camera.Viewport = _viewport;
+			_viewportGrid.Children.Add(_viewport);
+			_load(_entry);
 		}
 
 		public void Reload(bool reloadAll = true, bool reloadGnd = false, bool reloadTexture = false) {
@@ -252,10 +338,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 			else {
 				if (reloadGnd) {
-					foreach (var renderer in _viewport.GLObjects.OfType<GndRenderer>()) {
+					foreach (var renderer in _viewport.Renderers.OfType<GndRenderer>()) {
 						_viewport._primary.MakeCurrent();
-						renderer.Shader.SetFloat("showLightmap", MapRenderer.RenderOptions.Lightmap ? 1.0f : 0.0f);
-						renderer.Shader.SetFloat("showShadowmap", MapRenderer.RenderOptions.Shadowmap ? 1.0f : 0.0f);
+						renderer.Shader.Use();
+						renderer.Shader.SetFloat("showLightmap", _viewport.RenderOptions.Lightmap ? 1.0f : 0.0f);
+						renderer.Shader.SetFloat("showShadowmap", _viewport.RenderOptions.Shadowmap ? 1.0f : 0.0f);
+						renderer.Shader.SetFloat("enableCullFace", _viewport.RenderOptions.EnableFaceCulling ? 1.0f : 0.0f);
 					}
 				}
 
@@ -271,27 +359,30 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private void _reloadOptions() {
 			Texture.EnableMipmap = GrfEditorConfiguration.MapRendererMipmap;
-			MapRenderer.RenderOptions.Water = GrfEditorConfiguration.MapRendererWater;
-			MapRenderer.RenderOptions.Ground = GrfEditorConfiguration.MapRendererGround;
-			MapRenderer.RenderOptions.Objects = GrfEditorConfiguration.MapRendererObjects;
-			MapRenderer.RenderOptions.AnimateMap = GrfEditorConfiguration.MapRendererAnimateMap;
-			MapRenderer.RenderOptions.Lightmap = GrfEditorConfiguration.MapRendererLightmap;
-			MapRenderer.RenderOptions.Shadowmap = GrfEditorConfiguration.MapRendererShadowmap;
-			MapRenderer.RenderOptions.ShowFps = GrfEditorConfiguration.MapRendererShowFps;
-			MapRenderer.RenderOptions.ShowBlackTiles = GrfEditorConfiguration.MapRendererTileUp;
-			MapRenderer.RenderOptions.LubEffect = GrfEditorConfiguration.MapRendererRenderLub;
-			MapRenderer.RenderOptions.ViewStickToGround = GrfEditorConfiguration.MapRendererStickToGround;
-			MapRenderer.RenderOptions.RenderSkymapFeature = GrfEditorConfiguration.MapRenderSkyMap;
-			//MapRenderer.RenderOptions.UseClientPov = GrfEditorConfiguration.MapRendererClientPov;
+			_viewport.RenderOptions.Water = GrfEditorConfiguration.MapRendererWater;
+			_viewport.RenderOptions.Ground = GrfEditorConfiguration.MapRendererGround;
+			_viewport.RenderOptions.Objects = GrfEditorConfiguration.MapRendererObjects;
+			_viewport.RenderOptions.AnimateMap = GrfEditorConfiguration.MapRendererAnimateMap;
+			_viewport.RenderOptions.Lightmap = GrfEditorConfiguration.MapRendererLightmap;
+			_viewport.RenderOptions.Shadowmap = GrfEditorConfiguration.MapRendererShadowmap;
+			_viewport.RenderOptions.ShowFps = GrfEditorConfiguration.MapRendererShowFps;
+			_viewport.RenderOptions.ShowBlackTiles = GrfEditorConfiguration.MapRendererTileUp;
+			_viewport.RenderOptions.LubEffect = GrfEditorConfiguration.MapRendererRenderLub;
+			_viewport.RenderOptions.ViewStickToGround = GrfEditorConfiguration.MapRendererStickToGround;
+			_viewport.RenderOptions.RenderSkymapFeature = GrfEditorConfiguration.MapRenderSkyMap;
+			_viewport.RenderOptions.SmoothCamera = GrfEditorConfiguration.MapRenderSmoothCamera;
+			_viewport.RenderOptions.FpsCap = GrfEditorConfiguration.MapRenderUnlimitedFps ? -1 : GrfEditorConfiguration.MapRenderFpsCap;
+			_viewport.RenderOptions.EnableFaceCulling = GrfEditorConfiguration.MapRenderEnableFaceCulling;
+			//_viewport.RenderOptions.UseClientPov = GrfEditorConfiguration.MapRendererClientPov;
 
 			if (MapRenderer.FpsTextBlock == null)
 				MapRenderer.FpsTextBlock = _tbFps;
 
-			MapRenderer.FpsTextBlock.Visibility = MapRenderer.RenderOptions.ShowFps ? Visibility.Visible : Visibility.Collapsed;
+			_tbFps.Visibility = _viewport.RenderOptions.ShowFps ? Visibility.Visible : Visibility.Collapsed;
 		}
 
 		private void _previewRsm_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-			if (this.IsVisible) {
+			if (IsVisible) {
 				if (_playAnimation.IsPressed) {
 					_enableAnimationThread = true;
 				}
@@ -306,7 +397,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 					int v = (int)Math.Round((value * _rsm.AnimationLength), MidpointRounding.AwayFromZero);
 					_sliderAnimation.SetPosition((float)v / _rsm.AnimationLength, true);
-					_sliderPosition.Content = "Frame: " + v + " / " + _rsm.AnimationLength;
+					_sliderPosition.Text = v + "";
 
 					if (v == _animationPosition)
 						return;
@@ -321,27 +412,26 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected override void _load(FileEntry entry) {
-			ResourceManager.SetMultiGrf(_grfData);
-
 			_enableAnimationThread = false;
 
 			if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
 				Rsm.ForceShadeType = _shading;
 				_rsm = new Rsm(entry.GetDecompressedData());
-				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = _rsm, CancelRequired = _isCancelRequired});
+				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = _rsm, CancelRequired = _isCancelRequired, Resource = entry.RelativePath, Context = _viewport });
 
 				this.Dispatch(delegate {
 					_labelHeader.Text = "Model preview : " + entry.DisplayRelativePath;
 					_buttonShading.Visibility = Visibility.Visible;
 					_buttonLighting.Visibility = Visibility.Collapsed;
 					_buttonSkyMap.Visibility = Visibility.Collapsed;
-					_buttonRenderOptions.Visibility = Visibility.Collapsed;
+					_buttonMinimap.Visibility = Visibility.Collapsed;
 					_checkBoxUseGlobalLighting.IsEnabled = true;
 
 					if (_rsm.AnimationLength > 0) {
 						_gridAnimation.Visibility = Visibility.Visible;
 						_animationPosition = 0;
-						_sliderPosition.Content = "Frame: 0 / " + _rsm.AnimationLength;
+						_sliderPosition.Text = "0";
+						_sliderPositionTotal.Text = _rsm.AnimationLength + "";
 						_sliderAnimation.SetPosition(0, true);
 
 						if (_playAnimation.IsPressed) {
@@ -367,14 +457,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 				string mapName = GrfPath.Combine(Path.GetDirectoryName(entry.RelativePath), Path.GetFileNameWithoutExtension(entry.RelativePath));
 
 				Rsm.ForceShadeType = -1;
-				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired });
+				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired, Context = _viewport });
 
 				this.Dispatch(delegate {
 					_labelHeader.Text = "Map preview : " + entry.DisplayRelativePath;
 					_buttonShading.Visibility = Visibility.Collapsed;
 					_buttonLighting.Visibility = Visibility.Visible;
 					_buttonSkyMap.Visibility = Visibility.Visible;
-					_buttonRenderOptions.Visibility = Visibility.Visible;
+					_buttonMinimap.Visibility = Visibility.Visible;
 					_checkBoxUseGlobalLighting.IsEnabled = false;
 
 					_gridAnimation.Visibility = Visibility.Collapsed;
@@ -415,15 +505,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _playAnimation_Click(object sender, RoutedEventArgs e) {
-			_playAnimation.IsPressed = !_playAnimation.IsPressed;
+			if (_rsm != null && _playAnimation.IsVisible) {
+				_playAnimation.IsPressed = !_playAnimation.IsPressed;
 
-			if (_playAnimation.IsPressed) {
-				_elapsedOffset = (long)(_animationPosition * 1000d / Math.Max(1d, _rsm.FramesPerSecond));
-				_rsm1Watch.Reset();
-				_enableAnimationThread = true;
-			}
-			else {
-				_enableAnimationThread = false;
+				if (_playAnimation.IsPressed) {
+					_elapsedOffset = (long)(_animationPosition * 1000d / Math.Max(1d, _rsm.FramesPerSecond));
+					_rsm1Watch.Reset();
+					_enableAnimationThread = true;
+				}
+				else {
+					_enableAnimationThread = false;
+				}
 			}
 		}
 
@@ -460,7 +552,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 						_sliderPosition.Dispatch(delegate {
 							_sliderAnimation.SetPosition((float)_animationPosition / _rsm.AnimationLength, true);
-							_sliderPosition.Content = "Frame: " + _animationPosition + " / " + _rsm.AnimationLength;
+							_sliderPosition.Text = _animationPosition + "";
 						});
 
 						_rsm.Dirty();
@@ -500,21 +592,5 @@ namespace GRFEditor.WPF.PreviewTabs {
 				}
 			}
 		}
-
-		#region IDisposable members
-
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		~PreviewRsm() {
-			Dispose(false);
-		}
-
-		protected void Dispose(bool disposing) {
-		}
-
-		#endregion
 	}
 }

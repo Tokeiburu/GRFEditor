@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
         xmlns:wpf="clr-namespace:GRFEditor.WPF" SizeToContent="WidthAndHeight"
-        Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+        Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid Name="_gridLight" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3">
         <Grid.RowDefinitions>
             <RowDefinition />

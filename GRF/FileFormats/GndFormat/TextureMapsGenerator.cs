@@ -57,48 +57,14 @@ namespace GRF.FileFormats.GndFormat {
 			return result;
 		}
 
-		public byte[] CreateShadowMapData(Gnd gnd) {
-			int width = gnd.Header.Width;
-			int height = gnd.Header.Height;
-			byte[] data = new byte[(width * 8) * (height * 8)];
-			Lightmap lightmap;
-			int x, y, i, j;
-			Cube cell;
-
-			for (y = 0; y < height; y++) {
-				for (x = 0; x < width; x++) {
-					cell = gnd.Cubes[x + y * width];
-
-					if (cell.TileUp > -1) {
-						lightmap = gnd.LightmapContainer[gnd.Tiles[cell.TileUp].LightmapIndex];
-
-						for (i = 0; i < 8; i++) {
-							for (j = 0; j < 8; j++) {
-								data[(x * 8 + i) + (y * 8 + j) * (width * 8)] = (byte) (255 - lightmap[(i + j * 8)].A);
-							}
-						}
-					}
-						// If no ground, shadow should be 1.0
-					else {
-						for (i = 0; i < 8; i++) {
-							for (j = 0; j < 8; j++) {
-								data[(x * 8 + i) + (y * 8 + j) * (width * 8)] = 0;
-							}
-						}
-					}
-				}
-			}
-
-			return data;
-		}
-
 		public byte[] CreatePreviewMapData(Gnd gnd) {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
-			gnd.GridSizeY = gnd.GridSizeX = 6;
 
-			byte[] data = new byte[(width * gnd.GridSizeX) * (height * gnd.GridSizeY) * 4];
-			Lightmap lightmap;
+			int w = gnd.GridSizeX - 2;
+			int h = gnd.GridSizeY - 2;
+
+			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
 			Cube cell;
 
@@ -107,34 +73,34 @@ namespace GRF.FileFormats.GndFormat {
 					cell = gnd.Cubes[x + y * width];
 
 					if (cell.TileUp > -1) {
-						lightmap = gnd.LightmapContainer[gnd.Tiles[cell.TileUp].LightmapIndex];
+						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 
-								GrfColor color = lightmap[(i + j * 8)];
-								byte alpha = (byte) (255 - color.A);
+								byte a = (byte)(255 - lightData[j * gnd.GridSizeX + i]);
+								byte r = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 0];
+								byte g = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 1];
+								byte b = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 2];
 
-								data[idx + 0] = (byte) (((255 - alpha) * color.B + alpha * 0) / 255f);
-								data[idx + 1] = (byte) (((255 - alpha) * color.G + alpha * 0) / 255f);
-								data[idx + 2] = (byte) (((255 - alpha) * color.R + alpha * 0) / 255f);
+								data[idx + 0] = (byte) (((255 - a) * b + a * 0) / 255f);
+								data[idx + 1] = (byte) (((255 - a) * g + a * 0) / 255f);
+								data[idx + 2] = (byte) (((255 - a) * r + a * 0) / 255f);
 								data[idx + 3] = 255;
 							}
 						}
 					}
 					else {
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 255;
 							}
 						}
 					}
 				}
 			}
-
-			gnd.GridSizeY = gnd.GridSizeX = 8;
 
 			return data;
 		}
@@ -142,10 +108,11 @@ namespace GRF.FileFormats.GndFormat {
 		public byte[] CreateLightmapData(Gnd gnd) {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
-			gnd.GridSizeY = gnd.GridSizeX = 6;
 
-			byte[] data = new byte[(width * gnd.GridSizeX) * (height * gnd.GridSizeY) * 4];
-			Lightmap lightmap;
+			int w = gnd.GridSizeX - 2;
+			int h = gnd.GridSizeY - 2;
+
+			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
 			Cube cell;
 
@@ -154,33 +121,33 @@ namespace GRF.FileFormats.GndFormat {
 					cell = gnd.Cubes[x + y * width];
 
 					if (cell.TileUp > -1) {
-						lightmap = gnd.LightmapContainer[gnd.Tiles[cell.TileUp].LightmapIndex];
+						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 
-								GrfColor color = lightmap[(i + j * 8)];
+								byte r = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 0];
+								byte g = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 1];
+								byte b = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 2];
 
-								data[idx + 0] = color.B;
-								data[idx + 1] = color.G;
-								data[idx + 2] = color.R;
+								data[idx + 0] = b;
+								data[idx + 1] = g;
+								data[idx + 2] = r;
 								data[idx + 3] = 255;
 							}
 						}
 					}
 					else {
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 255;
 							}
 						}
 					}
 				}
 			}
-
-			gnd.GridSizeY = gnd.GridSizeX = 8;
 
 			return data;
 		}
@@ -188,10 +155,11 @@ namespace GRF.FileFormats.GndFormat {
 		public byte[] CreateShadowmapData(Gnd gnd) {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
-			gnd.GridSizeY = gnd.GridSizeX = 6;
 
-			byte[] data = new byte[(width * gnd.GridSizeX) * (height * gnd.GridSizeY) * 4];
-			Lightmap lightmap;
+			int w = gnd.GridSizeX - 2;
+			int h = gnd.GridSizeY - 2;
+
+			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
 			Cube cell;
 
@@ -200,29 +168,25 @@ namespace GRF.FileFormats.GndFormat {
 					cell = gnd.Cubes[x + y * width];
 
 					if (cell.TileUp > -1) {
-						lightmap = gnd.LightmapContainer[gnd.Tiles[cell.TileUp].LightmapIndex];
+						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
-
-								GrfColor color = lightmap[(i + j * 8)];
-								data[idx + 3] = (byte) (255 - color.A);
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
+								data[idx + 3] = (byte)(255 - lightData[j * gnd.GridSizeX + i]);
 							}
 						}
 					}
 					else {
-						for (i = 0; i < gnd.GridSizeX; i++) {
-							for (j = 0; j < gnd.GridSizeY; j++) {
-								int idx = 4 * ((x * gnd.GridSizeY + i) + (y * gnd.GridSizeX + j) * (width * gnd.GridSizeX));
+						for (i = 1; i < gnd.GridSizeX - 1; i++) {
+							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 0;
 							}
 						}
 					}
 				}
 			}
-
-			gnd.GridSizeY = gnd.GridSizeX = 8;
 
 			return data;
 		}

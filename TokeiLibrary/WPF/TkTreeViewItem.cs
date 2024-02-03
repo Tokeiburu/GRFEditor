@@ -1,74 +1,83 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using ErrorManager;
+using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Services;
+using Utilities.Extension;
 
 namespace TokeiLibrary.WPF {
 	public class TkTreeViewItem : TreeViewItem {
-		public bool CanBeDragged {
-			get { return (bool)GetValue(CanBeDraggedProperty); }
-			set { SetValue(CanBeDraggedProperty, value); }
+		public static DependencyProperty IsDragEnterProperty = DependencyProperty.Register("IsDragEnter", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(false));
+
+		public bool IsDragEnter {
+			get { return (bool)GetValue(IsDragEnterProperty); }
+			set { SetValue(IsDragEnterProperty, value); }
 		}
 
-		public static DependencyProperty CanBeDraggedProperty = DependencyProperty.Register("CanBeDragged", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(true));
+		public static DependencyProperty IsEditModeProperty = DependencyProperty.Register("IsEditMode", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(false));
+
+		public bool IsEditMode {
+			get { return (bool)GetValue(IsEditModeProperty); }
+			set { SetValue(IsEditModeProperty, value); }
+		}
+
+		public static DependencyProperty IsUnableItemProperty = DependencyProperty.Register("IsUnableItem", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(false));
+
+		public bool IsUnableItem {
+			get { return (bool)GetValue(IsUnableItemProperty); }
+			set { SetValue(IsUnableItemProperty, value); }
+		}
+
+		public static DependencyProperty CanBeDroppedProperty = DependencyProperty.Register("CanBeDropped", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(true));
 
 		public bool CanBeDropped {
 			get { return (bool)GetValue(CanBeDroppedProperty); }
 			set { SetValue(CanBeDroppedProperty, value); }
 		}
 
-		public static DependencyProperty CanBeDroppedProperty = DependencyProperty.Register("CanBeDropped", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(true));
+		public bool CanExpand {
+			get { return Items.Count > 0; }
+		}
 
-		private CheckBox _checkBox;
-		protected string _closedPathIcon = "folderClosed.png";
-		private static readonly Brush _defaultBackgroundBrush = _bufferBrush(Colors.Transparent);
-		private static readonly Brush _defaultBorderBrush = _bufferBrush(Colors.Transparent);
-		private static readonly Brush _dragEnterBackgroundBrush = _bufferBrush(Color.FromArgb(255, 225, 255, 219), Color.FromArgb(255, 144, 255, 137), 90);
-		private static readonly Brush _dragEnterBorderBrush = _bufferBrush(Color.FromArgb(255, 86, 197, 86));
-		protected Image _image;
+		public static DependencyProperty HeaderTextProperty = DependencyProperty.Register("HeaderText", typeof(string), typeof(TkTreeViewItem), new PropertyMetadata(default(string), HeaderTextPropertyChanged));
+
+		private static void HeaderTextPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			var ttv = d as TkTreeViewItem;
+
+			if (ttv != null) {
+				if (Configuration.TranslateTreeView) {
+					var translation = TkTreeViewItem._translations[EncodingService.ConvertStringToKorean(ttv.HeaderText)];
+
+					if (translation != null) {
+						translation = "  " + translation;
+					}
+
+					ttv.TranslatedText = translation;
+				}
+			}
+		}
+
+		public string HeaderText {
+			get { return (string)GetValue(HeaderTextProperty); }
+			set { SetValue(HeaderTextProperty, value); }
+		}
+
+		public static DependencyProperty TranslatedTextProperty = DependencyProperty.Register("TranslatedText", typeof(string), typeof(TkTreeViewItem), new PropertyMetadata(default(string)));
+
+		public string TranslatedText {
+			get { return (string)GetValue(TranslatedTextProperty); }
+			set { SetValue(TranslatedTextProperty, value); }
+		}
+
 		private TkView _internalParent;
 		private bool _isSelected;
-		private static readonly Brush _mouseOverBackgroundBrush = _bufferBrush(Color.FromArgb(255, 250, 251, 253), Color.FromArgb(255, 235, 243, 253), 90);
-		private static readonly Brush _mouseOverBorderBrush = _bufferBrush(Color.FromArgb(255, 184, 214, 251));
-		protected string _openedPathIcon = "folderOpened.png";
-		private static readonly Brush _selectBackgroundBrush = _bufferBrush(Color.FromArgb(255, 233, 243, 255), Color.FromArgb(255, 193, 219, 252), 90);
-		private static readonly Brush _selectBorderBrush = _bufferBrush(Color.FromArgb(255, 125, 162, 206));
-		private TextBlock _tbDisplayVirtual;
-		private Border _tviHeader;
-		private Border _tviHeaderBorder;
-		private static Brush _unableBackgroundBrush = _bufferBrush(Color.FromArgb(255, 255, 208, 208), Color.FromArgb(255, 247, 96, 96), 90);
-		private static Brush _unableBorderBrush = _bufferBrush(Color.FromArgb(255, 188, 18, 18));
-		private TextBlock _tbDisplay;
-
-		public TextBlock TbDisply {
-			get { return _tbDisplay; }
-		}
-
-		private static Brush _bufferBrush(Color color) {
-			var brush = new SolidColorBrush(color);
-			brush.Freeze();
-			return brush;
-		}
-
-		private static Brush _bufferBrush(Color color1, Color color2, double angle) {
-			var brush = new LinearGradientBrush(color1, color2, angle);
-			brush.Freeze();
-			return brush;
-		}
-
-		public TkTreeViewItem(TkView parent) {
-			Loaded += new RoutedEventHandler(_tkTreeViewItem_Loaded);
-
-			_internalParent = parent;
-			this.AllowDrop = true;
-			
-			OnInitialized(null);
-		}
 
 		private TkView _parent {
 			get { return _internalParent ?? (_internalParent = WpfUtilities.FindDirectParentControl<TkView>(this)); }
@@ -83,19 +92,9 @@ namespace TokeiLibrary.WPF {
 
 				try {
 					if (_isSelected) {
-						TVIHeaderBrush.Background = SelectBackgroundBrush;
-						TVIHeaderBrush.BorderBrush = SelectBorderBrush;
-						_tviHeader.Background = _parent.Background;
-						_tbDisplay.Foreground = MouseOverTextForeground;
-
 						_parent.SelectedItems.Add(this, _parent);
 					}
 					else {
-						TVIHeaderBrush.Background = DefaultBackgroundBrush;
-						TVIHeaderBrush.BorderBrush = DefaultBorderBrush;
-						_tviHeader.Background = Brushes.Transparent;
-						_tbDisplay.Foreground = DefaultTextForeground;
-
 						_parent.SelectedItems.Remove(this);
 					}
 
@@ -107,29 +106,94 @@ namespace TokeiLibrary.WPF {
 			}
 		}
 
-		public Image ViewImage {
-			get { return _image; }
-		}
+		public TkTreeViewItem(TkView parent, bool setStyle = true) {
+			_internalParent = parent;
+			this.AllowDrop = true;
 
-		public string HeaderText {
-			get { return _tbDisplay.Text; }
-			set {
-				_tbDisplay.Text = value;
-				_tbDisplay.Foreground = DefaultTextForeground;
-
-				if (Configuration.TranslateTreeView) {
-					var translation = _translations[EncodingService.ConvertStringToKorean(value)];
-
-					if (translation != null) {
-						translation = "  " + translation;
-					}
-
-					_tbDisplayVirtual.Text = translation;
-				}
+			if (setStyle) {
+				Style = (Style)this.TryFindResource("TkTreeViewItemStyle");
 			}
 		}
 
-		private static readonly TkDictionary<string, string> _translations = new TkDictionary<string, string> {
+		public void Reset() {
+			IsDragEnter = false;
+			IsUnableItem = false;
+		}
+
+		public void DragEnterItem() {
+			IsDragEnter = true;
+		}
+
+		public void UnableItem() {
+			IsUnableItem = true;
+		}
+
+		public bool CanBeDragged {
+			get { return (bool)GetValue(CanBeDraggedProperty); }
+			set { SetValue(CanBeDraggedProperty, value); }
+		}
+
+		public static DependencyProperty CanBeDraggedProperty = DependencyProperty.Register("CanBeDragged", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(true));
+
+		public bool UseCheckBox {
+			get { return (bool)GetValue(UseCheckBoxProperty); }
+			set { SetValue(UseCheckBoxProperty, value); }
+		}
+
+		public static DependencyProperty UseCheckBoxProperty = DependencyProperty.Register("UseCheckBox", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(false));
+
+		public bool IsNotUseCheckBox {
+			get { return !UseCheckBox; }
+		}
+
+		public bool CheckBoxHeaderIsEnabled { get; set; }
+
+		public bool? IsChecked {
+			get { return (bool?)GetValue(IsCheckedProperty); }
+			set { SetValue(IsCheckedProperty, value); }
+		}
+
+		public string CurrentPath { get; set; }
+		public string OldHeaderText { get; set; }
+
+		public static DependencyProperty IsCheckedProperty = DependencyProperty.Register("IsChecked", typeof(bool?), typeof(TkTreeViewItem), new PropertyMetadata(false, IsCheckedPropertyChangedCallback));
+
+		private static void IsCheckedPropertyChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			var ttv = d as TkTreeViewItem;
+
+			if (ttv != null) {
+				if (ttv.IsChecked == true)
+					ttv.OnChecked(new RoutedEventArgs());
+				if (ttv.IsChecked == false)
+					ttv.OnUnchecked(new RoutedEventArgs());
+				if (ttv.IsChecked == null)
+					ttv.OnIndeterminate(new RoutedEventArgs());
+			}
+		}
+
+		public event RoutedEventHandler Indeterminate;
+
+		protected virtual void OnIndeterminate(RoutedEventArgs e) {
+			RoutedEventHandler handler = Indeterminate;
+			if (handler != null) handler(this, e);
+		}
+
+		public event RoutedEventHandler Checked;
+
+		protected virtual void OnChecked(RoutedEventArgs e) {
+			RoutedEventHandler handler = Checked;
+			if (handler != null) handler(this, e);
+		}
+
+		public event RoutedEventHandler Unchecked;
+
+		protected virtual void OnUnchecked(RoutedEventArgs e) {
+			RoutedEventHandler handler = Unchecked;
+			if (handler != null) handler(this, e);
+		}
+
+		#region Translations
+		internal static readonly TkDictionary<string, string> _translations = new TkDictionary<string, string> {
 			{"검사", "Swordsman"},
 			{"인간족", "Player"},
 			{"모로코", "Morroc"},
@@ -157,31 +221,38 @@ namespace TokeiLibrary.WPF {
 			{"나무잡초꽃", "Trees"},
 			{"도둑", "Thief"},
 			{"크루세이더", "Crusader"},
+			{"가드", "Royal Guard"},
 			{"페이욘", "Payon"},
+			{"팔라딘", "Paladin"},
 			{"사막도시", "Desert Towns"},
 			{"기린의날개", "The Wings of the Kirin"},
 			{"아버지사랑날개2012", "Loving father Wings 2012"},
-			{"슈퍼노비스", "Super novice"},
+			{"슈퍼노비스", "Super Novice"},
 			{"인던01", "Inside Dungeon 01"},
 			{"타나토스", "Thanatos"},
 			//{"아인브로크", "Ain Pembroke"},
 			{"마법사", "Mage"},
 			{"프론테라", "Prontera"},
 			{"연금술사", "Alchemist"},
+			{"크리에이터", "Creator"},
 			{"방패", "Shields"},
 			{"용암동굴", "Magna Dungeon"},
 			{"상인", "Merchant"},
 			{"인던02", "Inside Dungeon 02"},
+			{"제네릭", "Genetic"},
 			{"휘겔", "Hugel"},
 			{"일본", "Japan"},
 			{"헌터", "Hunter"},
 			{"이팩트", "Effects"},
+			{"스나이퍼", "Sniper"},
 			{"중국", "China"},
 			{"해변마을", "Seaside town"},
 			{"거북이섬", "Turtle Island"},
 			{"무희", "Dancer"},
 			{"던전", "Dungeons"},
 			{"세이지", "Sage"},
+			{"프로페서", "Professor"},
+			{"소서러", "Sorcerer"},
 			{"프론테라내부", "Inside Prontera"},
 			{"건너", "Gunslinger"},
 			{"성직자", "Acolyte"},
@@ -189,10 +260,13 @@ namespace TokeiLibrary.WPF {
 			{"대만", "Taiwan"},
 			{"운영자", "Game Master"},
 			{"몽크", "Monk"},
+			{"길로틴크로스", "Guillotine Cross"},
+			{"챔피온", "Champion"},
+			{"슈라", "Sura"},
 			{"전장", "Battleground"},
 			{"크리스마스마을", "Christmas Village"},
 			{"페이욘내부", "Inside Payon"},
-			{"마도기어", "Magic Gear"},
+			{"마도기어", "Magic Gear/Mado"},
 			{"닌자", "Ninja"},
 			{"피아멧트의리본", "Dark Wings"},
 			{"구페코크루세이더", "Crusader (peco)"},
@@ -200,8 +274,11 @@ namespace TokeiLibrary.WPF {
 			{"토르화산", "Thor Volcano"},
 			{"알데바란", "Aldebaran"},
 			{"바드", "Bard"},
+			{"권성", "Star Gladiator"},
 			{"모로코내부", "Inside Morroc"},
 			{"프리스트", "Priest"},
+			{"하이프리", "High Priest"},
+			{"아크비숍", "Arch Bishop"},
 			{"니플헤임", "Niflheim"},
 			{"흑마법사방", "Warlock room"},
 			{"워프대기실내부", "Inside waiting room"},
@@ -210,346 +287,65 @@ namespace TokeiLibrary.WPF {
 			{"쉐도우체이서", "Shadow Chaser"},
 			{"집시마을", "Gypsy village"},
 			{"위저드", "Wizard"},
+			{"하이위저드", "High Wizard"},
+			{"워록", "Warlock"},
 			{"게펜내부", "Inside Geffen"},
 			{"히나마쯔리", "Doll's Festival"},
 			{"궁수", "Archer"},
 			{"어비스", "Abyss"},
 			{"글래지하수로", "Geulrae into groundwater"},
 			{"레인져늑대", "Ranger (warg)"},
+			{"레인져", "Ranger"},
 			{"태권소년", "Taekwon"},
+			{"소울링커", "Soul Linker"},
+			{"소울리퍼", "Soul Reaper"},
+			{"성제", "Star Emperor"},
 			{"워터", "Water"},
+			{"산타", "Santa"},
 			{"동굴마을", "Cave Town"},
 			{"알베르타내부", "Inside Alberta"},
 			{"지하묘지", "Catacomb"},
 			{"어세신", "Assassin"},
+			{"어쌔신크로스", "Assassin Cross"},
 			{"제철공", "Blacksmith"},
+			{"화이트스미스", "Whitesmith"},
 			{"페코페코_기사", "Knight (peco)"},
 			{"로그", "Rogue"},
 			{"기사", "Knight"},
 			{"머리", "Head"},
 			{"몸", "Body"},
+			{"클라운", "Clown"},
+			{"미케닉", "Mechanic"},
+			{"민스트럴", "Minstrel"},
+			{"스토커", "Stalker"},
+			{"집시", "Gyspsy"},
+			{"로드나이트", "Lord Knight"},
+			{"룬나이트", "Rune Knight"},
+			{"원더러", "Wanderer"},
 			{"머리통", "Heads"},
 			{"도람족", "Doram"},
 		};
-
-		public TextBlock TextBlock {
-			get { return _tbDisplay; }
-		}
-
-		public Border TVIHeaderBrush {
-			get { return _tviHeaderBorder; }
-		}
-
-		public bool UseCheckBox {
-			set {
-				if (value) {
-					_image.Visibility = Visibility.Collapsed;
-					_checkBox.Visibility = Visibility.Visible;
-				}
-				else {
-					_image.Visibility = Visibility.Visible;
-					_checkBox.Visibility = Visibility.Collapsed;
-				}
-			}
-		}
-
-		public CheckBox CheckBoxHeader {
-			get { return _checkBox; }
-		}
-
-		public virtual string PathIconClosed {
-			get { return _closedPathIcon; }
-			set {
-				_closedPathIcon = value;
-				if (IsLoaded) {
-					_image.Source = ApplicationManager.PreloadResourceImage(IsExpanded ? _openedPathIcon : _closedPathIcon);
-					_image.Stretch = Stretch.Uniform;
-					_image.Height = 16;
-				}
-			}
-		}
-
-		public virtual string PathIconOpened {
-			get { return _openedPathIcon; }
-			set {
-				_openedPathIcon = value;
-				if (IsLoaded) {
-					_image.Source = ApplicationManager.PreloadResourceImage(IsExpanded ? _openedPathIcon : _closedPathIcon);
-					_image.Stretch = Stretch.Uniform;
-					_image.Height = 16;
-				}
-			}
-		}
-
-		#region Brushes
-		public static DependencyProperty MouseOverBorderBrushProperty = DependencyProperty.Register("MouseOverBorderBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_mouseOverBorderBrush));
-		public static DependencyProperty MouseOverBackgroundBrushProperty = DependencyProperty.Register("MouseOverBackgroundBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_mouseOverBackgroundBrush));
-		public static DependencyProperty DefaultBackgroundBrushProperty = DependencyProperty.Register("DefaultBackgroundBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_defaultBackgroundBrush));
-		public static DependencyProperty DefaultBorderBrushProperty = DependencyProperty.Register("DefaultBorderBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_defaultBorderBrush));
-		public static DependencyProperty SelectBackgroundBrushProperty = DependencyProperty.Register("SelectBackgroundBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_selectBackgroundBrush));
-		public static DependencyProperty SelectBorderBrushProperty = DependencyProperty.Register("SelectBorderBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_selectBorderBrush));
-		public static DependencyProperty DragEnterBackgroundBrushProperty = DependencyProperty.Register("DragEnterBackgroundBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_dragEnterBackgroundBrush));
-		public static DependencyProperty DragEnterBorderBrushProperty = DependencyProperty.Register("DragEnterBorderBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_dragEnterBorderBrush));
-		public static DependencyProperty MouseOverTextForegroundProperty = DependencyProperty.Register("MouseOverTextForeground", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(Brushes.Black, OnMouseOverTextForegroundChanged));
-		public static DependencyProperty SelectedTextForegroundProperty = DependencyProperty.Register("SelectedTextForeground", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(Brushes.Black, OnSelectedTextForegroundChanged));
-		public static DependencyProperty DefaultTextForegroundProperty = DependencyProperty.Register("DefaultTextForeground", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(Brushes.Black, new PropertyChangedCallback(OnDefaultTextForegroundChanged)));
-		public static DependencyProperty UnableBackgroundBrushProperty = DependencyProperty.Register("UnableBackgroundBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_unableBackgroundBrush));
-		public static DependencyProperty UnableBorderBrushProperty = DependencyProperty.Register("UnableBorderBrush", typeof(Brush), typeof(TkTreeViewItem), new PropertyMetadata(_unableBorderBrush));
-
-		public Brush DefaultTextForeground {
-			get { return (Brush) GetValue(DefaultTextForegroundProperty); }
-			set { SetValue(DefaultTextForegroundProperty, value); }
-		}
-
-		private static void OnDefaultTextForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			var ttv = d as TkTreeViewItem;
-
-			if (ttv != null) {
-				if (!ttv.IsSelected)
-					ttv._tbDisplay.Foreground = (Brush) e.NewValue;
-			}
-		}
-
-		public Brush SelectedTextForeground {
-			get { return (Brush)GetValue(SelectedTextForegroundProperty); }
-			set { SetValue(SelectedTextForegroundProperty, value); }
-		}
-
-		private static void OnSelectedTextForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			var ttv = d as TkTreeViewItem;
-
-			if (ttv != null) {
-				if (ttv.IsSelected)
-					ttv._tbDisplay.Foreground = (Brush)e.NewValue;
-			}
-		}
-
-		private static void OnMouseOverTextForegroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			var ttv = d as TkTreeViewItem;
-
-			if (ttv != null) {
-				if (ttv.IsSelected) {
-					ttv._tbDisplay.Foreground = (Brush) e.NewValue;
-				}
-			}
-		}
-
-		public Brush BackgroundColor {
-			set {
-				if (value is SolidColorBrush) {
-					//
-				}
-				else {
-					_tviHeader.Background = value;
-				}
-			}
-		}
-
-		public Brush MouseOverTextForeground {
-			get { return (Brush)GetValue(MouseOverTextForegroundProperty); }
-			set { SetValue(MouseOverTextForegroundProperty, value); }
-		}
-		
-		public Brush MouseOverBorderBrush {
-			get { return (Brush)GetValue(MouseOverBorderBrushProperty); }
-			set { SetValue(MouseOverBorderBrushProperty, value); }
-		}
-		
-		public Brush MouseOverBackgroundBrush {
-			get { return (Brush)GetValue(MouseOverBackgroundBrushProperty); }
-			set { SetValue(MouseOverBackgroundBrushProperty, value); }
-		}
-		
-		public Brush DefaultBackgroundBrush {
-			get { return (Brush)GetValue(DefaultBackgroundBrushProperty); }
-			set { SetValue(DefaultBackgroundBrushProperty, value); }
-		}
-
-		public Brush DefaultBorderBrush {
-			get { return (Brush)GetValue(DefaultBorderBrushProperty); }
-			set { SetValue(DefaultBorderBrushProperty, value); }
-		}
-        
-		public Brush SelectBackgroundBrush {
-			get { return (Brush)GetValue(SelectBackgroundBrushProperty); }
-			set { SetValue(SelectBackgroundBrushProperty, value); }
-		}
-        
-		public Brush SelectBorderBrush {
-			get { return (Brush)GetValue(SelectBorderBrushProperty); }
-			set { SetValue(SelectBorderBrushProperty, value); }
-		}
-		
-		public Brush DragEnterBackgroundBrush {
-			get { return (Brush)GetValue(DragEnterBackgroundBrushProperty); }
-			set { SetValue(DragEnterBackgroundBrushProperty, value); }
-		}
-        
-		public Brush DragEnterBorderBrush {
-			get { return (Brush)GetValue(DragEnterBorderBrushProperty); }
-			set { SetValue(DragEnterBorderBrushProperty, value); }
-		}
-		
-		public Brush UnableBackgroundBrush {
-			get { return (Brush)GetValue(UnableBackgroundBrushProperty); }
-			set { SetValue(UnableBackgroundBrushProperty, value); }
-		}
-        
-		public Brush UnableBorderBrush {
-			get { return (Brush)GetValue(UnableBorderBrushProperty); }
-			set { SetValue(UnableBorderBrushProperty, value); }
-		}
-
 		#endregion
 
 		public override string ToString() {
 			return HeaderText + "; Number of items : " + Items.Count;
 		}
 
-		protected override void OnInitialized(EventArgs e) {
-			_tviHeader = new Border { Background = Brushes.Transparent, Margin = new Thickness(-2, 0, 0, 0) };
+		private Dictionary<string, object> _loadedElements;
 
-			Header = _tviHeader;
+		public bool Get<T>(string name, out T value) {
+			if (_loadedElements == null)
+				_loadedElements = new Dictionary<string, object>();
 
-			_tviHeaderBorder = new Border { CornerRadius = new CornerRadius(2), BorderThickness = new Thickness(1) };
-
-			_tviHeader.Child = _tviHeaderBorder;
-
-			StackPanel panel = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(3, 0, 1, 0) };
-
-			_tviHeaderBorder.Child = panel;
-
-			_checkBox = new CheckBox();
-			_checkBox.VerticalAlignment = VerticalAlignment.Center;
-			_checkBox.Foreground = Application.Current.Resources["TextForeground"] as Brush;
-			_image = new Image();
-			_tbDisplay = new TextBlock { Margin = new Thickness(4, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
-			_tbDisplayVirtual = new TextBlock { FontStyle = FontStyles.Italic, Foreground = new SolidColorBrush(Colors.Gray), Margin = new Thickness(0, 0, 4, 0), VerticalAlignment = VerticalAlignment.Center };
-
-			panel.Children.Add(_checkBox);
-			_checkBox.Visibility = Visibility.Collapsed;
-			panel.Children.Add(_image);
-			panel.Children.Add(_tbDisplay);
-			panel.Children.Add(_tbDisplayVirtual);
-
-			//_tbDisplay.Text = HeaderText;
-			_tviHeader.MouseEnter += new MouseEventHandler(_tkTreeViewItem_MouseEnter);
-			_tviHeader.MouseLeave += new MouseEventHandler(_tkTreeViewItem_MouseLeave);
-			LostFocus += new RoutedEventHandler(_tviHeader_LostFocus);
-			_tviHeader.MouseLeftButtonDown += (s, a) => {
-				if (a.ClickCount == 2) {
-					IsExpanded = !IsExpanded;
-				}
-			};
-			_tviHeader.MouseLeftButtonDown += new MouseButtonEventHandler(_tkTreeViewItem_MouseLeftButtonDown);
-			_tviHeader.MouseRightButtonDown += new MouseButtonEventHandler(_tkTreeViewItem_MouseRightButtonDown);
-			base.OnInitialized(e);
-		}
-
-		private void _tviHeader_LostFocus(object sender, RoutedEventArgs e) {
-			TkTreeViewItem item = WpfUtilities.FindParentControl<TkTreeViewItem>(sender as Border);
-
-			if (item != null) {
-				if (!item.IsSelected) {
-					item.TVIHeaderBrush.Background = DefaultBackgroundBrush;
-					item.TVIHeaderBrush.BorderBrush = DefaultBorderBrush;
-				}
-			}
-		}
-
-		private void _tkTreeViewItem_MouseRightButtonDown(object sender, MouseButtonEventArgs e) {
-			if (_parent.SelectedItem != this) {
-				IsSelected = true;
+			if (_loadedElements.ContainsKey(name)) {
+				value = (T)_loadedElements[name];
+				return false;
 			}
 
-			e.Handled = true;
-		}
-
-		private void _tkTreeViewItem_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
-			if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control) {
-				IsSelected = !IsSelected;
-			}
-			else {
-				if (_parent.SelectedItem != this) {
-					IsSelected = true;
-					_tbDisplay.Foreground = SelectedTextForeground;
-				}
-			}
-
-			e.Handled = true;
-		}
-
-		public void UnableItem() {
-			TVIHeaderBrush.Background = UnableBackgroundBrush;
-			TVIHeaderBrush.BorderBrush = UnableBorderBrush;
-			_tbDisplay.Foreground = MouseOverTextForeground;
-		}
-
-		public void DragEnterItem() {
-			TVIHeaderBrush.Background = DragEnterBackgroundBrush;
-			TVIHeaderBrush.BorderBrush = DragEnterBorderBrush;
-			_tbDisplay.Foreground = MouseOverTextForeground;
-		}
-
-		private void _tkTreeViewItem_MouseLeave(object sender, MouseEventArgs e) {
-			TkTreeViewItem item = WpfUtilities.FindParentControl<TkTreeViewItem>(sender as Border);
-
-			if (item != null) {
-				if (!item.IsSelected) {
-					item.TVIHeaderBrush.Background = DefaultBackgroundBrush;
-					item.TVIHeaderBrush.BorderBrush = DefaultBorderBrush;
-					item._tbDisplay.Foreground = DefaultTextForeground;
-				}
-			}
-		}
-
-		private void _tkTreeViewItem_MouseEnter(object sender, MouseEventArgs e) {
-			TkTreeViewItem item = WpfUtilities.FindParentControl<TkTreeViewItem>(sender as Border);
-
-			if (item != null) {
-				if (!item.IsSelected) {
-					item.TVIHeaderBrush.Background = MouseOverBackgroundBrush;
-					item.TVIHeaderBrush.BorderBrush = MouseOverBorderBrush;
-					item._tbDisplay.Foreground = MouseOverTextForeground;
-				}
-			}
-		}
-
-		protected virtual void _tkTreeViewItem_Loaded(object sender, RoutedEventArgs e) {
-			PathIconClosed = _closedPathIcon;
-			PathIconOpened = _openedPathIcon;
-		}
-
-		protected override void OnCollapsed(RoutedEventArgs e) {
-			_image.Source = ApplicationManager.GetResourceImage(_closedPathIcon);
-			base.OnCollapsed(e);
-		}
-		protected override void OnExpanded(RoutedEventArgs e) {
-			_image.Source = ApplicationManager.GetResourceImage(_openedPathIcon);
-
-			if (Items.Count == 0) {
-				IsExpanded = false;
-				e.Handled = true;
-				return;
-			}
-
-			base.OnExpanded(e);
-		}
-
-		public void Reset() {
-			if (_isSelected) {
-				TVIHeaderBrush.Background = SelectBackgroundBrush;
-				TVIHeaderBrush.BorderBrush = SelectBorderBrush;
-				_tviHeader.Background = _parent.Background;
-				//_tbDisplay.Foreground = MouseOverTextForeground;
-				_tbDisplay.Foreground = SelectedTextForeground;
-			}
-			else {
-				TVIHeaderBrush.Background = DefaultBackgroundBrush;
-				TVIHeaderBrush.BorderBrush = DefaultBorderBrush;
-				_tviHeader.Background = Brushes.Transparent;
-				_tbDisplay.Foreground = DefaultTextForeground;
-			}
+			var cp = WpfUtilities.FindChild<ContentPresenter>(this);
+			value = (T)this.HeaderTemplate.FindName(name, cp);
+			_loadedElements[name] = value;
+			return true;
 		}
 	}
 }

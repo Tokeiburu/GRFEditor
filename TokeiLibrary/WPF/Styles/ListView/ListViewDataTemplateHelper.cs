@@ -187,7 +187,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			rS.AncestorType = typeof(ListViewItem);
 			binding.RelativeSource = rS;
 			trigger.Binding = binding;
-			trigger.Setters.Add(new Setter(Control.ForegroundProperty, new SolidColorBrush(Colors.White)));
+			trigger.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
 			return trigger;
 		}
 

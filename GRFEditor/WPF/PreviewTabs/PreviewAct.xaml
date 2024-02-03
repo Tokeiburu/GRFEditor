@@ -9,7 +9,7 @@
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                             xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
                             mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="600" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="600" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

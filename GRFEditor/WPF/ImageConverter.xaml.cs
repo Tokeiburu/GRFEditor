@@ -106,7 +106,7 @@ namespace GRFEditor.WPF {
 
 					limit--;
 					image.Margin = new Thickness(3);
-					image.VerticalAlignment = System.Windows.VerticalAlignment.Center;
+					image.VerticalAlignment = VerticalAlignment.Center;
 					_imagesPreview.Children.Add(image);
 
 					if (limit < 0)

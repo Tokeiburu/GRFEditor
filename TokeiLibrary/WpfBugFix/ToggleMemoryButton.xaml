@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles" xmlns:WpfBugFix="clr-namespace:TokeiLibrary.WpfBugFix"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" SnapsToDevicePixels="True" Background="Transparent" Foreground="{DynamicResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="300" SnapsToDevicePixels="True" Background="Transparent" Foreground="{StaticResource TextForeground}">
     <Grid HorizontalAlignment="Center" VerticalAlignment="Center">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="auto" />

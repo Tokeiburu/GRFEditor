@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media.Imaging;
 using GRF.Core.GroupedGrf;
-using GRF.FileFormats.RsmFormat;
-using GRF.FileFormats.RsmFormat.MeshStructure;
-using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
-using GRFEditor.WPF.PreviewTabs;
+using GRFEditor.OpenGL.MapComponents;
 using GrfToWpfBridge;
 using GrfToWpfBridge.Application;
 using TokeiLibrary;
@@ -29,6 +24,9 @@ namespace GRFEditor.WPF {
 
 		public QuickPreview() {
 			InitializeComponent();
+
+			_viewport.Camera.Mode = CameraMode.PerspectiveDirectX;
+			_viewport.RenderOptions.FpsCap = 30;
 		}
 
 		#region IDisposable Members
@@ -52,22 +50,22 @@ namespace GRFEditor.WPF {
 				_imagePreview.Source = null;
 				_imagePreview = null;
 			}
-
-			if (_meshesDrawer != null) {
-				_meshesDrawer.Dispose();
-				_meshesDrawer = null;
-			}
 		}
 
 		#endregion
 
-		public void Set(AsyncOperation asyncOperation, MultiGrfReader metaGrf) {
-			_metaGrf = metaGrf;
+		public void Set(AsyncOperation asyncOperation) {
+			_metaGrf = GrfEditorConfiguration.Resources.MultiGrf;
 			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
 		}
 
 		public void Update(string file) {
+			if (_fileName == file)
+				return;
+
 			_fileName = file;
+
+			var _isCancelRequired = new Func<bool>(() => file != _fileName);
 
 			byte[] data = _metaGrf.GetData(file);
 
@@ -78,43 +76,26 @@ namespace GRFEditor.WPF {
 					_imagePreview.Tag = Path.GetFileNameWithoutExtension(file);
 					_wrapper.Image = ImageProvider.GetImage(data, ext);
 					_imagePreview.Source = _wrapper.Image.Cast<BitmapSource>();
-					_meshesDrawer.Dispatch(p => p.Clear());
-					_meshesDrawer.Visibility = Visibility.Hidden;
 					_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
+					_viewport.Visibility = Visibility.Hidden;
 				}
 				else if (ext == ".rsm" || ext == ".rsm2") {
-					_meshesDrawer.Visibility = Visibility.Visible;
 					_scrollViewer.Dispatch(p => p.Visibility = Visibility.Hidden);
+					_viewport.Visibility = Visibility.Visible;
 
-					_meshesDrawer.Dispatch(p => p.Clear());
-
-					Rsm rsm = new Rsm(data);
-
-					if (rsm.Header.IsCompatibleWith(2, 0)) {
-						_meshesDrawer.Dispatch(p => p.Update(_metaGrf, () => false, 200));
-						_meshesDrawer.Dispatch(p => p.AddRsm2(rsm, 0, true));
-						_meshesDrawer.Dispatch(p => p.Visibility = Visibility.Visible);
-					}
-					else {
-						rsm.CalculateBoundingBox();
-
-						_meshesDrawer.Dispatch(p => p.Update(_metaGrf, () => false, Math.Max(Math.Max(rsm.Box.Range[0], rsm.Box.Range[1]), rsm.Box.Range[2]) * 4));
-
-						Matrix4 modelRotation = Matrix4.Identity;
-						modelRotation = Matrix4.RotateX(modelRotation, ModelViewerHelper.ToRad(180));
-						modelRotation = Matrix4.RotateY(modelRotation, ModelViewerHelper.ToRad(180));
-
-						Dictionary<string, MeshRawData> allMeshData = rsm.Compile(modelRotation, 2);
-
-						// Render meshes
-						_meshesDrawer.Dispatch(p => p.AddObject(allMeshData.Values.ToList(), Matrix4.Identity));
-
-						_meshesDrawer.Dispatch(p => p.UpdateCamera());
-						_meshesDrawer.Dispatch(p => p.Visibility = Visibility.Visible);
-					}
+					Rsm.ForceShadeType = 2;
+					_viewport.RotateCamera = true;
+					_viewport.Camera.Mode = CameraMode.PerspectiveDirectX;
+					_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = new Rsm(data), CancelRequired = _isCancelRequired, Resource = file, Context = _viewport });
 				}
-				else {
-					ClearPreview();
+				else if (ext == ".gnd" || ext == ".rsw") {
+					_scrollViewer.Dispatch(p => p.Visibility = Visibility.Hidden);
+					_viewport.Visibility = Visibility.Visible;
+
+					Rsm.ForceShadeType = -1;
+					_viewport.RotateCamera = true;
+					_viewport.Camera.Mode = CameraMode.PerspectiveOpenGL;
+					_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = file.ReplaceExtension(""), CancelRequired = _isCancelRequired, Context = _viewport });
 				}
 			}
 			else {
@@ -130,10 +111,11 @@ namespace GRFEditor.WPF {
 		}
 
 		public void ClearPreview() {
-			_meshesDrawer.Dispatch(p => p.Clear());
-			_meshesDrawer.Dispatch(p => p.Visibility = Visibility.Hidden);
 			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
+			_viewport.Dispatch(p => p.Unload());
+			_viewport.Dispatch(p => p.Visibility = Visibility.Hidden);
 			_imagePreview.Dispatch(p => p.Source = null);
+			_fileName = null;
 		}
 	}
 }

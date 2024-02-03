@@ -14,9 +14,8 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
 using Utilities.Services;
-using Matrix4 = OpenTK.Matrix4;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
+namespace GRFEditor.OpenGL.MapRenderers {
 	public class LubEffect {
 		public Vector3 Dir1;
 		public Vector3 Dir2;
@@ -31,7 +30,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		public int Srcmode;
 		public int Destmode;
 		public int Maxcount;
-		public int Zenable;
+		public bool Zenable;
 		public int Billboard_off;
 		public Vector3 Rotate_angle;
 		public Matrix4 ModelMatrix;
@@ -97,7 +96,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		public bool CloudEffect { get; set; }
 	}
 
-	public class LubRenderer : MapGLObject {
+	public class LubRenderer : Renderer {
 		private readonly Gnd _gnd;
 		private readonly List<LubEffect> _effects = new List<LubEffect>();
 		private readonly Stopwatch _watch = new Stopwatch();
@@ -112,7 +111,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		private float _previousTime;
 		const int LubEffectVertexSize = 6;
 
-		public LubRenderer(RendererLoadRequest request, Shader shader, Gnd gnd, Rsw rsw, byte[] lubData) {
+		public LubRenderer(RendererLoadRequest request, Shader shader, Gnd gnd, Rsw rsw, byte[] lubData, OpenGLViewport viewport) {
 			Shader = shader;
 			_gnd = gnd;
 			_rsw = rsw;
@@ -153,7 +152,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				}
 			}
 
-			_skyMap();
+			_skyMap(viewport);
 			_watch.Start();
 		}
 
@@ -162,7 +161,9 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				return;
 
 			foreach (var effect in _effects) {
-				effect.Texture2D = TextureManager.LoadTextureAsync(effect.Texture, Rsm.RsmTexturePath + effect.Texture, effect.CloudEffect != null ? TextureRenderMode.CloudTexture : TextureRenderMode.RsmTexture, _request);
+				var texture = TextureManager.LoadTextureAsync(effect.Texture, Rsm.RsmTexturePath + effect.Texture.Replace("\\\\", "\\"), effect.CloudEffect != null ? TextureRenderMode.CloudTexture : TextureRenderMode.RsmTexture, _request);
+				Textures.Add(texture);
+				effect.Texture2D = texture;
 
 				if (effect.CloudEffect != null && effect.CloudEffect.FlipImage)
 					effect.Texture2D.Reverse = true;
@@ -209,9 +210,11 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			_verticesLoaded = true;
 		}
+		
+		private bool _skipRender = false;
 
 		public override void Render(OpenGLViewport viewport) {
-			if (IsUnloaded || !MapRenderer.RenderOptions.LubEffect)
+			if (IsUnloaded || !viewport.RenderOptions.LubEffect || viewport.RenderOptions.MinimapMode)
 				return;
 
 			if (!_verticesLoaded) {
@@ -221,6 +224,8 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			if (!_watch.IsRunning) {
 				_watch.Start();
 			}
+
+			_skipRender = !_skipRender;
 
 			Shader.Use();
 			Shader.SetMatrix4("cameraMatrix", viewport.View);
@@ -237,11 +242,19 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				_renderGroup(renderGroup.Key, renderGroup.Value, interval);
 			}
 
+			GL.Enable(EnableCap.DepthTest);
+
 			if (_animatedGroup.Effects.Count > 0) {
 				_renderAnimatedGroup(Textures, interval);
 			}
 
-			if (MapRenderer.RenderOptions.RenderSkymapFeature && MapRenderer.RenderOptions.RenderSkymapDetected) {
+			if (viewport.RenderOptions.RenderSkymapFeature && viewport.RenderOptions.RenderSkymapDetected) {
+				//if (!_skymapDataLoaded) {
+				//	_addStarCloudEffect();
+				//	_addCloudEffect();
+				//	_skymapDataLoaded = true;
+				//}
+
 				foreach (var renderGroup in _skymapGroups) {
 					bool amountChanged = false;
 
@@ -280,6 +293,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			}
 
 			GL.DepthMask(true);
+			GL.Enable(EnableCap.DepthTest);
 			GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
 		}
 
@@ -299,163 +313,193 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, LubEffectVertexSize * sizeof(float), 3 * sizeof(float));
 			}
 
-			foreach (var effect in rie.Effects) {
-				effect.EmitTime -= interval;
+			if (!_skipRender) {
+				foreach (var effect in rie.Effects) {
+					effect.EmitTime -= interval;
 
-				if (effect.CloudEffect != null) {
+					if (effect.CloudEffect != null) {
+						for (int i = 0; i < effect.Particles.Count; i++) {
+							var p = effect.Particles[i];
+							p.Life -= interval;
+
+							if (p.Life < 0) {
+								effect.Particles.RemoveAt(i);
+								i--;
+								continue;
+							}
+
+							p.Position += p.Dir * interval * (p.CloudExpandFactor > 0 ? 0.8f : 1f) * effect.Speed + p.Speed * interval;
+							p.CloudExpandTime += interval * p.CloudExpandFactor;
+
+							p.Size = p.CloudOriginalSize + p.CloudOriginalSize * effect.CloudEffect.Expand_Rate * p.CloudExpandTime / 2;
+
+							if (p.CloudExpandTime > 2) {
+								p.CloudExpandFactor = -1;
+							}
+							else if (p.CloudExpandTime < 0) {
+								p.CloudExpandFactor = 1;
+							}
+
+							if (p.Life > p.StartLife - p.CloudAlphaIncreaseDuration) {
+								p.Alpha += p.CloudAlphaIncreaseFactor * interval;
+							}
+							else if (p.Life < p.CloudAlphaDecreaseOffset) {
+								p.Alpha -= p.CloudAlphaDecreaseFactor * interval;
+							}
+
+							p.Alpha = (float)GLHelper.Clamp(0, 1, p.Alpha);
+						}
+					}
+					else {
+						for (int i = 0; i < effect.Particles.Count; i++) {
+							effect.Particles[i].Life -= interval;
+
+							if (effect.Particles[i].Life < 0) {
+								effect.Particles.RemoveAt(i);
+								i--;
+								continue;
+							}
+
+							effect.Particles[i].Position += effect.Particles[i].Dir * interval * effect.Speed + effect.Particles[i].Speed * interval;
+							effect.Particles[i].Speed += effect.Speed * effect.Gravity * interval;
+
+							if (effect.Particles[i].StartLife > 1) {
+								if (effect.Particles[i].Life < Math.Min(1f, effect.Particles[i].StartLife / 2)) {
+									effect.Particles[i].Alpha -= interval;
+								}
+								else {
+									effect.Particles[i].Alpha += interval;
+								}
+
+								effect.Particles[i].Alpha = (float)GLHelper.Clamp(0, 1, effect.Particles[i].Alpha);
+							}
+						}
+					}
+
+					if (effect.CloudEffect != null) {
+						while (effect.Particles.Count < effect.Maxcount) {
+							Particle p = new Particle();
+
+							p.Position = new Vector3(
+								TkRandom.Rand(-effect.Radius.X, effect.Radius.X) + MapRenderer.LookAt.X - _request.Gnd.Width * 5,
+								-effect.CloudEffect.Height - TkRandom.Rand(0, effect.CloudEffect.Height_Extra),
+								TkRandom.Rand(-effect.Radius.Z, effect.Radius.Z) - MapRenderer.LookAt.Z + _request.Gnd.Height * 5);
+							p.Dir = new Vector3(
+								TkRandom.Rand(effect.Dir1.X, effect.Dir2.X),
+								TkRandom.Rand(effect.Dir1.Y, effect.Dir2.Y),
+								TkRandom.Rand(effect.Dir1.Z, effect.Dir2.Z));
+							p.Size = TkRandom.Rand(effect.CloudEffect.Size, effect.CloudEffect.Size + effect.CloudEffect.Size_Extra);
+							p.CloudAlphaIncreaseDuration = TkRandom.Rand(effect.CloudEffect.Alpha_Inc_Time, effect.CloudEffect.Alpha_Inc_Time + effect.CloudEffect.Alpha_Inc_Time_Extra) * 0.015f; // 1.5 / 100
+							p.CloudAlphaIncreaseFactor = 1f / (4f / effect.CloudEffect.Alpha_Inc_Speed);
+							p.CloudAlphaDecreaseDuration = TkRandom.Rand(effect.CloudEffect.Alpha_Dec_Time, effect.CloudEffect.Alpha_Dec_Time + effect.CloudEffect.Alpha_Dec_Time_Extra) * 0.015f; // 1.5 / 100
+							p.CloudAlphaDecreaseOffset = Math.Min(4f / effect.CloudEffect.Alpha_Dec_Speed, p.CloudAlphaDecreaseDuration);
+							p.CloudAlphaDecreaseFactor = 1f / (p.CloudAlphaDecreaseOffset);
+							p.CloudExpandFactor = 1;
+							p.CloudExpandTime = TkRandom.Rand(0, 2);
+							p.CloudOriginalSize = p.Size;
+							p.Life = p.CloudAlphaIncreaseDuration + p.CloudAlphaDecreaseDuration;
+							p.StartLife = p.Life;
+							effect.Particles.Add(p);
+						}
+					}
+					else {
+						if (effect.EmitTime < 0 && effect.Particles.Count < effect.Maxcount) {
+							Particle p = new Particle();
+
+							p.Position = new Vector3(
+								TkRandom.Rand(-effect.Radius.X, -effect.Radius.X + 2 * Math.Abs(effect.Radius.X)),
+								TkRandom.Rand(-effect.Radius.Y, -effect.Radius.Y + 2 * Math.Abs(effect.Radius.Y)),
+								TkRandom.Rand(-effect.Radius.Z, -effect.Radius.Z + 2 * Math.Abs(effect.Radius.Z)));
+							p.Dir = new Vector3(
+								TkRandom.Rand(effect.Dir1.X, effect.Dir2.X),
+								TkRandom.Rand(effect.Dir1.Y, effect.Dir2.Y),
+								TkRandom.Rand(effect.Dir1.Z, effect.Dir2.Z));
+							p.Life = TkRandom.Rand(effect.Life.X, effect.Life.Y);
+							p.StartLife = p.Life;
+							p.Size = TkRandom.Rand(effect.Size.X, effect.Size.Y);
+							effect.Particles.Add(p);
+							effect.EmitTime = 1f / TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
+						}
+					}
+
 					for (int i = 0; i < effect.Particles.Count; i++) {
 						var p = effect.Particles[i];
-						p.Life -= interval;
+						float alpha = p.Alpha;
 
-						if (p.Life < 0) {
-							effect.Particles.RemoveAt(i);
-							i--;
-							continue;
-						}
+						ri.RawVertices[vboIndex + 24 * i + 0] = -p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 1] = -p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 2] = alpha;
+						ri.RawVertices[vboIndex + 24 * i + 3] = p.Position.X;
+						ri.RawVertices[vboIndex + 24 * i + 4] = p.Position.Y;
+						ri.RawVertices[vboIndex + 24 * i + 5] = p.Position.Z;
 
-						p.Position += p.Dir * interval * (p.CloudExpandFactor > 0 ? 0.8f : 1f) * effect.Speed + p.Speed * interval;
-						p.CloudExpandTime += interval * p.CloudExpandFactor;
+						ri.RawVertices[vboIndex + 24 * i + 6] = -p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 7] = p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 8] = alpha;
+						ri.RawVertices[vboIndex + 24 * i + 9] = p.Position.X;
+						ri.RawVertices[vboIndex + 24 * i + 10] = p.Position.Y;
+						ri.RawVertices[vboIndex + 24 * i + 11] = p.Position.Z;
 
-						p.Size = p.CloudOriginalSize + p.CloudOriginalSize * effect.CloudEffect.Expand_Rate * p.CloudExpandTime / 2;
+						ri.RawVertices[vboIndex + 24 * i + 12] = p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 13] = p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 14] = alpha;
+						ri.RawVertices[vboIndex + 24 * i + 15] = p.Position.X;
+						ri.RawVertices[vboIndex + 24 * i + 16] = p.Position.Y;
+						ri.RawVertices[vboIndex + 24 * i + 17] = p.Position.Z;
 
-						if (p.CloudExpandTime > 2) {
-							p.CloudExpandFactor = -1;
-						}
-						else if (p.CloudExpandTime < 0) {
-							p.CloudExpandFactor = 1;
-						}
-
-						if (p.Life > p.StartLife - p.CloudAlphaIncreaseDuration) {
-							p.Alpha += p.CloudAlphaIncreaseFactor * interval;
-						}
-						else if (p.Life < p.CloudAlphaDecreaseOffset) {
-							p.Alpha -= p.CloudAlphaDecreaseFactor * interval;
-						}
-
-						p.Alpha = (float)GLHelper.Clamp(0, 1, p.Alpha);
+						ri.RawVertices[vboIndex + 24 * i + 18] = p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 19] = -p.Size;
+						ri.RawVertices[vboIndex + 24 * i + 20] = alpha;
+						ri.RawVertices[vboIndex + 24 * i + 21] = p.Position.X;
+						ri.RawVertices[vboIndex + 24 * i + 22] = p.Position.Y;
+						ri.RawVertices[vboIndex + 24 * i + 23] = p.Position.Z;
 					}
+
+					vboIndex += LubEffectVertexSize * effect.Maxcount * 4;
 				}
-				else {
-					for (int i = 0; i < effect.Particles.Count; i++) {
-						effect.Particles[i].Life -= interval;
-
-						if (effect.Particles[i].Life < 0) {
-							effect.Particles.RemoveAt(i);
-							i--;
-							continue;
-						}
-
-						effect.Particles[i].Position += effect.Particles[i].Dir * interval * effect.Speed + effect.Particles[i].Speed * interval;
-						effect.Particles[i].Speed += effect.Speed * effect.Gravity * interval;
-
-						if (effect.Particles[i].StartLife > 1) {
-							if (effect.Particles[i].Life < Math.Min(1f, effect.Particles[i].StartLife / 2)) {
-								effect.Particles[i].Alpha -= interval;
-							}
-							else {
-								effect.Particles[i].Alpha += interval;
-							}
-
-							effect.Particles[i].Alpha = (float)GLHelper.Clamp(0, 1, effect.Particles[i].Alpha);
-						}
-					}
-				}
-
-				if (effect.CloudEffect != null) {
-					while (effect.Particles.Count < effect.Maxcount) {
-						Particle p = new Particle();
-
-						p.Position = new Vector3(
-							TkRandom.Rand(-effect.Radius.X, effect.Radius.X) + MapRenderer.LookAt.X - _request.Gnd.Width * 5,
-							-effect.CloudEffect.Height - TkRandom.Rand(0, effect.CloudEffect.Height_Extra),
-							TkRandom.Rand(-effect.Radius.Z, effect.Radius.Z) - MapRenderer.LookAt.Z + _request.Gnd.Height * 5);
-						p.Dir = new Vector3(
-							TkRandom.Rand(effect.Dir1.X, effect.Dir2.X),
-							TkRandom.Rand(effect.Dir1.Y, effect.Dir2.Y),
-							TkRandom.Rand(effect.Dir1.Z, effect.Dir2.Z));
-						p.Size = TkRandom.Rand(effect.CloudEffect.Size, effect.CloudEffect.Size + effect.CloudEffect.Size_Extra);
-						p.CloudAlphaIncreaseDuration = TkRandom.Rand(effect.CloudEffect.Alpha_Inc_Time, effect.CloudEffect.Alpha_Inc_Time + effect.CloudEffect.Alpha_Inc_Time_Extra) * 0.015f; // 1.5 / 100
-						p.CloudAlphaIncreaseFactor = 1f / (4f / effect.CloudEffect.Alpha_Inc_Speed);
-						p.CloudAlphaDecreaseDuration = TkRandom.Rand(effect.CloudEffect.Alpha_Dec_Time, effect.CloudEffect.Alpha_Dec_Time + effect.CloudEffect.Alpha_Dec_Time_Extra) * 0.015f; // 1.5 / 100
-						p.CloudAlphaDecreaseOffset = Math.Min(4f / effect.CloudEffect.Alpha_Dec_Speed, p.CloudAlphaDecreaseDuration);
-						p.CloudAlphaDecreaseFactor = 1f / (p.CloudAlphaDecreaseOffset);
-						p.CloudExpandFactor = 1;
-						p.CloudExpandTime = TkRandom.Rand(0, 2);
-						p.CloudOriginalSize = p.Size;
-						p.Life = p.CloudAlphaIncreaseDuration + p.CloudAlphaDecreaseDuration;
-						p.StartLife = p.Life;
-						effect.Particles.Add(p);
-					}
-				}
-				else {
-					if (effect.EmitTime < 0 && effect.Particles.Count < effect.Maxcount) {
-						Particle p = new Particle();
-
-						p.Position = new Vector3(
-							TkRandom.Rand(-effect.Radius.X, -effect.Radius.X + 2 * Math.Abs(effect.Radius.X)),
-							TkRandom.Rand(-effect.Radius.Y, -effect.Radius.Y + 2 * Math.Abs(effect.Radius.Y)),
-							TkRandom.Rand(-effect.Radius.Z, -effect.Radius.Z + 2 * Math.Abs(effect.Radius.Z)));
-						p.Dir = new Vector3(
-							TkRandom.Rand(effect.Dir1.X, effect.Dir2.X),
-							TkRandom.Rand(effect.Dir1.Y, effect.Dir2.Y),
-							TkRandom.Rand(effect.Dir1.Z, effect.Dir2.Z));
-						p.Life = TkRandom.Rand(effect.Life.X, effect.Life.Y);
-						p.StartLife = p.Life;
-						p.Size = TkRandom.Rand(effect.Size.X, effect.Size.Y);
-						effect.Particles.Add(p);
-						effect.EmitTime = 1f / TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
-					}
-				}
-
-				for (int i = 0; i < effect.Particles.Count; i++) {
-					var p = effect.Particles[i];
-					float alpha = p.Alpha;
-
-					ri.RawVertices[vboIndex + 24 * i + 0] = -p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 1] = -p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 2] = alpha;
-					ri.RawVertices[vboIndex + 24 * i + 3] = p.Position.X;
-					ri.RawVertices[vboIndex + 24 * i + 4] = p.Position.Y;
-					ri.RawVertices[vboIndex + 24 * i + 5] = p.Position.Z;
-
-					ri.RawVertices[vboIndex + 24 * i + 6] = -p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 7] = p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 8] = alpha;
-					ri.RawVertices[vboIndex + 24 * i + 9] = p.Position.X;
-					ri.RawVertices[vboIndex + 24 * i + 10] = p.Position.Y;
-					ri.RawVertices[vboIndex + 24 * i + 11] = p.Position.Z;
-
-					ri.RawVertices[vboIndex + 24 * i + 12] = p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 13] = p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 14] = alpha;
-					ri.RawVertices[vboIndex + 24 * i + 15] = p.Position.X;
-					ri.RawVertices[vboIndex + 24 * i + 16] = p.Position.Y;
-					ri.RawVertices[vboIndex + 24 * i + 17] = p.Position.Z;
-
-					ri.RawVertices[vboIndex + 24 * i + 18] = p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 19] = -p.Size;
-					ri.RawVertices[vboIndex + 24 * i + 20] = alpha;
-					ri.RawVertices[vboIndex + 24 * i + 21] = p.Position.X;
-					ri.RawVertices[vboIndex + 24 * i + 22] = p.Position.Y;
-					ri.RawVertices[vboIndex + 24 * i + 23] = p.Position.Z;
-				}
-
-				vboIndex += LubEffectVertexSize * effect.Maxcount * 4;
 			}
 
 			vboIndex = 0;
 
 			ri.BindVao();
-			ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.StreamDraw, LubEffectVertexSize);
+
+			if (!_skipRender) {
+				ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.DynamicDraw, LubEffectVertexSize);
+			}
 
 			key.Bind();
 
-			foreach (var effect in rie.Effects) {
-				Shader.SetMatrix4("m", effect.ModelMatrix);
-				Shader.SetVector4("color", effect.Color);
-				Shader.SetFloat("billboard_off", effect.Billboard_off);
+			Vector4? prevColor = null;
+			int? prevBillboard = null;
+			bool? prevZenable = null;
+			int? prevBlend = null;
 
-				GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
+			foreach (var effect in rie.Effects) {
+				if (prevZenable == null || prevZenable != effect.Zenable) {
+					if (effect.Zenable)
+						GL.Enable(EnableCap.DepthTest);
+					else
+						GL.Disable(EnableCap.DepthTest);
+					prevZenable = effect.Zenable;
+				}
+
+				if (prevColor == null || prevColor != effect.Color) {
+					Shader.SetVector4("color", effect.Color);
+					prevColor = effect.Color;
+				}
+
+				if (prevBillboard == null || prevBillboard != effect.Billboard_off) {
+					Shader.SetFloat("billboard_off", effect.Billboard_off);
+					prevBillboard = effect.Billboard_off;
+				}
+
+				Shader.SetMatrix4("m", effect.ModelMatrix);
+
+				if (prevBlend == null || prevBlend != (effect.Srcmode << 16 | effect.Destmode)) {
+					GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
+					prevBlend = (effect.Srcmode << 16 | effect.Destmode);
+				}
+
 				GL.DrawArrays(PrimitiveType.Quads, vboIndex, effect.Particles.Count * 4);
 				vboIndex += effect.Maxcount * 4;
 			}
@@ -582,7 +626,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			vboIndex = 0;
 
 			ri.BindVao();
-			ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.StreamDraw, LubEffectVertexSize);
+			ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.DynamicDraw, LubEffectVertexSize);
 
 			foreach (var effect in rie.Effects) {
 				Shader.SetMatrix4("m", effect.ModelMatrix);
@@ -614,8 +658,10 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 				_effects.Add(effect);
 
-				if (!isAnimated)
+				if (!isAnimated) {
 					effect.Pos = new Vector3(_rsw.LubEffects[key].Position.X, _rsw.LubEffects[key].Position.Y, _rsw.LubEffects[key].Position.Z);
+					_rsw.LubEffects[key].LubEffectAttached = effect;
+				}
 
 				foreach (var property in effectKeyValue.Value.KeyValues) {
 					var pv = property.Value;
@@ -666,7 +712,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 							effect.Maxcount = pv[0].Cast<int>();
 							break;
 						case "zenable":
-							effect.Zenable = pv[0].Cast<int>();
+							effect.Zenable = pv[0].Cast<int>() != 0;
 							break;
 						case "billboard_off":
 							effect.Billboard_off = pv[0].Cast<int>();
@@ -715,6 +761,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				effect.EmitTime = 1f / TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
 				effect.Pos = new Vector3(0, 0, 0);
 				effect.Rotate_angle = new Vector3(0, 0, 0);
+				effect.Zenable = true;
 				effect.IsEnabled = cs.CloudEffect;
 				effect.CloudEffect = MapRenderer.SkyMap;
 				_effects.Add(effect);
@@ -761,13 +808,14 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				effect.EmitTime = 1f / TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
 				effect.Pos = new Vector3(0, 0, 0);
 				effect.Rotate_angle = new Vector3(0, 0, 0);
+				effect.Zenable = true;
 				effect.IsEnabled = MapRenderer.SkyMap.StarEffect;
 				effect.CloudEffect = cs;
 				_effects.Add(effect);
 			}
 		}
 
-		private void _skyMap() {
+		private void _skyMap(OpenGLViewport viewport) {
 			if (_hasMapSkyData) {
 				if (_skyMapLub == null) {
 					try {
@@ -802,7 +850,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						var skymap = _skyMapLub[mapName];
 						Vector4 bgColor = new Vector4(skymap["BG_Color"][0].Cast<float>() / 255f, skymap["BG_Color"][1].Cast<float>() / 255f, skymap["BG_Color"][2].Cast<float>() / 255f, 1f);
 
-						MapRenderer.RenderOptions.SkymapBackgroundColor = bgColor;
+						viewport.RenderOptions.SkymapBackgroundColor = bgColor;
 
 						if (skymap["Old_Cloud_Effect"] != null) {
 							//int cloud_effect = skymap["Old_Cloud_Effect"].Cast<int>();
@@ -870,7 +918,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						if (skymap["Star_Effect"] != null)
 							MapRenderer.SkyMap.StarEffect = bool.Parse(skymap["Star_Effect"].Value);
 
-						MapRenderer.RenderOptions.RenderSkymapDetected = true;
+						viewport.RenderOptions.RenderSkymapDetected = true;
 					}
 				}
 			}
@@ -883,11 +931,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			IsUnloaded = true;
 
 			foreach (var texture in Textures) {
-				TextureManager.UnloadTexture(texture.Resource);
-			}
-
-			foreach (var effect in _effects) {
-				effect.Texture2D.Unload();
+				TextureManager.UnloadTexture(texture.Resource, _request.Context);
 			}
 
 			foreach (var renderGroup in _groups) {

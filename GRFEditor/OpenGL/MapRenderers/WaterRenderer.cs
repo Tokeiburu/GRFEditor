@@ -7,8 +7,8 @@ using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
-	public class WaterRenderer : MapGLObject {
+namespace GRFEditor.OpenGL.MapRenderers {
+	public class WaterRenderer : Renderer {
 		private readonly RendererLoadRequest _request;
 		private readonly Gnd _gnd;
 		private readonly WaterData _water;
@@ -29,6 +29,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		}
 
 		private bool _verticesLoaded;
+		private bool _isMinimap;
 
 		public override void Load(OpenGLViewport viewport) {
 			if (IsUnloaded || _water == null)
@@ -93,7 +94,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		}
 
 		public override void Render(OpenGLViewport viewport) {
-			if (IsUnloaded || _water == null)
+			if (IsUnloaded || _water == null || !viewport.RenderOptions.Water)
 				return;
 
 			if (!_verticesLoaded) {
@@ -138,19 +139,55 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			_ri.BindVao();
 
-			for (int i = 0; i < _water.Zones.Count; i++) {
-				if (_water.Zones.Count > 1) {
-					Shader.SetFloat("waterHeight", -_water.Zones[i].Level);
-					Shader.SetFloat("amplitude", _water.Zones[i].WaveHeight);
-					Shader.SetFloat("waveSpeed", _water.Zones[i].WaveSpeed);
-					Shader.SetFloat("wavePitch", _water.Zones[i].WavePitch);
+			if (viewport.RenderOptions.MinimapMode) {
+				_isMinimap = true;
+			}
+			else {
+				if (_isMinimap) {
+					Shader.SetInt("colorMode", 0);
+
+					if (_water.Zones.Count == 1) {
+						Shader.SetFloat("waterHeight", -_water.Zones[0].Level);
+						Shader.SetFloat("amplitude", _water.Zones[0].WaveHeight);
+						Shader.SetFloat("waveSpeed", _water.Zones[0].WaveSpeed);
+						Shader.SetFloat("wavePitch", _water.Zones[0].WavePitch);
+					}
 				}
 
-				int offset = 32 * i;
-				int index = ((int)(time * 60 / _water.Zones[i].TextureCycling)) % 32;
-				Textures[offset + index].Bind();
+				_isMinimap = false;
+			}
 
-				GL.DrawArrays(PrimitiveType.Quads, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+			if (_isMinimap) {
+				Shader.SetVector4("colorWater", viewport.RenderOptions.MinimapWaterColor);
+				Shader.SetInt("colorMode", 1);
+				Shader.SetFloat("amplitude", 0);
+				Shader.SetFloat("waveSpeed", 0);
+				Shader.SetFloat("wavePitch", 0);
+
+				for (int i = 0; i < _water.Zones.Count; i++) {
+					if (_water.Zones.Count > 1) {
+						Shader.SetFloat("waterHeight", -_water.Zones[i].Level);
+					}
+
+					GL.DrawArrays(PrimitiveType.Quads, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+				}
+			}
+			else {
+				for (int i = 0; i < _water.Zones.Count; i++) {
+					if (_water.Zones.Count > 1) {
+						Shader.SetFloat("waterHeight", -_water.Zones[i].Level);
+						Shader.SetFloat("amplitude", _water.Zones[i].WaveHeight);
+						Shader.SetFloat("waveSpeed", _water.Zones[i].WaveSpeed);
+						Shader.SetFloat("wavePitch", _water.Zones[i].WavePitch);
+					}
+
+					int offset = 32 * i;
+					int index = ((int)(time * 60 / _water.Zones[i].TextureCycling)) % 32;
+
+					Textures[offset + index].Bind();
+
+					GL.DrawArrays(PrimitiveType.Quads, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+				}
 			}
 
 			GL.DepthMask(true);
@@ -160,7 +197,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			IsUnloaded = true;
 
 			foreach (var texture in Textures) {
-				TextureManager.UnloadTexture(texture.Resource);
+				TextureManager.UnloadTexture(texture.Resource, _request.Context);
 			}
 
 			_ri.Unload();

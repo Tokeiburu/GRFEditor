@@ -13,6 +13,7 @@ using GRF.Core;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
+using GRFEditor.OpenGL.MapComponents;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.Shortcuts;
@@ -29,10 +30,14 @@ namespace GRFEditor {
 		private readonly object _searchLock = new object();
 		private RangeObservableCollection<FileEntry> _itemEntries = new RangeObservableCollection<FileEntry>();
 		private RangeObservableCollection<FileEntry> _itemSearchEntries = new RangeObservableCollection<FileEntry>();
-		private string _searchFilter = "";
-		private string _searchSelectedPath = "";
 		private string _searchString = "";
 		private double _previousHeight = 180;
+		private readonly GrfPushMultiThread<FolderListingSearch> _searchFolderListingThread = new GrfPushMultiThread<FolderListingSearch>();
+
+		public class FolderListingSearch {
+			public string RelativePath;
+			public string Search;
+		}
 
 		#region Search ListView interactions
 
@@ -42,7 +47,7 @@ namespace GRFEditor {
 					_latestSelectedItem = _listBoxResults.SelectedItem as FileEntry;
 					_positions.AddPath(new TkPath { FilePath = _grfHolder.FileName, RelativePath = _latestSelectedItem.RelativePath });
 					_previewService.ShowPreview(_grfHolder, Path.GetDirectoryName(_listBoxResults.SelectedItem.ToString()),
-					                            Path.GetFileName(_listBoxResults.SelectedItem.ToString()));
+												Path.GetFileName(_listBoxResults.SelectedItem.ToString()));
 				}
 			}
 			catch (Exception err) {
@@ -60,12 +65,12 @@ namespace GRFEditor {
 				}
 
 				if (_listBoxResults.SelectedItem != null) {
-					FileEntry entry = (FileEntry) _listBoxResults.SelectedItem;
+					FileEntry entry = (FileEntry)_listBoxResults.SelectedItem;
 
 					_miSaveMapAs.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
 					_miConvertRsm2.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
 					_miExportMapFiles.Visibility = new string[] { ".rsw", ".rsm", ".rsm2", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					
+
 					_miFlagRemove.Visibility = _grfHolder.FileName.IsExtension(".thor") ? Visibility.Visible : Visibility.Collapsed;
 
 					_miSelect.Visibility = Visibility.Visible;
@@ -82,8 +87,8 @@ namespace GRFEditor {
 			try {
 				if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt && _listBoxResults.SelectedItem != null) {
 					var virtualFileDataObject = new VirtualFileDataObject(
-						_ => Dispatcher.BeginInvoke((Action) (() => _progressBarComponent.Progress = -1)),
-						_ => Dispatcher.BeginInvoke((Action) (() => _progressBarComponent.Progress = 100.0f))
+						_ => Dispatcher.BeginInvoke((Action)(() => _progressBarComponent.Progress = -1)),
+						_ => Dispatcher.BeginInvoke((Action)(() => _progressBarComponent.Progress = 100.0f))
 						);
 
 					List<VirtualFileDataObject.FileDescriptor> descriptors = new List<VirtualFileDataObject.FileDescriptor>();
@@ -138,13 +143,105 @@ namespace GRFEditor {
 		}
 
 		private void _textBoxSearch_TextChanged(object sender, TextChangedEventArgs e) {
-			_searchFilter = _textBoxSearch.Text;
-			_filter(true);
+			_folderListing();
 		}
 
 		private void _textBox_TextChanged(object sender, EventArgs keyEventArgs) {
 			_searchString = _textBoxMainSearch.Text;
 			_search(true);
+		}
+
+		private void _initSearchThreads() {
+			_searchFolderListingThread.Start("GrfEditor - Search filter for folder listing", (folderListingSearch, cancel) => {
+				try {
+					if (cancel())
+						return;
+
+					if (_items == null) return;
+
+					if (folderListingSearch.RelativePath == null) {
+						_itemEntries.Clear();
+						return;
+					}
+
+					this.Dispatch(p => p._grfEntrySorter.SetOrder(WpfUtils.GetLastGetSearchAccessor(_items), WpfUtils.GetLastSortDirection(_items)));
+
+					if (cancel())
+						return;
+
+					List<Utilities.Extension.Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
+					List<string> search = folderListingSearch.Search.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+					List<FileEntry> result;
+
+					if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
+						IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0);
+
+						//if (cancel())
+						//	return;
+
+						foreach (var query in search) {
+							if (query.Contains("*") || query.Contains("?")) {
+								Regex regex = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
+								res = res.Where(p => regex.IsMatch(p.Item2));
+							}
+							else {
+								res = res.Where(p => p.Item2.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) != -1);
+							}
+
+							//if (cancel())
+							//	return;
+						}
+
+						//if (cancel())
+						//	return;
+
+						result = res.Select(p => p.Item3).ToList();
+					}
+					else {
+						var res = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToList();
+
+						//if (cancel())
+						//	return;
+
+						if (res.Count < 10000) {
+							_grfEntrySorter.UseAlphaNum = true;
+							result = res.OrderBy(p => p, _grfEntrySorter).ToList();
+						}
+						else {
+							_grfEntrySorter.UseAlphaNum = false;
+							result = res.OrderBy(p => p, _grfEntrySorter).ToList();
+						}
+					}
+
+					//if (cancel())
+					//	return;
+
+					//result.Clear();
+					//result = new List<FileEntry>();
+					//result.AddRange(_grfHolder.FileTable.FastAccessEntries.Select(p => p.Value).ToList());
+					_itemEntries = new RangeObservableCollection<FileEntry>(result);
+
+					for (int i = 0; i < result.Count; i++) {
+						if (result[i].DataImage == null) {
+							result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
+						}
+					}
+
+					//if (cancel())
+					//	return;
+
+					_items.Dispatch(delegate {
+						_items.ItemsSource = _itemEntries;
+					});
+				}
+				catch {
+				}
+			});
+
+			Dispatcher.ShutdownStarted += delegate {
+				_searchFolderListingThread.Terminate();
+				TextureManager.ExitTextureThreads();
+			};
 		}
 
 		private void _search(bool isAsync = true) {
@@ -235,70 +332,8 @@ namespace GRFEditor {
 			}, "GrfEditor - Search filter for all items thread", isAsync);
 		}
 
-		private void _filter(bool isAsync, string currentPath = null) {
-			string currentSearch = _searchFilter;
-
-			GrfThread.Start(delegate {
-				lock (_filterLock) {
-					try {
-						if (currentSearch != _searchFilter)
-							return;
-
-						if ((bool) _treeView.Dispatcher.Invoke(new Func<bool>(() => _treeView.SelectedItem == null)))
-							return;
-
-						if (currentPath != null && (_searchSelectedPath != currentPath || _searchSelectedPath == null))
-							return;
-
-						if (_items == null) return;
-
-						this.Dispatch(p => p._grfEntrySorter.SetOrder(WpfUtils.GetLastGetSearchAccessor(_items), WpfUtils.GetLastSortDirection(_items)));
-
-						List<Utilities.Extension.Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
-						List<string> search = currentSearch.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-						List<FileEntry> result;
-
-						if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
-							IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = entries.Where(p => String.Compare(p.Item1, _searchSelectedPath, StringComparison.OrdinalIgnoreCase) == 0);
-
-							foreach (var query in search) {
-								if (query.Contains("*") || query.Contains("?")) {
-									Regex regex = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
-									res = res.Where(p => regex.IsMatch(p.Item2));
-								}
-								else {
-									res = res.Where(p => p.Item2.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) != -1);
-								}
-							}
-
-							result = res.Select(p => p.Item3).ToList();
-						}
-						else {
-							var res = entries.Where(p => String.Compare(p.Item1, _searchSelectedPath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToList();
-
-							if (res.Count < 10000) {
-								_grfEntrySorter.UseAlphaNum = true;
-								result = res.OrderBy(p => p, _grfEntrySorter).ToList();
-							}
-							else {
-								_grfEntrySorter.UseAlphaNum = false;
-								result = res.OrderBy(p => p, _grfEntrySorter).ToList();
-							}
-						}
-
-						_itemEntries = new RangeObservableCollection<FileEntry>(result);
-
-						for (int i = 0; i < result.Count; i++) {
-							if (result[i].DataImage == null) {
-								result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
-							}
-						}
-						_items.Dispatch(p => p.ItemsSource = _itemEntries);
-					}
-					catch {
-					}
-				}
-			}, "GrfEditor - Search filter for ListView items thread", isAsync);
+		private void _folderListing() {
+			_searchFolderListingThread.Push(new FolderListingSearch { Search = _textBoxSearch.Dispatch(p => p.Text), RelativePath = _treeViewPathManager.GetCurrentRelativePath() });
 		}
 
 		#region Nested type: FileEntryComparer
@@ -346,7 +381,7 @@ namespace GRFEditor {
 							return _alphanumComparer.Compare(x.RelativePath, y.RelativePath);
 						return _alphanumComparer.Compare(y.RelativePath, x.RelativePath);
 					}
-					else {	
+					else {
 						if (_direction == ListSortDirection.Ascending)
 							return String.CompareOrdinal(x.RelativePath, y.RelativePath);
 						return String.CompareOrdinal(y.RelativePath, x.RelativePath);

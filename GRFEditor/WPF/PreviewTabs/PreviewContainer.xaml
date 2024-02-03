@@ -5,7 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
              xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge" mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="600" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

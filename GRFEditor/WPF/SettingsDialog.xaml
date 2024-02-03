@@ -6,7 +6,9 @@
                  xmlns:WPF="clr-namespace:GRFEditor.WPF"
                  xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
                  xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
-                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge" MaxWidth="470" MinWidth="470" MinHeight="475" MaxHeight="475" Foreground="{StaticResource TextForeground}" SnapsToDevicePixels="True" >
+                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
+                 xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
+                 MaxWidth="470" MinWidth="470" MinHeight="475" MaxHeight="475" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -15,7 +17,7 @@
         <Border Background="{DynamicResource ResourceKey=TabControlBackground}">
             <Grid>
                 <TabControl Style="{DynamicResource ResourceKey=TabControlStyled}">
-                    <TabItem Header="General" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <TabItem Header="General" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
                         <StackPanel>
                             <StackPanel>
                                 <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
@@ -108,7 +110,7 @@
                             </Grid>
                         </StackPanel>
                     </TabItem>
-                    <TabItem Header="Tree behavior" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <TabItem Header="Tree behavior" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
                         <StackPanel>
                             <StackPanel>
                                 <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
@@ -127,7 +129,7 @@
                             </Grid>
                         </StackPanel>
                     </TabItem>
-                    <TabItem Header="Shell integration" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <TabItem Header="Shell integration" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
                         <StackPanel>
                             <StackPanel>
                                 <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
@@ -173,7 +175,26 @@
                             </Grid>
                         </StackPanel>
                     </TabItem>
-                    <TabItem Header="Debugger" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <TabItem Header="Resources" Style="{DynamicResource TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="auto" />
+                                <RowDefinition Height="140" />
+                                <RowDefinition Height="auto" />
+                            </Grid.RowDefinitions>
+                            <StackPanel>
+                                <StackPanel>
+                                    <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                    <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+                                </StackPanel>
+                                <WrapPanel>
+                                </WrapPanel>
+                                <TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). The validation will only be applied to the currently opened GRF, but providing additional resources will be used to locate textures, sound files, models, etc." TextWrapping="Wrap" />
+                            </StackPanel>
+                            <multiGrf:MetaGrfResourcesViewer x:Name="_mViewer" Grid.Row="1" />
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Debugger" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
                         <StackPanel>
                             <StackPanel>
                                 <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
@@ -183,7 +204,7 @@
                             </Grid>
                         </StackPanel>
                     </TabItem>
-                    <TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                    <TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
                         <StackPanel>
                             <StackPanel>
                                 <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />

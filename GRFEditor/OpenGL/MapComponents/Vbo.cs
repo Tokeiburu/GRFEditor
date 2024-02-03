@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using OpenTK.Graphics.OpenGL;
+using Buffer = System.Buffer;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class Vbo {
@@ -26,14 +27,14 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public void SetData(List<Vertex> data, BufferUsageHint usage) {
 			if (data.Count == 0)
 				return;
-
+			
 			int vertexLength = data[0].data.Length;
 			Length = data.Count;
 			Bind();
 			float[] array = new float[vertexLength * data.Count];
 
 			for (int i = 0; i < data.Count; i++) {
-				System.Buffer.BlockCopy(data[i].data, 0, array, vertexLength * i * sizeof(float), vertexLength * sizeof(float));
+				Buffer.BlockCopy(data[i].data, 0, array, vertexLength * i * sizeof(float), vertexLength * sizeof(float));
 			}
 
 			GL.BufferData(BufferTarget.ArrayBuffer, sizeof(float) * array.Length, array, usage);
@@ -55,7 +56,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			float[] array = new float[vertexLength * data.Count];
 
 			for (int i = 0; i < data.Count; i++) {
-				System.Buffer.BlockCopy(data[i].data, 0, array, vertexLength * i * sizeof(float), vertexLength * sizeof(float));
+				Buffer.BlockCopy(data[i].data, 0, array, vertexLength * i * sizeof(float), vertexLength * sizeof(float));
 			}
 
 			return array;

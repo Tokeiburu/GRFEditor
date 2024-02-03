@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -29,6 +30,7 @@ namespace TokeiLibrary.WPF {
 		private SelectedItemsList _selectedItems = new SelectedItemsList();
 		public event EncodingChangedEventHandler EncodingChanged;
 		public Encoding DisplayEncoding { get; set; }
+		public Action CopyMethod;
 
 		public virtual void OnEncodingChanged() {
 			EncodingChangedEventHandler handler = EncodingChanged;
@@ -46,23 +48,21 @@ namespace TokeiLibrary.WPF {
 			DragOver += _treeView_DragOver;
 			DragLeave += _treeView_DragLeave;
 			PreviewMouseMove += _treeView_PreviewMouseMove;
+			PreviewMouseLeftButtonDown += _treeView_PreviewMouseLeftButtonDown;
 			KeyDown += new KeyEventHandler(_tKView_KeyDown);
-			PreviewKeyDown += new KeyEventHandler(_tkView_PreviewKeyDown);
 			DisplayEncoding = EncodingService.DisplayEncoding;
 			base.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(_base_SelectedItemChanged);
 		}
 
-		private void _tkView_PreviewKeyDown(object sender, KeyEventArgs e) {
-			if (e.Key == Key.Down ||
-				e.Key == Key.Up ||
-				e.Key == Key.Left ||
-				e.Key == Key.Right) {
-				var item = SelectedItem as TkTreeViewItem;
+		private void _treeView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+			try {
+				var tItem = _getTreeViewMousePos(e);
 
-				if (item != null) {
-					_selectNext(item, e.Key);
-				}
-				e.Handled = true;
+				if (tItem != null)
+					SelectedItem = tItem;
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
 			}
 		}
 
@@ -129,7 +129,7 @@ namespace TokeiLibrary.WPF {
 		private void _treeView_DragOver(object sender, DragEventArgs e) {
 			DragDropEffects? effect = null;
 
-			TkTreeViewItem itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+			var itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 
 			if (itemUnderMouse != _previewItem && _previewItem != null) {
 				_previewItem.Reset();
@@ -154,7 +154,7 @@ namespace TokeiLibrary.WPF {
 		}
 
 		private void _treeView_DragLeave(object sender, DragEventArgs e) {
-			TkTreeViewItem itemUnderMouse = _getTreeViewItemClicked((FrameworkElement) e.OriginalSource, this);
+			var itemUnderMouse = _getTreeViewItemClicked((FrameworkElement) e.OriginalSource, this);
 			DragDropEffects? effect = null;
 
 			if (itemUnderMouse != _previewItem && _previewItem != null) {
@@ -217,9 +217,15 @@ namespace TokeiLibrary.WPF {
 			}
 		}
 
+		private Stopwatch _lastKeyDown = new Stopwatch();
+		private string _currentSearch = "";
+
 		private void _tKView_KeyDown(object sender, KeyEventArgs e) {
 			if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.C) {
-				Clipboard.SetDataObject(GetSelectedPathExceptProject());
+				if (CopyMethod == null)
+					Clipboard.SetDataObject(GetSelectedPathExceptProject());
+				else
+					CopyMethod();
 			}
 			if ((Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control && e.Key == Key.A) {
 				_selectAll();
@@ -230,6 +236,72 @@ namespace TokeiLibrary.WPF {
 				if (item != null) {
 					Clipboard.SetDataObject(item.HeaderText);
 				}
+			}
+			if (e.Key == Key.Down ||
+			    e.Key == Key.Up ||
+			    e.Key == Key.Left ||
+			    e.Key == Key.Right) {
+				var item = SelectedItem as TkTreeViewItem;
+
+				if (item != null) {
+					_selectNext(item, e.Key);
+				}
+				e.Handled = true;
+			}
+			else {
+				try {
+					switch(e.Key) {
+						case Key.LeftAlt:
+						case Key.LeftCtrl:
+						case Key.LeftShift:
+						case Key.RightAlt:
+						case Key.RightCtrl:
+						case Key.RightShift:
+							return;
+					}
+
+					if (Keyboard.FocusedElement is TextBox)
+						return;
+
+					var str = KeyEventUtility.GetCharFromKey(e.Key);
+
+					if (_lastKeyDown.IsRunning && _lastKeyDown.ElapsedMilliseconds > 800) {
+						_currentSearch = "";
+					}
+
+					_lastKeyDown.Reset();
+					_lastKeyDown.Start();
+
+					_currentSearch += str;
+
+					var item = SelectedItem as TkTreeViewItem;
+					var items = _flatten(null);
+					var index = item == null ? -1 : items.IndexOf(item);
+
+					if (_currentSearch.Length == 1) {
+						index += 1;
+					}
+
+					if (index < 0)
+						index = 0;
+
+					for (int i = index; i < items.Count; i++) {
+						if ((items[i].HeaderText ?? "").IndexOf(_currentSearch, 0, StringComparison.OrdinalIgnoreCase) == 0 ||
+							(items[i].TranslatedText ?? "").IndexOf(_currentSearch, 0, StringComparison.OrdinalIgnoreCase) == 2) {
+							SelectedItem = items[i];
+							return;
+						}
+					}
+
+					for (int i = 0; i < index - 1; i++) {
+						if ((items[i].HeaderText ?? "").IndexOf(_currentSearch, 0, StringComparison.OrdinalIgnoreCase) == 0 ||
+							(items[i].TranslatedText ?? "").IndexOf(_currentSearch, 0, StringComparison.OrdinalIgnoreCase) == 2) {
+							SelectedItem = items[i];
+							return;
+						}
+					}
+				}
+				catch { }
 			}
 		}
 
@@ -265,14 +337,14 @@ namespace TokeiLibrary.WPF {
 			}
 		}
 		private void _treeView_Drop(object sender, DragEventArgs e) {
-			TkTreeViewItem item = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+			var item = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 
 			if (item != null) {
 				item.Reset();
 			}
 		}
 		private void _treeView_DragEnter(object sender, DragEventArgs e) {
-			TkTreeViewItem itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+			var itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 
 			try {
 				if (itemUnderMouse != null && !Equals(itemUnderMouse, _previewItem)) {
@@ -299,6 +371,7 @@ namespace TokeiLibrary.WPF {
 			finally {
 				if (itemUnderMouse == null && _previewItem != null && !Equals(_previewItem, SelectedItem)) {
 					_previewItem.IsSelected = _previewItem.IsSelected;
+					_previewItem.Reset();
 					_previewItem = null;
 				}
 			}
@@ -307,8 +380,8 @@ namespace TokeiLibrary.WPF {
 			try {
 				if (Configuration.TreeBehaviorUseAlt && (e.LeftButton == MouseButtonState.Pressed && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))) ||
 					!Configuration.TreeBehaviorUseAlt && (e.LeftButton == MouseButtonState.Pressed)) {
-					TkTreeViewItem tItem = _getTreeViewItemClicked((FrameworkElement) e.OriginalSource, this);
-
+					var tItem = _getTreeViewItemClicked((FrameworkElement) e.OriginalSource, this);
+					
 					if (tItem == null)
 						return;
 
@@ -341,7 +414,8 @@ namespace TokeiLibrary.WPF {
 					//    };
 					//}
 
-					TkTreeViewItem tItem = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+					//var tItem = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+					var tItem = _getTreeViewMousePos(e);
 
 					if (tItem == null)
 						return;
@@ -355,6 +429,8 @@ namespace TokeiLibrary.WPF {
 			}
 			catch { }
 		}
+
+		private ScrollViewer _sv;
 
 		public string GetSelectedPath() {
 			string path = "";
@@ -383,6 +459,44 @@ namespace TokeiLibrary.WPF {
 			}
 
 			return path;
+		}
+
+		private TkTreeViewItem _getTreeViewMousePos(MouseEventArgs e) {
+			var itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
+
+			if (itemUnderMouse != null)
+				return itemUnderMouse;
+
+			var tPos = e.GetPosition(this);
+
+			if (Items.Count == 0)
+				return null;
+
+			if (_sv == null)
+				_sv = WpfUtilities.FindChild<ScrollViewer>(this);
+
+			if (_sv == null)
+				return null;
+
+			if (_sv.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible && tPos.X >= this.ActualWidth - SystemParameters.VerticalScrollBarWidth)
+				return null;
+
+			if (_sv.ComputedHorizontalScrollBarVisibility == System.Windows.Visibility.Visible && tPos.Y >= this.ActualHeight - SystemParameters.HorizontalScrollBarHeight)
+				return null;
+
+			var items = _flatten(null);
+			var itemHeight = items[0].ActualHeight / items.Count;
+
+			var pos = e.GetPosition(items[0]);
+			var index = (int)(pos.Y / itemHeight);
+
+			if (index >= 0 && index < items.Count) {
+				e.Handled = true;
+				return items[index];
+				//SelectedItem = items[index];
+			}
+
+			return null;
 		}
 
 		private static TkTreeViewItem _getTreeViewItemClicked(FrameworkElement sender, TreeView treeView) {

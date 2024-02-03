@@ -35,11 +35,7 @@ namespace GRFEditor.OpenGL.StrGroup {
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
-			//BackgroundShader.SetVector4("colorMult3", StrEditorConfiguration.StrEditorBackgroundColorQuick.Color);
-
-			//Color backColor = Color.FromArgb(150, 0, 0, 0);// GrfEditorConfiguration.StrEditorBackgroundColorQuick;
-			//Shader.SetVector4("colorMult3", new Vector4(backColor.R / 255f, backColor.G / 255f, backColor.B / 255f, backColor.A / 255f));
-			Shader.SetVector4("colorMult3", GrfEditorConfiguration.StrEditorBackgroundColorQuick.Color);
+			Shader.SetVector4("color", GrfEditorConfiguration.StrEditorBackgroundColorQuick.Color);
 
 			GL.BindTexture(TextureTarget.Texture2D, _textId);
 

@@ -6,7 +6,7 @@
                  xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
                  xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
-                 xmlns:WPF1="clr-namespace:GRFEditor.WPF" Height="485" Width="660" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+                 xmlns:WPF1="clr-namespace:GRFEditor.WPF" Height="485" Width="660" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -29,7 +29,7 @@
                 <Border Grid.Row="1" Grid.Column="1" HorizontalAlignment="Left"  Margin="3 0 3 0" Name="_border1" BorderBrush="#8490A1" VerticalAlignment="Center" BorderThickness="1" Width="160">
                     <Grid>
                         <WPF1:LeftComboBox Height="0" x:Name="_cbSubMenu" VerticalAlignment="Bottom" >
-                            <Border Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="#9AA6B6" Background="{StaticResource SearchDialogSubmenuBackgroundBrush}" FocusVisualStyle="{x:Null}">
+                            <Border Margin="-4, -2, -4, -2" Width="170" Focusable="False" BorderThickness="1" BorderBrush="#9AA6B6" Background="{DynamicResource SearchDialogSubmenuBackgroundBrush}" FocusVisualStyle="{x:Null}">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition />
@@ -38,17 +38,17 @@
                                         <RowDefinition />
                                     </Grid.RowDefinitions>
                                     <TextBlock Margin="2 6 2 2" Text="Search options" Foreground="Gray" />
-                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" Name="_cbRegex" Grid.Row="1" Content="Use Regular Expression">
+                                    <CheckBox Margin="2" Foreground="{DynamicResource TextForeground}" Name="_cbRegex" Grid.Row="1" Content="Use Regular Expression">
                                         <CheckBox.ToolTip>
                                             Search using .NET regular expression syntax.
                                         </CheckBox.ToolTip>
                                     </CheckBox>
-                                    <CheckBox Margin="2" Foreground="{StaticResource TextForeground}" Name="_cbWholeWord" Grid.Row="2" Content="Match Whole Words">
+                                    <CheckBox Margin="2" Foreground="{DynamicResource TextForeground}" Name="_cbWholeWord" Grid.Row="2" Content="Match Whole Words">
                                         <CheckBox.ToolTip>
                                             Only find results that are whole words.
                                         </CheckBox.ToolTip>
                                     </CheckBox>
-                                    <CheckBox Margin="2 2 2 6" Foreground="{StaticResource TextForeground}" Name="_cbMatchCase" Grid.Row="3" Content="Match Case">
+                                    <CheckBox Margin="2 2 2 6" Foreground="{DynamicResource TextForeground}" Name="_cbMatchCase" Grid.Row="3" Content="Match Case">
                                         <CheckBox.ToolTip>
                                             Perform case sensitive searches.
                                         </CheckBox.ToolTip>

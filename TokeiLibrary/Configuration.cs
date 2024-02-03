@@ -38,19 +38,6 @@ namespace TokeiLibrary {
 			get { return new SolidColorBrush(Color.FromArgb(255, 114, 114, 114)); }
 		}
 
-		private static SolidColorBrush _uiDialogBackground;
-
-		public static SolidColorBrush UIDialogBackground {
-			get {
-				if (_uiDialogBackground == null) {
-					_uiDialogBackground = new SolidColorBrush(Color.FromArgb(255, 240, 240, 240));
-					_uiDialogBackground.Freeze();
-				}
-
-				return _uiDialogBackground;
-			}
-		}
-
 		public static Thickness UISeparatorMarginTop {
 			get { return Environment.OSVersion.Version.Major >= 6 ? new Thickness(30, 0, 1, 1) : new Thickness(25, 0, 1, 1); }
 		}

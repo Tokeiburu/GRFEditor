@@ -178,7 +178,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		public void ValidateContent(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder container, ref MultiGrfReader metaGrf) {
+		public void ValidateContent(List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors, GrfHolder container, MultiGrfReader metaGrf) {
 			try {
 				_initProgress();
 				errors.Clear();

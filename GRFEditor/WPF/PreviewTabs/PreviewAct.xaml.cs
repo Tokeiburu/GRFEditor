@@ -32,7 +32,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public bool IsAuto { get; set; }
 
 		public override string ToString() {
-			return this.Name;
+			return Name;
 		}
 	}
 
@@ -70,8 +70,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 			BitmapSource image = ApplicationManager.GetResourceImage("arrow.png");
 			BitmapSource image2 = ApplicationManager.GetResourceImage("arrowoblique.png");
 
-			for (int index = 0; index < this._fancyButtons.Count; ++index) {
+			for (int index = 0; index < _fancyButtons.Count; ++index) {
 				_fancyButtons[index].ImageIcon.Source = index % 2 == 0 ? image : image2;
+				_fancyButtons[index].ImageIcon.Height = 16;
+				_fancyButtons[index].ImageIcon.Width = 16;
+				_fancyButtons[index].ImageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+				//_fancyButtons[index].ImageIcon.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Unspecified);
 				_fancyButtons[index].ImageIcon.RenderTransformOrigin = new Point(0.5, 0.5);
 				_fancyButtons[index].ImageIcon.RenderTransform = new RotateTransform { Angle = index / 2 * 90 + 90 };
 			}
@@ -298,7 +302,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 								}
 
 								BitmapScalingMode mode = GrfEditorConfiguration.PreviewActScaleType ? BitmapScalingMode.HighQuality : BitmapScalingMode.NearestNeighbor;
-								ImageSource source = Imaging.GenerateImage(act, actionIndex, this._frameIndex, mode);
+								ImageSource source = Imaging.GenerateImage(act, actionIndex, _frameIndex, mode);
 
 								_imagePreview.Margin = new Thickness(
 									(int) (10 + _scrollViewer.ActualWidth / 2 - (double) source.Dispatcher.Invoke(new Func<double>(() => source.Width)) / 2),

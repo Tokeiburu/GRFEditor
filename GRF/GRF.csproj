@@ -130,6 +130,7 @@
     <Compile Include="Core\Enums\ExtractOptions.cs" />
     <Compile Include="Core\Enums\SavingMode.cs" />
     <Compile Include="Core\Enums\SyncMode.cs" />
+    <Compile Include="Core\GrfBlockBuilder.cs" />
     <Compile Include="FileFormats\ActFormat\Commands\FlipCommand.cs" />
     <Compile Include="FileFormats\ActFormat\EffectConfiguration.cs" />
     <Compile Include="FileFormats\BsonFormat\Bson.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="FileFormats\BsonFormat\BsonType.cs" />
     <Compile Include="FileFormats\BsonFormat\Json.cs" />
     <Compile Include="FileFormats\BsonFormat\JsonTextReader.cs" />
+    <Compile Include="FileFormats\Effects2Str.cs" />
     <Compile Include="FileFormats\IcoFormat\Ico.cs" />
     <Compile Include="FileFormats\IcoFormat\IcoType.cs" />
     <Compile Include="FileFormats\LubFormat\Core\CodeReconstructor2\AdvCodeFragment.cs" />
@@ -463,6 +465,7 @@
     <Compile Include="FileFormats\TgaFormat\Tga.cs" />
     <Compile Include="FileFormats\TgaFormat\TgaHeader.cs" />
     <Compile Include="IO\GrfPath.cs" />
+    <Compile Include="Threading\GrfPushThread.cs" />
     <Compile Include="Threading\ThreadGenericGrf.cs" />
     <Compile Include="Threading\ThreadScanGrf.cs" />
     <Compile Include="Threading\GrfWriterThread.cs" />

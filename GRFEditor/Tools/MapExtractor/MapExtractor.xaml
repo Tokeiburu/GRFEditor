@@ -7,12 +7,15 @@
              xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
              xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
              xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs" xmlns:WPF1="clr-namespace:GRFEditor.WPF"
-             xmlns:MultiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge" mc:Ignorable="d" 
+             xmlns:MultiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
+             xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+             mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="600">
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition />
             <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="2" />
+            <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <WPF:TkView MultiSelection="True" Foreground="{StaticResource TextForeground}" Name="_treeViewMapExtractor" Grid.Column="0" BorderThickness="0" PreviewMouseRightButtonUp="_treeViewMapExtractor_PreviewMouseRightButtonUp">
             <WPF:TkView.ContextMenu>
@@ -35,7 +38,8 @@
                 </ContextMenu>
             </WPF:TkView.ContextMenu>
         </WPF:TkView>
-        <Grid Grid.Column="1">
+        <GridSplitter Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
+        <Grid Grid.Column="2" MinWidth="200">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
                 <RowDefinition Height="auto" />

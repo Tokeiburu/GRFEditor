@@ -171,7 +171,9 @@ namespace GRF.Core {
 		#region Display properties
 
 		public string DisplayRelativePath {
-			get { return Path.GetFileName(RelativePath); }
+			get {
+				return Path.GetFileName(RelativePath);
+			}
 		}
 
 		public string FileType {

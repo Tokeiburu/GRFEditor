@@ -11,7 +11,6 @@ using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
 using Utilities.Extension;
-using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 
 namespace GRFEditor.WPF {
 	/// <summary>
@@ -46,8 +45,7 @@ namespace GRFEditor.WPF {
 			TkTreeViewItem currentNode;
 
 			if (viewItem is ProjectTreeViewItem) {
-				currentNode = new ProjectTreeViewItem(_treeView);
-				((ProjectTreeViewItem) currentNode).TKPath = new TkPath(((ProjectTreeViewItem) viewItem).TKPath);
+				currentNode = new ProjectTreeViewItem(new TkPath(((ProjectTreeViewItem)viewItem).TkPath), _treeView);
 			}
 			else {
 				currentNode = new TkTreeViewItem(_treeView);
@@ -81,7 +79,7 @@ namespace GRFEditor.WPF {
 
 				TkTreeViewItem currentNode = null;
 				foreach (ProjectTreeViewItem pNode in _treeView.Items) {
-					if (pNode.TKPath.FilePath == containerPath) {
+					if (pNode.TkPath.FilePath == containerPath) {
 						currentNode = pNode;
 						break;
 					}

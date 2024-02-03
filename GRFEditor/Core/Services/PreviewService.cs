@@ -536,7 +536,7 @@ namespace GRFEditor.Core.Services {
 								bool hasBeenFound = false;
 
 								foreach (FileEntry entry in items.Items) {
-									if (String.Compare(entry.RelativePath, oldSelectedPath, System.StringComparison.OrdinalIgnoreCase) == 0) {
+									if (String.Compare(entry.RelativePath, oldSelectedPath, StringComparison.OrdinalIgnoreCase) == 0) {
 										items.SelectedItem = entry;
 										items.ScrollToCenterOfView(entry);
 										hasBeenFound = true;

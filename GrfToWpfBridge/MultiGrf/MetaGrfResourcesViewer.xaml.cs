@@ -259,39 +259,41 @@ namespace GrfToWpfBridge.MultiGrf {
 		}
 
 		private void _loadResourcesInfo() {
-			try {
-				if (LoadResourceMethod == null) return;
+			this.Dispatch(delegate {
+				try {
+					if (LoadResourceMethod == null) return;
 
-				bool needsVisualReload = false;
+					bool needsVisualReload = false;
 
-				List<string> resources = LoadResourceMethod();
+					List<string> resources = LoadResourceMethod();
 
-				if (resources.Count == _itemsResourcesSource.Count) {
-					for (int index = 0; index < resources.Count; index++) {
-						string resourcePath = resources[index];
-						if (_itemsResourcesSource[index].Path.GetFullPath() != resourcePath) {
-							needsVisualReload = true;
-							break;
+					if (resources.Count == _itemsResourcesSource.Count) {
+						for (int index = 0; index < resources.Count; index++) {
+							string resourcePath = resources[index];
+							if (_itemsResourcesSource[index].Path.GetFullPath() != resourcePath) {
+								needsVisualReload = true;
+								break;
+							}
 						}
 					}
-				}
-				else {
-					needsVisualReload = true;
-				}
-
-				if (needsVisualReload) {
-					_itemsResourcesSource.Clear();
-
-					foreach (string resourcePath in LoadResourceMethod()) {
-						_itemsResourcesSource.Add(new TkPathView(new TkPath(resourcePath)));
+					else {
+						needsVisualReload = true;
 					}
 
-					OnModified();
+					if (needsVisualReload) {
+						_itemsResourcesSource.Clear();
+
+						foreach (string resourcePath in LoadResourceMethod()) {
+							_itemsResourcesSource.Add(new TkPathView(new TkPath(resourcePath)));
+						}
+
+						OnModified();
+					}
 				}
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
+				}
+			});
 		}
 	}
 }

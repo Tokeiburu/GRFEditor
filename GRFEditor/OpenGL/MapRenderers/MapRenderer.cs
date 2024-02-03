@@ -11,7 +11,7 @@ using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
+namespace GRFEditor.OpenGL.MapRenderers {
 	public class MapRendererOptions {
 		public bool Water { get; set; }
 		public bool Ground { get; set; }
@@ -27,8 +27,16 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		public bool RenderSkymapFeature { get; set; }
 		public bool RenderSkymapDetected { get; set; }
 		public bool RenderingMap { get; set; }
+		public bool SmoothCamera { get; set; }
+		public int FpsCap { get; set; }
+		public bool EnableFaceCulling { get; set; }
+		public bool MinimapMode { get; set; }
+		public int ForceShader { get; set; }
 
 		public Vector4 SkymapBackgroundColor = new Vector4(102, 152, 204, 255) / 255f;	// rbga
+		public Vector4 MinimapWaterColor = new Vector4(0, 0, 128, 144) / 255f;	// rgba
+		public Vector4 MinimapWalkColor = new Vector4(0.5f, 0.5f, 0.5f, 1f);
+		public Vector4 MinimapNonWalkColor = new Vector4(0, 0, 0, 0.4f);
 
 		public MapRendererOptions() {
 			Water = true;
@@ -44,10 +52,14 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			UseClientPov = false;
 			RenderSkymapFeature = true;
 			RenderSkymapDetected = true;
+			SmoothCamera = true;
+			FpsCap = 60;
+			EnableFaceCulling = false;
+			MinimapMode = false;
 		}
 	}
 
-	public class MapRenderer : MapGLObject {
+	public class MapRenderer : Renderer {
 		private readonly RendererLoadRequest _request;
 		private readonly Rsw _rsw;
 		public Dictionary<int, Dictionary<int, RenderInfo>> ShadeGroups = new Dictionary<int, Dictionary<int, RenderInfo>>();
@@ -55,18 +67,12 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		private bool _vaoCreated;
 		private bool _directionalLightSetup;
 		public bool ReloadLight { get; set; }
-		private static MapRendererOptions _renderOptions = new MapRendererOptions();
 		private readonly Stopwatch _watch = new Stopwatch();
 		private readonly Dictionary<SharedRsmRenderer, List<ModelRenderer>> _modelGroups = new Dictionary<SharedRsmRenderer, List<ModelRenderer>>();
 		private readonly Dictionary<string, Texture> _textures = new Dictionary<string, Texture>();
 		public static TextBlock FpsTextBlock;
 		public static CloudEffectSettings SkyMap = new CloudEffectSettings();
 		public static Vector3 LookAt = new Vector3(0);
-
-		public static MapRendererOptions RenderOptions {
-			get { return _renderOptions; }
-			set { _renderOptions = value; }
-		}
 
 		public void ConvertVertices2Float() {
 			foreach (var shadeGroup in ShadeGroups) {
@@ -93,16 +99,18 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 					ri.CreateVao();
 					ri.Vbo = new Vbo();
-					ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.StaticDraw, 8);
+					ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.StaticDraw, 9);
 					ri.RawVertices = new float[0];
 					ri.Vertices.Clear();
 
 					GL.EnableVertexAttribArray(0);
 					GL.EnableVertexAttribArray(1);
 					GL.EnableVertexAttribArray(2);
-					GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-					GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-					GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
+					GL.EnableVertexAttribArray(3);
+					GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0);
+					GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 3 * sizeof(float));
+					GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 5 * sizeof(float));
+					GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 8 * sizeof(float));
 					maxVertices -= ri.Vbo.Length;
 
 					if (maxVertices < 0)
@@ -120,7 +128,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		}
 
 		public override void Render(OpenGLViewport viewport) {
-			if (!_verticesLoaded || IsUnloaded || !RenderOptions.Objects) {
+			if (!_verticesLoaded || IsUnloaded || !viewport.RenderOptions.Objects) {
 				return;
 			}
 
@@ -167,36 +175,70 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			var sTick = _watch.ElapsedMilliseconds;
 
+			Shader.Use();
+
 			foreach (var entry in _modelGroups) {
 				var rsmRenderer = entry.Key;
 				var tick = sTick;
 				float previousAnimationSpeed = -1f;
+				List<Matrix4> instanceMatrixesReverse = new List<Matrix4>();
 				List<Matrix4> instanceMatrixes = new List<Matrix4>();
 
 				foreach (var model in entry.Value.OrderBy(p => p.Model.AnimationSpeed)) {
 					if (Math.Abs(previousAnimationSpeed - model.Model.AnimationSpeed) > 0.01) {
-						if (instanceMatrixes.Count > 0) {
+						if (instanceMatrixes.Count > 0 || instanceMatrixesReverse.Count > 0) {
 							rsmRenderer.Rsm.SetAnimationIndex(tick, previousAnimationSpeed);
 							rsmRenderer.Rsm.Dirty();
-							entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+							if (viewport.RenderOptions.EnableFaceCulling) {
+								if (instanceMatrixesReverse.Count > 0) {
+									GL.FrontFace(FrontFaceDirection.Cw);
+									entry.Key.RenderDynamicModels(viewport, instanceMatrixesReverse);
+								}
+								if (instanceMatrixes.Count > 0) {
+									GL.FrontFace(FrontFaceDirection.Ccw);
+									entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+								}
+							}
+							else {
+								entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+							}
 						}
 
 						previousAnimationSpeed = model.Model.AnimationSpeed;
 						instanceMatrixes.Clear();
+						instanceMatrixesReverse.Clear();
 					}
 
 					if (!model.IsLoaded)
 						model.Load(viewport);
 
-					instanceMatrixes.Add(model.MatrixCache);
+					if (model.ReverseCullFace && viewport.RenderOptions.EnableFaceCulling)
+						instanceMatrixesReverse.Add(model.MatrixCache);
+					else
+						instanceMatrixes.Add(model.MatrixCache);
 				}
 
-				if (instanceMatrixes.Count > 0) {
+				if (instanceMatrixes.Count > 0 || instanceMatrixesReverse.Count > 0) {
 					rsmRenderer.Rsm.SetAnimationIndex(tick, previousAnimationSpeed);
 					rsmRenderer.Rsm.Dirty();
-					entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+					if (viewport.RenderOptions.EnableFaceCulling) {
+						if (instanceMatrixesReverse.Count > 0) {
+							GL.FrontFace(FrontFaceDirection.Cw);
+							entry.Key.RenderDynamicModels(viewport, instanceMatrixesReverse);
+						}
+						if (instanceMatrixes.Count > 0) {
+							GL.FrontFace(FrontFaceDirection.Ccw);
+							entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+						}
+					}
+					else {
+						entry.Key.RenderDynamicModels(viewport, instanceMatrixes);
+					}
 				}
 			}
+
+			if (viewport.RenderOptions.EnableFaceCulling)
+				GL.FrontFace(FrontFaceDirection.Ccw);
 		}
 
 		public override void Unload() {
@@ -204,7 +246,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 			try {
 				foreach (var texture in Textures) {
-					TextureManager.UnloadTexture(texture.Resource);
+					TextureManager.UnloadTexture(texture.Resource, _request.Context);
 				}
 
 				foreach (var shadeGroup in ShadeGroups) {
@@ -212,6 +254,13 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						ri.Unload();
 					}
 				}
+
+				foreach (var sharedRsmRenderer in _modelGroups.Keys) {
+					foreach (var texture in sharedRsmRenderer.Textures)
+						TextureManager.UnloadTexture(texture.Resource, _request.Context);
+				}
+
+				Textures.Clear();
 			}
 			catch {
 			}
@@ -260,11 +309,11 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			}
 
 			model.Load();
-			_addStaticModelVertices(textures, model, model.Rsm.MainMesh, MatrixCache);
+			_addStaticModelVertices(textures, model, model.Rsm.MainMesh, ref MatrixCache);
 		}
 
-		private void _addStaticModelVertices(List<Texture> textures, ModelRsm model, Mesh mesh, Matrix4 instance) {
-			var transformMat = mesh.RenderMatrix * instance;
+		private void _addStaticModelVertices(List<Texture> textures, ModelRsm model, Mesh mesh, ref Matrix4 instance) {
+			var m = mesh.RenderMatrix * instance;
 
 			foreach (var vert in model.Verts[mesh.Model.ShadeType][mesh.Index]) {
 				var texture = textures[mesh.TextureIndexes[vert.Key]];
@@ -274,10 +323,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				if (textureId == -1) {
 					Textures.Add(texture);
 					textureId = Textures.Count - 1;
-				}
-				else {
-					// Texture already loaded, remove it
-					TextureManager.UnloadTexture(texture.Resource);
 				}
 
 				if (!ShadeGroups.ContainsKey(mesh.Model.ShadeType)) {
@@ -291,25 +336,24 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 				var ri = ShadeGroups[mesh.Model.ShadeType][textureId];
 				var res = new List<Vertex>();
+				var scale = model.Model.Scale.X * model.Model.Scale.Y * model.Model.Scale.Z * (model.Rsm.Version >= 2.2 ? -1 : 1) < 0 ? -1 : 0;
 
+				//asdf
 				for (int i = 0; i < vert.Value.Count; i++) {
 					var v = vert.Value[i];
 
-					var pos = new Vector3(v.data[0], v.data[1], v.data[2]);
-					var n = new Vector3(v.data[5], v.data[6], v.data[7]);
+					if (v.data[8] < 1) {
+						v.data[8] = scale;
+					}
 
-					pos = GLHelper.MultiplyWithTranslate(transformMat, pos);
-					n = GLHelper.MultiplyWithoutTranslate(transformMat, n);
-					n = Vector3.Normalize(n);
-
-					res.Add(new Vertex(pos, new Vector2(v.data[3], v.data[4]), n));
+					res.Add(new Vertex(GLHelper.MultiplyWithTranslate2(m, ref v), new Vector2(v.data[3], v.data[4]), Vector3.NormalizeFast(GLHelper.MultiplyWithoutTranslate2(m, ref v)), v.data[8]));
 				}
 
 				ri.Vertices.AddRange(res);
 			}
 
 			foreach (var child in mesh.Children) {
-				_addStaticModelVertices(textures, model, child, instance);
+				_addStaticModelVertices(textures, model, child, ref instance);
 			}
 		}
 
@@ -334,17 +378,69 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 						models[name] = null;
 				}
 
+				GLHelper.OnLog(() => "Message: Loaded " + models.Count + " RSM files (" + _watch.ElapsedMilliseconds + " ms)");
+
+				//var a = new GenericThreadPool<Model>();
+				//
+				//var modelsList = rsw.Objects.OfType<Model>().ToList();
+				//a.Initialize(null, modelsList, model => {
+				//	if (_request.CancelRequired())
+				//		return;
+				//
+				//	ModelRsm modelRsm = new ModelRsm();
+				//	modelRsm.Model = model;
+				//	modelRsm.Rsm = models[model.ModelName];
+				//
+				//	if (modelRsm.Rsm == null)
+				//		return;
+				//	
+				//	if (loadAnimation) {
+				//		if (modelRsm.Rsm.AnimationLength > 0) {
+				//			bool any = modelRsm.Rsm.Meshes.Any(p => p.IsAnimated);
+				//			//any = true;
+				//			if (any) {
+				//				if (!sharedRsmRenderers.ContainsKey(model.ModelName)) {
+				//					sharedRsmRenderers[model.ModelName] = new SharedRsmRenderer(_request, Shader, modelRsm.Rsm, gnd, rsw);
+				//					_modelGroups[sharedRsmRenderers[model.ModelName]] = new List<ModelRenderer>();
+				//				}
+				//	
+				//				var modelRenderer = new ModelRenderer(Shader, modelRsm.Model, sharedRsmRenderers[model.ModelName]);
+				//				modelRenderer.CalculateCachedMatrix();
+				//	
+				//				if (modelRenderer.MatrixCache[3, 0] * 0.2f < 0 ||
+				//					modelRenderer.MatrixCache[3, 0] * 0.2f > gnd.Header.Width * 2 ||
+				//					modelRenderer.MatrixCache[3, 2] * 0.2f < 0 ||
+				//					modelRenderer.MatrixCache[3, 2] * 0.2f > gnd.Header.Height * 2) {
+				//					GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
+				//					return;
+				//				}
+				//	
+				//				_modelGroups[sharedRsmRenderers[model.ModelName]].Add(modelRenderer);
+				//			}
+				//			else {
+				//				_addStaticModel(modelRsm, gnd);
+				//			}
+				//		}
+				//	}
+				//	else {
+				//		_addStaticModel(modelRsm, gnd);
+				//	}
+				//}, 1);
+				//
+				//a.Start();
+
 				foreach (var model in rsw.Objects.OfType<Model>()) {
 					ModelRsm modelRsm = new ModelRsm();
 					modelRsm.Model = model;
 					modelRsm.Rsm = models[model.ModelName];
-
+					bool handled = false;
+				
 					if (modelRsm.Rsm == null)
 						continue;
-
+				
 					if (loadAnimation) {
 						if (modelRsm.Rsm.AnimationLength > 0) {
-							bool any = modelRsm.Rsm.Meshes.Any(p => p.ScaleKeyFrames.Count > 1 || p.TextureKeyFrameGroup.Count > 0 || p.RotationKeyFrames.Count > 1 || p.PosKeyFrames.Count > 1);
+							bool any = modelRsm.Rsm.Meshes.Any(p => p.IsAnimated);
 
 							if (any) {
 								if (!sharedRsmRenderers.ContainsKey(model.ModelName)) {
@@ -356,30 +452,33 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 								modelRenderer.CalculateCachedMatrix();
 
 								if (modelRenderer.MatrixCache[3, 0] * 0.2f < 0 ||
-									modelRenderer.MatrixCache[3, 0] * 0.2f > gnd.Header.Width * 2 ||
-									modelRenderer.MatrixCache[3, 2] * 0.2f < 0 ||
-									modelRenderer.MatrixCache[3, 2] * 0.2f > gnd.Header.Height * 2) {
+								    modelRenderer.MatrixCache[3, 0] * 0.2f > gnd.Header.Width * 2 ||
+								    modelRenderer.MatrixCache[3, 2] * 0.2f < 0 ||
+								    modelRenderer.MatrixCache[3, 2] * 0.2f > gnd.Header.Height * 2) {
+									GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
 									continue;
 								}
 
 								_modelGroups[sharedRsmRenderers[model.ModelName]].Add(modelRenderer);
-							}
-							else {
-								_addStaticModel(modelRsm, gnd);
+								handled = true;
 							}
 						}
 					}
-					else {
+
+					if (!handled) {
 						_addStaticModel(modelRsm, gnd);
 					}
-
+				
 					if (_request.CancelRequired())
 						return;
 				}
 
+				GLHelper.OnLog(() => "Message: Loaded " + (rsw.Objects.OfType<Model>().Count() - _modelGroups.Sum(p => p.Value.Count)) + " static models, " + _modelGroups.Sum(p => p.Value.Count) + " dyanmic models (" + _watch.ElapsedMilliseconds + " ms)");
 				ConvertVertices2Float();
+				GLHelper.OnLog(() => "Message: Converted static models to float array (" + (ShadeGroups.Sum(p => p.Value.Sum(j => j.Value.RawVertices.Length)) / 8) + " vertices).");
 				_verticesLoaded = true;
-			});
+				GLHelper.OnLog(() => "Message: Map loaded (" + _watch.ElapsedMilliseconds + " ms)");
+			}, "Model loader thread");
 		}
 	}
 
@@ -393,7 +492,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			if (RsmLoaded)
 				return;
 
-			Rsm.MainMesh.CalcMatrix1(0);
 			_initMeshInfo(Rsm.MainMesh);
 			RsmLoaded = true;
 		}
@@ -405,7 +503,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 		private void _initMeshInfo(Mesh mesh, ref Matrix4 matrix) {
 			Dictionary<int, Dictionary<int, List<Vertex>>> allVerts;
-
+			//asdf
 			if (!Verts.TryGetValue(mesh.Model.ShadeType, out allVerts)) {
 				allVerts = new Dictionary<int, Dictionary<int, List<Vertex>>>();
 				Verts[mesh.Model.ShadeType] = allVerts;
@@ -426,7 +524,8 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 					l.Add(new Vertex(
 						mesh.Vertices[mesh.Faces[i].VertexIds[ii]],
 						mesh.TextureVertices[mesh.Faces[i].TextureVertexIds[ii]],
-						mesh.Faces[i].VertexNormals[ii])
+						mesh.Faces[i].VertexNormals[ii],
+						mesh.Faces[i].TwoSide)
 					);
 				}
 			}
@@ -436,8 +535,8 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				mesh.RenderMatrixSub = Matrix4.Identity;
 			}
 			else {
-				mesh.RenderMatrix = mesh.Matrix2 * mesh.Matrix1 * matrix;
 				mesh.RenderMatrixSub = mesh.Matrix1 * matrix;
+				mesh.RenderMatrix = mesh.Matrix2 * mesh.RenderMatrixSub;
 			}
 
 			foreach (var child in mesh.Children) {

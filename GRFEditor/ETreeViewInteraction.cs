@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -34,7 +35,7 @@ namespace GRFEditor {
 		#region TreeView main events
 
 		private void _menuItemRename_Click(object sender, RoutedEventArgs e) {
-			_renamingService.RenameFolder(_treeView.SelectedItem, _grfHolder, this, _renameFolderCallback, _deleteFolderCallback, _addFilesCallback);
+			_renamingService.RenameFolder(_treeView.SelectedItem, _treeView, _grfHolder, this, _renameFolderCallback, _deleteFolderCallback, _addFilesCallback);
 		}
 
 		private void _menuItemDelete_Click(object sender, RoutedEventArgs e) {
@@ -189,7 +190,7 @@ namespace GRFEditor {
 				_contextMenuNodes.Items.Cast<UIElement>().ToList().ForEach(p => p.Visibility = Visibility.Visible);
 
 				if (item is ProjectTreeViewItem) {
-					string ext = ((ProjectTreeViewItem) item).TKPath.FilePath.GetExtension();
+					string ext = ((ProjectTreeViewItem) item).TkPath.FilePath.GetExtension();
 					if (ext == ".rgz" || ext == ".thor") {
 						_miTreeOpenExplorer.Visibility = Visibility.Collapsed;
 						_miTreeRename.Visibility = Visibility.Collapsed;
@@ -498,8 +499,9 @@ namespace GRFEditor {
 			if (e.Key == Key.Delete)
 				_menuItemDelete_Click(null, null);
 
-			if (e.Key == Key.F2)
-				_menuItemRename_Click(null, null);
+			if (e.Key == Key.F2) {
+				_renamingService.RenameFolder(_treeView.SelectedItem, _treeView, _grfHolder, this, _renameFolderCallback, _deleteFolderCallback, _addFilesCallback);
+			}
 		}
 
 		#endregion
@@ -535,6 +537,42 @@ namespace GRFEditor {
 			}
 			else {
 				_treeViewPathManager.DeletePath(new TkPath { FilePath = _grfHolder.FileName, RelativePath = folderName }, false);
+			}
+		}
+
+		public class GrfTreeNode {
+			public GrfTreeNode Parent;
+			public Dictionary<string, GrfTreeNode> Children = new Dictionary<string, GrfTreeNode>();
+			public string Name;
+
+			public GrfTreeNode(GrfTreeNode parent, string name) {
+				Parent = parent;
+				Name = name;
+			}
+
+			public void AddPath(string[] paths, int index) {
+				if (index >= paths.Length)
+					return;
+
+				GrfTreeNode child;
+
+				if (!Children.TryGetValue(paths[index], out child)) {
+					child = new GrfTreeNode(this, paths[index]);
+					Children[paths[index]] = child;
+				}
+
+				child.AddPath(paths, index + 1);
+			}
+
+			public TkTreeViewItem GetTvi(TkView tree, Style style) {
+				var tvi = new TkTreeViewItem(tree) { HeaderText = Name };
+				tvi.Style = style;
+				
+				foreach (var child in Children) {
+					tvi.Items.Add(child.Value.GetTvi(tree, style));
+				}
+
+				return tvi;
 			}
 		}
 
@@ -613,7 +651,6 @@ namespace GRFEditor {
 							_grfHolder.Header.SetKey(Configuration.EncryptorPassword, _grfHolder);
 
 						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(), _grfHolder, 300, null, true));
-						//;
 
 						//if (!_grfHolder.Header.IsEncrypted) {
 						//	_grfHolder.SetLzmaFlag();	
@@ -624,6 +661,28 @@ namespace GRFEditor {
 						}
 
 						if (settings.VisualReloadRequired) {
+							//var paths = _grfHolder.FileTable.Files.Select(GrfPath.GetDirectoryName).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList();
+							//
+							//var rootPath = Path.GetFileName(settings.FileName);
+							//GrfTreeNode root = new GrfTreeNode(null, rootPath);
+							//
+							//foreach (var path in paths) {
+							//	var splitPath = (rootPath + "\\" + path).Replace("\\\\", "\\").Split('\\');
+							//
+							//	root.AddPath(splitPath, 0);
+							//}
+							
+							//this.Dispatch(delegate {
+							//	//_treeView.ItemContainerStyle = (Style)this.FindResource("GrfTreeViewStyle");
+							//	//_treeView.Items.Add(root.GetTvi((Style)this.FindResource("GrfTreeViewStyle")));
+							//
+							//	var style = (Style)this.FindResource("TkTreeViewItemStyle");
+							//	//this.HeaderTemplate.Triggers.Add(new Trigger() { })
+							//	
+							//	_treeView.Items.Add(root.GetTvi(_treeView, style));
+							//	//_treeView.ItemTemplate
+							//});
+
 							_treeViewPathManager.AddPath(new TkPath { FilePath = settings.FileName, RelativePath = "" });
 							_treeViewPathManager.AddPaths(settings.FileName, _grfHolder.FileTable.Files.Select(GrfPath.GetDirectoryName).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList());
 						}
@@ -632,31 +691,31 @@ namespace GRFEditor {
 							_treeViewPathManager.ExpandFirstNode();
 							_treeViewPathManager.SelectFirstNode();
 						}
-
+						//
 						if (settings.VisualReloadRequired && Configuration.TreeBehaviorExpandSpecificFolders) {
 							List<string> paths = Methods.StringToList(Configuration.TreeBehaviorSpecificFolders);
-
+						
 							foreach (string path in paths) {
 								_treeViewPathManager.Expand(path);
 							}
 						}
-
+						
 						if (settings.VisualReloadRequired && Configuration.TreeBehaviorSaveExpansion) {
 							List<string> metaContainers = Methods.StringToList(Configuration.TreeBehaviorSaveExpansionFolders);
-
+						
 							if (metaContainers.Any(p => p.StartsWith(settings.FileName + ">"))) {
 								string metaContainer = metaContainers.First(p => p.StartsWith(settings.FileName));
 								List<string> paths = metaContainer.Split('>')[1].Split(':').ToList();
-
+						
 								foreach (string path in paths) {
 									_treeViewPathManager.Expand(new TkPath { FilePath = settings.FileName, RelativePath = path });
 								}
 							}
 						}
-
+						
 						if (settings.VisualReloadRequired && Configuration.TreeBehaviorSelectLatest) {
 							List<string> tkPaths = Methods.StringToList(Configuration.TreeBehaviorSelectLatestFolders);
-
+						
 							if (tkPaths.Any(p => p.StartsWith(settings.FileName + "?"))) {
 								string tkPath = tkPaths.First(p => p.StartsWith(settings.FileName + "?"));
 								_treeViewPathManager.Select(new TkPath(tkPath));

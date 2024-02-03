@@ -25,7 +25,6 @@ using Utilities.Extension;
 
 namespace GRFEditor {
 	partial class EditorMainWindow : Window {
-		private readonly object _listLoadLock = new object();
 		private readonly KnownPositionComponent _positions = new KnownPositionComponent();
 		private FileEntry _latestSelectedItem;
 
@@ -448,22 +447,8 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _loadListItems(bool isAsync = true) {
-			string currentPath = _treeViewPathManager.GetCurrentRelativePath();
-			_searchSelectedPath = currentPath;
-
-			_treeView.Dispatcher.Invoke((Action) delegate {
-				if (_treeView.SelectedItem == null) {
-					_itemEntries.Clear();
-				}
-			});
-
-			GrfThread.Start(delegate {
-				lock (_listLoadLock) {
-					_searchFilter = (string) _textBoxSearch.Dispatcher.Invoke(new Func<string>(() => _textBoxSearch.Text));
-					_filter(isAsync, currentPath);
-				}
-			}, "GrfEditor - Search filter for ListView thread", isAsync);
+		private void _loadListItems() {
+			_folderListing();
 		}
 	}
 }

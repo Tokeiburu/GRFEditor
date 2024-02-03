@@ -59,8 +59,8 @@ namespace Utilities {
 		public static void StopAndDisplayAll() {
 			foreach (var watch in _watches.OrderBy(p => p.Key)) {
 				watch.Value.Stop();
-
 				Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", watch.Value.ElapsedMilliseconds, watch.Value.ElapsedTicks, "Timer ID = " + watch.Key);
+				watch.Value.Reset();
 			}
 		}
 
@@ -84,6 +84,16 @@ namespace Utilities {
 
 		public static bool CounterExists(int opId) {
 			return _watches.ContainsKey(opId);
+		}
+
+		private static StringBuilder _log = new StringBuilder();
+
+		public static void Log(string content) {
+			_log.AppendLine(content);
+		}
+
+		public static void SaveLog(string path) {
+			File.WriteAllText(path, _log.ToString());
 		}
 	}
 

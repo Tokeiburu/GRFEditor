@@ -30,7 +30,7 @@ namespace GRF.FileFormats.RswFormat {
 			Magic = reader.StringANSI(4);
 
 			if (Magic != "GRSW")
-				GrfExceptions.__FileFormatException.Create("RSW");
+				throw GrfExceptions.__FileFormatException.Create("RSW");
 
 			MajorVersion = reader.Byte();
 			MinorVersion = reader.Byte();

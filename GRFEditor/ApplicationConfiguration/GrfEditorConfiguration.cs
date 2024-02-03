@@ -1,13 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Markup;
 using System.Windows.Media;
 using ErrorManager;
+using GRF;
+using GRF.Core;
+using GRF.Core.GroupedGrf;
 using GRF.IO;
 using GRF.Image;
 using GRF.System;
+using GRF.Threading;
 using GrfToWpfBridge;
 using OpenTK;
 using Utilities;
@@ -18,7 +25,7 @@ namespace GRFEditor.ApplicationConfiguration {
 	/// Contains all the configuration information
 	/// The ConfigAsker shouldn't be used manually to store variable,
 	/// make a new property instead. The properties should also always
-	/// have a default value.
+	/// have a default value.1
 	/// </summary>
 	public static class GrfEditorConfiguration {
 		private static ConfigAsker _configAsker;
@@ -134,10 +141,122 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[TreeBehavior - Select latest folders]"] = value; }
 		}
 
-		public static string MapExtractorResources {
-			get { return ConfigAsker["[MapExtractor - Resources]", ""]; }
-			set { ConfigAsker["[MapExtractor - Resources]"] = value; }
+		public sealed class GrfResources {
+			private readonly GrfHolder _grf;
+			private MultiGrfReader _multiGrf = new MultiGrfReader();
+			private bool _loaded = false;
+			private bool _modified = false;
+			private List<string> _resources = new List<string>();
+			private bool _threadLoad = false;
+
+			public delegate void LoadedEventHandler();
+			public delegate void ModifiedEventHandler();
+
+			public event ModifiedEventHandler Modified;
+
+			public bool Dirty {
+				get { return _modified || !_loaded; }
+			}
+
+			private void OnModified() {
+				ModifiedEventHandler handler = Modified;
+				if (handler != null) handler();
+			}
+
+			private static string _mapExtractorResources {
+				get { return ConfigAsker["[MapExtractor - Resources]", ""]; }
+				set { ConfigAsker["[MapExtractor - Resources]"] = value; }
+			}
+
+			public MultiGrfReader MultiGrf {
+				get {
+					while (_threadLoad) {
+						Thread.Sleep(100);
+					}
+
+					if (Dirty) {
+						Reload();
+					}
+
+					return _multiGrf;
+				}
+				set { _multiGrf = value; }
+			}
+
+			public void SaveResources(string resources) {
+				_mapExtractorResources = resources;
+				_modified = true;
+				OnModified();
+			}
+
+			public List<string> LoadResources() {
+				if (!Dirty)
+					return _resources;
+
+				bool currentFound = false;
+				var items = Methods.StringToList(_mapExtractorResources);
+
+				for (int i = 0; i < items.Count; i++) {
+					if (items[i].StartsWith(GrfStrings.CurrentlyOpenedGrf)) {
+						items[i] = items[i].Replace(GrfStrings.CurrentlyOpenedGrf, "");
+					}
+
+					// Changed strings at some point, bandaid.
+					if (items[i].StartsWith("Currently opened GRF: ")) {
+						items[i] = items[i].Replace("Currently opened GRF: ", "");
+					}
+
+					if (items[i].StartsWith("Currently opened GRF : ")) {
+						items[i] = items[i].Replace("Currently opened GRF : ", "");
+					}
+
+					if (_grf != null && items[i] == _grf.FileName) {
+						items[i] = GrfStrings.CurrentlyOpenedGrf + items[i];
+						currentFound = true;
+					}
+				}
+
+				if (!currentFound && _grf != null) {
+					items.Insert(0, GrfStrings.CurrentlyOpenedGrf + _grf.FileName);
+				}
+
+				_resources = items;
+				return items;
+			}
+
+			public void Reload() {
+				try {
+					if (!Dirty)
+						return;
+					var paths = LoadResources().Select(p => new TkPath(p, null)).ToList();
+					_multiGrf.Update(paths, _grf);
+					_modified = false;
+					_loaded = true;
+				}
+				finally {
+					_threadLoad = false;
+				}
+			}
+
+			public GrfResources(GrfHolder grf) {
+				_multiGrf.CurrentGrfAlwaysFirst = true;
+				_grf = grf;
+
+				_grf.ContainerOpened += delegate {
+					if (_threadLoad)
+						return;
+
+					_loaded = false;
+					_modified = true;
+
+					// Deferred load!
+					_threadLoad = true;
+					GrfThread.Start(Reload);
+				};
+			}
 		}
+
+		public static GrfResources Resources;
 
 		public static string DefaultExtractingPath {
 			get {
@@ -169,7 +288,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.5.7"; }
+			get { return "1.8.6.4"; }
 		}
 
 		public static string Author {
@@ -423,6 +542,41 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool MapRenderSkyMap {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSkyMap]", true.ToString()]); }
 			set { ConfigAsker["[GRFEditor - MapRenderSkyMap]"] = value.ToString(); }
+		}
+
+		public static bool MapRenderSmoothCamera {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSmoothCamera]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderSmoothCamera]"] = value.ToString(); }
+		}
+
+		public static bool MapRenderUnlimitedFps {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]"] = value.ToString(); }
+		}
+
+		public static int MapRenderFpsCap {
+			get { return int.Parse(ConfigAsker["[GRFEditor - MapRenderFpsCap]", "60"]); }
+			set { ConfigAsker["[GRFEditor - MapRenderFpsCap]"] = value.ToString(CultureInfo.InvariantCulture); }
+		}
+
+		public static int MapRendererMinimapMargin {
+			get { return int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapMargin]", "7"]); }
+			set { ConfigAsker["[GRFEditor - MapRendererMinimapMargin]"] = value.ToString(CultureInfo.InvariantCulture); }
+		}
+
+		public static int MapRendererMinimapBorderCut {
+			get { return int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]", "1"]); }
+			set { ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]"] = value.ToString(CultureInfo.InvariantCulture); }
+		}
+
+		public static bool MapRenderEnableFaceCulling {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]"] = value.ToString(); }
+		}
+
+		public static bool MapRenderEnableFSAA {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFSAA]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderEnableFSAA]"] = value.ToString(); }
 		}
 
 		public static int MaximumNumberOfThreads {

@@ -1,18 +1,21 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using System.Windows.Controls;
+using TokeiLibrary;
 using TokeiLibrary.WPF;
+using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 
 namespace GRFEditor.Tools.MapExtractor {
 	public class MapExtractorTreeViewItem : TkTreeViewItem {
 		private TkPath _resourcePath;
 
-		public MapExtractorTreeViewItem(TkView parent) : base(parent) {
+		public MapExtractorTreeViewItem(TkView parent) : base(parent, false) {
 			CanBeDragged = true;
 			UseCheckBox = true;
+			CheckBoxHeaderIsEnabled = true;
 
-			HorizontalContentAlignment = HorizontalAlignment.Left;
-			VerticalContentAlignment = VerticalAlignment.Center;
+			Style = (Style)FindResource("MapExtractorTreeViewItemStyle");
 		}
 
 		public TkPath ResourcePath {
@@ -21,7 +24,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				_resourcePath = value;
 
 				if (_resourcePath != null)
-					ToolTip = _resourcePath.GetFullPath();
+					ToolTip = "GRF: " + _resourcePath.FilePath + (String.IsNullOrEmpty(_resourcePath.RelativePath) ? "" : "\r\n" + _resourcePath.RelativePath);
 				else {
 					ToolTip = "Resource not found.";
 				}

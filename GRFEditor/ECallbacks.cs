@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Input;
 using GRF.ContainerFormat.Commands;
 using GRF.Core;
 using GRFEditor.Core.Services;
@@ -11,6 +12,10 @@ namespace GRFEditor {
 			_positions.RedoExecuted += _positions_RedoExecuted;
 			_positions.UndoExecuted += _positions_UndoExecuted;
 			_positions.CommandExecuted += _positions_CommandExecuted;
+
+			MouseDown += delegate {
+				Keyboard.ClearFocus();
+			};
 		}
 
 		private void _grfHolder_ModifiedStateChanged(object sender, IContainerCommand<FileEntry> command) {

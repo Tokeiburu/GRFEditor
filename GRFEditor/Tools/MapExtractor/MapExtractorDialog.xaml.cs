@@ -9,7 +9,7 @@ namespace GRFEditor.Tools.MapExtractor {
 	/// <summary>
 	/// Interaction logic for MapExtractorDialog.xaml
 	/// </summary>
-	public partial class MapExtractorDialog : TkWindow, IDisposable {
+	public partial class MapExtractorDialog : TkWindow {
 		private readonly MapExtractor _mapExtractor;
 		private readonly Dictionary<string, GrfHolder> _openedGrfs = new Dictionary<string, GrfHolder>();
 
@@ -18,16 +18,8 @@ namespace GRFEditor.Tools.MapExtractor {
 
 			_mapExtractor = new MapExtractor(grf, fileName);
 			_gridMapExtractor.Children.Add(_mapExtractor);
+			_mapExtractor.Reload(grf, fileName, () => false);
 		}
-
-		#region IDisposable Members
-
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		#endregion
 
 		protected override void OnClosing(CancelEventArgs e) {
 			_mapExtractor.AsyncOperation.Cancel();
@@ -45,13 +37,6 @@ namespace GRFEditor.Tools.MapExtractor {
 
 		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) {
 			_mapExtractor.ExportAt();
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				if (_mapExtractor != null)
-					_mapExtractor.Dispose();
-			}
 		}
 	}
 }

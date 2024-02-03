@@ -4,7 +4,7 @@
                  xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" Drop="Window_Drop"
                  xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
                  xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="450" MaxWidth="450" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="450" MaxWidth="450" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <StackPanel>
         <TextBlock TextWrapping="Wrap" Text="Drop your file or folder here. This way of adding files is deprecated, close this window and drop them on the tree view directly in the editor." Margin="3" />
         <WPF:TkView Name="_treeView" Height="200" SelectedItemChanged="_treeView_SelectedItemChanged" />

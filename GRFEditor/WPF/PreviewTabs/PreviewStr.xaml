@@ -9,7 +9,7 @@
              xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
              xmlns:previewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
              mc:Ignorable="d" 
-             d:DesignHeight="300" d:DesignWidth="300" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+             d:DesignHeight="300" d:DesignWidth="300" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid Name="_primaryGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />

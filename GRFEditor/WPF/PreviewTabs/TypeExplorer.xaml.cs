@@ -108,8 +108,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (parentNode == null) {
 					Type type = item.GetType();
 
-					TypeTreeViewItem tvi = new TypeTreeViewItem(_view);
-					tvi.ObjectType = TypeTreeViewItemClass.ClassType;
+					TypeTreeViewItem tvi = new TypeTreeViewItem(_view, TypeTreeViewItemClass.ClassType);
 					tvi.HeaderText = _cleanPropertyName(Path.GetExtension(type.ToString()).Substring(1));
 
 					List<TypeTreeViewItem> itemsToAdd = new List<TypeTreeViewItem>();
@@ -171,8 +170,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 					propertyName = _cleanPropertyName(propertyName);
 
-					TypeTreeViewItem tvi = new TypeTreeViewItem(_view);
-					tvi.ObjectType = TypeTreeViewItemClass.MemberType;
+					TypeTreeViewItem tvi = new TypeTreeViewItem(_view, TypeTreeViewItemClass.MemberType);
 
 					if (propertyName == "EncryptionKey" || propertyName == "Encryption key") {
 						return null;
@@ -204,22 +202,22 @@ namespace GRFEditor.WPF.PreviewTabs {
 							tvi.HeaderText = propertyName + " | " + obj;
 						}
 						else if (obj is byte) {
-							tvi.HeaderText = propertyName + " | " + ((Byte) obj).ToString(CultureInfo.InvariantCulture);
+							tvi.HeaderText = propertyName + " | " + ((Byte)obj).ToString(CultureInfo.InvariantCulture);
 						}
 						else if (obj is Double) {
-							tvi.HeaderText = propertyName + " | " + ((Double) obj).ToString(CultureInfo.InvariantCulture);
+							tvi.HeaderText = propertyName + " | " + ((Double)obj).ToString(CultureInfo.InvariantCulture);
 						}
 						else if (obj is Single) {
-							tvi.HeaderText = propertyName + " | " + ((Single) obj).ToString(CultureInfo.InvariantCulture);
+							tvi.HeaderText = propertyName + " | " + ((Single)obj).ToString(CultureInfo.InvariantCulture);
 						}
 						else if (obj is String) {
-							tvi.HeaderText = propertyName + " | " + "\"" + ((String) obj).ToString(CultureInfo.InvariantCulture) + "\"";
+							tvi.HeaderText = propertyName + " | " + "\"" + ((String)obj).ToString(CultureInfo.InvariantCulture) + "\"";
 						}
 						else if (obj is GrfColor) {
 							tvi.HeaderText = propertyName + " | " + "{" + obj + "}";
 						}
 						else if (obj is Boolean) {
-							tvi.HeaderText = propertyName + " | " + "{" + ((Boolean) obj).ToString(CultureInfo.InvariantCulture) + "}";
+							tvi.HeaderText = propertyName + " | " + "{" + ((Boolean)obj).ToString(CultureInfo.InvariantCulture) + "}";
 						}
 						else if (obj is Stream) {
 							tvi.HeaderText = propertyName + " | " + "{Stream}";
@@ -229,24 +227,24 @@ namespace GRFEditor.WPF.PreviewTabs {
 						}
 						else {
 							if (obj is IList && ((IList) obj).Count > 0) {
-								tvi.HeaderText = propertyName + " | " + "{Count = " + ((IList) obj).Count.ToString(CultureInfo.InvariantCulture) + "}";
+								tvi.HeaderText = propertyName + " | " + "{Count = " + ((IList)obj).Count.ToString(CultureInfo.InvariantCulture) + "}";
 								tvi.HasBeenLoaded = false;
-								tvi.Items.Add(new TypeTreeViewItem(_view) { HeaderText = "..." });
+								tvi.Items.Add(new TypeTreeViewItem(_view, TypeTreeViewItemClass.TooManyType) { HeaderText = "..." });
 								tvi.ObjectType = TypeTreeViewItemClass.ListType;
-
+							
 								Type type = obj.GetType();
 								if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof (List<>)) {
 									Type itemType = type.GetGenericArguments()[0];
-
+							
 									if (_nonExpandableTypes.Contains(itemType) || _nonExpandableTypes.Contains(itemType.BaseType)) {
 										tvi.DontAutomaticallyExpand = true;
 									}
 								}
-
+							
 								if (obj is Array) {
 									tvi.DontAutomaticallyExpand = true;
 								}
-
+							
 								if (((IList) obj).Count > 200) {
 									//tvi.Expanded += delegate {
 									//if (!_isExpanding)
@@ -257,17 +255,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 									tvi.Expanded += delegate {
 										if (tvi.HasBeenLoaded == false) {
 											tvi.Items.Clear();
-
+										
 											for (int index = 0; index < ((IList) obj).Count; index++) {
 												object oj = ((IList) obj)[index];
-
+										
 												if (cancelLoadingCallback())
 													return;
-
+										
 												TypeTreeViewItem tviItem = _addNode(tvi, oj, null, false, propertyName + "[" + index + "]", cancelLoadingCallback);
 												if (_nonExpandableTypes.Contains(oj.GetType()) || _nonExpandableTypes.Contains(oj.GetType().BaseType)) {
 												}
-
+										
 												if (tviItem != null)
 													tvi.Items.Add(tviItem);
 											}
@@ -279,21 +277,21 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								if (obj is IList) {
 									tvi.ObjectType = TypeTreeViewItemClass.ListType;
-									tvi.HeaderText = propertyName + " | " + ((IList) obj).Count.ToString(CultureInfo.InvariantCulture);
+									tvi.HeaderText = propertyName + " | " + ((IList)obj).Count.ToString(CultureInfo.InvariantCulture);
 								}
 								else {
 									tvi.HeaderText = propertyName + " | " + "{" + obj + "}";
 									tvi.HasBeenLoaded = false;
 									tvi.ObjectType = TypeTreeViewItemClass.ClassType;
-									tvi.Items.Add(new TypeTreeViewItem(_view) { HeaderText = "..." });
-
+									tvi.Items.Add(new TypeTreeViewItem(_view, TypeTreeViewItemClass.TooManyType) { HeaderText = "..." });
+							
 									if (_nonExpandableTypes.Contains(obj.GetType()) || _nonExpandableTypes.Contains(obj.GetType().BaseType)) {
 										tvi.DontAutomaticallyExpand = true;
 									}
-
+							
 									TypeTreeViewItem tviClosure = tvi;
 									Object objClosure = obj;
-
+							
 									tvi.Expanded += delegate {
 										if (tviClosure.HasBeenLoaded == false) {
 											tviClosure.Items.Clear();

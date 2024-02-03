@@ -148,6 +148,7 @@
     <Compile Include="WPF\HyperlinkTextBlock.xaml.cs">
       <DependentUpon>HyperlinkTextBlock.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\KeyEventUtility.cs" />
     <Compile Include="WPF\LeftComboBox.cs" />
     <Compile Include="WPF\SelectTextBox.cs" />
     <Compile Include="WPF\EncodingSelector.cs" />
@@ -290,7 +291,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\folderClosed.png" />
-    <EmbeddedResource Include="Resources\folderOpened.png" />
   </ItemGroup>
   <ItemGroup>
     <Page Include="WpfBugFix\ToggleMemoryPopup.xaml">
@@ -349,6 +349,9 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\properties.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

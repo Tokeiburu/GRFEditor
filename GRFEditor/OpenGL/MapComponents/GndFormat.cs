@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using GRF;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
@@ -96,18 +97,17 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 		private void _loadWater(IBinaryReader data) {
 			if (Header.IsCompatibleWith(1, 8)) {
-				RswWater water = new RswWater();
+				RswWater defWWater = new RswWater();
 
-				water.Level = data.Float();
-				water.Type = data.Int32();
-				water.WaveHeight = data.Float();
-				water.WaveSpeed = data.Float();
-				water.WavePitch = data.Float();
-				water.TextureCycling = data.Int32();
+				defWWater.Level = data.Float();
+				defWWater.Type = data.Int32();
+				defWWater.WaveHeight = data.Float();
+				defWWater.WaveSpeed = data.Float();
+				defWWater.WavePitch = data.Float();
+				defWWater.TextureCycling = data.Int32();
 
 				Water.WaterSplitWidth = data.Int32();
 				Water.WaterSplitHeight = data.Int32();
-				Water.Zones.Add(water);
 
 				if (Header.IsCompatibleWith(1, 9)) {
 					Water.Zones.Clear();
@@ -127,13 +127,101 @@ namespace GRFEditor.OpenGL.MapComponents {
 					}
 				}
 				else {
-					water.Level = data.Float();
+					Water.Zones.Clear();
+
+					int count = Water.WaterSplitWidth * Water.WaterSplitHeight;
+					for (int i = 0; i < count; i++) {
+						RswWater waterSub = new RswWater(defWWater);
+						waterSub.Level = data.Float();
+						Water.Zones.Add(waterSub);
+					}
 				}
 			}
 		}
 
 		public int LightmapOffset() {
 			return LightmapWidth * LightmapHeight;
+		}
+
+		public Vector3 RayCast(Ray ray, bool showBlackTiles, bool pickCubeMode) {
+			if (Cubes.Count == 0)
+				return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+
+			float rayOffset = 0;
+
+			int chunkSize = 10;
+			List<Vector3> collisions = new List<Vector3>();
+			float f = 0;
+
+			for (int xx = 0; xx < Width; xx += chunkSize) {
+				for (int yy = 0; yy < Height; yy += chunkSize) {
+					//math::AABB box(glm::vec3(10*(xx-1), -999999, 10*height - 10*((yy+chunkSize+1))), glm::vec3(10*(xx + chunkSize+1), 999999, 10*height - (10 * (yy-1))));
+					AABB box = new AABB(new Vector3(10 * (xx - 1), -999999, 10 * Height - 10 * ((yy + chunkSize + 1))), new Vector3(10 * (xx + chunkSize + 1), 999999, 10 * Height - (10 * (yy - 1))));
+
+					if (!box.HasRayCollision(ray, -999999, 9999999))
+						continue;
+
+					for (int x = xx; x < Math.Min(Width, xx + chunkSize); x++) {
+						for (int y = yy; y < Math.Min(Height, yy + chunkSize); y++) {
+							var cube = this[x, y];
+
+							if (cube.TileUp != -1 || showBlackTiles || pickCubeMode) {
+								var v1 = new Vector3(10 * x, -cube[2], 10 * Height - 10 * y);
+								var v2 = new Vector3(10 * x + 10, -cube[3], 10 * Height - 10 * y);
+								var v3 = new Vector3(10 * x, -cube[0], 10 * Height - 10 * y + 10);
+								var v4 = new Vector3(10 * x + 10, -cube[1], 10 * Height - 10 * y + 10);
+
+								List<Vector3> v = new List<Vector3> { v4, v2, v1, v4, v1, v3 };
+								if (ray.LineIntersectPolygon(v, 0, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+								if (ray.LineIntersectPolygon(v, 3, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+							}
+
+							if ((cube.TileSide != -1 || pickCubeMode) && x < Width - 1) {
+								var v1 = new Vector3(10 * x + 10, -cube[3], 10 * Height - 10 * y);
+								var v2 = new Vector3(10 * x + 10, -this[x + 1, y][2], 10 * Height - 10 * y);
+								var v3 = new Vector3(10 * x + 10, -cube[1], 10 * Height - 10 * y + 10);
+								var v4 = new Vector3(10 * x + 10, -this[x + 1, y][0], 10 * Height - 10 * y + 10);
+
+								List<Vector3> v = new List<Vector3> { v4, v2, v1, v4, v1, v3 };
+								if (ray.LineIntersectPolygon(v, 0, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+								if (ray.LineIntersectPolygon(v, 3, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+							}
+
+							if ((cube.TileFront != -1 || pickCubeMode) && y < Height - 1) {
+								var v1 = new Vector3(10 * x, -cube[2], 10 * Height - 10 * y);
+								var v2 = new Vector3(10 * x + 10, -cube[3], 10 * Height - 10 * y);
+								var v3 = new Vector3(10 * x, -this[x, y + 1][0], 10 * Height - 10 * y);
+								var v4 = new Vector3(10 * x + 10, -this[x, y + 1][1], 10 * Height - 10 * y);
+
+								List<Vector3> v = new List<Vector3> { v4, v2, v1, v4, v1, v3 };
+								if (ray.LineIntersectPolygon(v, 0, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+								if (ray.LineIntersectPolygon(v, 3, ref f))
+									if (f >= rayOffset)
+										collisions.Add(ray.Origin + f * ray.Dir);
+							}
+						}
+					}
+				}
+			}
+
+			if (collisions.Count == 0)
+				return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
+
+			collisions.Sort(delegate(Vector3 a, Vector3 b) {
+				return Vector3.Distance(a, ray.Origin) < Vector3.Distance(b, ray.Origin) ? -1 : 1;
+			});
+
+			return collisions[0];
 		}
 	}
 
@@ -193,9 +281,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 			Vector3 v3 = new Vector3(10, -_heights[2], 10);
 			Vector3 v4 = new Vector3(0, -_heights[3], 10);
 
-			Vector3 normal1 = Vector3.Normalize(Vector3.Cross(v4 - v3, v1 - v3));
-			Vector3 normal2 = Vector3.Normalize(Vector3.Cross(v1 - v2, v4 - v2));
-			Normal = Vector3.Normalize(normal1 + normal2);
+			Vector3 normal1 = Vector3.NormalizeFast(Vector3.Cross(v4 - v3, v1 - v3));
+			Vector3 normal2 = Vector3.NormalizeFast(Vector3.Cross(v1 - v2, v4 - v2));
+			Normal = Vector3.NormalizeFast(normal1 + normal2);
 
 			for (int i = 0; i < 4; i++)
 				Normals[i] = Normal;
@@ -213,7 +301,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 						Normals[i] += gnd[x + xx, y + yy].Normal;
 				}
 				
-				Normals[i] = Vector3.Normalize(Normals[i]);
+				Normals[i] = Vector3.NormalizeFast(Normals[i]);
 			}
 		}
 	}

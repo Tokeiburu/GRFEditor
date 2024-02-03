@@ -10,6 +10,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using Utilities.Tools;
+using Orientation = System.Windows.Controls.Orientation;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -53,8 +54,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_shaderPrimary = new Shader("shader.vert", "shader.frag");
 
 			var background = new GLBackground();
-			var infiniteLineV = new GLLine(System.Windows.Controls.Orientation.Vertical);
-			var infiniteLineH = new GLLine(System.Windows.Controls.Orientation.Horizontal);
+			var infiniteLineV = new GLLine(Orientation.Vertical);
+			var infiniteLineH = new GLLine(Orientation.Horizontal);
 
 			_objects.Add(background);
 			_objects.Add(infiniteLineV);

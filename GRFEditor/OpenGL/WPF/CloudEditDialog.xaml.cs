@@ -3,8 +3,9 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using GRFEditor.OpenGL.MapGLGroup;
+using GRFEditor.OpenGL.MapRenderers;
 using GrfToWpfBridge;
+using OpenTK;
 using Utilities;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -16,27 +17,27 @@ namespace GRFEditor.OpenGL.WPF {
 			InitializeComponent();
 		}
 
-		public void Init() {
+		public void Init(OpenGLViewport viewport) {
 			if (MapRenderer.SkyMap == null)
 				MapRenderer.SkyMap = new CloudEffectSettings();
 
-			_tbBg_Color.Color = Color.FromArgb((byte)(MapRenderer.RenderOptions.SkymapBackgroundColor[3] * 255f), (byte)(MapRenderer.RenderOptions.SkymapBackgroundColor[0] * 255f), (byte)(MapRenderer.RenderOptions.SkymapBackgroundColor[1] * 255f), (byte)(MapRenderer.RenderOptions.SkymapBackgroundColor[2] * 255f));
+			_tbBg_Color.Color = Color.FromArgb((byte)(viewport.RenderOptions.SkymapBackgroundColor[3] * 255f), (byte)(viewport.RenderOptions.SkymapBackgroundColor[0] * 255f), (byte)(viewport.RenderOptions.SkymapBackgroundColor[1] * 255f), (byte)(viewport.RenderOptions.SkymapBackgroundColor[2] * 255f));
 			_tbBg_Color.ColorChanged += (s, c) => {
-				MapRenderer.RenderOptions.SkymapBackgroundColor = new OpenTK.Vector4(c.R, c.G, c.B, c.A) / 255f;
+				viewport.RenderOptions.SkymapBackgroundColor = new Vector4(c.R, c.G, c.B, c.A) / 255f;
 				MapRenderer.SkyMap.IsChanged = true;
 			};
 			_tbBg_Color.PreviewColorChanged += (s, c) => {
-				MapRenderer.RenderOptions.SkymapBackgroundColor = new OpenTK.Vector4(c.R, c.G, c.B, c.A) / 255f;
+				viewport.RenderOptions.SkymapBackgroundColor = new Vector4(c.R, c.G, c.B, c.A) / 255f;
 				MapRenderer.SkyMap.IsChanged = true;
 			};
 
 			_cloudTab._tbColor.Color = Color.FromArgb(255, (byte)(MapRenderer.SkyMap.Color[0] * 255f), (byte)(MapRenderer.SkyMap.Color[1] * 255f), (byte)(MapRenderer.SkyMap.Color[2] * 255f));
 			_cloudTab._tbColor.ColorChanged += (s, c) => {
-				MapRenderer.SkyMap.Color = new OpenTK.Vector3(c.R, c.G, c.B) / 255f;
+				MapRenderer.SkyMap.Color = new Vector3(c.R, c.G, c.B) / 255f;
 				MapRenderer.SkyMap.IsChanged = true;
 			};
 			_cloudTab._tbColor.PreviewColorChanged += (s, c) => {
-				MapRenderer.SkyMap.Color = new OpenTK.Vector3(c.R, c.G, c.B) / 255f;
+				MapRenderer.SkyMap.Color = new Vector3(c.R, c.G, c.B) / 255f;
 				MapRenderer.SkyMap.IsChanged = true;
 			};
 
@@ -60,7 +61,7 @@ namespace GRFEditor.OpenGL.WPF {
 				MapRenderer.SkyMap.IsChanged = true;
 			};
 
-			Binder.Bind(_tbEnableSkyMap, () => MapRenderer.RenderOptions.RenderSkymapDetected, v => MapRenderer.RenderOptions.RenderSkymapDetected = v);
+			Binder.Bind(_tbEnableSkyMap, () => viewport.RenderOptions.RenderSkymapDetected, v => viewport.RenderOptions.RenderSkymapDetected = v);
 
 			_bind(_cloudTab._tbAmount, () => MapRenderer.SkyMap.Num.ToString(CultureInfo.InvariantCulture), v => MapRenderer.SkyMap.Num = (int)FormatConverters.SingleConverterNoThrow(v));
 			_bind(_cloudTab._tbSize, () => MapRenderer.SkyMap.Size.ToString(CultureInfo.InvariantCulture), v => MapRenderer.SkyMap.Size = FormatConverters.SingleConverterNoThrow(v));

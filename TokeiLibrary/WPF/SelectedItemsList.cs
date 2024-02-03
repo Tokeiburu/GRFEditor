@@ -56,20 +56,20 @@ namespace TokeiLibrary.WPF {
 						return;
 					}
 					else if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) {
-						_selectedItems.Skip(1).OfType<TkTreeViewItem>().ToList().ForEach(p => p.IsSelected = false);
+						//if (_selectedItems.Count > 0) {
+							_selectedItems.Skip(1).OfType<TkTreeViewItem>().ToList().ForEach(p => p.IsSelected = false);
 
-						int position1 = parent.FindPosition(_selectedItems[0] as TkTreeViewItem);
-						int position2 = parent.FindPosition(item as TkTreeViewItem);
+							int position1 = parent.FindPosition(_selectedItems[0] as TkTreeViewItem);
+							int position2 = parent.FindPosition(item as TkTreeViewItem);
 
-						//Clear();
+							List<object> selected = position1 < position2 ? parent.GetItems(position1, position2) : parent.GetItems(position2, position1);
 
-						List<object> selected = position1 < position2 ? parent.GetItems(position1, position2) : parent.GetItems(position2, position1);
+							selected.Remove(_selectedItems[0]);
 
-						selected.Remove(_selectedItems[0]);
-
-						SelectNoEvent = true;
-						selected.OfType<TkTreeViewItem>().ToList().ForEach(p => p.IsSelected = true);
-						SelectNoEvent = false;
+							SelectNoEvent = true;
+							selected.OfType<TkTreeViewItem>().ToList().ForEach(p => p.IsSelected = true);
+							SelectNoEvent = false;
+						//}
 
 						return;
 					}

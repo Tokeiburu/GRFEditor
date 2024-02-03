@@ -172,15 +172,15 @@ namespace GRFEditor.WPF {
 		private void _replaceTextBox_GotFocus(object sender, RoutedEventArgs e) {
 			_labelReplace.Visibility = Visibility.Hidden;
 			_border2.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 186, 86, 0));
-			_replaceTextBox.Foreground = (Brush)this.FindResource("TextForeground");
-			_searchTextBox.Foreground = (Brush)this.FindResource("TextForeground");
+			_replaceTextBox.Foreground = (Brush)FindResource("TextForeground");
+			_searchTextBox.Foreground = (Brush)FindResource("TextForeground");
 		}
 
 		private void _searchTextBox_GotFocus(object sender, RoutedEventArgs e) {
 			_labelFind.Visibility = Visibility.Hidden;
 			_border1.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 186, 86, 0));
-			_replaceTextBox.Foreground = (Brush)this.FindResource("TextForeground");
-			_searchTextBox.Foreground = (Brush)this.FindResource("TextForeground");
+			_replaceTextBox.Foreground = (Brush)FindResource("TextForeground");
+			_searchTextBox.Foreground = (Brush)FindResource("TextForeground");
 		}
 
 		private void _replaceTextBox_LostFocus(object sender, RoutedEventArgs e) {

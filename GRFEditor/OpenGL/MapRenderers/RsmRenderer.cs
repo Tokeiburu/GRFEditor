@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GRF.FileFormats.RswFormat;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
-namespace GRFEditor.OpenGL.MapGLGroup {
-	public class SharedRsmRenderer : MapGLObject {
+namespace GRFEditor.OpenGL.MapRenderers {
+	public class SharedRsmRenderer : Renderer {
 		private readonly RendererLoadRequest _request;
 		private readonly Rsm _rsm;
 		public readonly Gnd Gnd;
@@ -15,10 +14,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		public Dictionary<int, RenderInfo> RenderInfos = new Dictionary<int, RenderInfo>();
 		public RenderInfo RenderInfo = new RenderInfo();
 		public RenderInfo RenderInfoTransparent = new RenderInfo();
-
-		static SharedRsmRenderer() {
-			ForceShader = -1;
-		}
 
 		public SharedRsmRenderer(RendererLoadRequest request, Shader shader, Rsm rsm, Gnd gnd = null, Rsw rsw = null) {
 			Shader = shader;
@@ -31,8 +26,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 		public Rsm Rsm {
 			get { return _rsm; }
 		}
-
-		public static int ForceShader { get; set; }
 
 		public override void Load(OpenGLViewport viewport) {
 			if (IsLoaded) {
@@ -75,7 +68,8 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 					l.Add(new Vertex(
 						mesh.Vertices[mesh.Faces[i].VertexIds[ii]],
 						mesh.TextureVertices[mesh.Faces[i].TextureVertexIds[ii]],
-						mesh.Faces[i].VertexNormals[ii])
+						mesh.Faces[i].VertexNormals[ii],
+						mesh.Faces[i].TwoSide)
 					);
 				}
 			}
@@ -96,8 +90,8 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				RenderInfos[mesh.Index].MatrixSub = Matrix4.Identity;
 			}
 			else {
-				RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * mesh.Matrix1 * matrix;
 				RenderInfos[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
+				RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * RenderInfos[mesh.Index].MatrixSub;
 			}
 
 			foreach (var child in mesh.Children) {
@@ -117,23 +111,25 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				GL.EnableVertexAttribArray(0);
 				GL.EnableVertexAttribArray(1);
 				GL.EnableVertexAttribArray(2);
-				GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-				GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-				GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
+				GL.EnableVertexAttribArray(3);
+				GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 0);
+				GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 9 * sizeof(float), 3 * sizeof(float));
+				GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 9 * sizeof(float), 5 * sizeof(float));
+				GL.VertexAttribPointer(3, 1, VertexAttribPointerType.Float, false, 9 * sizeof(float), 8 * sizeof(float));
 			}
 		}
 
 		public void Render(OpenGLViewport viewport, ref Matrix4 modelMatrixCache) {
 			Shader.Use();
 			Shader.SetMatrix4("modelMatrix2", modelMatrixCache);
-			Shader.SetInt("shadeType", ForceShader > 0 ? ForceShader : _rsm.ShadeType);
+			Shader.SetInt("shadeType", viewport.RenderOptions.ForceShader > 0 ? viewport.RenderOptions.ForceShader : _rsm.ShadeType);
 
 			Render(viewport);
 		}
 
 		public override void Render(OpenGLViewport viewport) {
 			Shader.Use();
-			Shader.SetInt("shadeType", ForceShader > 0 ? ForceShader : _rsm.ShadeType);
+			Shader.SetInt("shadeType", viewport.RenderOptions.ForceShader > 0 ? viewport.RenderOptions.ForceShader : _rsm.ShadeType);
 
 			if (_rsw != null) {
 				
@@ -146,15 +142,12 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 				Shader.SetVector3("lightDiffuse", new Vector3(1f, 1f, 1f));
 				Shader.SetFloat("lightIntensity", 0.5f);
 				Shader.SetVector3("lightDirection", lightDirection);
-				Shader.SetVector3("lightPosition", viewport.CameraPosition);
+				Shader.SetVector3("lightPosition", viewport.Camera.Position);
 			}
-
-			//_rsm.Dirty();
-			//_rsm.Meshes.ForEach(p => p.MatrixDirty = true);
 
 			if (_rsm.MeshesDirty) {
 				var matrix = Matrix4.Identity;
-				_updateMeshMatrix(_rsm.MainMesh, ref matrix);
+				_updateMeshMatrix(_rsm.MainMesh, ref matrix, true);
 				_rsm.MeshesDirty = false;
 			}
 
@@ -172,12 +165,11 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			if (!IsLoaded)
 				Load(viewport);
 
-			Shader.Use();
-			Shader.SetInt("shadeType", ForceShader > 0 ? ForceShader : _rsm.ShadeType);
+			Shader.SetInt("shadeType", viewport.RenderOptions.ForceShader > 0 ? viewport.RenderOptions.ForceShader : _rsm.ShadeType);
 
 			if (_rsm.MeshesDirty) {
 				var matrix = Matrix4.Identity;
-				_updateMeshMatrix(_rsm.MainMesh, ref matrix);
+				_updateMeshMatrix(_rsm.MainMesh, ref matrix, true);
 				_rsm.MeshesDirty = false;
 			}
 
@@ -191,23 +183,25 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			}
 		}
 
-		private void _updateMeshMatrix(Mesh mesh, ref Matrix4 matrix) {
-			if (mesh.MatrixDirty) {
-				mesh.MatrixDirty = false;
-				mesh.CalcMatrix1(Environment.TickCount);
+		private void _updateMeshMatrix(Mesh mesh, ref Matrix4 matrix, bool calcMatrix) {
+			if (mesh.IsAnimated) {
+				if (calcMatrix) {
+					calcMatrix = false;
+					mesh.CalcMatrix1();
+				}
 
 				if (mesh.Model.Version >= 2.2) {
 					RenderInfos[mesh.Index].Matrix = mesh.Matrix2;
 					RenderInfos[mesh.Index].MatrixSub = Matrix4.Identity;
 				}
 				else {
-					RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * mesh.Matrix1 * matrix;
 					RenderInfos[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
+					RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * RenderInfos[mesh.Index].MatrixSub;
 				}
 			}
 
 			foreach (var child in mesh.Children) {
-				_updateMeshMatrix(child, ref RenderInfos[mesh.Index].MatrixSub);
+				_updateMeshMatrix(child, ref RenderInfos[mesh.Index].MatrixSub, calcMatrix);
 			}
 		}
 
@@ -215,7 +209,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			if (ri.Vbo != null) {
 				bool repeat = false;
 				ri.BindVao();
-				ri.Vbo.Bind();
 
 				Mesh mesh = null;
 				int meshIndex = -1;
@@ -307,7 +300,6 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 					vboCount -= vboIndex.Count;
 				}
-				
 			}
 		}
 
@@ -315,6 +307,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 			shader.Use();
 			shader.SetMatrix4("cameraMatrix", viewport.View);
 			shader.SetMatrix4("projectionMatrix", viewport.Projection);
+			shader.SetFloat("enableCullFace", viewport.RenderOptions.EnableFaceCulling ? 1.0f : 0.0f);
 		}
 
 		public static void SetupRswLight(Shader shader, Rsw rsw) {
@@ -333,7 +326,7 @@ namespace GRFEditor.OpenGL.MapGLGroup {
 
 		public override void Unload() {
 			foreach (var texture in Textures) {
-				TextureManager.UnloadTexture(texture.Resource);
+				TextureManager.UnloadTexture(texture.Resource, _request.Context);
 			}
 
 			foreach (var ri in RenderInfos.Values) {

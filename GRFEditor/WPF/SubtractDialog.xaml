@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" 
                  xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                  xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <StackPanel>
         <TextBlock Margin="3" Text="Subtraction cannot be undone. GRF1 - GRF2 = Output" Grid.Row="1" TextWrapping="Wrap"/>
         <Grid>

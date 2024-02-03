@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
@@ -192,7 +193,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			int perLine = GrfEditorConfiguration.PreviewSpritesPerLine;
 
 			if (GrfEditorConfiguration.PreviewSpritesAuto) {
-				bool imageFolder = _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, System.IO.SearchOption.TopDirectoryOnly).Any(entry => entry.RelativePath.IsExtension(".jpg", ".bmp", ".png"));
+				bool imageFolder = _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly).Any(entry => entry.RelativePath.IsExtension(".jpg", ".bmp", ".png"));
 
 				if (imageFolder) {
 					perLine = 3;
@@ -209,7 +210,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				suggestedSize = 32;
 			}
 
-			foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, System.IO.SearchOption.TopDirectoryOnly)) {
+			foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly)) {
 				if (entry.RelativePath.IsExtension(_previewFiles)) {
 					if (current % perLine == 0) {
 						previews2.Add(new LargeSpritePreviewView { SuggestedSize = suggestedSize });
@@ -255,7 +256,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					if (!GrfEditorConfiguration.PreviewSpritesWrap) {
 						List<SpritePreviewView> previews = new List<SpritePreviewView>();
 
-						foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, System.IO.SearchOption.TopDirectoryOnly)) {
+						foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly)) {
 							if (entry.RelativePath.IsExtension(_previewFiles)) {
 								previews.Add(new SpritePreviewView { Entry = entry });
 							}
@@ -304,7 +305,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _items_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) {
+		private void _items_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
 			_miSelect_Click(null, null);
 		}
 
@@ -327,7 +328,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _items2_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e) {
+		private void _items2_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
 			try {
 				var lspv = _itemsLarge.SelectedItem as LargeSpritePreviewView;
 

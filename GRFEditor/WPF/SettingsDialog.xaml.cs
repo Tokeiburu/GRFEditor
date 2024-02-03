@@ -114,7 +114,7 @@ namespace GRFEditor.WPF {
 			_add(_gridGeneral, ++row, "Always reopen latest opened GRF", "Always reopen the most recently opened GRF when starting the application.", () => GrfEditorConfiguration.AlwaysReopenLatestGrf);
 			//_add(_gridGeneral, ++row, "Use the opened GRF path to extract", "If enabled, the files extraced will be placed in the same folder as the GRF. They will be placed within the working directory of the application otherwise.", () => GrfEditorConfiguration.UseGrfPathToExtract);
 			_add(_gridGeneral, ++row, "Enable windows ownership", "Makes the windows linked together, resulting in only being able to focus on one at a time. Disabling this features enables you to open multiple windows (as in tools).", () => Configuration.EnableWindowsOwnership);
-			_add(_gridGeneral, ++row, "Lock added files", "If enabled, files added to a GRF will be locked (other processes won't be able to move, delete or modify it).", () => GrfEditorConfiguration.LockFiles);
+			_add(_gridGeneral, ++row, "Lock added files", "If enabled, files added to a GRF will be locked (other processes won't be able to move, delete or modify them).", () => GrfEditorConfiguration.LockFiles);
 			_add(_gridGeneral, ++row, "Add hash data to Thor files", "If enabled, a hash file will be added to Thor patches.", () => GrfEditorConfiguration.AddHashFileForThor);
 
 			Binder.Bind(_cbOverrideExtractionPath, () => GrfEditorConfiguration.OverrideExtractionPath, delegate {
@@ -146,9 +146,17 @@ namespace GRFEditor.WPF {
 
 				//Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(path, UriKind.RelativeOrAbsolute) });
 				Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(path, UriKind.RelativeOrAbsolute) });
-				ErrorHandler.HandleException("For the theme to apply properly, please restart the application.");
+
+				ApplicationManager.OnThemeChanged();
+				//ErrorHandler.HandleException("For the theme to apply properly, please restart the application.");
 			});
 			WpfUtils.AddMouseInOutEffectsBox(_assShellAll);
+
+			_mViewer.SaveResourceMethod = v => GrfEditorConfiguration.Resources.SaveResources(v);
+			_mViewer.LoadResourceMethod = () => GrfEditorConfiguration.Resources.LoadResources();
+			GrfEditorConfiguration.Resources.Modified += () => _mViewer.LoadResourcesInfo();
+			_mViewer.LoadResourcesInfo();
+			_mViewer.CanDeleteMainGrf = false;
 		}
 
 		private void _assoc(CheckBox box, string ext, FileAssociation assoc) {
@@ -400,7 +408,7 @@ namespace GRFEditor.WPF {
 			dialog.TextBoxInput.Height = 200;
 			dialog.TextBoxInput.MinHeight = 200;
 			dialog.TextBoxInput.MaxHeight = 200;
-
+			dialog.TextBoxInput.VerticalContentAlignment = VerticalAlignment.Top;
 
 			if (dialog.ShowDialog() == true) {
 				GrfEditorConfiguration.TreeBehaviorSpecificFolders = dialog.Input.Replace("\r", "").Replace("\n\n", "\n").Replace("\n", ",");

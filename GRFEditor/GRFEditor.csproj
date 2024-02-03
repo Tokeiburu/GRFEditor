@@ -133,33 +133,44 @@
     <Compile Include="Core\AsyncOperationReturnState.cs" />
     <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
     <Compile Include="Core\GrfLoadingSettings.cs" />
+    <Compile Include="OpenGL\ClipboardBrowEdit.cs" />
     <Compile Include="OpenGL\GLHelper.cs" />
+    <Compile Include="OpenGL\MapComponents\Camera.cs" />
     <Compile Include="OpenGL\MapComponents\GndFormat.cs" />
+    <Compile Include="OpenGL\MapComponents\Ray.cs" />
     <Compile Include="OpenGL\MapComponents\RenderInfo.cs" />
     <Compile Include="OpenGL\MapComponents\ResourceManager.cs" />
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />
-    <Compile Include="OpenGL\MapGLGroup\GndRenderer.cs" />
-    <Compile Include="OpenGL\MapGLGroup\LubRenderer .cs" />
-    <Compile Include="OpenGL\MapGLGroup\RsmRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\GatRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\LubRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\RsmRenderer.cs" />
     <Compile Include="OpenGL\MapComponents\Texture.cs" />
     <Compile Include="OpenGL\MapComponents\Vbo.cs" />
     <Compile Include="OpenGL\MapComponents\RendererLoader.cs" />
-    <Compile Include="OpenGL\MapGLGroup\BackgroundRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\BackgroundRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\GndRenderer.cs" />
+    <Compile Include="OpenGL\WPF\MinimapDialog.xaml.cs">
+      <DependentUpon>MinimapDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OpenGL\WPF\OpenGLDebugDialog.xaml.cs">
+      <DependentUpon>OpenGLDebugDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OpenGL\WPF\LightingOptions.xaml.cs">
       <DependentUpon>LightingOptions.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OpenGL\MapGLGroup\LineRenderer.cs" />
-    <Compile Include="OpenGL\MapGLGroup\MapGLObject.cs" />
-    <Compile Include="OpenGL\MapGLGroup\MapRenderer.cs" />
-    <Compile Include="OpenGL\MapGLGroup\ModelRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\LineRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\Renderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\MapRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\ModelRenderer.cs" />
     <Compile Include="OpenGL\WPF\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
     </Compile>
+    <Compile Include="OpenGL\WPF\OpenGLViewportSelection.cs" />
     <Compile Include="OpenGL\WPF\RenderOptions.xaml.cs">
       <DependentUpon>RenderOptions.xaml</DependentUpon>
     </Compile>
     <Compile Include="OpenGL\Shader.cs" />
-    <Compile Include="OpenGL\MapGLGroup\WaterRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\WaterRenderer.cs" />
     <Compile Include="Tools\GrfValidation\Validation.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
@@ -361,6 +372,14 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="OpenGL\WPF\MinimapDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="OpenGL\WPF\OpenGLDebugDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="OpenGL\WPF\LightingOptions.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -596,8 +615,6 @@
     <EmbeddedResource Include="Resources\Imf.xshd" />
     <EmbeddedResource Include="Files\Compressed\default.pal" />
     <EmbeddedResource Include="Resources\Json.xshd" />
-    <EmbeddedResource Include="Resources\shader_map_color.frag" />
-    <EmbeddedResource Include="Resources\shader_map_color.vert" />
     <EmbeddedResource Include="Resources\shader_map_gnd.frag" />
     <EmbeddedResource Include="Resources\shader_map_gnd.vert" />
     <EmbeddedResource Include="Resources\shader_map_line.frag" />
@@ -608,6 +625,8 @@
     <EmbeddedResource Include="Resources\shader_map_water.vert" />
     <EmbeddedResource Include="Resources\shader_map_lub.frag" />
     <EmbeddedResource Include="Resources\shader_map_lub.vert" />
+    <EmbeddedResource Include="Resources\shader_map_simple.frag" />
+    <EmbeddedResource Include="Resources\shader_map_simple.vert" />
     <Resource Include="Resources\shader.frag" />
     <Resource Include="Resources\shader.vert" />
     <Resource Include="Resources\shader_color.frag" />
@@ -618,6 +637,7 @@
     <Resource Include="Resources\shader_line.vert" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
     <None Include="Files\ActImaging.dll" />
     <EmbeddedResource Include="Files\cps.dll" />
     <None Include="Files\default.pal" />
@@ -821,12 +841,6 @@
     <Resource Include="Resources\backward.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\treeClass.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\treeList.png" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\ColorPicker.dll" />
   </ItemGroup>
   <ItemGroup>
@@ -968,8 +982,8 @@
       <HintPath>..\Libraries\ActImaging.dll</HintPath>
     </Reference>
     <Reference Include="Be.Windows.Forms.HexBox, Version=1.5.0.34411, Culture=neutral, PublicKeyToken=e0e5adf0ebc99863, processorArchitecture=MSIL" />
-    <Reference Include="ColorPicker">
-      <HintPath>..\Libraries\ColorPicker.dll</HintPath>
+    <Reference Include="ColorPicker, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\Libraries\ColorPicker.dll</HintPath>
     </Reference>
     <Reference Include="Encryption">
       <HintPath>..\Libraries\Encryption.dll</HintPath>
@@ -1029,6 +1043,10 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\dos.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\treeClass.png" />
+    <Resource Include="Resources\treeList.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
