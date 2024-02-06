@@ -115,10 +115,6 @@ namespace GRFEditor.Core.Services {
 			_readAs<PreviewStr>(node, _tabItemStrPreview);
 		}
 
-		private void _readAsGnd(FileEntry node) {
-			_readAs<PreviewGnd>(node, _tabItemGndPreview);
-		}
-
 		private void _readAsEditSprite(FileEntry node) {
 			_tabItemEditSpritePreview.Dispatcher.BeginInvoke(new Action(delegate {
 				if (_tabItemEditSpritePreview.Content == null) _tabItemEditSpritePreview.Content = new PreviewEditSprite(this);

@@ -216,7 +216,6 @@
     <Compile Include="OpenGL\WPF\CloudEditTab.xaml.cs">
       <DependentUpon>CloudEditTab.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WPF\PreviewTabs\MeshRawData2.cs" />
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
     </Compile>
@@ -279,9 +278,6 @@
     <Compile Include="WPF\PreviewTabs\GrfIndexor.cs" />
     <Compile Include="WPF\PreviewTabs\IFolderPreviewTab.cs" />
     <Compile Include="WPF\PreviewTabs\IPreviewTab.cs" />
-    <Compile Include="WPF\PreviewTabs\MeshesDrawer.xaml.cs">
-      <DependentUpon>MeshesDrawer.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WPF\PreviewTabs\ModelViewerHelper.cs" />
     <Compile Include="WPF\PreviewTabs\PreviewAct.xaml.cs">
       <DependentUpon>PreviewAct.xaml</DependentUpon>
@@ -297,9 +293,6 @@
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewFolderStructure.xaml.cs">
       <DependentUpon>PreviewFolderStructure.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WPF\PreviewTabs\PreviewGnd.xaml.cs">
-      <DependentUpon>PreviewGnd.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewGRFProperties.xaml.cs">
       <DependentUpon>PreviewGRFProperties.xaml</DependentUpon>
@@ -488,10 +481,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WPF\PreviewTabs\MeshesDrawer.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WPF\PreviewTabs\PreviewAct.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -509,10 +498,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="WPF\PreviewTabs\PreviewFolderStructure.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="WPF\PreviewTabs\PreviewGnd.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -615,26 +600,26 @@
     <EmbeddedResource Include="Resources\Imf.xshd" />
     <EmbeddedResource Include="Files\Compressed\default.pal" />
     <EmbeddedResource Include="Resources\Json.xshd" />
-    <EmbeddedResource Include="Resources\shader_map_gnd.frag" />
-    <EmbeddedResource Include="Resources\shader_map_gnd.vert" />
-    <EmbeddedResource Include="Resources\shader_map_line.frag" />
-    <EmbeddedResource Include="Resources\shader_map_line.vert" />
-    <EmbeddedResource Include="Resources\shader_map_rsm.frag" />
-    <EmbeddedResource Include="Resources\shader_map_rsm.vert" />
-    <EmbeddedResource Include="Resources\shader_map_water.frag" />
-    <EmbeddedResource Include="Resources\shader_map_water.vert" />
-    <EmbeddedResource Include="Resources\shader_map_lub.frag" />
-    <EmbeddedResource Include="Resources\shader_map_lub.vert" />
-    <EmbeddedResource Include="Resources\shader_map_simple.frag" />
-    <EmbeddedResource Include="Resources\shader_map_simple.vert" />
-    <Resource Include="Resources\shader.frag" />
-    <Resource Include="Resources\shader.vert" />
-    <Resource Include="Resources\shader_color.frag" />
-    <Resource Include="Resources\shader_color.vert" />
-    <Resource Include="Resources\shader_empty.frag" />
-    <Resource Include="Resources\shader_empty.vert" />
-    <Resource Include="Resources\shader_line.frag" />
-    <Resource Include="Resources\shader_line.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_gnd.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_gnd.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_line.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_line.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_rsm.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_rsm.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_water.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_water.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_lub.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_lub.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_simple.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_simple.vert" />
+    <Resource Include="Resources\Shaders\shader.frag" />
+    <Resource Include="Resources\Shaders\shader.vert" />
+    <Resource Include="Resources\Shaders\shader_color.frag" />
+    <Resource Include="Resources\Shaders\shader_color.vert" />
+    <Resource Include="Resources\Shaders\shader_empty.frag" />
+    <Resource Include="Resources\Shaders\shader_empty.vert" />
+    <Resource Include="Resources\Shaders\shader_line.frag" />
+    <Resource Include="Resources\Shaders\shader_line.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
@@ -817,7 +802,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\ActImaging.dll" />
-    <EmbeddedResource Include="Files\Compressed\Database.dll" />
     <EmbeddedResource Include="Files\Compressed\GRF.dll" />
     <EmbeddedResource Include="Files\Compressed\Lua.dll" />
   </ItemGroup>
@@ -851,9 +835,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Files\System.Threading.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\System.Threading.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\validity.ico" />
@@ -899,14 +880,8 @@
     <None Include="Files\GrfMenuHandler64.dll" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\msvcp100.dll" />
-    <None Include="Files\msvcr100.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\GrfMenuHandler32.dll" />
     <EmbeddedResource Include="Files\Compressed\GrfMenuHandler64.dll" />
-    <EmbeddedResource Include="Files\Compressed\msvcp100.dll" />
-    <EmbeddedResource Include="Files\Compressed\msvcr100.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\gpf.ico" />
@@ -932,10 +907,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\c8wall.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\DownloadManager.dll" />
-    <EmbeddedResource Include="Files\Compressed\Ftp.dll" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\copy.png" />

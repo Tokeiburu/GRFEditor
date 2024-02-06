@@ -35,7 +35,7 @@ namespace GRF.FileFormats.ActFormat {
 							layer.SpriteIndex = reader.Int32();
 							layer.Mirror = reader.Int32() != 0;
 
-							if (act.Header.IsCompatibleWith(2, 0)) {
+							if (act.Version >= 2.0) {
 								layer.Color.R = reader.Byte();
 								layer.Color.G = reader.Byte();
 								layer.Color.B = reader.Byte();
@@ -44,14 +44,14 @@ namespace GRF.FileFormats.ActFormat {
 								layer.ScaleX = reader.Float();
 								layer.ScaleY = layer.ScaleX;
 
-								if (act.Header.IsCompatibleWith(2, 4)) {
+								if (act.Version >= 2.4) {
 									layer.ScaleY = reader.Float();
 								}
 
 								layer.Rotation = reader.Int32();
 								layer.SpriteType = (SpriteTypes) reader.Int32();
 
-								if (act.Header.IsCompatibleWith(2, 5)) {
+								if (act.Version >= 2.5) {
 									layer.Width = reader.Int32();
 									layer.Height = reader.Int32();
 								}
@@ -70,12 +70,12 @@ namespace GRF.FileFormats.ActFormat {
 							frame.Layers.Add(layer);
 						}
 
-						if (act.Header.IsCompatibleWith(2, 0)) {
+						if (act.Version >= 2.0) {
 							frame.SoundId = reader.Int32();
 						}
 
 						if (loadAnchors) {
-							if (act.Header.IsCompatibleWith(2, 3)) {
+							if (act.Version >= 2.3) {
 								int count = reader.Int32();
 
 								for (int k = 0; k < count; k++) {
@@ -90,14 +90,14 @@ namespace GRF.FileFormats.ActFormat {
 					act.Actions.Add(action);
 				}
 
-				if (act.Header.IsCompatibleWith(2, 1)) {
+				if (act.Version >= 2.1) {
 					int numberOfSounds = reader.Int32();
 
 					for (int i = 0; i < numberOfSounds; i++) {
 						act.SoundFiles.Add(reader.String(40, '\0'));
 					}
 
-					if (act.Header.IsCompatibleWith(2, 2)) {
+					if (act.Version >= 2.2) {
 						float speed = 1.0f;
 
 						for (int i = 0; i < act.Actions.Count; i++) {

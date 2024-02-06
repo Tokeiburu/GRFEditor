@@ -165,6 +165,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				Shader.SetFloat("wavePitch", 0);
 
 				for (int i = 0; i < _water.Zones.Count; i++) {
+					if (_ri.Indices[i].Count == 0)
+						continue;
+
 					if (_water.Zones.Count > 1) {
 						Shader.SetFloat("waterHeight", -_water.Zones[i].Level);
 					}
@@ -174,6 +177,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 			else {
 				for (int i = 0; i < _water.Zones.Count; i++) {
+					if (_ri.Indices[i].Count == 0)
+						continue;
+
 					if (_water.Zones.Count > 1) {
 						Shader.SetFloat("waterHeight", -_water.Zones[i].Level);
 						Shader.SetFloat("amplitude", _water.Zones[i].WaveHeight);

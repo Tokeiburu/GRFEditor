@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using GRF.ContainerFormat.Commands;
 using GRF.Core;
 using GRFEditor.Core.Services;
 using TokeiLibrary;
+using TokeiLibrary.WPF;
+using TokeiLibrary.WPF.Styles.ListView;
 
 namespace GRFEditor {
 	public partial class EditorMainWindow : Window {
@@ -13,8 +16,13 @@ namespace GRFEditor {
 			_positions.UndoExecuted += _positions_UndoExecuted;
 			_positions.CommandExecuted += _positions_CommandExecuted;
 
-			MouseDown += delegate {
-				Keyboard.ClearFocus();
+			MouseDown += (s, e) => {
+				var box = Keyboard.FocusedElement as TextBox;
+				
+				if (box != null && box.Name == "_tbEdit") {
+					Keyboard.ClearFocus();
+					Keyboard.Focus(_treeView.SelectedItem as TkTreeViewItem);
+				}
 			};
 		}
 

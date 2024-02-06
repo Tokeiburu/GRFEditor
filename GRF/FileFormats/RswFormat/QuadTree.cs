@@ -64,27 +64,6 @@ namespace GRF.FileFormats.RswFormat {
 						matrix = Matrix4.RotateY(matrix, (float) (rsmModel.Rotation[1] / 180f * Math.PI));
 						rsmBox.Multiply(matrix);
 
-						//BoundingBox box = new BoundingBox();
-						//List<MeshRawData> meshes = rsm.Compile(matrix, 0).Values.ToList();
-
-						//MeshTriangle tri;
-						//for (int index = 0; index < meshes.Count; index++) {
-						//    for (int j = 0; j < meshes[index].MeshTriangles.Length; j++) {
-						//        tri = meshes[index].MeshTriangles[j];
-
-						//        for (int k = 0; k < 3; k++) {
-						//            for (int l = 0; l < 3; l++) {
-						//                if (tri.Positions[k][l] < box.Min[l])
-						//                    box.Min[l] = tri.Positions[k][l];
-
-						//                if (tri.Positions[k][l] > box.Max[l])
-						//                    box.Max[l] = tri.Positions[k][l];
-						//            }
-						//        }
-						//    }
-						//}
-
-						//rsmBox.ReverseY();
 						allBoundingBoxes.Add(rsmBox);
 					}
 					else {

@@ -154,6 +154,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 					return;
 				}
 
+				if (err == GrfExceptions.__ContainerBusy)
+					return;
+
 				throw;
 			}
 

@@ -58,6 +58,25 @@ namespace GRFEditor {
 		public static EditorMainWindow Instance;
 
 		public EditorMainWindow() {
+			HashSet<double> versions = new HashSet<double>();
+
+			using (GrfHolder grf = new GrfHolder(@"C:\Gravity Ragnarok - Copy\data.grf")) {
+				foreach (var file in grf.FileTable.GetFiles("", "*.act", SearchOption.AllDirectories)) {
+					var entry = grf.FileTable[file];
+
+					try {
+						Act act = new Act(entry);
+						Z.F(act);
+
+						versions.Add(act.Version);
+					}
+					catch {
+						Z.F();
+					}
+				}
+			}
+			Z.F();
+
 			Instance = this;
 			InitializeComponent();
 			_parseCommandLineArguments();
@@ -90,6 +109,18 @@ namespace GRFEditor {
 				if (!SetEncoding(encoding)) {
 					SetEncoding(1252);
 				}
+
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-N", "GrfEditor.New"), () => _menuItemNewGrf_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-O", "GrfEditor.Open"), () => _menuItemOpenFrom_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-S", "GrfEditor.Save"), () => _menuItemSave_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Shift-S", "GrfEditor.Defragment"), () => _menuItemCompress_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Alt-S", "GrfEditor.Compact"), () => _menuItemCompact_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Z", "GrfEditor.Undo"), () => _buttonUndo_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Y", "GrfEditor.Redo"), () => _buttonRedo_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Alt-Z", "GrfEditor.NavigateBackward"), () => _buttonPositionUndo_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Alt-Y", "GrfEditor.NavigateFoward"), () => _buttonPositionRedo_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-M", "GrfEditor.Merge"), () => _menuItemMerge_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-F", "GrfEditor.Search"), () => _menuFocus(null, null), this);
 			}
 			catch {
 			}
@@ -188,17 +219,6 @@ namespace GRFEditor {
 				_listBoxResults.Visibility = Visibility.Collapsed;
 				_listBoxResults.SetValue(Grid.RowProperty, 0);
 			};
-
-			KeyDown += new KeyEventHandler(_editorMainWindow_KeyDown);
-		}
-
-		private void _editorMainWindow_KeyDown(object sender, KeyEventArgs e) {
-			if (ApplicationShortcut.Is(ApplicationShortcut.SaveAll)) {
-				_menuItemCompress_Click(null, null);
-			}
-			else if (ApplicationShortcut.Is(ApplicationShortcut.SaveSpecial)) {
-				_menuItemCompact_Click(null, null);
-			}
 		}
 
 		private void _loadServices() {

@@ -252,9 +252,6 @@ namespace GRFEditor.WPF {
 					return;
 				}
 
-				Debug.Ignore(() => File.WriteAllBytes(Path.Combine(GrfEditorConfiguration.ProgramDataPath, "msvcp100.dll"), ApplicationManager.GetResource("msvcp100.dll")));
-				Debug.Ignore(() => File.WriteAllBytes(Path.Combine(GrfEditorConfiguration.ProgramDataPath, "msvcr100.dll"), ApplicationManager.GetResource("msvcr100.dll")));
-
 				new Thread(new ThreadStart(delegate {
 					try {
 						var registryKey = Registry.CurrentUser.CreateSubKey("Software\\Classes\\Applications\\GRF Editor.exe");

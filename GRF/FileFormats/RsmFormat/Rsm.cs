@@ -257,30 +257,6 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 		}
 
-		public Dictionary<string, MeshRawData> Compile(Matrix4 matrix, int shader = -1, int flag = 0) {
-			List<MeshRawData> meshesData;
-			Dictionary<string, MeshRawData> allMeshData = new Dictionary<string, MeshRawData>();
-
-			foreach (Mesh mesh in Meshes) {
-				meshesData = mesh.Compile(this, matrix, shader, flag);
-
-				foreach (MeshRawData meshData in meshesData) {
-					if (allMeshData.ContainsKey(meshData.Texture)) {
-						var mt = allMeshData[meshData.Texture];
-						var newArray = new MeshTriangle[mt.MeshTriangles.Length + meshData.MeshTriangles.Length];
-						Array.Copy(mt.MeshTriangles, newArray, mt.MeshTriangles.Length);
-						Array.Copy(meshData.MeshTriangles, 0, newArray, mt.MeshTriangles.Length, meshData.MeshTriangles.Length);
-						allMeshData[meshData.Texture].MeshTriangles = newArray;
-					}
-					else {
-						allMeshData[meshData.Texture] = meshData;
-					}
-				}
-			}
-
-			return allMeshData;
-		}
-
 		public void Downgrade() {
 			Header.SetVersion(1, 4);
 

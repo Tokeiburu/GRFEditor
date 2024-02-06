@@ -12,28 +12,6 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         </Style>
     </Window.Resources>
-    <Window.CommandBindings>
-        <CommandBinding Command="Undo" Executed="Undo" />
-        <CommandBinding Command="Redo" Executed="Redo" />
-        <CommandBinding Command="BrowseBack" Executed="Backward" />
-        <CommandBinding Command="BrowseForward" Executed="Forward" />
-        <CommandBinding Command="Save" Executed="_menuItemSave_Click" />
-        <CommandBinding Command="Open" Executed="_menuItemOpenFrom_Click" />
-        <CommandBinding Command="New" Executed="_menuItemNewGrf_Click" />
-        <CommandBinding Command="Properties"  Executed="_menuItemMerge_Click" />
-        <CommandBinding Command="NavigateJournal"  Executed="_menuFocus" />
-    </Window.CommandBindings>
-    <Window.InputBindings>
-        <KeyBinding Command="Redo"  Modifiers="Ctrl" Key="Y" />
-        <KeyBinding Command="Undo"  Modifiers="Ctrl" Key="Z" />
-        <KeyBinding Command="Save"  Modifiers="Ctrl" Key="S" />
-        <KeyBinding Command="Properties"  Modifiers="Ctrl" Key="M" />
-        <KeyBinding Command="Open" Modifiers="Ctrl" Key="O" />
-        <KeyBinding Command="New"  Modifiers="Ctrl" Key="N" />
-        <KeyBinding Command="BrowseBack"  Modifiers="Alt" Key="Z" />
-        <KeyBinding Command="BrowseForward"  Modifiers="Alt" Key="Y" />
-        <KeyBinding Command="NavigateJournal"  Modifiers="Ctrl" Key="F" />
-    </Window.InputBindings>
     <Grid   DragEnter="_menu_DragEnter" Drop="_menu_Drop">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -50,10 +28,10 @@
                     <MenuItem.Header>
                         <TextBlock Text="New" Margin="3 0 0 0" VerticalAlignment="Center" />
                     </MenuItem.Header>
-                    <MenuItem Name="_menuItemNewGrf" ListView:WpfUtils.ImagePath="grf-16.png" Header="New Grf" InputGestureText="Ctrl-N" Click="_menuItemNewGrf_Click" />
-                    <MenuItem ListView:WpfUtils.ImagePath="gpf-16.png" Header="New Gpf" Click="_menuItemNewGpf_Click" />
-                    <MenuItem Name="_menuItemNewRgz" ListView:WpfUtils.ImagePath="rgz-16.png" Header="New Rgz" Click="_menuItemNewRgz_Click" />
-                    <MenuItem Name="_menuItemNewThor" ListView:WpfUtils.ImagePath="thor-16.png" Header="New Thor" Click="_menuItemNewThor_Click" />
+                    <MenuItem Name="_menuItemNewGrf" ListView:WpfUtils.ImagePath="grf-16.png" Header="Grf" InputGestureText="Ctrl-N" Click="_menuItemNewGrf_Click" />
+                    <MenuItem ListView:WpfUtils.ImagePath="gpf-16.png" Header="Gpf" Click="_menuItemNewGpf_Click" />
+                    <MenuItem Name="_menuItemNewRgz" ListView:WpfUtils.ImagePath="rgz-16.png" Header="Rgz" Click="_menuItemNewRgz_Click" />
+                    <MenuItem Name="_menuItemNewThor" ListView:WpfUtils.ImagePath="thor-16.png" Header="Thor" Click="_menuItemNewThor_Click" />
                 </MenuItem>
                 <MenuItem Name="_menuItemOpenFrom" ListView:WpfUtils.ImagePath="newFile.png" Header="Open..." InputGestureText="Ctrl-O" Click="_menuItemOpenFrom_Click" />
                 <MenuItem Name="_menuItemRecentFiles" ListView:WpfUtils.ImagePath="empty.png" Header="Open recent" />

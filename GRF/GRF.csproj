@@ -515,8 +515,6 @@
     <Content Include="FileFormats\LubFormat\Core\CodeReconstructor2\Patterns.txt" />
     <Content Include="FileFormats\LubFormat\Core\CodeReconstructor\Patterns.txt" />
     <EmbeddedResource Include="Files\comp_x64.dll" />
-    <EmbeddedResource Include="Files\msvcp100.dll" />
-    <EmbeddedResource Include="Files\msvcr100.dll" />
     <EmbeddedResource Include="Files\lzma.dll" />
   </ItemGroup>
   <ItemGroup>

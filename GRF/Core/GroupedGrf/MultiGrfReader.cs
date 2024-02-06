@@ -168,7 +168,7 @@ namespace GRF.Core.GroupedGrf {
 		public byte[] GetData(string relativePath) {
 			try {
 				if (relativePath.StartsWith(GrfStrings.RgzRoot))
-					relativePath = relativePath.Substring(0, GrfStrings.RgzRoot.Length);
+					relativePath = relativePath.Remove(0, GrfStrings.RgzRoot.Length);
 
 				var entry = FileTable[relativePath];
 

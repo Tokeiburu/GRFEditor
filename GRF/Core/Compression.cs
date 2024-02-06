@@ -14,33 +14,6 @@ namespace GRF.Core {
 	public class Compression {
 		private static ICompression _compressionAlgorithm;
 
-		static Compression() {
-			_extractCompressionLibraries("msvcr100.dll");
-			_extractCompressionLibraries("msvcp100.dll");
-		}
-
-		private static void _extractCompressionLibraries(string name) {
-			byte[] cps = null;
-			Assembly currentAssembly = Assembly.GetAssembly(typeof(Compression));
-			string[] names = currentAssembly.GetManifestResourceNames();
-			string resourceName = "Files." + name;
-
-			if (names.Any(p => p.EndsWith(resourceName))) {
-				Stream file = currentAssembly.GetManifestResourceStream(names.First(p => p.EndsWith(resourceName)));
-				if (file != null) {
-					cps = new byte[file.Length];
-					file.Read(cps, 0, (int)file.Length);
-				}
-			}
-
-			try {
-				if (cps != null)
-					File.WriteAllBytes(Path.Combine(GrfPath.GetDirectoryName(Settings.TempPath), name), cps);
-			}
-			catch {
-			}
-		}
-
 		private static readonly ICompression _dotNetCompression = new DotNetCompression();
 		private static readonly ICompression _recoveryCompression = new RecoveryCompression();
 		private static readonly ICompression _zlibCompression = new CpsCompression();
