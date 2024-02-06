@@ -1,0 +1,113 @@
+﻿<?xml version="1.0"?>
+  <SyntaxDefinition name="Python" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+    <Color name="Comment" foreground="#008000" />
+    <Color name="String" foreground="#808080" />
+    <Color name="Label" foreground="#000DBA" />
+    <Color name="Orange" foreground="#F2981D" />
+    <Color name="Goto" fontWeight="bold" foreground="DarkBlue" />
+    <Color name="KeywordsStructure" foreground="Blue" />
+    <Color name="KeywordsDb" fontStyle="italic" foreground="#00B000" />
+    <Color name="KeywordsApi" foreground="#638AFF" />
+    <Color name="KeywordsOthers" foreground="#BCBCBC" />
+    <Color name="KeywordsDigit" foreground="#ff0000" />
+	
+	<!-- This is the main ruleset. -->
+	<RuleSet>
+    <Span color="Comment" begin="//" />
+    <Span color="Comment" begin="#" />
+    <Span color="Orange" multiline="true" begin="&quot;&quot;&quot;" end="&quot;&quot;&quot;" />
+    <!--<Delimiters>:</Delimiters>-->
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <!-- nested span for escape sequences -->
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+
+    <Span color="String">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <!-- nested span for escape sequences -->
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    
+    <Keywords color="KeywordsStructure">
+      <Word>GRF Editor:</Word>
+      <Word>File:</Word>
+      <Word>OpenGL:</Word>
+      <Word>Texture:</Word>
+      <Word>Database:</Word>
+      <Word>Message:</Word>
+      <Word>Table:</Word>
+      <Word>Sftp:</Word>
+      <Word>import</Word>
+      <Word>Reload:</Word>
+      <Word>Loaded:</Word>
+      <Word>Unloaded:</Word>
+    </Keywords>
+
+    <Keywords color="KeywordsDb">
+      <Word>item_db_m</Word>
+      <Word>client_items</Word>
+      <Word>mob_skill_db_m</Word>
+      <Word>mob_db_m</Word>
+      <Word>mob_branch</Word>
+      <Word>mob_poring</Word>
+      <Word>mob_boss</Word>
+      <Word>mob_pouch</Word>
+      <Word>mob_classchange</Word>
+      <Word>item_avail</Word>
+      <Word>item_delay</Word>
+      <Word>item_nouse</Word>
+      <Word>item_stack</Word>
+      <Word>item_trade</Word>
+      <Word>item_buyingstore</Word>
+      <Word>item_db2</Word>
+      <Word>item_db</Word>
+      <Word>mob_db2</Word>
+      <Word>mob_db</Word>
+      <Word>mob_avail</Word>
+      <Word>homunculus_db2</Word>
+      <Word>homunculus_db</Word>
+      <Word>skill_db</Word>
+      <Word>skill_castnodex_db</Word>
+      <Word>skill_nocast_db</Word>
+      <Word>skill_cast_db</Word>
+      <Word>skill_require_db</Word>
+      <Word>skill_tree</Word>
+      <Word>item_combo_db</Word>
+      <Word>mob_skill_db2</Word>
+      <Word>mob_skill_db</Word>
+      <Word>const</Word>
+      <Word>item_group_db</Word>
+      <Word>pet_db2</Word>
+      <Word>pet_db</Word>
+      <Word>castle_db</Word>
+    </Keywords>
+
+    <Keywords color="KeywordsOthers">
+      <Word>Output from master DB is more recent (will not be saved).</Word>
+      <Word>Table not modified (will not be saved).</Word>
+      <Word>Table loaded.</Word>
+      <Word>Table data cleared.</Word>
+      <Word>%DB_PATH%</Word>
+    </Keywords>
+
+    <!--<Keywords foreground="#ff0000">
+    </Keywords>-->
+
+    <!-- Digits -->
+		<Rule color="KeywordsDigit">
+            \b0[xX][0-9a-fA-F]+  # hex number
+        |    \b
+            (    \d+(\.[0-9]+)?   #number with optional floating point
+            |    \.[0-9]+         #or just starting with floating point
+            )
+            ([eE][+-]?[0-9]+)? # optional exponent
+        </Rule>
+	</RuleSet>
+</SyntaxDefinition>
