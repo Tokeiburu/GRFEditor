@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -171,7 +172,7 @@ namespace GRFEditor {
 
 					List<Utilities.Extension.Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
 					List<string> search = folderListingSearch.Search.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-					List<FileEntry> result;
+					FileEntry[] result;
 
 					if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
 						IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0);
@@ -195,33 +196,33 @@ namespace GRFEditor {
 						//if (cancel())
 						//	return;
 
-						result = res.Select(p => p.Item3).ToList();
+						result = res.Select(p => p.Item3).ToArray();
 					}
 					else {
-						var res = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToList();
+						result = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToArray();//.ToList();
 
 						//if (cancel())
 						//	return;
 
-						if (res.Count < 10000) {
+						if (result.Length < 10000) {
 							_grfEntrySorter.UseAlphaNum = true;
-							result = res.OrderBy(p => p, _grfEntrySorter).ToList();
+							Array.Sort(result, _grfEntrySorter);
 						}
 						else {
 							_grfEntrySorter.UseAlphaNum = false;
-							result = res.OrderBy(p => p, _grfEntrySorter).ToList();
+							Array.Sort(result, _grfEntrySorter);
 						}
 					}
 
-					//if (cancel())
-					//	return;
+					if (cancel())
+						return;
 
 					//result.Clear();
 					//result = new List<FileEntry>();
 					//result.AddRange(_grfHolder.FileTable.FastAccessEntries.Select(p => p.Value).ToList());
 					_itemEntries = new RangeObservableCollection<FileEntry>(result);
 
-					for (int i = 0; i < result.Count; i++) {
+					for (int i = 0; i < result.Length; i++) {
 						if (result[i].DataImage == null) {
 							result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
 						}

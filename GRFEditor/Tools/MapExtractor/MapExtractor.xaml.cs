@@ -332,14 +332,13 @@ namespace GRFEditor.Tools.MapExtractor {
 							RsmHeader rsmHeader = new RsmHeader(binaryReader);
 
 							if (rsmHeader.Version < 2.0) {
-								binaryReader.Int32();
-								binaryReader.Int32();
+								binaryReader.Forward(8);
 
 								if (rsmHeader.Version >= 1.4) {
-									binaryReader.Byte();
+									binaryReader.Forward(1);
 								}
 
-								binaryReader.Bytes(16);
+								binaryReader.Forward(16);
 								var count = binaryReader.Int32();
 
 								for (int i = 0; i < count; i++) {

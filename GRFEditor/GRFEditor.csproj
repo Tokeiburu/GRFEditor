@@ -612,14 +612,14 @@
     <EmbeddedResource Include="Resources\Shaders\shader_map_lub.vert" />
     <EmbeddedResource Include="Resources\Shaders\shader_map_simple.frag" />
     <EmbeddedResource Include="Resources\Shaders\shader_map_simple.vert" />
-    <Resource Include="Resources\Shaders\shader.frag" />
-    <Resource Include="Resources\Shaders\shader.vert" />
-    <Resource Include="Resources\Shaders\shader_color.frag" />
-    <Resource Include="Resources\Shaders\shader_color.vert" />
-    <Resource Include="Resources\Shaders\shader_empty.frag" />
-    <Resource Include="Resources\Shaders\shader_empty.vert" />
-    <Resource Include="Resources\Shaders\shader_line.frag" />
-    <Resource Include="Resources\Shaders\shader_line.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_color.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_color.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_empty.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_empty.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_line.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_line.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
@@ -1022,7 +1022,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

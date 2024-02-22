@@ -163,8 +163,8 @@
                             <RowDefinition />
                         </Grid.RowDefinitions>
                         <DockPanel Grid.Row="0">
-                            <Image Margin="5,0,0,0" Source="Resources\filter.png" Height="16" Width="16"  />
-                            <TextBox Name="_textBoxSearch"  Margin="3" TextChanged="_textBoxSearch_TextChanged" />
+                            <Image Margin="5,0,0,0" Source="Resources\filter.png" Height="16" Width="16" VerticalAlignment="Center" />
+                            <TextBox Name="_textBoxSearch" Height="22" Margin="3" TextChanged="_textBoxSearch_TextChanged" VerticalAlignment="Center" VerticalContentAlignment="Center" />
                         </DockPanel>
                         <ListView TextSearch.TextPath="DisplayRelativePath" AllowDrop="True" Grid.Row="1" Name="_items" SelectionChanged="_items_SelectionChanged"  SelectionMode="Extended" DragEnter="_items_DragEnter" DragLeave="_items_DragLeave" Drop="_items_Drop"
 		                    PreviewMouseLeftButtonDown="_items_PreviewMouseLeftButtonDown" BorderThickness="0" PreviewMouseRightButtonUp="_items_PreviewMouseRightButtonUp" KeyDown="_items_KeyDown" FocusVisualStyle="{x:Null}"
