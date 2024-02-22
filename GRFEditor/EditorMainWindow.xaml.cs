@@ -4,18 +4,12 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
-using GRF.Core.GrfCompression;
-using GRF.FileFormats.ActFormat;
-using GRF.FileFormats.GndFormat;
-using GRF.FileFormats.RswFormat;
-using GRF.Image;
 using GRF.System;
 using GRF.Threading;
 using GRFEditor.Core;
@@ -23,7 +17,6 @@ using GRFEditor.Core.Services;
 using GRFEditor.Tools.SpriteEditor;
 using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
-using GrfToWpfBridge;
 using GrfToWpfBridge.Application;
 using GrfToWpfBridge.TreeViewManager;
 using TheCodeKing.Net.Messaging;
@@ -58,25 +51,6 @@ namespace GRFEditor {
 		public static EditorMainWindow Instance;
 
 		public EditorMainWindow() {
-			HashSet<double> versions = new HashSet<double>();
-
-			using (GrfHolder grf = new GrfHolder(@"C:\Gravity Ragnarok - Copy\data.grf")) {
-				foreach (var file in grf.FileTable.GetFiles("", "*.act", SearchOption.AllDirectories)) {
-					var entry = grf.FileTable[file];
-
-					try {
-						Act act = new Act(entry);
-						Z.F(act);
-
-						versions.Add(act.Version);
-					}
-					catch {
-						Z.F();
-					}
-				}
-			}
-			Z.F();
-
 			Instance = this;
 			InitializeComponent();
 			_parseCommandLineArguments();
