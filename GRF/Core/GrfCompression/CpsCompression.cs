@@ -22,8 +22,8 @@ namespace GRF.Core.GrfCompression {
 		}
 
 		protected void _init() {
-			string dllName = IntPtr.Size == 4 ? "cps.dll" : "comp_x64.dll";
-			string outputPath = Path.Combine(GrfPath.GetDirectoryName(Settings.TempPath), dllName);
+			string dllName = Wow.Is64BitProcess ? "comp_x64.dll" : "cps.dll";
+			string outputPath = Path.Combine(Path.IsPathRooted(Settings.TempPath) ? GrfPath.GetDirectoryName(Settings.TempPath) : Settings.TempPath, dllName);
 			Assembly currentAssembly = Assembly.GetAssembly(typeof(Compression));
 			string[] names = currentAssembly.GetManifestResourceNames();
 			string ResourceName = "Files." + dllName;
@@ -49,8 +49,13 @@ namespace GRF.Core.GrfCompression {
 			_hModule = NativeMethods.LoadLibrary(outputPath);
 
 			if (_hModule == IntPtr.Zero) {
-				//ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2010 (x86) | downloading the x64 version will not be compatible"));
-				ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2022 (x64) | downloading the x86 version will not be compatible\r\n\r\nLink: https://aka.ms/vs/17/release/vc_redist.x64.exe"));
+				if (Wow.Is64BitProcess) {
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2022 (x64) | downloading the x86 version will not be compatible\r\n\r\nLink: https://aka.ms/vs/17/release/vc_redist.x64.exe"));
+				}
+				else {
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2010 (x86) | downloading the x64 version will not be compatible"));
+				}
+
 				Success = false;
 				return;
 			}
