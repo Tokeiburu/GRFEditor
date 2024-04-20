@@ -278,7 +278,6 @@
     <Compile Include="WPF\PreviewTabs\GrfIndexor.cs" />
     <Compile Include="WPF\PreviewTabs\IFolderPreviewTab.cs" />
     <Compile Include="WPF\PreviewTabs\IPreviewTab.cs" />
-    <Compile Include="WPF\PreviewTabs\ModelViewerHelper.cs" />
     <Compile Include="WPF\PreviewTabs\PreviewAct.xaml.cs">
       <DependentUpon>PreviewAct.xaml</DependentUpon>
     </Compile>
@@ -968,13 +967,13 @@
     <Reference Include="Lua, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\Libraries\Lua.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Libraries\OpenTKNewer\OpenTK.dll</HintPath>
+      <HintPath>..\..\Libraries\OpenTK\OpenTK.dll</HintPath>
     </Reference>
-    <Reference Include="OpenTK.GLControl, Version=3.3.3.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+    <Reference Include="OpenTK.GLControl, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Libraries\OpenTKNewer\OpenTK.GLControl.dll</HintPath>
+      <HintPath>..\..\Libraries\OpenTK\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -1019,10 +1018,13 @@
     <Resource Include="Resources\treeClass.png" />
     <Resource Include="Resources\treeList.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\downgrade.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

@@ -113,7 +113,9 @@ namespace GRF.IO {
 
 		public byte[] Bytes(int count) {
 			byte[] data = new byte[count];
-			Stream.Read(data, 0, count);
+			int r = Stream.Read(data, 0, count);
+			if (r != count)
+				throw new EndOfStreamException();
 			return data;
 		}
 
@@ -274,14 +276,14 @@ namespace GRF.IO {
 			return new GrfColor(_data[0], _data[1], _data[2], _data[3]);
 		}
 
-		public Point Point() {
+		public TkVector2 Vector2() {
 			_data = Bytes(8);
-			return new Point(_data, 0);
+			return new TkVector2(_data, 0);
 		}
 
-		public Vertex Vertex() {
+		public TkVector3 Vector3() {
 			_data = Bytes(12);
-			return new Vertex(_data, 0);
+			return new TkVector3(_data, 0);
 		}
 
 		#endregion

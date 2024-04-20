@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ErrorManager;
 using GRF.FileFormats.ActFormat;
 using GRF.Graphics;
-using Utilities;
 using Utilities.IndexProviders;
 
 namespace GRF.Image {

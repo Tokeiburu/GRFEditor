@@ -15,20 +15,8 @@ namespace GRF.FileFormats.RsmFormat {
 		/// Gets the position.
 		/// </summary>
 		/// <value>The position.</value>
-		public Vertex Position {
-			get { return new Vertex(X, Y, Z); }
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="PosKeyFrame"/> struct.
-		/// </summary>
-		/// <param name="pkf">The PKF.</param>
-		public PosKeyFrame(PosKeyFrame pkf) {
-			Frame = pkf.Frame;
-			X = pkf.X;
-			Y = pkf.Y;
-			Z = pkf.Z;
-			Data = pkf.Data;
+		public TkVector3 Position {
+			get { return new TkVector3(X, Y, Z); }
 		}
 
 		/// <summary>

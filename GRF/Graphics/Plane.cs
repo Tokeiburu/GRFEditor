@@ -2,11 +2,11 @@
 
 namespace GRF.Graphics {
 	public class Plane {
-		public Vertex[] Points = new Vertex[4];
+		public TkVector2[] Points = new TkVector2[4];
 
 		public Plane() {
 			for (int i = 0; i < 4; i++) {
-				Points[i] = new Vertex();
+				Points[i] = new TkVector2();
 			}
 		}
 
@@ -21,7 +21,8 @@ namespace GRF.Graphics {
 
 		public void Translate(float x, float y) {
 			for (int i = 0; i < Points.Length; i++) {
-				Points[i].Translate(x, y, 0);
+				Points[i].X += x;
+				Points[i].Y += y;
 			}
 		}
 

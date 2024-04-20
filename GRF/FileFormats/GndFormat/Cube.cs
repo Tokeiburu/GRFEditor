@@ -13,14 +13,15 @@ namespace GRF.FileFormats.GndFormat {
 		public Cube() {
 			TileUp = 0;
 			TileFront = -1;
-			TileRight = -1;
+			TileSide = -1;
 		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Cube" /> class.
 		/// </summary>
+		/// <param name="header">The GND header.</param>
 		/// <param name="data">The data.</param>
-		public Cube(IBinaryReader data) {
+		public Cube(GndHeader header, IBinaryReader data) {
 			// 0 == bottom left
 			// 1 == bottom right
 			// 2 == top left
@@ -30,9 +31,28 @@ namespace GRF.FileFormats.GndFormat {
 			TopLeft = data.Float();
 			TopRight = data.Float();
 
-			TileUp = data.Int32();
-			TileFront = data.Int32();
-			TileRight = data.Int32();
+			if (header.Version > 1.5) {
+				TileUp = data.Int32();
+				TileFront = data.Int32();
+				TileSide = data.Int32();
+			}
+			else {
+				TileUp = data.Int16();
+				TileFront = data.Int16();
+				TileSide = data.Int16();
+				data.Forward(2);
+			}
+		}
+
+		public Cube(Cube cube) {
+			BottomLeft = cube.BottomLeft;
+			BottomRight = cube.BottomRight;
+			TopLeft = cube.TopLeft;
+			TopRight = cube.TopRight;
+
+			TileUp = cube.TileUp;
+			TileFront = cube.TileFront;
+			TileSide = cube.TileSide;
 		}
 
 		public float this[int index] {
@@ -83,9 +103,9 @@ namespace GRF.FileFormats.GndFormat {
 		public int TileFront { get; set; }
 
 		/// <summary>
-		/// Gets or sets the tile right texture index.
+		/// Gets or sets the tile side texture index.
 		/// </summary>
-		public int TileRight { get; set; }
+		public int TileSide { get; set; }
 
 		/// <summary>
 		/// Gets the average height of a cell in the center.
@@ -111,7 +131,7 @@ namespace GRF.FileFormats.GndFormat {
 			writer.Write(TopRight);
 			writer.Write(TileUp);
 			writer.Write(TileFront);
-			writer.Write(TileRight);
+			writer.Write(TileSide);
 		}
 
 		#endregion

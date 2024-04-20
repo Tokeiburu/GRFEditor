@@ -17,6 +17,7 @@ using GrfToWpfBridge;
 using GrfToWpfBridge.Application;
 using TheCodeKing.Net.Messaging;
 using TokeiLibrary;
+using TokeiLibrary.Paths;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
@@ -167,7 +168,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 						}
 					}
 
-					string file = PathRequest.OpenFileSprite(
+					string file = TkPathRequest.OpenFile<SpriteEditorConfiguration>("AppLastPath",
 						"fileName", Configuration.AppLastPath,
 						"filter", FileFormat.MergeFilters(Format.PalAndSpr | Format.Pal | Format.Spr));
 
@@ -356,8 +357,9 @@ namespace GRFEditor.Tools.SpriteEditor {
 		}
 
 		private void _menuItemOpen_Click(object sender, RoutedEventArgs e) {
-			string[] files = PathRequest.OpenFilesSprite("filter", FileFormat.MergeFilters(Format.Spr),
-			                                             "fileName", SpriteEditorConfiguration.AppLastPath);
+			string[] files = TkPathRequest.OpenFiles<SpriteEditorConfiguration>("AppLastPath",
+				"filter", FileFormat.MergeFilters(Format.Spr),
+				"fileName", SpriteEditorConfiguration.AppLastPath);
 
 			if (files != null) {
 				try {

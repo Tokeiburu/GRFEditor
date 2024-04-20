@@ -1,9 +1,12 @@
 ﻿using System.Collections.Generic;
 using GRF.FileFormats.GatFormat;
+using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Matrix4 = OpenTK.Matrix4;
+using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class GatRenderer : Renderer {

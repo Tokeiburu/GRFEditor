@@ -6,7 +6,6 @@ using System.Threading;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.Core;
-using GRF.IO;
 using GRF.System;
 
 namespace GRF.Threading {

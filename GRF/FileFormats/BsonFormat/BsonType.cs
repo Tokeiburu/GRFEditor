@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace GRF.FileFormats.BsonFormat {
+﻿namespace GRF.FileFormats.BsonFormat {
 	public enum BsonType : sbyte {
 		Number = 1,
 		String = 2,

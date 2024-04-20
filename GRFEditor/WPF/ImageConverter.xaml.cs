@@ -11,7 +11,9 @@ using GRF.FileFormats;
 using GRF.Image;
 using GRF.IO;
 using GRFEditor.ApplicationConfiguration;
+using GRFEditor.Tools.SpriteEditor;
 using GrfToWpfBridge;
+using TokeiLibrary.Paths;
 using TokeiLibrary.WPF.Styles;
 using Utilities.Extension;
 
@@ -66,7 +68,7 @@ namespace GRFEditor.WPF {
 
 		private void _buttonBrowse_Click(object sender, RoutedEventArgs e) {
 			try {
-				var paths = PathRequest.OpenFilesSprite("filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga") ?? new string[] { };
+				var paths = TkPathRequest.OpenFiles<SpriteEditorConfiguration>("AppLastPath", "filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga") ?? new string[] { };
 
 				_paths.Clear();
 				_paths.AddRange(paths);

@@ -25,6 +25,21 @@ namespace GRF.Core {
 			Magic = Encoding.ASCII.GetString(data, 0, 16);
 
 			if (Magic.ToLower() != "master of magic\0") {
+				// Attempt to read as alpha GRF
+				reader.PositionUInt = (UInt32)reader.LengthLong - 9;
+				FileTableOffset = reader.UInt32();
+				RealFilesCount = reader.Int32();
+				RealFilesCount = (RealFilesCount << 16) | (RealFilesCount >> 16);
+				MajorVersion = 0;
+				MinorVersion = reader.Byte();
+				Seed = 0;
+
+				if (FileTableOffset < reader.LengthLong) {
+					Magic = "Master of Magic\0";
+					Key = Encoding.ASCII.GetString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }); // Enable encryption
+					return;
+				}
+
 				SetError(GrfStrings.FailedGrfHeader, Magic);
 			}
 

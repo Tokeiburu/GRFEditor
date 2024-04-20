@@ -10,15 +10,15 @@ namespace GRF.FileFormats.RsmFormat {
 		/// <param name="data">The data.</param>
 		/// <param name="noFlag">if set to <c>true</c> [no flag].</param>
 		public VolumeBox(IBinaryReader data, bool noFlag = false) {
-			Size = new Vertex(data);
-			Position = new Vertex(data);
-			Rotation = new Vertex(data);
+			Size = new TkVector3(data);
+			Position = new TkVector3(data);
+			Rotation = new TkVector3(data);
 			Flag = noFlag ? 0 : data.Int32();
 		}
 
-		public Vertex Size { get; private set; }
-		public Vertex Position { get; private set; }
-		public Vertex Rotation { get; private set; }
+		public TkVector3 Size { get; private set; }
+		public TkVector3 Position { get; private set; }
+		public TkVector3 Rotation { get; private set; }
 		public int Flag { get; private set; }
 
 		public void Write(BinaryWriter writer, bool noFlag = false) {

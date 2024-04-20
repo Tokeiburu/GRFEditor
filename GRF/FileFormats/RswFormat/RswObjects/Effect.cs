@@ -16,7 +16,7 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 		/// <param name="effectNumber">The effect number.</param>
 		/// <param name="emitSpeed">The emit speed.</param>
 		/// <param name="parameters">The parameters.</param>
-		public Effect(string name, Vertex position, int effectNumber, float emitSpeed, float[] parameters) {
+		public Effect(string name, TkVector3 position, int effectNumber, float emitSpeed, float[] parameters) {
 			Name = name;
 			Position = position;
 			EffectNumber = effectNumber;
@@ -31,7 +31,7 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 		/// <param name="reader">The reader.</param>
 		public Effect(IBinaryReader reader) : base(RswObjectType.Effect) {
 			Name = reader.String(80, '\0');
-			Position = reader.Vertex();
+			Position = reader.Vector3();
 			EffectNumber = reader.Int32();
 			EmitSpeed = reader.Float();
 			Param = reader.ArrayFloat(4);

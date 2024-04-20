@@ -186,9 +186,15 @@ namespace GRFEditor.Core.Avalon {
 			return null;
 		}
 
+		public static Dictionary<string, bool> DirtySyntaxes = new Dictionary<string, bool>();
+
 		public static void SetSyntax(TextEditor editor, string ext) {
-			if (HighlightingManager.Instance.GetDefinition(ext) == null) {
-				IHighlightingDefinition customHighlighting;
+			bool dirty = (DirtySyntaxes.ContainsKey(ext) && DirtySyntaxes[ext] == true);
+			IHighlightingDefinition customHighlighting;
+
+			var def = HighlightingManager.Instance.GetDefinition(ext);
+
+			if (def == null || dirty) {
 				var resource = ApplicationManager.GetResource(ext + ".xshd");
 				using (var s = new MemoryStream(resource)) {
 					using (XmlReader reader = new XmlTextReader(s)) {
@@ -196,10 +202,24 @@ namespace GRFEditor.Core.Avalon {
 					}
 				}
 
-				HighlightingManager.Instance.RegisterHighlighting(ext, new[] { ext }, customHighlighting);
-			}
+				if (def == null) {
+					HighlightingManager.Instance.RegisterHighlighting(ext, new[] { ext }, customHighlighting);
+					def = customHighlighting;
+				}
+				else {
+					var colors_ori = customHighlighting.NamedHighlightingColors.ToList();
+					var colors_new = def.NamedHighlightingColors.ToList();
 
-			var def = HighlightingManager.Instance.GetDefinition(ext);
+					for (int index = 0; index < colors_new.Count; index++) {
+						var color_new = colors_new[index];
+						var color_ori = colors_ori[index];
+
+						color_new.Foreground = color_ori.Foreground;
+						color_new.FontStyle = color_ori.FontStyle;
+						color_new.FontWeight = color_ori.FontWeight;
+					}
+				}
+			}
 
 			foreach (var color in def.NamedHighlightingColors) {
 				var tb = Application.Current.TryFindResource("Avalon" + ext + color.Name) as TextBlock;

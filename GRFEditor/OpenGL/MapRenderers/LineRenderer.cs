@@ -1,7 +1,9 @@
-﻿using GRFEditor.OpenGL.MapComponents;
+﻿using GRF.Graphics;
+using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public enum LinePointMode {

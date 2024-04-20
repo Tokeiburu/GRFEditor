@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
-using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.IO;
 using GRF.System;

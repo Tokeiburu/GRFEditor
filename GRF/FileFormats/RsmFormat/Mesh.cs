@@ -2,52 +2,42 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using ErrorManager;
 using GRF.ContainerFormat;
-using GRF.FileFormats.RsmFormat.MeshStructure;
 using GRF.Graphics;
 using GRF.IO;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.RsmFormat {
 	public class Mesh : IWriteableFile {
-		private readonly List<Vertex> _vertices = new List<Vertex>();
+		private readonly List<TkVector3> _vertices = new List<TkVector3>();
 		private readonly List<int> _textureIndexes = new List<int>();
 		private readonly List<TextureVertex> _tvertices = new List<TextureVertex>();
 		private readonly List<Face> _faces = new List<Face>();
 		public BoundingBox BoundingBox = new BoundingBox();
 		public Mesh Parent;
 		public HashSet<Mesh> Children = new HashSet<Mesh>();
-		public Vertex Position;
-		public Vertex Position_;
+		public TkVector3 Position;
+		public TkVector3 Position_;
 		public object AttachedNormals;
 
 		public float RotationAngle;
-		public Vertex RotationAxis;
-		public Vertex Scale;
-		public Vertex Flip;
-		private Matrix3 _transformationMatrix = new Matrix3();
+		public TkVector3 RotationAxis;
+		public TkVector3 Scale;
 
 		public List<string> Textures = new List<string>();
-		public Matrix4 MeshMatrixSelf;
-		internal Matrix4 MeshMatrix;
-		public Matrix4 Matrix = Matrix4.Identity;
+		public TkMatrix4 Matrix2 = TkMatrix4.Identity;
+		public TkMatrix4 Matrix1 = TkMatrix4.Identity;
 
 		private readonly List<ScaleKeyFrame> _scaleKeyFrames = new List<ScaleKeyFrame>();
 		private readonly List<RotKeyFrame> _rotFrames = new List<RotKeyFrame>();
 		private readonly List<PosKeyFrame> _posKeyFrames = new List<PosKeyFrame>();
 		private readonly TextureKeyFrameGroup _textureKeyFrameGroup = new TextureKeyFrameGroup();
-		private TkQuaternion? _bufferedRot;
-		private Vertex? _bufferedScale;
-		private Vertex? _bufferedPos;
-		private readonly Dictionary<int, float> _bufferedTextureOffset = new Dictionary<int, float>();
 
 		public List<int> TextureIndexes {
 			get { return _textureIndexes; }
 		}
 
-		public Rsm Model { get; private set; }
+		public Rsm Model { get; set; }
 		public string Name { get; set; }
 		public string ParentName { get; set; }
 
@@ -60,16 +50,14 @@ namespace GRF.FileFormats.RsmFormat {
 		/// Gets or sets the transformation matrix.
 		/// </summary>
 		/// <value>The transformation matrix.</value>
-		public Matrix3 TransformationMatrix {
-			get { return _transformationMatrix; }
-			set { _transformationMatrix = value; }
-		}
+		public TkMatrix3 TransformationMatrix = TkMatrix3.Identity;
+		public TkMatrix4 InvertTransformationMatrix = TkMatrix4.Identity;
 
 		/// <summary>
 		/// Gets the vertices.
 		/// </summary>
 		/// <value>The vertices.</value>
-		public List<Vertex> Vertices {
+		public List<TkVector3> Vertices {
 			get { return _vertices; }
 		}
 
@@ -124,16 +112,15 @@ namespace GRF.FileFormats.RsmFormat {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Mesh"/> class.
 		/// </summary>
-		public Mesh() {
-			_transformationMatrix = new Matrix3();
-			_transformationMatrix[0] = _transformationMatrix[4] = _transformationMatrix[8] = 1f;
-			Position = new Vertex();
-			Position_ = new Vertex();
+		public Mesh(Rsm rsm) {
+			Position = new TkVector3();
+			Position_ = new TkVector3();
 			RotationAngle = 0;
-			RotationAxis = new Vertex(0, 0, 0);
-			Scale = new Vertex(1, 1, 1);
+			RotationAxis = new TkVector3(0, 0, 0);
+			Scale = new TkVector3(1, 1, 1);
 			ParentName = "";
 			Name = "";
+			Model = rsm;
 		}
 
 		/// <summary>
@@ -141,18 +128,18 @@ namespace GRF.FileFormats.RsmFormat {
 		/// </summary>
 		/// <param name="mesh">The mesh.</param>
 		public Mesh(Mesh mesh) {
-			_transformationMatrix = new Matrix3(mesh._transformationMatrix);
+			TransformationMatrix = mesh.TransformationMatrix;
 
 			foreach (var skf in mesh._scaleKeyFrames) {
-				_scaleKeyFrames.Add(new ScaleKeyFrame(skf));
+				_scaleKeyFrames.Add(skf);
 			}
 
-			foreach (var rf in mesh._rotFrames) {
-				_rotFrames.Add(new RotKeyFrame(rf));
+			foreach (var rkf in mesh._rotFrames) {
+				_rotFrames.Add(rkf);
 			}
 
-			foreach (var psk in mesh._posKeyFrames) {
-				_posKeyFrames.Add(new PosKeyFrame(psk));
+			foreach (var pkf in mesh._posKeyFrames) {
+				_posKeyFrames.Add(pkf);
 			}
 
 			foreach (var texture in mesh.Textures) {
@@ -225,30 +212,28 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 
 			for (int i = 0; i < 9; i++) {
-				_transformationMatrix[i] = reader.Float();
+				TransformationMatrix[i] = reader.Float();
 			}
 
-			Position_ = new Vertex(reader);
+			Position_ = new TkVector3(reader);
 
 			if (version >= 2.2) {
-				Position = new Vertex(0, 0, 0);
+				Position = new TkVector3(0, 0, 0);
 				RotationAngle = 0;
-				RotationAxis = new Vertex(0, 0, 0);
-				Scale = new Vertex(1, 1, 1);
-				Flip = new Vertex(-1, -1, 1);
+				RotationAxis = new TkVector3(0, 0, 0);
+				Scale = new TkVector3(1, 1, 1);
 			}
 			else {
-				Position = new Vertex(reader);
+				Position = new TkVector3(reader);
 				RotationAngle = reader.Float();
-				RotationAxis = new Vertex(reader);
-				Scale = new Vertex(reader);
-				Flip = new Vertex(1, 1, 1);
+				RotationAxis = new TkVector3(reader);
+				Scale = new TkVector3(reader);
 			}
 
 			_vertices.Capacity = count = reader.Int32();
 
 			for (int i = 0; i < count; i++) {
-				_vertices.Add(new Vertex(reader));
+				_vertices.Add(new TkVector3(reader));
 			}
 
 			_tvertices.Capacity = count = reader.Int32();
@@ -300,13 +285,7 @@ namespace GRF.FileFormats.RsmFormat {
 				_scaleKeyFrames.Capacity = count = reader.Int32();
 
 				for (int i = 0; i < count; i++) {
-					_scaleKeyFrames.Add(new ScaleKeyFrame {
-						Frame = reader.Int32(),
-						Sx = reader.Float(),
-						Sy = reader.Float(),
-						Sz = reader.Float(),
-						Data = reader.Float()
-					});
+					_scaleKeyFrames.Add(new ScaleKeyFrame(reader));
 				}
 			}
 
@@ -431,185 +410,6 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 		}
 
-		// Compilation for RSM2 only
-		public void Calc(Rsm rsm, int animationFrame) {
-			MeshMatrixSelf = Matrix4.Identity;
-			MeshMatrix = Matrix4.Identity;
-
-			// Calculate Matrix applied on the mesh itself
-			if (ScaleKeyFrames.Count > 0) {
-				MeshMatrix = Matrix4.Scale(MeshMatrix, GetScale(animationFrame));
-			}
-
-			if (RotationKeyFrames.Count > 0) {
-				MeshMatrix = Matrix4.Rotate(MeshMatrix, GetRotQuaternion(animationFrame));
-			}
-			else {
-				MeshMatrix = Matrix4.Multiply2(MeshMatrix, new Matrix4(TransformationMatrix));
-
-				if (Parent != null) {
-					MeshMatrix = Matrix4.Multiply2(MeshMatrix, new Matrix4(Parent.TransformationMatrix).Invert());
-				}
-			}
-
-			MeshMatrixSelf = new Matrix4(MeshMatrix);
-
-			Vertex position;
-
-			// Calculate the position of the mesh from its parent
-			if (PosKeyFrames.Count > 0) {
-				position = GetPosition(animationFrame);
-			}
-			else {
-				if (Parent != null) {
-					position = Position_ - Parent.Position_;
-					position = Matrix4.Multiply2(new Matrix4(Parent.TransformationMatrix).Invert(), position);
-				}
-				else {
-					position = Position_;
-				}
-			}
-
-			MeshMatrixSelf.Offset = position;
-
-			// Apply parent transformations
-			Mesh mesh = this;
-
-			while (mesh.Parent != null) {
-				mesh = mesh.Parent;
-				MeshMatrixSelf = Matrix4.Multiply2(MeshMatrixSelf, mesh.MeshMatrix);
-			}
-
-			// Set the final position relative to the parent's position
-			if (Parent != null) {
-				MeshMatrixSelf.Offset += Parent.MeshMatrixSelf.Offset;
-			}
-
-			// Calculate children
-			foreach (var child in Children) {
-				child.Calc(rsm, animationFrame);
-			}
-		}
-
-		public void Calculate(Matrix4 parentMatrix, bool apply) {
-			// Calculate from children to parent.
-			Vertex vertex = new Vertex();
-
-			if (Children.Count == 0 || parentMatrix == null) {
-				Matrix = Matrix4.Identity;
-				Matrix.Offset = Position_;	// Affected by scale
-				Matrix = Matrix4.Scale(Matrix, Scale);
-				//if (Flip.Y == -1) {
-				//	Matrix = Matrix4.RotateZ(Matrix, (float)(180f * (Math.PI / 180f)));
-				//}
-				Matrix = Matrix4.Scale(Matrix, Flip);
-				if (RotationKeyFrames.Count > 0) {
-					Matrix = Matrix4.Rotate(Matrix, GetRotQuaternion(0));
-				}
-				else {
-					Matrix = Matrix4.Rotate2(Matrix, RotationAxis, RotationAngle);
-				}
-				Matrix = Matrix4.Multiply(Matrix, new Matrix4(TransformationMatrix));
-
-				// Apply changes to the vertices
-				Vertex vert3;
-
-				List<Vertex> vertices;
-
-				if (apply) {
-					vertices = Vertices;
-				}
-				else {
-					vertices = new List<Vertex>(Vertices.Count);
-					vertices.AddRange(Vertices);
-				}
-
-				for (int i = 0; i < vertices.Count; i++) {
-					vert3 = vertices[i];
-
-					vertex[0] = Matrix[0] * vert3[0] + Matrix[4] * vert3[1] + Matrix[8] * vert3[2] + Matrix[12];
-					vertex[1] = Matrix[1] * vert3[0] + Matrix[5] * vert3[1] + Matrix[9] * vert3[2] + Matrix[13];
-					vertex[2] = Matrix[2] * vert3[0] + Matrix[6] * vert3[1] + Matrix[10] * vert3[2] + Matrix[14];
-
-					vertices[i] = vertex;
-				}
-
-				// Reset the matrix...!
-				Matrix = Matrix4.Identity;
-				Matrix = Matrix4.Multiply(Matrix, _retrieveParentsMatrix());
-
-				Matrix4 matrix2 = new Matrix4(Matrix);
-
-				foreach (Vertex vert in vertices) {
-					vertex[0] = matrix2[0] * vert[0] + matrix2[4] * vert[1] + matrix2[8] * vert[2] + matrix2[12];
-					vertex[1] = matrix2[1] * vert[0] + matrix2[5] * vert[1] + matrix2[9] * vert[2] + matrix2[13];
-					vertex[2] = matrix2[2] * vert[0] + matrix2[6] * vert[1] + matrix2[10] * vert[2] + matrix2[14];
-
-					for (int j = 0; j < 3; j++) {
-						BoundingBox.Min[j] = Math.Min(vertex[j], BoundingBox.Min[j]);
-						BoundingBox.Max[j] = Math.Max(vertex[j], BoundingBox.Max[j]);
-					}
-				}
-
-				for (int i = 0; i < 3; i++) {
-					BoundingBox.Offset[i] = (BoundingBox.Max[i] + BoundingBox.Min[i]) / 2.0f;
-					BoundingBox.Range[i] = (BoundingBox.Max[i] - BoundingBox.Min[i]) / 2.0f;
-					BoundingBox.Center[i] = BoundingBox.Min[i] + BoundingBox.Range[i];
-				}
-			}
-			else {
-				foreach (var child in Children) {
-					child.Calculate(parentMatrix, apply);
-				}
-
-				Calculate(null, apply);
-			}
-		}
-
-		private Matrix4 _retrieveParentsMatrix() {
-			if (Parent == null) {
-				return Matrix4.BufferedIdentity;
-			}
-
-			CalculateMeshMatrix();
-
-			if (Parent.MeshMatrix != null)
-				return Matrix4.Translate(Parent.MeshMatrix, Position);
-
-			return Parent.MeshMatrix;
-		}
-
-		public void CalculateMeshMatrix() {
-			Matrix4 parent;
-
-			if (Parent != null) {
-				Parent.CalculateMeshMatrix();
-				parent = Parent.MeshMatrix;
-			}
-			else {
-				parent = Matrix4.BufferedIdentity;
-			}
-
-			if (Children.Count == 0)
-				return;
-
-			MeshMatrix = Matrix4.Identity;
-
-			MeshMatrix = Matrix4.Scale(MeshMatrix, Scale);
-
-			if (RotationKeyFrames.Count > 0) {
-				MeshMatrix = Matrix4.RotateQuat(MeshMatrix, RotationKeyFrames[0]);
-			}
-			else {
-				MeshMatrix = Matrix4.Rotate2(MeshMatrix, RotationAxis, RotationAngle);
-			}
-
-			if (Parent != null)
-				MeshMatrix.Offset = Position;
-
-			MeshMatrix = Matrix4.Multiply(MeshMatrix, parent);
-		}
-
 		public int GetAbsoluteTextureId(int relativeId) {
 			return _textureIndexes[relativeId];
 		}
@@ -623,312 +423,9 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 		}
 
-		private List<MeshRawData> _explode(Dictionary<string, MeshTriangle[]> mesh) {
-			return mesh.Select(pair => new MeshRawData { MeshTriangles = pair.Value, Texture = pair.Key }).ToList();
-		}
-
-		private void _generateMesh_Smooth(Vertex[] vert, Dictionary<int, Vertex[]> shadeGroup, Dictionary<string, MeshTriangle[]> mesh) {
-			int vertexId, textureVertexId;
-			string texture;
-
-			Dictionary<string, int> offsets = Model.Textures.ToDictionary(t => t, t => 0);
-
-			for (int i = 0; i < Faces.Count; i++) {
-				Face face = Faces[i];
-
-				Vertex[] normals = shadeGroup[face.SmoothGroup[0]];
-
-				texture = GetAbsoluteTexture(face.TextureId); // Main.Textures[_textureIndexes[face.TextureId]];
-				MeshTriangle[] output = mesh[texture];
-				int offset = offsets[texture];
-
-				for (int j = 0; j < 3; j++) {
-					vertexId = face.VertexIds[j];
-					textureVertexId = face.TextureVertexIds[j];
-					output[offset].Positions[j] = vert[vertexId];
-					output[offset].Normals[j] = normals[vertexId];
-					output[offset].TextureCoords[j] = new Point(TextureVertices[textureVertexId]);
-				}
-
-				offsets[texture] = ++offset;
-			}
-		}
-
-		private void _generateMesh_Flat(Vertex[] vert, Vertex[] norm, Dictionary<string, MeshTriangle[]> mesh) {
-			Face face;
-			string texture;
-
-			Dictionary<string, int> offsets = new Dictionary<string, int>();
-
-			if (Model.Header.IsCompatibleWith(2, 3)) {
-				for (int i = 0; i < this.Textures.Count; i++) {
-					offsets[this.Textures[i]] = 0;
-				}
-			}
-			else {	
-				for (int i = 0; i < Model.Textures.Count; i++) {
-					offsets[Model.Textures[i]] = 0;
-				}
-			}
-
-			int vertexId, textureVertexId;
-
-			for (int i = 0; i < Faces.Count; i++) {
-				try {
-					face = Faces[i];
-					texture = GetAbsoluteTexture(face.TextureId); // Main.Textures[_textureIndexes[face.TextureId]];
-
-					MeshTriangle[] output = mesh[texture];
-					int offset = offsets[texture];
-
-					for (int j = 0; j < 3; j++) {
-						vertexId = face.VertexIds[j];
-						textureVertexId = face.TextureVertexIds[j];
-						output[offset].Positions[j] = vert[vertexId];
-						output[offset].Normals[j] = norm[i];
-						output[offset].TextureCoords[j] = new Point(TextureVertices[textureVertexId]);
-						//output[offset][j].Alpha = Main.Alpha;
-					}
-
-					offsets[texture] = ++offset;
-				}
-				catch (Exception err) {
-					ErrorHandler.HandleException(err);
-				}
-			}
-		}
-
-		private void _calculateNormals_Smooth(IList<Vertex> normal, IDictionary<int, bool> groupUsed, IDictionary<int, Vertex[]> group) {
-			float x, y, z, len;
-			var size = Vertices.Count;
-			var faces = Faces;
-			Vertex[] norm;
-			Face face;
-			var count = Faces.Count;
-
-			for (int j = 0; j < 32; j++) {
-				if (!groupUsed.ContainsKey(j))
-					continue;
-
-				if (!groupUsed[j])
-					continue;
-
-				group[j] = new Vertex[size];
-				norm = group[j];
-				Vertex temp;
-
-				for (int v = 0; v < size; ++v) {
-					x = 0;
-					y = 0;
-					z = 0;
-
-					for (int i = 0; i < count; i++) {
-						face = faces[i];
-						if (face.SmoothGroup[0] == j && (face.VertexIds[0] == v || face.VertexIds[1] == v || face.VertexIds[2] == v)) {
-							temp = normal[i];
-							x += temp.X;
-							y += temp.Y;
-							z += temp.Z;
-						}
-					}
-
-					len = (float) Math.Exp(-0.5 * Math.Log(x * x + y * y + z * z));
-					norm[v].X = x * len;
-					norm[v].Y = y * len;
-					norm[v].Z = z * len;
-				}
-			}
-		}
-
-		private void _calculateNormals_Flat(Vertex[] faceNormals, Matrix4 normalMat, Dictionary<int, bool> groupUsed) {
-			int i, j, count;
-			var faces = Faces;
-			Face face;
-			Vertex tempVector;
-
-			for (i = 0, j = 0, count = faces.Count; i < count; ++i, j += 3) {
-				face = faces[i];
-				tempVector = Vertex.CalculateNormal(_vertices[face.VertexIds[0]], _vertices[face.VertexIds[1]], _vertices[face.VertexIds[2]]);
-				faceNormals[i][0] = normalMat[0] * tempVector[0] + normalMat[4] * tempVector[1] + normalMat[8] * tempVector[2] + normalMat[12];
-				faceNormals[i][1] = normalMat[1] * tempVector[0] + normalMat[5] * tempVector[1] + normalMat[9] * tempVector[2] + normalMat[13];
-				faceNormals[i][2] = normalMat[2] * tempVector[0] + normalMat[6] * tempVector[1] + normalMat[10] * tempVector[2] + normalMat[14];
-
-				groupUsed[face.SmoothGroup[0]] = true;
-			}
-		}
-
-		private void _calculateNormals_None(IList<Vertex> normals) {
-			Vertex d = new Vertex(-1, -1, -1);
-
-			for (int i = 0; i < normals.Count; i++) {
-				normals[i] = d;
-			}
-		}
-
 		public override string ToString() {
 			return "Name = " + Name;
 		}
-
-		#region Rendering
-		public void ClearBuffer() {
-			_bufferedScale = null;
-			_bufferedRot = null;
-			_bufferedPos = null;
-			_bufferedTextureOffset.Clear();
-		}
-
-		public TkQuaternion GetRotQuaternion(int animationFrame) {
-			if (_bufferedRot == null) {
-				for (int i = 0; i < _rotFrames.Count - 1; i++) {
-					if (animationFrame >= _rotFrames[i].Frame && _rotFrames[i + 1].Frame < animationFrame)
-						continue;
-
-					if (_rotFrames[i].Frame == animationFrame) {
-						_bufferedRot = _rotFrames[i].Quaternion;
-						return _bufferedRot.Value;
-					}
-
-					if (_rotFrames[i + 1].Frame == animationFrame) {
-						_bufferedRot = _rotFrames[i + 1].Quaternion;
-						return _bufferedRot.Value;
-					}
-
-					int dist = _rotFrames[i + 1].Frame - _rotFrames[i].Frame;
-					animationFrame = animationFrame - _rotFrames[i].Frame;
-					float mult = (animationFrame / (float)dist);
-
-					var curFrame = _rotFrames[i];
-					var nexFrame = _rotFrames[i + 1];
-
-					_bufferedRot = TkQuaternion.Slerp(curFrame.Quaternion, nexFrame.Quaternion, mult);
-					return _bufferedRot.Value;
-				}
-
-				if (animationFrame >= _rotFrames[_rotFrames.Count - 1].Frame)
-					return _rotFrames[_rotFrames.Count - 1].Quaternion;
-
-				return _rotFrames[0].Quaternion;
-			}
-
-			return _bufferedRot.Value;
-		}
-
-		public Vertex GetScale(int animationFrame) {
-			if (_bufferedScale == null) {
-				for (int i = 0; i < _scaleKeyFrames.Count - 1; i++) {
-					if (animationFrame >= _scaleKeyFrames[i].Frame && _scaleKeyFrames[i + 1].Frame < animationFrame)
-						continue;
-
-					if (_scaleKeyFrames[i].Frame == animationFrame) {
-						_bufferedScale = _scaleKeyFrames[i].Scale;
-						return _bufferedScale.Value;
-					}
-
-					if (_scaleKeyFrames[i + 1].Frame == animationFrame) {
-						_bufferedScale = _scaleKeyFrames[i + 1].Scale;
-						return _bufferedScale.Value;
-					}
-
-					int dist = _scaleKeyFrames[i + 1].Frame - _scaleKeyFrames[i].Frame;
-					animationFrame = animationFrame - _scaleKeyFrames[i].Frame;
-					float mult = (animationFrame / (float)dist);
-
-					var curFrame = _scaleKeyFrames[i];
-					var nexFrame = _scaleKeyFrames[i + 1];
-
-
-					_bufferedScale = mult * (nexFrame.Scale - curFrame.Scale) + curFrame.Scale;
-					return _bufferedScale.Value;
-				}
-
-				if (animationFrame >= _scaleKeyFrames[_scaleKeyFrames.Count - 1].Frame)
-					return _scaleKeyFrames[_scaleKeyFrames.Count - 1].Scale;
-
-				return _scaleKeyFrames[0].Scale;
-			}
-
-			return _bufferedScale.Value;
-		}
-
-		public Vertex GetPosition(int animationFrame) {
-			if (_bufferedPos == null) {
-				for (int i = 0; i < _posKeyFrames.Count - 1; i++) {
-					if (animationFrame >= _posKeyFrames[i].Frame && _posKeyFrames[i + 1].Frame < animationFrame)
-						continue;
-
-					if (_posKeyFrames[i].Frame == animationFrame) {
-						_bufferedPos = _posKeyFrames[i].Position;
-						return _bufferedPos.Value;
-					}
-
-					if (_posKeyFrames[i + 1].Frame == animationFrame) {
-						_bufferedPos = _posKeyFrames[i + 1].Position;
-						return _bufferedPos.Value;
-					}
-
-					int dist = _posKeyFrames[i + 1].Frame - _posKeyFrames[i].Frame;
-					animationFrame = animationFrame - _posKeyFrames[i].Frame;
-					float mult = (animationFrame / (float)dist);
-
-					var curFrame = _posKeyFrames[i];
-					var nexFrame = _posKeyFrames[i + 1];
-
-					_bufferedPos = mult * (nexFrame.Position - curFrame.Position) + curFrame.Position;
-					return _bufferedPos.Value;
-				}
-
-				if (animationFrame >= _posKeyFrames[_posKeyFrames.Count - 1].Frame)
-					return _posKeyFrames[_posKeyFrames.Count - 1].Position;
-
-				return _posKeyFrames[0].Position;
-			}
-
-			return _bufferedPos.Value;
-		}
-
-		public float GetTexture(int animationFrame, int textureId, int type) {
-			var frames = _textureKeyFrameGroup.GetTextureKeyFrames(textureId, type);
-
-			if (frames == null || frames.Count == 0)
-				return 0;
-
-			int uid = 100 * (textureId + 1) + type;
-
-			if (_bufferedTextureOffset.ContainsKey(uid))
-				return _bufferedTextureOffset[uid];
-
-			for (int i = 0; i < frames.Count - 1; i++) {
-				if (animationFrame >= frames[i].Frame && frames[i + 1].Frame < animationFrame)
-					continue;
-
-				if (frames[i].Frame == animationFrame) {
-					_bufferedTextureOffset[uid] = frames[i].Offset;
-					return frames[i].Offset;
-				}
-
-				if (frames[i + 1].Frame == animationFrame) {
-					_bufferedTextureOffset[uid] = frames[i + 1].Offset;
-					return frames[i + 1].Offset;
-				}
-
-				int dist = frames[i + 1].Frame - frames[i].Frame;
-				animationFrame = animationFrame - frames[i].Frame;
-				float mult = (animationFrame / (float)dist);
-
-				var curFrame = frames[i];
-				var nexFrame = frames[i + 1];
-
-				float res = mult * (nexFrame.Offset - curFrame.Offset) + curFrame.Offset;
-				_bufferedTextureOffset[uid] = res;
-				return res;
-			}
-
-			if (animationFrame >= frames[frames.Count - 1].Frame)
-				return frames[frames.Count - 1].Offset;
-
-			return frames[0].Offset;
-		}
-		#endregion
 
 		public void Write(BinaryWriter writer) {
 			if (Model.Version >= 2.2) {
@@ -959,7 +456,7 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 
 			for (int i = 0; i < 9; i++) {
-				writer.Write(_transformationMatrix[i]);
+				writer.Write(TransformationMatrix[i]);
 			}
 
 			Position_.Write(writer);
@@ -998,11 +495,7 @@ namespace GRF.FileFormats.RsmFormat {
 				writer.Write(_scaleKeyFrames.Count);
 
 				for (int i = 0; i < _scaleKeyFrames.Count; i++) {
-					writer.Write(_scaleKeyFrames[i].Frame);
-					writer.Write(_scaleKeyFrames[i].Sx);
-					writer.Write(_scaleKeyFrames[i].Sy);
-					writer.Write(_scaleKeyFrames[i].Sz);
-					writer.Write(_scaleKeyFrames[i].Data);
+					_scaleKeyFrames[i].Write(writer);
 				}
 			}
 
@@ -1046,7 +539,7 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 
 			for (int i = 0; i < 9; i++) {
-				writer.Write(_transformationMatrix[i]);
+				writer.Write(TransformationMatrix[i]);
 			}
 
 			Position_.Write(writer);
@@ -1091,6 +584,16 @@ namespace GRF.FileFormats.RsmFormat {
 			for (int i = 0; i < _rotFrames.Count; i++) {
 				_rotFrames[i].Write(writer);
 			}
+		}
+
+		public BoundingBox CalculateBoundingBox() {
+			BoundingBox box = new BoundingBox();
+
+			foreach (var v in Vertices) {
+				box.AddVertex(v);
+			}
+
+			return box;
 		}
 	}
 }

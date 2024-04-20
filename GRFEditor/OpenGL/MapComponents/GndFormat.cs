@@ -4,8 +4,10 @@ using System.Linq;
 using GRF;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
+using GRF.Graphics;
 using GRF.IO;
 using OpenTK;
+using Utilities;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	/// <summary>
@@ -57,8 +59,59 @@ namespace GRFEditor.OpenGL.MapComponents {
 		private void _loadCubes(IBinaryReader data) {
 			Cubes.Capacity = Header.Width * Header.Height;
 
-			for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
-				Cubes.Add(new Cube(data));
+			if (Header.Version <= 1) {
+				LightmapHeight = 8;
+				LightmapWidth = 8;
+				LightmapSizeCell = 1;
+
+				byte[] light = new byte[256];
+
+				for (int i = 0; i < 64; i++) {
+					light[i] = 255;
+				}
+
+				Lightmaps.Add(light);
+				
+				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
+					Tile[] tiles = new Tile[3] { new Tile(), new Tile(), new Tile() };	// up, front, side
+					Cube cube = new Cube();
+
+					for (int l = 0; l < 3; l++) {
+						tiles[l].Color = new TkVector4(255, 255, 255, 255);
+						tiles[l].TextureIndex = (short)data.Int32();
+					}
+
+					cube[0] = data.Float(); cube[1] = data.Float(); cube[2] = data.Float(); cube[3] = data.Float();
+					data.Forward(8);
+
+					for (int l = 0; l < 3; l++)
+						for (int j = 0; j < 4; j++)
+							for (int k = 0; k < 2; k++)
+								tiles[l].TexCoords[j][k] = data.Float();
+
+					cube.TileUp = cube.TileSide = cube.TileFront = -1;
+
+					if (tiles[0].TextureIndex > -1) {
+						cube.TileUp = Tiles.Count;
+						Tiles.Add(tiles[0]);
+					}
+					if (tiles[1].TextureIndex > -1) {
+						cube.TileSide = Tiles.Count;
+						Tiles.Add(tiles[1]);
+					}
+					if (tiles[2].TextureIndex > -1) {
+						cube.TileFront = Tiles.Count;
+						Tiles.Add(tiles[2]);
+					}
+
+					Cubes.Add(cube);
+					cube.CalculateNormal();
+				}
+			}
+			else {
+				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
+					Cubes.Add(new Cube(Header, data));
+				}
 			}
 			
 			for (int x = 0; x < Header.Width; x++)
@@ -67,6 +120,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		private void _loadTiles(IBinaryReader data) {
+			if (Header.Version <= 1)
+				return;
+
 			int count = data.Int32();
 			Tiles.Capacity = count;
 
@@ -76,6 +132,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		private void _loadLightmaps(IBinaryReader data) {
+			if (Header.Version <= 1)
+				return;
+
 			int count = data.Int32();
 			LightmapWidth = data.Int32();
 			LightmapHeight = data.Int32();
@@ -226,10 +285,13 @@ namespace GRFEditor.OpenGL.MapComponents {
 	}
 
 	public class Tile {
-		public Vector4 Color;
+		public TkVector4 Color;
 		public Vector2[] TexCoords = new Vector2[4];
 		public Int16 TextureIndex;
 		public UInt16 LightmapIndex;
+
+		public Tile() {
+		}
 
 		public Tile(Tile tile) {
 			Color = tile.Color;
@@ -246,7 +308,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			TexCoords[0].Y = data.Float(); TexCoords[1].Y = data.Float(); TexCoords[2].Y = data.Float(); TexCoords[3].Y = data.Float();
 			TextureIndex = data.Int16();
 			LightmapIndex = data.UInt16();
-			Color = new Vector4 { Z = data.Byte(), Y = data.Byte(), X = data.Byte(), W = data.Byte() };
+			Color = new TkVector4 { Z = data.Byte(), Y = data.Byte(), X = data.Byte(), W = data.Byte() };
 		}
 
 		public Vector2 this[int index] {
@@ -262,17 +324,30 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Vector3 Normal;
 		public Vector3[] Normals = new Vector3[4];
 
-		public Cube(IBinaryReader data) {
+		public Cube() {
+		}
+
+		public Cube(GndHeader header, IBinaryReader data) {
 			_heights[0] = data.Float(); _heights[1] = data.Float(); _heights[2] = data.Float(); _heights[3] = data.Float();
-			TileUp = data.Int32();
-			TileFront = data.Int32();
-			TileSide = data.Int32();
+
+			if (header.Version > 1.5) {
+				TileUp = data.Int32();
+				TileFront = data.Int32();
+				TileSide = data.Int32();
+			}
+			else {
+				TileUp = data.Int16();
+				TileFront = data.Int16();
+				TileSide = data.Int16();
+				data.Forward(2);
+			}
 
 			CalculateNormal();
 		}
 
 		public float this[int index] {
 			get { return _heights[index]; }
+			set { _heights[index] = value; }
 		}
 
 		public void CalculateNormal() {

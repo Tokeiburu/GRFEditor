@@ -50,7 +50,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			_treeViewMapExtractor.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(_treeViewMapExtractor_SelectedItemChanged);
 			_treeViewMapExtractor.CopyMethod = delegate {
 				if (_treeViewMapExtractor.SelectedItem != null)
-					Clipboard.SetDataObject(((MapExtractorTreeViewItem)_treeViewMapExtractor.SelectedItem).ResourcePath.RelativePath);
+					Clipboard.SetDataObject(((MapExtractorTreeViewItem)_treeViewMapExtractor.SelectedItem).ResourcePath.GetMostRelative());
 			};
 
 			_treeViewMapExtractor.DoDragDropCustomMethod = delegate {

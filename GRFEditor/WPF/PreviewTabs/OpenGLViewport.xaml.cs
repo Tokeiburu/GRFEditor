@@ -4,12 +4,14 @@ using System.Linq;
 using System.Windows.Forms;
 using GRF.Core;
 using GRF.FileFormats.StrFormat;
+using GRF.Graphics;
 using GRFEditor.OpenGL;
 using GRFEditor.OpenGL.StrGroup;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using Utilities.Tools;
+using Matrix4 = OpenTK.Matrix4;
 using Orientation = System.Windows.Controls.Orientation;
 using UserControl = System.Windows.Controls.UserControl;
 

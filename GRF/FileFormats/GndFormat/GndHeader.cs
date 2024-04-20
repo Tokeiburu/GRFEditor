@@ -34,8 +34,26 @@ namespace GRF.FileFormats.GndFormat {
 
 			Magic = reader.StringANSI(4);
 
-			if (Magic != "GRGN")
-				throw GrfExceptions.__FileFormatException.Create("GND");
+			if (Magic != "GRGN") {
+				// Try to load alpha GND
+				try {
+					reader.Position = 0;
+					TextureCount = reader.Int32();
+					Width = reader.Int32();
+					Height = reader.Int32();
+					MajorVersion = 1;
+					MinorVersion = 0;
+					TexturePathSize = 80;
+
+					if (Width > 5000 || Height > 5000)
+						throw GrfExceptions.__FileFormatException.Create("GND");
+
+					return;
+				}
+				catch {
+					throw GrfExceptions.__FileFormatException.Create("GND");
+				}
+			}
 
 			MajorVersion = reader.Byte();
 			MinorVersion = reader.Byte();
@@ -78,7 +96,7 @@ namespace GRF.FileFormats.GndFormat {
 		/// </summary>
 		/// <param name="writer">The writer.</param>
 		public void Write(BinaryWriter writer) {
-			writer.Write(Encoding.ASCII.GetBytes(Magic));
+			writer.Write(Encoding.ASCII.GetBytes("GRGN"));
 			writer.Write(MajorVersion);
 			writer.Write(MinorVersion);
 			writer.Write(Width);

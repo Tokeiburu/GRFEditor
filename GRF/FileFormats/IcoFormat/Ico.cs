@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using GRF.ContainerFormat;
 using GRF.IO;
 using GRF.Image;
-using Utilities;
 
 namespace GRF.FileFormats.IcoFormat {
 	//public class IconDirEntry {

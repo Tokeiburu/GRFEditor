@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using GRF.Graphics;
@@ -258,14 +256,14 @@ namespace GRF.IO {
 			_byteRead = numOfBytes;
 		}
 
-		public Vertex Vertex() {
+		public TkVector3 Vector3() {
 			_forward(12);
-			return new Vertex(_data, _offset);
+			return new TkVector3(_data, _offset);
 		}
 
-		public Point Point() {
+		public TkVector2 Vector2() {
 			_forward(8);
-			return new Point(_data, _offset);
+			return new TkVector2(_data, _offset);
 		}
 
 		public GrfColor GrfColor() {

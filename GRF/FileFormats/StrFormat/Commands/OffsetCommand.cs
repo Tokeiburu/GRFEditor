@@ -1,5 +1,5 @@
 ﻿using System;
-using GRF.Image;
+using GRF.Graphics;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
@@ -32,11 +32,11 @@ namespace GRF.FileFormats.StrFormat.Commands {
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].Offset = new Graphics.Point(_x, _y);
+			str[_layerIdx, _frameIdx].Offset = new TkVector2(_x, _y);
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].Offset = new Graphics.Point(_oldX, _oldY);
+			str[_layerIdx, _frameIdx].Offset = new TkVector2(_oldX, _oldY);
 		}
 
 		public bool CanCombine(ICombinableCommand command) {

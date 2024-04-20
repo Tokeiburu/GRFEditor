@@ -31,7 +31,6 @@ namespace GRF.FileFormats.LubFormat {
 		}
 
 		public void RemoveOverrides() {
-			Z.F(GroupIfAllKeyValues);
 		}
 	}
 }

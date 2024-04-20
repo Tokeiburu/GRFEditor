@@ -126,12 +126,15 @@
     <TextBlock x:Key="AvalonDebugDbDefault" Foreground="{StaticResource TextForeground}" FontWeight="Bold" />
 
     <!-- GRF Editor style overrides - Avalon -->
-    <Color x:Key="UIThemeAvalonSelectionColor">#A0AEB7C0</Color>
+    <Color x:Key="UIThemeAvalonSelectionBackgroundColor">#0A67D6</Color>
+    <Color x:Key="UIThemeAvalonSelectionForegroundColor">#FFFFFF</Color>
     <Color x:Key="UIThemeAvalonMarkerColor">#02A90B</Color>
 
     <SolidColorBrush x:Key="AvalonEditorBackground" Color="{StaticResource UIThemeBackground2Color}"/>
-    <SolidColorBrush x:Key="AvalonEditorSelectionBrush" Color="{StaticResource UIThemeAvalonSelectionColor}" />
+    <SolidColorBrush x:Key="AvalonEditorSelectionBackgroundBrush" Color="{StaticResource UIThemeAvalonSelectionBackgroundColor}" />
+    <SolidColorBrush x:Key="AvalonEditorSelectionForegroundBrush" Color="{StaticResource UIThemeAvalonSelectionForegroundColor}" />
     <SolidColorBrush x:Key="AvalonEditorMarkerBrush" Color="{StaticResource UIThemeAvalonMarkerColor}" />
+    <SolidColorBrush x:Key="AvalonEditorSearchForegroundBrush" Color="#CF2941" />
 
     <!-- GRF Editor style overrides - Others -->
     <SolidColorBrush x:Key="MouseOverTextBrush" Color="{StaticResource UIThemeHyperlinkColor}" />
@@ -142,6 +145,7 @@
     <SolidColorBrush x:Key="EncryptionDialogBorderBrush" Color="{StaticResource UIThemeDialogFooterColor}" />
     <SolidColorBrush x:Key="ToggleMemoryBorderBrush" Color="{StaticResource UIThemePopupBorderColor}"/>
     <SolidColorBrush x:Key="UIDragDropBrush" Color="{StaticResource UIThemeTextBoxBorderColor}"/>
+    <SolidColorBrush x:Key="HyperlinkForegroundBrush" Color="#69D3FF" />
 
     <LinearGradientBrush x:Key="ToggleMemoryBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Offset="0" Color="{StaticResource UIThemePopupBackgroundColor}" />

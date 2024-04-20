@@ -51,7 +51,7 @@ namespace GRF {
 		public const string FailedNullString =  "Failed to recognize the null-terminated string: {0}.";
 		public const string FailedReadContainer = "Failed to read the container: {0}";
 		public const string FailedEncodingString = "File name is wrongly encoded: {0}.";
-		public const string FailedGrfHeader = "File header is invalid, excpected 'Master of Magic', found '{0}'.";
+		public const string FailedGrfHeader = "File header is invalid, expected 'Master of Magic', found '{0}'.";
 		public const string GrfContainsErrors = "There were errors detected while loading or while modifying the GRF. It's strongly advised to save the GRF with another name and check if the content has been correctly updated.\n\nWould you like to save it anyway?";
 		public const string CouldNotSaveContainer = "Couldn't save the container file.";
 		public const string CouldNotSaveContainerForceReload = "Couldn't save the container file. The size limit has been reached and the GRF must be forcibly reloaded.";

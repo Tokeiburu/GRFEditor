@@ -52,6 +52,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(1, -1, 1));
 				}
 				else {
+					RsmBoundingBox box = new RsmBoundingBox();
+					var vs = Renderer.Rsm.MainMesh.GetAllDrawnVertices(Matrix4.Identity);
+					foreach (var v in vs) {
+						box.AddVector(v);
+					}
+					MatrixCache = GLHelper.Translate(MatrixCache, Renderer.Rsm.DrawnBox.Center * new Vector3(1, -1, -1));
 					MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(-1, 1, 1));
 				}
 			}

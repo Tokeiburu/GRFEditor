@@ -698,8 +698,8 @@ namespace GRF.FileFormats.ActFormat {
 			return output;
 		}
 
-		public static Vertex CalculateAnchorDiff(Act act, int actionIndex, int frameIndex, int? anchorFrameIndex) {
-			Vertex vertex = new Vertex();
+		public static TkVector2 CalculateAnchorDiff(Act act, int actionIndex, int frameIndex, int? anchorFrameIndex) {
+			TkVector2 vertex = new TkVector2();
 			Frame frame = act[actionIndex, frameIndex];
 
 			if (act.AnchoredTo != null && frame.Anchors.Count > 0) {

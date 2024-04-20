@@ -11,7 +11,7 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 		}
 
 		public RswObjectType Type { get; protected set; }
-		public Vertex Position { get; set; }
+		public TkVector3 Position { get; set; }
 
 		#region IWriteableObject Members
 

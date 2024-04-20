@@ -100,7 +100,7 @@ namespace GRF.Core.GroupedGrf {
 			return null;
 		}
 
-		private void _openGrfs(IEnumerable<TkPath> paths, GrfHolder extraGrf, bool clear = true) {
+		private void _openGrfs(List<TkPath> paths, GrfHolder extraGrf, bool clear = true) {
 			try {
 				if (clear) {
 					_paths.Clear();

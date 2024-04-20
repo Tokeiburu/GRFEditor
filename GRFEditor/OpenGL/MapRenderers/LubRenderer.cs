@@ -6,6 +6,7 @@ using System.Linq;
 using ErrorManager;
 using GRF.FileFormats.LubFormat;
 using GRF.FileFormats.RswFormat;
+using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using Lua;
@@ -14,6 +15,7 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
 using Utilities.Services;
+using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class LubEffect {
@@ -101,6 +103,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		private readonly List<LubEffect> _effects = new List<LubEffect>();
 		private readonly Stopwatch _watch = new Stopwatch();
 		private bool _verticesLoaded;
+		private bool _firstPass = true;
 		private readonly RendererLoadRequest _request;
 		private readonly Rsw _rsw;
 		private static bool _hasMapSkyData = true;
@@ -295,6 +298,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			GL.DepthMask(true);
 			GL.Enable(EnableCap.DepthTest);
 			GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+			if (!_skipRender)
+				_firstPass = false;
 		}
 
 		private void _renderGroup(Texture key, RenderInfoEffects rie, float interval) {
@@ -398,7 +403,15 @@ namespace GRFEditor.OpenGL.MapRenderers {
 							p.CloudExpandTime = TkRandom.Rand(0, 2);
 							p.CloudOriginalSize = p.Size;
 							p.Life = p.CloudAlphaIncreaseDuration + p.CloudAlphaDecreaseDuration;
+							if (_firstPass) {
+								p.Life = effect.Particles.Count / (float)effect.Maxcount * p.Life;
+							}
 							p.StartLife = p.Life;
+							if (_firstPass) {
+								if (p.Life < Math.Min(1f, p.StartLife / 2)) {
+									p.Alpha = p.Life / Math.Min(1f, p.StartLife / 2);
+								}
+							}
 							effect.Particles.Add(p);
 						}
 					}
@@ -737,10 +750,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		private void _addCloudEffect() {
 			CloudEffectSettings cs = MapRenderer.SkyMap;
 
-			cs.TexturesResources.Add("effect\\cloud1.tga");
-			cs.TexturesResources.Add("effect\\cloud2.tga");
-			cs.TexturesResources.Add("effect\\cloud3.tga");
-			cs.TexturesResources.Add("effect\\cloud4.tga");
+			if (cs.TexturesResources.Count == 0) {
+				cs.TexturesResources.Add("effect\\cloud1.tga");
+				cs.TexturesResources.Add("effect\\cloud2.tga");
+				cs.TexturesResources.Add("effect\\cloud3.tga");
+				cs.TexturesResources.Add("effect\\cloud4.tga");
+			}
 
 			for (int i = 0; i < cs.TexturesResources.Count; i++) {
 				LubEffect effect = new LubEffect();

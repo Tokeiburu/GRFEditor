@@ -53,7 +53,7 @@ namespace GRF.IO {
 		double[] ArrayDouble(int count);
 
 		GrfColor GrfColor();
-		Point Point();
-		Vertex Vertex();
+		TkVector3 Vector3();
+		TkVector2 Vector2();
 	}
 }

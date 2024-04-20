@@ -1,6 +1,5 @@
 ﻿using System;
 using GRF.Graphics;
-using GRF.Image;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
@@ -37,22 +36,22 @@ namespace GRF.FileFormats.StrFormat.Commands {
 
 			float x = 0;
 			float y = 0;
-			Vertex[] points = new Vertex[4];
+			TkVector2[] points = new TkVector2[4];
 
 			for (int i = 0; i < 4; i++) {
 				x += str[_layerIdx, _frameIdx].Xy[i];
 				y += str[_layerIdx, _frameIdx].Xy[i + 4];
 
-				points[i] = new Vertex(str[_layerIdx, _frameIdx].Xy[i], str[_layerIdx, _frameIdx].Xy[i + 4]);
+				points[i] = new TkVector2(str[_layerIdx, _frameIdx].Xy[i], str[_layerIdx, _frameIdx].Xy[i + 4]);
 			}
 
 			x /= 4;
 			y /= 4;
 
-			Vertex m = new Vertex(x, y);
+			TkVector2 m = new TkVector2(x, y);
 
 			for (int i = 0; i < 4; i++) {
-				Vertex p = (points[i] - m);
+				TkVector2 p = (points[i] - m);
 				p.X *= _x;
 				p.Y *= _y;
 

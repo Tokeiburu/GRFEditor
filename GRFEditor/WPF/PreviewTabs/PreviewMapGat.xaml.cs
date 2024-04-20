@@ -38,8 +38,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 			Binder.Bind(_cbRescale, () => GrfEditorConfiguration.GatPreviewRescale, () => Update(true));
 			Binder.Bind(_cbHideBorders, () => GrfEditorConfiguration.GatPreviewHideBorders, () => Update(true));
 
-			TemporaryFilesManager.UniquePattern("img_{0:0000}.bmp");
-
 			_cbPreviewMode.SelectedIndex = GrfEditorConfiguration.GatPreviewMode;
 			_cbPreviewMode.SelectionChanged += new SelectionChangedEventHandler(_cbPreviewMode_SelectionChanged);
 			_isInvisibleResult = () => _imagePreview.Dispatch(p => p.Visibility = Visibility.Hidden);

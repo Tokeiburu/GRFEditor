@@ -7,11 +7,13 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using GRFEditor.ApplicationConfiguration;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
 using TokeiLibrary;
+using Utilities;
 using Utilities.Extension;
 using SearchPanel = GRFEditor.WPF.SearchPanel;
 
@@ -30,26 +32,28 @@ namespace GRFEditor.Core.Avalon {
 		}
 
 		private void _loadAvalon() {
+			ApplicationManager.ThemeChanged += delegate {
+				_setTheme();
+				_renderer.MarkerBrush = Application.Current.Resources["AvalonEditorMarkerBrush"] as Brush;
+
+				try {
+					AvalonHelper.DirtySyntaxes[_textEditor.SyntaxHighlighting.Name] = true;
+					AvalonHelper.SetSyntax(_textEditor, _textEditor.SyntaxHighlighting.Name);
+				}
+				catch {
+				}
+			};
+
 			DispatcherTimer foldingUpdateTimer = new DispatcherTimer();
 			foldingUpdateTimer.Interval = TimeSpan.FromSeconds(2);
 			foldingUpdateTimer.Start();
-
-			_textEditor.Foreground = Application.Current.Resources["TextForeground"] as Brush;
-			_textEditor.Background = Application.Current.Resources["AvalonEditorBackground"] as Brush;
-			_textEditor.Dispatch(p => p.TextArea.SelectionCornerRadius = 0);
-			_textEditor.Dispatch(p => p.TextArea.SelectionBorder = new Pen(_textEditor.TextArea.SelectionBrush, 0));
-			_textEditor.TextArea.SelectionBrush = Application.Current.Resources["AvalonEditorSelectionBrush"] as Brush;
-			_textEditor.TextArea.SelectionBorder = new Pen(_textEditor.TextArea.SelectionBrush, 1);
-			_textEditor.TextArea.SelectionForeground = new SolidColorBrush(Colors.Black);
+			_setTheme();
+			_textEditor.Options.EnableEmailHyperlinks = false;
 			SearchPanel panel = new SearchPanel();
 			panel.Attach(_textEditor.TextArea, _textEditor);
-
 			FontFamily oldFamily = _textEditor.FontFamily;
 			double oldSize = _textEditor.FontSize;
 
-			_renderer = new SearchPanel.SearchResultBackgroundRenderer {
-				MarkerBrush = Application.Current.Resources["AvalonEditorMarkerBrush"] as Brush
-			};
 			_textEditor.TextArea.Caret.PositionChanged += _caret_PositionChanged;
 
 			try {
@@ -66,9 +70,23 @@ namespace GRFEditor.Core.Avalon {
 				_textEditor.FontSize = oldSize;
 			}
 
+			_renderer = new SearchPanel.SearchResultBackgroundRenderer {
+				MarkerBrush = Application.Current.Resources["AvalonEditorMarkerBrush"] as Brush
+			};
 			_textEditor.TextArea.TextView.BackgroundRenderers.Add(_renderer);
 			_textEditor.TextArea.KeyDown += new KeyEventHandler(_textArea_KeyDown);
 			_textArea = _textEditor.TextArea;
+		}
+
+		private void _setTheme() {
+			_textEditor.Foreground = Application.Current.Resources["TextForeground"] as Brush;
+			_textEditor.Background = Application.Current.Resources["AvalonEditorBackground"] as Brush;
+			_textEditor.TextArea.SelectionBrush = Application.Current.Resources["AvalonEditorSelectionBackgroundBrush"] as Brush;
+			_textEditor.TextArea.SelectionForeground = Application.Current.Resources["AvalonEditorSelectionForegroundBrush"] as Brush;
+			_textEditor.TextArea.TextView.LinkTextForegroundBrush = Application.Current.Resources["HyperlinkForegroundBrush"] as Brush;
+			_textEditor.Dispatch(p => p.TextArea.SelectionCornerRadius = 0);
+			_textEditor.Dispatch(p => p.TextArea.SelectionBorder = new Pen(_textEditor.TextArea.SelectionBrush, 0));
+			_textEditor.TextArea.SelectionBorder = new Pen(_textEditor.TextArea.SelectionBrush, 1);
 		}
 
 		private void _textArea_KeyDown(object sender, KeyEventArgs e) {

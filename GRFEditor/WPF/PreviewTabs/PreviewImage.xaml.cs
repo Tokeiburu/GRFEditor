@@ -14,8 +14,10 @@ using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
+using GRFEditor.Tools.SpriteEditor;
 using GrfToWpfBridge;
 using TokeiLibrary;
+using TokeiLibrary.Paths;
 using Utilities;
 using Utilities.Extension;
 
@@ -210,7 +212,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _buttonSelectSprite_Click(object sender, RoutedEventArgs e) {
-			_sprFilePath = PathRequest.OpenFileSprite("filter", FileFormat.MergeFilters(Format.Spr));
+			_sprFilePath = TkPathRequest.OpenFile<SpriteEditorConfiguration>("AppLastPath", "filter", FileFormat.MergeFilters(Format.Spr));
 			_loadSpr();
 		}
 

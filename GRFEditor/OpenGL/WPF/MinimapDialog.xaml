@@ -26,7 +26,10 @@
             <ColumnDefinition Width="130" />
         </Grid.ColumnDefinitions>
 
-        <TextBlock Text="Water" Grid.Row="0" Grid.Column="0" Margin="3" VerticalAlignment="Center" ToolTip="The color of the water on minimaps is usually a darker blue than what it actually is." />
+        <DockPanel Grid.Row="0" Grid.Column="0">
+            <CheckBox Name="_cbEnableWater" VerticalAlignment="Center" Margin="3 3 0 3" />
+            <TextBlock Text="Water" Grid.Row="0" Grid.Column="0" Margin="0 3 3 3" VerticalAlignment="Center" ToolTip="The color of the water on minimaps is usually a darker blue than what it actually is." />
+        </DockPanel>
         <wpf:QuickColorSelector Grid.Row="0" Grid.Column="1" Margin="3 0 0 0" Height="20" x:Name="_tbWater_Color" />
 
         <TextBlock Text="Walk contrast" Grid.Row="1" Grid.Column="0" Margin="3" VerticalAlignment="Center" ToolTip="Adjusts the contrast of walkable cells to make the minimap easier to use.&#x0a;This is not always necessary and may look better without.&#x0a;0% = no contrast; 100% = twice as bright" />

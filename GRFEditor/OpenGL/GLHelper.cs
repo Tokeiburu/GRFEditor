@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using GRF.Graphics;
 using GRF.Image;
-using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Matrix3 = OpenTK.Matrix3;
+using Matrix4 = OpenTK.Matrix4;
+using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL {
 	public static class GLHelper {

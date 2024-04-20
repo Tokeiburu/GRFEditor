@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using GRF.Graphics;
-using GRF.IO;
 using Utilities;
 
 namespace GRF.FileFormats.StrFormat {
@@ -88,9 +85,6 @@ namespace GRF.FileFormats.StrFormat {
 				ignoreY = true;
 				endComp = 4;
 			}
-
-			Z.F(ignoreX);
-			Z.F(ignoreY);
 
 			CalcBiasMethod method = _calcBias;
 
@@ -469,14 +463,14 @@ namespace GRF.FileFormats.StrFormat {
 			// Test possible offset biases as well
 			for (int j = 0; j <= 40; j++) {
 				var offsetBias = ((j + 1) / 2) * ((j % 2) == 1 ? -1 : 1);
-				
-				var p0 = new Point(layer[startIndex].Offset.X, layer[startIndex].Offset.Y);
-				var p3 = new Point(layer[keyIndex].Offset.X, layer[keyIndex].Offset.Y);
+
+				var p0 = new TkVector2(layer[startIndex].Offset.X, layer[startIndex].Offset.Y);
+				var p3 = new TkVector2(layer[keyIndex].Offset.X, layer[keyIndex].Offset.Y);
 				
 				var keyIndexF = (int)(0.33 * distance) + 0;
 				var keyIndexG = (int)(0.66 * distance) + 0;
-				//var f = new Point(layer[startIndex + keyIndexF].Offset.X, layer[startIndex + keyIndexF].Offset.Y);
-				//var g = new Point(layer[startIndex + keyIndexG].Offset.X, layer[startIndex + keyIndexG].Offset.Y);
+				//var f = new TkVector2(layer[startIndex + keyIndexF].Offset.X, layer[startIndex + keyIndexF].Offset.Y);
+				//var g = new TkVector2(layer[startIndex + keyIndexG].Offset.X, layer[startIndex + keyIndexG].Offset.Y);
 
 				var u = (float)keyIndexF / distance;
 				var v = (float)keyIndexG / distance;
@@ -502,11 +496,11 @@ namespace GRF.FileFormats.StrFormat {
 				var b1 = 3 * mv * mv * v;
 				var b2 = 3 * mv * v * v;
 
-				var p2 = new Point(
+				var p2 = new TkVector2(
 					((layer[startIndex + keyIndexG].Offset.X - mv3 * p0.X - v * v * v * p3.X) * a1 - cx * b1) / (b2 * a1 - a2 * b1),
 					((layer[startIndex + keyIndexG].Offset.Y - mv3 * p0.Y - v * v * v * p3.Y) * a1 - cy * b1) / (b2 * a1 - a2 * b1)
 					);
-				var p1 = new Point(
+				var p1 = new TkVector2(
 					(cx - a2 * p2.X) / a1,
 					(cy - a2 * p2.Y) / a1
 					);
@@ -540,8 +534,8 @@ namespace GRF.FileFormats.StrFormat {
 				var ind = layer[keyIndex - 1].Offset - p0;
 				
 				// Check if the bezier points are on the line itself; if yes, return directly
-				var temp1 = Math.Abs(Point.CalculateAngle(ind, p1 - p0));
-				var temp2 = Math.Abs(Point.CalculateAngle(ind, p2 - p0));
+				var temp1 = Math.Abs(TkVector2.CalculateAngle(ind, p1 - p0));
+				var temp2 = Math.Abs(TkVector2.CalculateAngle(ind, p2 - p0));
 				
 				if (double.IsNaN(temp1))
 					temp1 = 0;
@@ -567,7 +561,7 @@ namespace GRF.FileFormats.StrFormat {
 					t = InterpolatedKeyFrame.EaseTime(t, offsetBias);
 
 					var mt = (1 - t);
-					var p = new Point(
+					var p = new TkVector2(
 						mt * mt * mt * p0.X + 3 * mt * mt * t * p1.X + 3 * mt * t * t * p2.X + t * t * t * p3.X,
 						mt * mt * mt * p0.Y + 3 * mt * mt * t * p1.Y + 3 * mt * t * t * p2.Y + t * t * t * p3.Y);
 
@@ -577,7 +571,7 @@ namespace GRF.FileFormats.StrFormat {
 						break;
 					}
 
-					//p = new Point(
+					//p = new TkVector2(
 					//	(layer[keyIndex].Offset.X - layer[startIndex].Offset.X) * t + layer[startIndex].Offset.X,
 					//	(layer[keyIndex].Offset.Y - layer[startIndex].Offset.Y) * t + layer[startIndex].Offset.Y);
 					//
@@ -671,8 +665,6 @@ namespace GRF.FileFormats.StrFormat {
 					Layers[index] = layer2;
 				}
 			}
-			
-			Z.F();
 		}
 
 		private bool _detectInterpolationHasMoreFrames(int layerIndex, StrLayer layer) {

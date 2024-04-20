@@ -5,6 +5,7 @@ using System.Text;
 using System.Windows.Forms;
 using ErrorManager;
 using GRF.FileFormats.GatFormat;
+using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -15,7 +16,9 @@ using Clipboard = System.Windows.Clipboard;
 using Control = System.Windows.Forms.Control;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
+using Matrix4 = OpenTK.Matrix4;
 using UserControl = System.Windows.Controls.UserControl;
+using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.WPF {
 	public partial class OpenGLViewport : UserControl {

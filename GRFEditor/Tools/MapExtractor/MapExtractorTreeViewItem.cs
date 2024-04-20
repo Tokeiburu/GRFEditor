@@ -9,6 +9,7 @@ using Utilities;
 namespace GRFEditor.Tools.MapExtractor {
 	public class MapExtractorTreeViewItem : TkTreeViewItem {
 		private TkPath _resourcePath;
+		public string RelativeGrfPath { get; set; }
 
 		public MapExtractorTreeViewItem(TkView parent) : base(parent, false) {
 			CanBeDragged = true;

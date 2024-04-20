@@ -16,10 +16,9 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="cell">The cell.</param>
 		public Cell(Cell cell) {
-			BottomLeft = cell.BottomLeft;
-			BottomRight = cell.BottomRight;
-			TopLeft = cell.TopLeft;
-			TopRight = cell.TopRight;
+			for (int i = 0; i < 4; i++)
+				Heights[i] = cell.Heights[i];
+
 			Average = cell.Average;
 			Type = cell.Type;
 		}
@@ -29,33 +28,20 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="data">The data.</param>
 		public Cell(IBinaryReader data) {
-			BottomLeft = data.Float();
-			BottomRight = data.Float();
-			TopLeft = data.Float();
-			TopRight = data.Float();
-			Average = TopLeft;
+			Heights = data.ArrayFloat(4);
+			Average = Heights[2];
 			Type = (GatType) data.Int32();
 		}
 
 		/// <summary>
-		/// Gets or sets the bottom left position of the cell.
+		/// The heights of the cell positions
+		/// 2-----3
+		/// | \   |
+		/// |  \  |
+		/// |   \ |
+		/// 0-----1
 		/// </summary>
-		public float BottomLeft { get; set; }
-
-		/// <summary>
-		/// Gets or sets the bottom right position of the cell.
-		/// </summary>
-		public float BottomRight { get; set; }
-
-		/// <summary>
-		/// Gets or sets the top left position of the cell.
-		/// </summary>
-		public float TopLeft { get; set; }
-
-		/// <summary>
-		/// Gets or sets the top right position of the cell.
-		/// </summary>
-		public float TopRight { get; set; }
+		public float[] Heights = new float[4];
 
 		/// <summary>
 		/// Gets the average height of the cell.
@@ -71,6 +57,11 @@ namespace GRF.FileFormats.GatFormat {
 		public bool? IsOutterGutterLine { get; private set; }
 		public bool? IsInnerGutterLine { get; private set; }
 
+		public float this[int index] {
+			get { return Heights[index]; }
+			set { Heights[index] = value; }
+		}
+
 		#region IWriteableObject Members
 
 		/// <summary>
@@ -78,10 +69,9 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="writer">The writer.</param>
 		public void Write(BinaryWriter writer) {
-			writer.Write(BottomLeft);
-			writer.Write(BottomRight);
-			writer.Write(TopLeft);
-			writer.Write(TopRight);
+			for (int i = 0; i < 4; i++)
+				writer.Write(Heights[i]);
+
 			writer.Write((int) Type);
 		}
 
@@ -92,10 +82,8 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="height">The height.</param>
 		public void SetHeight(float height) {
-			TopLeft = height;
-			TopRight = height;
-			BottomLeft = height;
-			BottomRight = height;
+			for (int i = 0; i < 4; i++)
+				Heights[i] = height;
 		}
 
 		/// <summary>
@@ -106,10 +94,10 @@ namespace GRF.FileFormats.GatFormat {
 		/// <param name="bottomLeft">Bottom left.</param>
 		/// <param name="bottomRight">Bottom right.</param>
 		public void SetHeight(float topLeft, float topRight, float bottomLeft, float bottomRight) {
-			TopLeft = topLeft;
-			TopRight = topRight;
-			BottomLeft = bottomLeft;
-			BottomRight = bottomRight;
+			Heights[0] = bottomLeft;
+			Heights[1] = bottomRight;
+			Heights[2] = topLeft;
+			Heights[3] = topRight;
 		}
 
 		internal GrfColor GetColorHeightMap() {
@@ -141,10 +129,8 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="y">The distance.</param>
 		public void Move(float y) {
-			BottomLeft += y;
-			BottomRight += y;
-			TopLeft += y;
-			TopRight += y;
+			for (int i = 0; i < 4; i++)
+				Heights[i] += y;
 		}
 	}
 }

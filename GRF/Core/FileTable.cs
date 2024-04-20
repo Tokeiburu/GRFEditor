@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using Encryption;
 using GRF.ContainerFormat;
 using GRF.IO;
-using GRF.System;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -39,6 +37,8 @@ namespace GRF.Core {
 					_load200(reader);
 				else if (header.IsCompatibleWith(1, 0))
 					_load100(reader);
+				else if (header.IsCompatibleWith(0, 18))
+					_loadAlpha(reader);
 				else
 					throw GrfExceptions.__UnsupportedFileFormat.Create(header.HexVersionFormat);
 			}
@@ -56,6 +56,77 @@ namespace GRF.Core {
 		/// Gets the size of the table.
 		/// </summary>
 		public int TableSize { get; internal set; }
+
+
+		private void _loadAlpha(ByteReaderStream grfStream) {
+			grfStream.PositionUInt = _header.FileTableOffset;
+			int filesCount = 0;
+			FileEntry fileEntry;
+
+			int filelistEntries = _header.RealFilesCount;
+			int directoryIndexCount = 0;
+
+			for (int i = 0; i < filelistEntries; i++) {
+				int nameLength = grfStream.Byte();
+				fileEntry = new FileEntry();
+				var fileType = grfStream.Byte();
+
+				if (fileType == 0) {
+					fileEntry.Flags = EntryType.File | EntryType.RawDataFile;
+					filesCount++;
+				}
+				else if (fileType == 1) {
+					fileEntry.Flags = EntryType.File | EntryType.LZSS;
+					filesCount++;
+				}
+				else if (fileType == 2) {
+					fileEntry.Flags = EntryType.Directory;
+					directoryIndexCount++;
+				}
+
+				fileEntry.FileExactOffset = grfStream.UInt32();
+				fileEntry.SizeCompressed = grfStream.Int32();
+				fileEntry.SizeCompressedAlignment = fileEntry.SizeCompressed;
+				fileEntry.NewSizeDecompressed = fileEntry.SizeDecompressed = grfStream.Int32();
+
+				byte[] name = grfStream.Bytes(nameLength);
+				grfStream.Forward(1);	// null terminator
+
+				if (fileEntry.Flags == EntryType.Directory)
+					continue;
+
+				for (int j = 0; j < nameLength; j++) {
+					name[j] = (byte)((name[j] << 4) | (name[j] >> 4));
+				}
+
+				string tempName = EncodingService.DisplayEncoding.GetString(name);
+
+				fileEntry.Header = _header;
+				fileEntry.SetStream(grfStream);
+
+				if (tempName.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
+					fileEntry.Modification = Modification.FileNameRenamed;
+					fileEntry.RelativePath = tempName.Replace("\\\\", "\\");
+				}
+				else {
+					fileEntry.RelativePath = tempName;
+				}
+
+				if (_indexedEntries.ContainsKey(fileEntry.RelativePath)) {
+					FileEntry conflict = _indexedEntries[fileEntry.RelativePath];
+
+					if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
+						_indexedEntries.Remove(conflict.RelativePath);
+						_indexedEntries[fileEntry.RelativePath] = fileEntry;
+					}
+				}
+				else {
+					_indexedEntries[fileEntry.RelativePath] = fileEntry;
+				}
+			}
+
+			_header.RealFilesCount = filesCount;
+		}
 
 		/// <summary>
 		/// Loads the file table using the GRF version 0x100 format.

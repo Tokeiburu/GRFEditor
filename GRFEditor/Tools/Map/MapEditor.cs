@@ -90,22 +90,14 @@ namespace GRFEditor.Tools.Map {
 
 			RswHeader rswHeader = new RswHeader(new ByteReader(rswData));
 
-			//CLHelper.CResume(-5);
 			Gat gat = _configGatFile(gatData, rswHeader, waterLevel);
-			//CLHelper.CStop(-5);
-			//CLHelper.CResume(-6);
 			Gnd gnd = _configGndFile(gndData, gat);
-			//CLHelper.CStop(-6);
-			//CLHelper.CResume(-7);
 			Rsw rsw = _configRswFile(rswData, mapName, gnd);
-			//CLHelper.CStop(-7);
 
 			gat.LoadedPath = "data\\" + mapName + ".gat";
 			gnd.LoadedPath = "data\\" + mapName + ".gnd";
 			rsw.LoadedPath = "data\\" + mapName + ".rsw";
-			//CLHelper.CResume(-8);
 
-			//if (grf != null) {
 			lock (_state.Lock) {
 				_saveFile(gat, writer, oLock, entries);
 				_saveFile(rsw, writer, oLock, entries);
@@ -134,9 +126,7 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		private Gnd _configGndFile(byte[] gndData, Gat gat) {
-			//CLHelper.CResume(-20);
 			Gnd gnd = new Gnd(gndData);
-			//CLHelper.CStop(-20);
 
 			if (gnd.Header.Version >= 1.7) {
 				// Doesn't like new maps very much
@@ -144,20 +134,14 @@ namespace GRFEditor.Tools.Map {
 			}
 
 			if (GrfEditorConfiguration.FlattenGround) {
-				//CLHelper.CResume(-21);
 				gnd.SetCubesHeight(0);
-				//CLHelper.CStop(-21);
 			}
 
 			if (GrfEditorConfiguration.RemoveAllLighting) {
-				//CLHelper.CResume(-22);
 				gnd.RemoveLightmaps();
-				//CLHelper.CStop(-22);
 			}
 
 			if (GrfEditorConfiguration.UseCustomTextures) {
-				//_state.OldTextures = gnd.Textures.AsReadOnly();
-
 				if (GrfEditorConfiguration.TextureOriginal) {
 					//gnd.ResetTextures();
 				}
@@ -169,9 +153,7 @@ namespace GRFEditor.Tools.Map {
 					gnd.RemoveAllTiles();
 				}
 
-				//CLHelper.CResume(-25);
 				_setCubesAndTiles(gnd, gat);
-				//CLHelper.CStop(-25);
 			}
 
 			return gnd;
@@ -206,18 +188,15 @@ namespace GRFEditor.Tools.Map {
 			// For each cube...
 			for (int y = 0; y < gnd.Header.Height; y++) {
 				for (int x = 0; x < gnd.Header.Width; x++) {
-					//CLHelper.CResume(-29);
 					// Find the texture for the tile
 					int cellIndex = 2 * (x + 2 * y * gnd.Header.Width);
 					cellIndexes[0] = cellIndex;
 					cellIndexes[1] = cellIndex + 1;
 					cellIndexes[2] = cellIndex + gnd.Header.Width * 2;
 					cellIndexes[3] = cellIndexes[2] + 1;
-					//CLHelper.CStop(-29);
 
 					b.Append(id);
 
-					//CLHelper.CResume(-30);
 					for (int i = 0; i < 4; i++) {
 						gatCell = gat.Cells[cellIndexes[i]];
 
@@ -275,9 +254,7 @@ namespace GRFEditor.Tools.Map {
 						}
 					}
 					b.Append(".bmp");
-					//CLHelper.CStop(-30);
 
-					//CLHelper.CResume(-31);
 					string textureName = b.ToString();
 					b = new StringBuilder();
 
@@ -287,7 +264,6 @@ namespace GRFEditor.Tools.Map {
 						}
 					}
 
-					//CLHelper.CResume(-28);
 					if (gnd.GetTextureIndex(textureName) < 0) {
 						var texturePath = Path.Combine(OutputTexturePath, textureName);
 
@@ -300,9 +276,6 @@ namespace GRFEditor.Tools.Map {
 
 						gnd.AddTexture(textureName);
 					}
-					//CLHelper.CStop(-28);
-
-					//CLHelper.CResume(-27);
 
 					// If the ground is flattened, a new tile must be created
 					if (GrfEditorConfiguration.FlattenGround) {
@@ -313,7 +286,7 @@ namespace GRFEditor.Tools.Map {
 
 						cube = gnd.Cubes[offset];
 						cube.TileUp = gnd.Tiles.Count - 1;
-						cube.TileRight = -1;
+						cube.TileSide = -1;
 						cube.TileFront = -1;
 					}
 					// The old tile is kept
@@ -327,8 +300,8 @@ namespace GRFEditor.Tools.Map {
 						}
 
 						if (GrfEditorConfiguration.TextureWalls) {
-							if (cube.TileRight > -1) {
-								tile = gnd.Tiles[cube.TileRight];
+							if (cube.TileSide > -1) {
+								tile = gnd.Tiles[cube.TileSide];
 								tile.TextureIndex = gnd.GetTextureIndex(id + "cw.bmp");
 								tile.ResetTextureUv();
 							}
@@ -340,8 +313,6 @@ namespace GRFEditor.Tools.Map {
 							}
 						}
 					}
-
-					//CLHelper.CStop(-27);
 				}
 			}
 
@@ -402,6 +373,17 @@ namespace GRFEditor.Tools.Map {
 				rsw.Header.SetVersion(1, 9);
 
 				// Already reseted, no need for GrfEditorConfiguration.ResetGlobalLighting
+				if (!GrfEditorConfiguration.ResetGlobalLighting) {
+					var rsw2 = new Rsw(rswData);
+					rsw.Light.Longitude = rsw2.Light.Longitude;
+					rsw.Light.Latitude = rsw2.Light.Latitude;
+					rsw.Light.DiffuseRed = rsw2.Light.DiffuseRed;
+					rsw.Light.DiffuseGreen = rsw2.Light.DiffuseGreen;
+					rsw.Light.DiffuseBlue = rsw2.Light.DiffuseBlue;
+					rsw.Light.AmbientRed = rsw2.Light.AmbientRed;
+					rsw.Light.AmbientGreen = rsw2.Light.AmbientGreen;
+					rsw.Light.AmbientBlue = rsw2.Light.AmbientBlue;
+				}
 			}
 			else {
 				rsw = new Rsw(rswData);

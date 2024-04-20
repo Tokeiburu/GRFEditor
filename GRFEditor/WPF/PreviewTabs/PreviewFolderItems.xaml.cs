@@ -10,6 +10,7 @@ using ErrorManager;
 using GRF.Core;
 using GRF.Image;
 using GRFEditor.Core.Services;
+using GRFEditor.OpenGL.MapComponents;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
@@ -82,24 +83,48 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_labelHeader.Dispatch(p => p.Content = _currentPath.RelativePath);
 
 					foreach (FileEntry entry in entries) {
-						GrfImage image = ImageProvider.GetImage(entry.GetDecompressedData(), entry.RelativePath.GetExtension());
+						
+						if (false) {
+						//if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
+							//Rsm rsm = new Rsm(entry);
+							//
+							//_wrapPanel.Dispatch(delegate {
+							//	var viewport = new OpenGL.WPF.OpenGLViewport();
+							//	viewport.Load(new RendererLoadRequest { IsMap = false, Rsm = rsm, CancelRequired = () => false, Resource = entry.RelativePath, Context = viewport });
+							//	viewport.Height = 100;
+							//	viewport.Width = 100;
+							//	_wrapPanel.Children.Add(viewport);
+							//	viewport.EnableRenderThread = false;
+							//
+							//	viewport._primary.MouseEnter += delegate {
+							//		viewport.EnableRenderThread = true;
+							//	};
+							//	viewport._primary.MouseLeave += delegate {
+							//		viewport.EnableRenderThread = false;
+							//	};
+							//});
+							//_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = _rsm, CancelRequired = _isCancelRequired, Resource = entry.RelativePath, Context = _viewport });
+						}
+						else {
+							GrfImage image = ImageProvider.GetImage(entry.GetDecompressedData(), entry.RelativePath.GetExtension());
 
-						if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
+							if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 
-						_wrapPanel.Dispatcher.Invoke(new Action(delegate {
-							string filename = entry.RelativePath;
-							FancyButton button = new FancyButton();
-							button.TextSubDescription = Path.GetFileName(entry.RelativePath);
-							button.Height = 125;
-							button.Width = 125;
-							button.Click += delegate { PreviewService.Select(_treeView, _items, filename); };
+							_wrapPanel.Dispatcher.Invoke(new Action(delegate {
+								string filename = entry.RelativePath;
+								FancyButton button = new FancyButton();
+								button.TextSubDescription = Path.GetFileName(entry.RelativePath);
+								button.Height = 125;
+								button.Width = 125;
+								button.Click += delegate { PreviewService.Select(_treeView, _items, filename); };
 
-							button.ImageIcon.Source = image != null ? image.Cast<BitmapSource>() : IconProvider.GetLargeIcon(entry.RelativePath.GetExtension());
-							button.ImageIcon.Height = 100;
-							button.ImageIcon.Width = 100;
+								button.ImageIcon.Source = image != null ? image.Cast<BitmapSource>() : IconProvider.GetLargeIcon(entry.RelativePath.GetExtension());
+								button.ImageIcon.Height = 100;
+								button.ImageIcon.Width = 100;
 
-							_wrapPanel.Children.Add(button);
-						}));
+								_wrapPanel.Children.Add(button);
+							}));
+						}
 					}
 
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;

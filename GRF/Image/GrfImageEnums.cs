@@ -5,7 +5,7 @@ namespace GRF.Image {
 		Bgr32 = 3,
 		Bgr24 = 4,
 		NotEvaluated = 255,
-		NotEvaluatedPng = 256,	// Information from non evluated image types are invalid on purpose,
+		NotEvaluatedPng = 256,	// Information from non evaluated image types are invalid on purpose,
 		NotEvaluatedJpg = 257,	// all the data is actually stored in the Pixels array
 		NotEvaluatedBmp = 258,
 		NotEvaluatedTga = 259,

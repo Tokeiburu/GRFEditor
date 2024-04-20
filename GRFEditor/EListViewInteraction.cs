@@ -39,8 +39,18 @@ namespace GRFEditor {
 				_loadListItems();
 		}
 
-		private void _miConvertRsm2_Click(object sender, RoutedEventArgs e) {
-			if (_renamingService.DowngradeModel(WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItem as FileEntry, _grfHolder, this))
+		private void _miConvertRsw_Anim_Click(object sender, RoutedEventArgs e) {
+			if (_renamingService.DowngradeMap(WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItem as FileEntry, _grfHolder, this))
+				_loadListItems();
+		}
+
+		private void _miConvertRsm_Anim_Click(object sender, RoutedEventArgs e) {
+			if (_renamingService.DowngradeModel(WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItems.Cast<FileEntry>().ToList(), _grfHolder, this, false))
+				_loadListItems();
+		}
+
+		private void _miConvertRsm_Flat_Click(object sender, RoutedEventArgs e) {
+			if (_renamingService.DowngradeModel(WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItems.Cast<FileEntry>().ToList(), _grfHolder, this, true))
 				_loadListItems();
 		}
 
@@ -331,7 +341,9 @@ namespace GRFEditor {
 					FileEntry entry = (FileEntry) _items.SelectedItem;
 
 					_miSaveMapAs.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miConvertRsm2.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsw_Anim.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsm_Anim.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsm_Flat.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
 					_miExportMapFiles.Visibility = new string[] { ".rsw", ".rsm", ".rsm2", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
 
 					_miSelect.Visibility = Visibility.Collapsed;

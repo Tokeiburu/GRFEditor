@@ -7,8 +7,8 @@ namespace GRF.FileFormats.StrFormat {
 		public float Delay;
 		public float DelayStrKeyFrame;
 		public float[] Color = new float[4];
-		public Point Offset;
-		public Point Scale;
+		public TkVector2 Offset;
+		public TkVector2 Scale;
 		public int TextureIndex;
 		public int TextureIndexStrKeyFrame;
 		public int AnimationType;
@@ -60,7 +60,7 @@ namespace GRF.FileFormats.StrFormat {
 
 			frame.AnimationType = AnimationType;
 			frame.FrameIndex = FrameIndex;
-			frame.Offset = new Point(Offset.X, Offset.Y);
+			frame.Offset = new TkVector2(Offset.X, Offset.Y);
 			frame.OffsetBias = OffsetBias;
 			frame.ScaleBias = ScaleBias;
 			frame.AngleBias = AngleBias;
@@ -110,7 +110,7 @@ namespace GRF.FileFormats.StrFormat {
 			inter.FrameIndex = interpolationOnly ? frame0.FrameIndex : frameIdx;
 
 			if (frame1 == null) {
-				inter.Offset = new Point(frames[0].Offset.X, frames[0].Offset.Y);
+				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 				inter.Interpolated = true;
 				return inter;
 			}
@@ -125,14 +125,14 @@ namespace GRF.FileFormats.StrFormat {
 
 			time = EaseTime((float)time, frames[0].OffsetBias);
 
-			Point p1 = frames[0].Offset + new Point(frames[0].Bezier[2], frames[0].Bezier[3]);
-			Point p2 = frames[1].Offset + new Point(frames[1].Bezier[0], frames[1].Bezier[1]);
+			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].Bezier[2], frames[0].Bezier[3]);
+			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].Bezier[0], frames[1].Bezier[1]);
 
 			if (frames[0].Bezier[2] != 0 || frames[0].Bezier[3] != 0 || frames[1].Bezier[0] != 0 || frames[1].Bezier[1] != 0) {
 				inter.Offset = _getBezier((float)time, frames[0].Offset, p1, p2, frames[1].Offset);
 			}
 			else {
-				inter.Offset = new Point((frames[1].Offset.X - frames[0].Offset.X) * time + frames[0].Offset.X * subMult, (frames[1].Offset.Y - frames[0].Offset.Y) * time + frames[0].Offset.Y * subMult);
+				inter.Offset = new TkVector2((frames[1].Offset.X - frames[0].Offset.X) * time + frames[0].Offset.X * subMult, (frames[1].Offset.Y - frames[0].Offset.Y) * time + frames[0].Offset.Y * subMult);
 			}
 
 			inter.Interpolated = true;
@@ -172,7 +172,7 @@ namespace GRF.FileFormats.StrFormat {
 				inter.TextureIndex = (int)frames[0].TextureIndex;
 				inter.SourceAlpha = frames[0].SourceAlpha;
 				inter.DestinationAlpha = frames[0].DestinationAlpha;
-				inter.Offset = new Point(frames[0].Offset.X, frames[0].Offset.Y);
+				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 				inter.KeyIndex = str.Layers[layerIdx].FrameIndex2KeyIndex[frameIdx];
 				inter.KeyFrame = frames[0];
 				inter.Interpolated = true;
@@ -221,22 +221,22 @@ namespace GRF.FileFormats.StrFormat {
 
 			time = EaseTime((float)time, frames[0].OffsetBias);
 
-			Point p1 = frames[0].Offset + new Point(frames[0].Bezier[2], frames[0].Bezier[3]);
-			Point p2 = frames[1].Offset + new Point(frames[1].Bezier[0], frames[1].Bezier[1]);
+			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].Bezier[2], frames[0].Bezier[3]);
+			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].Bezier[0], frames[1].Bezier[1]);
 
 			if (frames[0].Bezier[2] != 0 || frames[0].Bezier[3] != 0 || frames[1].Bezier[0] != 0 || frames[1].Bezier[1] != 0) {
 				inter.Offset = _getBezier((float)time, frames[0].Offset, p1, p2, frames[1].Offset);
 				
 				// Bezier property fix
-				Point p0 = frames[0].Offset;
-				Point p3 = frames[1].Offset;
+				TkVector2 p0 = frames[0].Offset;
+				TkVector2 p3 = frames[1].Offset;
 			
-				Point p0_i = (p1 - p0) * (float)time + p0 * subMult;
-				Point p1_i = (p2 - p1) * (float)time + p1 * subMult;
-				Point p2_i = (p3 - p2) * (float)time + p2 * subMult;
+				TkVector2 p0_i = (p1 - p0) * (float)time + p0 * subMult;
+				TkVector2 p1_i = (p2 - p1) * (float)time + p1 * subMult;
+				TkVector2 p2_i = (p3 - p2) * (float)time + p2 * subMult;
 			
-				Point p0_ii = (p1_i - p0_i) * (float)time + p0_i * subMult - inter.Offset;
-				Point p1_ii = (p2_i - p1_i) * (float)time + p1_i * subMult - inter.Offset;
+				TkVector2 p0_ii = (p1_i - p0_i) * (float)time + p0_i * subMult - inter.Offset;
+				TkVector2 p1_ii = (p2_i - p1_i) * (float)time + p1_i * subMult - inter.Offset;
 			
 				inter.Bezier[0] = p0_ii.X;
 				inter.Bezier[1] = p0_ii.Y;
@@ -249,14 +249,14 @@ namespace GRF.FileFormats.StrFormat {
 				inter.BezierAdjacent[3] = p2_i.Y - p3.Y;
 			}
 			else {
-				inter.Offset = new Point((frames[1].Offset.X - frames[0].Offset.X) * time + frames[0].Offset.X * subMult, (frames[1].Offset.Y - frames[0].Offset.Y) * time + frames[0].Offset.Y * subMult);
+				inter.Offset = new TkVector2((frames[1].Offset.X - frames[0].Offset.X) * time + frames[0].Offset.X * subMult, (frames[1].Offset.Y - frames[0].Offset.Y) * time + frames[0].Offset.Y * subMult);
 			}
 
 			inter.Interpolated = true;
 			return inter;
 		}
 
-		private static Point _getBezier(float t, Point p0, Point p1, Point p2, Point p3) {
+		private static TkVector2 _getBezier(float t, TkVector2 p0, TkVector2 p1, TkVector2 p2, TkVector2 p3) {
 			float cx = 3 * (p1.X - p0.X);
 			float cy = 3 * (p1.Y - p0.Y);
 			float bx = 3 * (p2.X - p1.X) - cx;
@@ -269,7 +269,7 @@ namespace GRF.FileFormats.StrFormat {
 			float resX = (ax * Cube) + (bx * Square) + (cx * t) + p0.X;
 			float resY = (ay * Cube) + (by * Square) + (cy * t) + p0.Y;
 
-			return new Point(resX, resY);
+			return new TkVector2(resX, resY);
 		}
 
 		public static InterpolatedKeyFrame InterpolateOffsetsOnly(Str str, int layerIdx, int frameIdx, StrKeyFrame temporaryKeyFrame, bool interpolationOnly = false) {
@@ -335,7 +335,7 @@ namespace GRF.FileFormats.StrFormat {
 			}
 
 			if (frames[1] == null || frames[0].FrameIndex == frameIdx) {
-				inter.Offset = new Point(frames[0].Offset.X, frames[0].Offset.Y);
+				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 			}
 			else {
 				inter = InterpolateSubOffsetsOnly(str, layerIdx, frameIdx, frames[0], frames[1]);
@@ -416,7 +416,7 @@ namespace GRF.FileFormats.StrFormat {
 				inter.TextureIndex = (int)frames[0].TextureIndex;
 				inter.SourceAlpha = frames[0].SourceAlpha;
 				inter.DestinationAlpha = frames[0].DestinationAlpha;
-				inter.Offset = new Point(frames[0].Offset.X, frames[0].Offset.Y);
+				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 				inter.KeyIndex = keyFrameIdx;
 				inter.KeyFrame = frames[0];
 				inter.Interpolated = false;

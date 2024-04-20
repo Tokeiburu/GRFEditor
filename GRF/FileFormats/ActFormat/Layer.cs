@@ -159,8 +159,8 @@ namespace GRF.FileFormats.ActFormat {
 			Rotation += amount;
 		}
 
-		public void Rotate(int amount, Point center) {
-			Vertex vertex = new Vertex(OffsetX, OffsetY);
+		public void Rotate(int amount, TkVector2 center) {
+			TkVector2 vertex = new TkVector2(OffsetX, OffsetY);
 			vertex.RotateZ(-amount, center);
 			OffsetX = (int) Math.Round(vertex.X, MidpointRounding.AwayFromZero);
 			OffsetY = (int) Math.Round(vertex.Y, MidpointRounding.AwayFromZero);

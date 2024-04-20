@@ -1,11 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using GRF.FileFormats.RswFormat;
+using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
+using Matrix3 = OpenTK.Matrix3;
+using Matrix4 = OpenTK.Matrix4;
+using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class GndRenderer : Renderer {
@@ -67,118 +72,122 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			for (int x = 0; x < _gnd.Header.Width; x++) {
 				for (int y = 0; y < _gnd.Header.Height; y++) {
 					Cube cube = _gnd[x, y];
+					try {
+						if (cube.TileUp != -1) {
+							Tile tile = _gnd.Tiles[cube.TileUp];
 
-					if (cube.TileUp != -1) {
-						Tile tile = _gnd.Tiles[cube.TileUp];
-						
-						Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-						Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
+							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
+							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
 
-						Vector4 c1 = new Vector4(1f);
+							TkVector4 c1 = new TkVector4(1f);
 
-						if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
-							c1 = new Vector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
+							if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
+								c1 = new TkVector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
 
-						Vector4 c2 = new Vector4(1f);
-						if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-							c2 = new Vector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
+							TkVector4 c2 = new TkVector4(1f);
+							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
+								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
 
-						Vector4 c3 = new Vector4(tile.Color) / 255f;
+							TkVector4 c3 = new TkVector4(tile.Color) / 255f;
 
-						Vector4 c4 = new Vector4(1f);
-						if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
-							c4 = new Vector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
+							TkVector4 c4 = new TkVector4(1f);
+							if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
+								c4 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
 
-						Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, cube.Normals[2]);
-						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, cube.Normals[3]);
-						Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), tile[0], new Vector2(lm1.X, lm1.Y), c3, cube.Normals[0]);
-						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c4, cube.Normals[1]);
+							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, cube.Normals[2]);
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, cube.Normals[3]);
+							Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), tile[0], new Vector2(lm1.X, lm1.Y), c3, cube.Normals[0]);
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c4, cube.Normals[1]);
 
-						List<Vertex> l;
+							List<Vertex> l;
 
-						if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-							l = new List<Vertex>();
-							verts[tile.TextureIndex] = l;
+							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
+								l = new List<Vertex>();
+								verts[tile.TextureIndex] = l;
+							}
+
+							l.Add(v4); l.Add(v2); l.Add(v1);
+							l.Add(v4); l.Add(v1); l.Add(v3);
+						}
+						else if (viewport.RenderOptions.ShowBlackTiles) {
+							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[2]);
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[3]);
+							Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[0]);
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[1]);
+
+							List<Vertex> l;
+
+							if (!verts.TryGetValue(-1, out l)) {
+								l = new List<Vertex>();
+								verts[-1] = l;
+							}
+
+							l.Add(v3); l.Add(v2); l.Add(v1);
+							l.Add(v4); l.Add(v2); l.Add(v3);
 						}
 
-						l.Add(v4); l.Add(v2); l.Add(v1);
-						l.Add(v4); l.Add(v1); l.Add(v3);
+						if (cube.TileSide != -1 && x < _gnd.Width - 1) {
+							Tile tile = _gnd.Tiles[cube.TileSide];
+
+							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
+							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
+
+
+							TkVector4 c1 = new TkVector4(1f);
+							if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
+								c1 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
+							TkVector4 c2 = new TkVector4(1f);
+							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
+								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
+
+							Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, new Vector3(-1, 0, 0));
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, new Vector3(-1, 0, 0));
+							Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, new Vector3(-1, 0, 0));
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, new Vector3(-1, 0, 0));
+
+							List<Vertex> l;
+
+							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
+								l = new List<Vertex>();
+								verts[tile.TextureIndex] = l;
+							}
+
+							l.Add(v3); l.Add(v2); l.Add(v1);
+							l.Add(v4); l.Add(v2); l.Add(v3);
+						}
+
+						if (cube.TileFront != -1 && y < _gnd.Height - 1) {
+							Tile tile = _gnd.Tiles[cube.TileFront];
+
+							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
+							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
+
+							TkVector4 c1 = new TkVector4(1f);
+							if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
+								c1 = new TkVector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
+
+							TkVector4 c2 = new TkVector4(1f);
+							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
+								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
+
+							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, new Vector3(0, 0, 1));
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, new Vector3(0, 0, 1));
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x, y + 1][1], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, new Vector3(0, 0, 1));
+							Vertex v3 = new Vertex(new Vector3(10 * x, -_gnd[x, y + 1][0], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, new Vector3(0, 0, 1));
+
+							List<Vertex> l;
+
+							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
+								l = new List<Vertex>();
+								verts[tile.TextureIndex] = l;
+							}
+
+							l.Add(v1); l.Add(v2); l.Add(v3);
+							l.Add(v3); l.Add(v2); l.Add(v4);
+						}
 					}
-					else if (viewport.RenderOptions.ShowBlackTiles) {
-						Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[2]);
-						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[3]);
-						Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[0]);
-						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[1]);
-						
-						List<Vertex> l;
-						
-						if (!verts.TryGetValue(-1, out l)) {
-							l = new List<Vertex>();
-							verts[-1] = l;
-						}
-						
-						l.Add(v3); l.Add(v2); l.Add(v1);
-						l.Add(v4); l.Add(v2); l.Add(v3);
-					}
-
-					if (cube.TileSide != -1 && x < _gnd.Width - 1) {
-						Tile tile = _gnd.Tiles[cube.TileSide];
-					
-						Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-						Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
-					
-					
-						Vector4 c1 = new Vector4(1f);
-						if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
-							c1 = new Vector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
-						Vector4 c2 = new Vector4(1f);
-						if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-							c2 = new Vector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
-					
-						Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, new Vector3(-1, 0, 0));
-						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, new Vector3(-1, 0, 0));
-						Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, new Vector3(-1, 0, 0));
-						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, new Vector3(-1, 0, 0));
-					
-						List<Vertex> l;
-					
-						if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-							l = new List<Vertex>();
-							verts[tile.TextureIndex] = l;
-						}
-					
-						l.Add(v3); l.Add(v2); l.Add(v1);
-						l.Add(v4); l.Add(v2); l.Add(v3);
-					}
-
-					if (cube.TileFront != -1 && y < _gnd.Height - 1) {
-						Tile tile = _gnd.Tiles[cube.TileFront];
-					
-						Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-						Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
-					
-						Vector4 c1 = new Vector4(1f);
-						if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
-							c1 = new Vector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
-					
-						Vector4 c2 = new Vector4(1f);
-						if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-							c2 = new Vector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
-					
-						Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, new Vector3(0, 0, 1));
-						Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, new Vector3(0, 0, 1));
-						Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x, y + 1][1], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, new Vector3(0, 0, 1));
-						Vertex v3 = new Vertex(new Vector3(10 * x, -_gnd[x, y + 1][0], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, new Vector3(0, 0, 1));
-					
-						List<Vertex> l;
-					
-						if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-							l = new List<Vertex>();
-							verts[tile.TextureIndex] = l;
-						}
-
-						l.Add(v1); l.Add(v2); l.Add(v3);
-						l.Add(v3); l.Add(v2); l.Add(v4);
+					catch (Exception err) {
+						Z.F(err);
 					}
 				}
 			}

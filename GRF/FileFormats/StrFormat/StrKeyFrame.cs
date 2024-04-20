@@ -13,7 +13,7 @@ namespace GRF.FileFormats.StrFormat {
 			Color = new float[4];
 			Bezier = new float[4];
 
-			Offset = new Point(319, 291);
+			Offset = new TkVector2(319, 291);
 
 			Uv[0] = 0;
 			Uv[1] = 0;
@@ -32,7 +32,7 @@ namespace GRF.FileFormats.StrFormat {
 		public StrKeyFrame(IBinaryReader reader) {
 			FrameIndex = reader.Int32();
 			Type = reader.Int32();
-			Offset = reader.Point();
+			Offset = reader.Vector2();
 			Uv = reader.ArrayFloat(8);
 			Xy = reader.ArrayFloat(8);
 			TextureIndex = reader.Float();
@@ -86,7 +86,7 @@ namespace GRF.FileFormats.StrFormat {
 
 		public int FrameIndex { get; set; }
 		public int Type { get; set; }
-		public Point Offset { get; set; }
+		public TkVector2 Offset { get; set; }
 		public float[] Uv { get; private set; }
 		public float[] Xy { get; private set; }
 		public float TextureIndex { get; set; }
@@ -151,7 +151,7 @@ namespace GRF.FileFormats.StrFormat {
 			keyFrame.Color[2] = 255;
 			keyFrame.Color[3] = 255;
 
-			keyFrame.Offset = new Point(319, 291);
+			keyFrame.Offset = new TkVector2(319, 291);
 			keyFrame.SourceAlpha = 5;
 			keyFrame.DestinationAlpha = 7;
 			return keyFrame;
@@ -192,7 +192,7 @@ namespace GRF.FileFormats.StrFormat {
 		}
 
 		public void Translate(float x, float y) {
-			Offset = new Point(Offset.X + x, Offset.Y + y);
+			Offset = new TkVector2(Offset.X + x, Offset.Y + y);
 		}
 
 		public void Scale(float scale) {

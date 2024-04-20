@@ -22,6 +22,7 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;
 using TokeiLibrary;
+using TokeiLibrary.Paths;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles.ListView;
 using Utilities.Extension;
@@ -214,9 +215,10 @@ namespace GRFEditor.Tools.SpriteEditor {
 				MessageBoxResult result = WindowProvider.ShowDialog("The sprite " + _displayName + " has been modified. Do you want to save it? Any modifications will be discarded otherwise.", "Modified sprite", MessageBoxButton.YesNoCancel);
 
 				if (result == MessageBoxResult.Yes) {
-					string path = PathRequest.SaveFileSprite("filter", FileFormat.MergeFilters(Format.Spr),
-					                                         "initialDirectory", Path.GetDirectoryName(_displayName),
-					                                         "fileName", Path.GetFileName(_displayName));
+					string path = TkPathRequest.SaveFile<SpriteEditorConfiguration>("AppLastPath",
+						"filter", FileFormat.MergeFilters(Format.Spr),
+						"initialDirectory", Path.GetDirectoryName(_displayName),
+						"fileName", Path.GetFileName(_displayName));
 
 					if (path != null) {
 						try {
@@ -436,7 +438,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 		}
 
 		private IEnumerable<string> _getImageFiles() {
-			return PathRequest.OpenFilesSprite("filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga")
+			return TkPathRequest.OpenFiles<SpriteEditorConfiguration>("AppLastPath", "filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga")
 			       ?? new string[] { };
 		}
 
@@ -603,20 +605,22 @@ namespace GRFEditor.Tools.SpriteEditor {
 			fileName = fileName == "" ? "image.bmp" : fileName;
 
 			if (saveDialog) {
-				string file = PathRequest.SaveFileSprite("filter", mode == GrfImageType.Indexed8 ? "Bitmap Files|*.bmp" :
-					                                                                                                        "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga",
-				                                         "initialDirectory", Path.GetDirectoryName(fileName),
-				                                         "fileName", Path.GetFileName(fileName));
+				string file = TkPathRequest.SaveFile<SpriteEditorConfiguration>("AppLastPath",
+					"filter", mode == GrfImageType.Indexed8 ? "Bitmap Files|*.bmp" :
+						"Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga",
+					"initialDirectory", Path.GetDirectoryName(fileName),
+					"fileName", Path.GetFileName(fileName));
 
 				if (file != null) {
 					return file;
 				}
 			}
 			else {
-				string file = PathRequest.OpenFileSprite("filter", mode == GrfImageType.Indexed8 ? "Bitmap Files|*.bmp" :
-					                                                                                                        "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga",
-				                                         "initialDirectory", Path.GetDirectoryName(fileName),
-				                                         "fileName", Path.GetFileName(fileName));
+				string file = TkPathRequest.OpenFile<SpriteEditorConfiguration>("AppLastPath",
+					"filter", mode == GrfImageType.Indexed8 ? "Bitmap Files|*.bmp" :
+						"Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga",
+					"initialDirectory", Path.GetDirectoryName(fileName),
+					"fileName", Path.GetFileName(fileName));
 
 				if (file != null) {
 					return file;
@@ -745,9 +749,10 @@ namespace GRFEditor.Tools.SpriteEditor {
 
 		public bool SaveAs() {
 			try {
-				string file = PathRequest.SaveFileSprite("filter", FileFormat.MergeFilters(Format.Spr),
-				                                         "initialDirectory", Path.GetDirectoryName(_sprBuilder.GetFileName()),
-				                                         "fileName", Path.GetFileName(_sprBuilder.GetFileName()));
+				string file = TkPathRequest.SaveFile<SpriteEditorConfiguration>("AppLastPath",
+					"filter", FileFormat.MergeFilters(Format.Spr),
+					"initialDirectory", Path.GetDirectoryName(_sprBuilder.GetFileName()),
+					"fileName", Path.GetFileName(_sprBuilder.GetFileName()));
 
 				if (file != null) {
 					_sprBuilder.Create(file);

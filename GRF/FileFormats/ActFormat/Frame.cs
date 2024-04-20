@@ -85,9 +85,9 @@ namespace GRF.FileFormats.ActFormat {
 			this[layerIndex].Rotate(rotate);
 		}
 
-		public void Rotate(int angle, Point center) {
+		public void Rotate(int angle, TkVector2 center) {
 			foreach (Layer layer in Layers) {
-				Vertex pt = new Vertex(layer.OffsetX, layer.OffsetY);
+				TkVector2 pt = new TkVector2(layer.OffsetX, layer.OffsetY);
 				pt.RotateZ(-angle, center);
 				layer.Rotate(angle);
 				layer.OffsetX = (int) pt.X;

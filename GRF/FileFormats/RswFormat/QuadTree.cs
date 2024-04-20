@@ -5,7 +5,6 @@ using System.Linq;
 using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats.GndFormat;
-using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.Graphics;
 using GRF.IO;
@@ -45,32 +44,32 @@ namespace GRF.FileFormats.RswFormat {
 
 		public void GenerateQuadTree(GrfHolder grf, int sizeX, int sizeY, Gnd gnd, Rsw rsw, float margin) {
 			List<BoundingBox> allBoundingBoxes = new List<BoundingBox>();
-
-			foreach (RswObject obj in rsw.Objects) {
-				if (obj.Type == RswObjectType.Model) {
-					Model rsmModel = (Model) obj;
-
-					if (grf != null && grf.FileTable.Contains("data\\model\\" + rsmModel.ModelName)) {
-						Rsm rsm = new Rsm(grf.FileTable["data\\model\\" + rsmModel.ModelName].GetDecompressedData());
-						rsm.CalculateBoundingBox();
-						var rsmBox = new BoundingBox(rsm.Box);
-						rsmBox.BaseCenter();
-
-						Matrix4 matrix = Matrix4.Identity;
-						matrix = Matrix4.Scale(matrix, rsmModel.Scale);
-						matrix.SelfTranslate(rsmModel.Position);
-						matrix = Matrix4.RotateZ(matrix, (float) (rsmModel.Rotation[2] / 180f * Math.PI));
-						matrix = Matrix4.RotateX(matrix, (float) (rsmModel.Rotation[0] / 180f * Math.PI));
-						matrix = Matrix4.RotateY(matrix, (float) (rsmModel.Rotation[1] / 180f * Math.PI));
-						rsmBox.Multiply(matrix);
-
-						allBoundingBoxes.Add(rsmBox);
-					}
-					else {
-						CLHelper.Warning = "Couldn't locate " + "data\\model\\" + rsmModel.ModelName;
-					}
-				}
-			}
+			//
+			//foreach (RswObject obj in rsw.Objects) {
+			//	if (obj.Type == RswObjectType.Model) {
+			//		Model rsmModel = (Model) obj;
+			//
+			//		if (grf != null && grf.FileTable.Contains("data\\model\\" + rsmModel.ModelName)) {
+			//			Rsm rsm = new Rsm(grf.FileTable["data\\model\\" + rsmModel.ModelName].GetDecompressedData());
+			//			rsm.CalculateBoundingBox();
+			//			var rsmBox = new BoundingBox(rsm.Box);
+			//			rsmBox.BaseCenter();
+			//
+			//			Matrix4 matrix = Matrix4.Identity;
+			//			matrix = Matrix4.Scale(matrix, rsmModel.Scale);
+			//			matrix.SelfTranslate(rsmModel.Position);
+			//			matrix = Matrix4.RotateZ(matrix, (float) (rsmModel.Rotation[2] / 180f * Math.PI));
+			//			matrix = Matrix4.RotateX(matrix, (float) (rsmModel.Rotation[0] / 180f * Math.PI));
+			//			matrix = Matrix4.RotateY(matrix, (float) (rsmModel.Rotation[1] / 180f * Math.PI));
+			//			rsmBox.Multiply(matrix);
+			//
+			//			allBoundingBoxes.Add(rsmBox);
+			//		}
+			//		else {
+			//			CLHelper.Warning = "Couldn't locate " + "data\\model\\" + rsmModel.ModelName;
+			//		}
+			//	}
+			//}
 
 			int i = 0;
 			_writeQuadTree(0, 5 * sizeX - 1, 5 * sizeY - 1, -5 * sizeX, -5 * sizeY, ref i, gnd, rsw, 0, allBoundingBoxes);

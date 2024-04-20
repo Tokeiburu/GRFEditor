@@ -1,5 +1,4 @@
 using GRF.Image;
-using Utilities;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.ActFormat.Commands {

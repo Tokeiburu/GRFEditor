@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using GRF.Graphics;
 using GRF.IO;
 
 namespace GRF.FileFormats.RsmFormat {

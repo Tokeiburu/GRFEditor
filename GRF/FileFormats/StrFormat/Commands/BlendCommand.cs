@@ -1,5 +1,4 @@
-﻿using GRF.Image;
-using Utilities.Commands;
+﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
 	public class BlendCommand : IStrCommand, IAutoReverse {

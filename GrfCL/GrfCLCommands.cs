@@ -102,7 +102,7 @@ namespace GrfCL {
 						}
 
 						GrfImage imageSource = ImageProvider.GetImage(data, extension);
-						imageSource.Save(Path.GetFileName(path.GetFullPath()), PixelFormatInfo.GetFormatFromAssembly(clOption.Args[2]));
+						imageSource.Save(destinationFile.ReplaceExtension(""), PixelFormatInfo.GetFormatFromAssembly(clOption.Args[2]));
 						CLHelper.Log = "File converted successfully : " + Path.GetFileName(fullPath);
 					}
 					catch (Exception) {

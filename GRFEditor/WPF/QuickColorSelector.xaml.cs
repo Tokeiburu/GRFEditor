@@ -8,9 +8,11 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using ColorPicker;
 using ColorPicker.Sliders;
+using GRF.Graphics;
 using GRF.Image;
 using GrfToWpfBridge;
 using TokeiLibrary;
+using Point = System.Windows.Point;
 
 namespace GRFEditor.WPF {
 	/// <summary>
@@ -195,7 +197,7 @@ namespace GRFEditor.WPF {
 
 		private void _quickColorSelector_MouseMove(object sender, MouseEventArgs e) {
 			if (e.LeftButton == MouseButtonState.Pressed) {
-				GRF.Graphics.Point dist = e.GetPosition(this).ToGrfPoint() - _oldPosition.ToGrfPoint();
+				TkVector2 dist = e.GetPosition(this).ToTkVector2() - _oldPosition.ToTkVector2();
 
 				if (dist.Length > 4) {
 					DataObject data = new DataObject();

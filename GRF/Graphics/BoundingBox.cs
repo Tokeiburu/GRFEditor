@@ -1,22 +1,29 @@
 ﻿using System;
-using Utilities;
 
 namespace GRF.Graphics {
 	public class BoundingBox {
+		public TkVector3 PCenter {
+			get { return (Min + Max) / 2.0f; }
+		}
+
+		public TkVector3 PRange {
+			get { return (Max - Min) / 2.0f; }
+		}
+
 		public BoundingBox(byte[] data, ref int offset) {
-			Max = new Vertex(data, offset);
-			Min = new Vertex(data, offset += 12);
-			Offset = new Vertex(data, offset += 12);
-			Range = new Vertex(data, offset += 12);
+			Max = new TkVector3(data, offset);
+			Min = new TkVector3(data, offset += 12);
+			Offset = new TkVector3(data, offset += 12);
+			Range = new TkVector3(data, offset += 12);
 			offset += 12;
 		}
 
 		public BoundingBox() {
-			Max = new Vertex(float.MinValue, float.MinValue, float.MinValue);
-			Min = new Vertex(float.MaxValue, float.MaxValue, float.MaxValue);
-			Offset = new Vertex();
-			Range = new Vertex();
-			Center = new Vertex();
+			Max = new TkVector3(float.MinValue, float.MinValue, float.MinValue);
+			Min = new TkVector3(float.MaxValue, float.MaxValue, float.MaxValue);
+			Offset = new TkVector3();
+			Range = new TkVector3();
+			Center = new TkVector3();
 		}
 
 		public BoundingBox(BoundingBox box) {
@@ -31,25 +38,32 @@ namespace GRF.Graphics {
 			Max = Max - Center;
 			Min = Min - Center;
 			Offset = Offset - Center;
-			Center = new Vertex();
+			Center = new TkVector3();
 
 			Max.Y += -Min.Y;
 			Offset.Y += -Min.Y;
 			Min.Y += -Min.Y;
 		}
 
-		public Vertex Max;
-		public Vertex Min;
-		public Vertex Offset;
-		public Vertex Range;
-		public Vertex Center;
+		public void AddVertex(TkVector3 v) {
+			for (int c = 0; c < 3; c++) {
+				Min[c] = Math.Min(Min[c], v[c]);
+				Max[c] = Math.Max(Max[c], v[c]);
+			}
+		}
 
-		public void Multiply(Matrix4 matrix) {
-			Max = Matrix4.Multiply(matrix, Max);
-			Min = Matrix4.Multiply(matrix, Min);
-			Center = Matrix4.Multiply(matrix, Center);
-			Offset = Matrix4.Multiply(matrix, Offset);
-			Range = Matrix4.Multiply(matrix, Range);
+		public TkVector3 Max;
+		public TkVector3 Min;
+		public TkVector3 Offset;
+		public TkVector3 Range;
+		public TkVector3 Center;
+
+		public void Multiply(TkMatrix4 matrix) {
+			Max = new TkVector3(matrix * new TkVector4(Max, 1));
+			Min = new TkVector3(matrix * new TkVector4(Min, 1));
+			Center = new TkVector3(matrix * new TkVector4(Center, 1));
+			Offset = new TkVector3(matrix * new TkVector4(Offset, 1));
+			Range = new TkVector3(matrix * new TkVector4(Range, 1));
 		}
 
 		public void ReverseY() {

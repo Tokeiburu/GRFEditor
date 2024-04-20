@@ -11,15 +11,6 @@ namespace GRF.FileFormats.RsmFormat {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="RotKeyFrame"/> struct.
 		/// </summary>
-		/// <param name="rkf">The RKF.</param>
-		public RotKeyFrame(RotKeyFrame rkf) {
-			Frame = rkf.Frame;
-			Quaternion = rkf.Quaternion;
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="RotKeyFrame"/> struct.
-		/// </summary>
 		/// <param name="reader">The reader.</param>
 		public RotKeyFrame(IBinaryReader reader) {
 			Frame = reader.Int32();

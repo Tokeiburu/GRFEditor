@@ -43,7 +43,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_nonExpandableTypes.Add(typeof (byte));
 			_nonExpandableTypes.Add(typeof (UInt32));
 			_nonExpandableTypes.Add(typeof (UInt16));
-			_nonExpandableTypes.Add(typeof (Vertex));
+			_nonExpandableTypes.Add(typeof (TkVector2));
+			_nonExpandableTypes.Add(typeof (TkVector3));
+			_nonExpandableTypes.Add(typeof (TkVector4));
 			_nonExpandableTypes.Add(typeof (TextureVertex));
 			_nonExpandableTypes.Add(typeof (Face));
 			_nonExpandableTypes.Add(typeof (Mesh));

@@ -289,6 +289,14 @@ namespace GRF.Core {
 				DesDecryption.DecryptFileData(data, Cycle == 0, Cycle);
 			}
 
+			if ((Flags & EntryType.LZSS) == EntryType.LZSS) {
+				return Compression.LzssDecompress(data, SizeDecompressed);
+			}
+
+			if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
+				return Compression.RawDecompress(data, SizeDecompressed);
+			}
+
 			// Fix : 2015-04-04
 			// Compression detection.
 			if (Compression.IsNormalCompression || Compression.IsLzma) {
@@ -298,10 +306,6 @@ namespace GRF.Core {
 
 					return Compression.DecompressLzma(data, SizeDecompressed);
 				}
-			}
-
-			if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
-				return Compression.RawDecompress(data, SizeDecompressed);
 			}
 
 			if (data[0] != 0x78) {

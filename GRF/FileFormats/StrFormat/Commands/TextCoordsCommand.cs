@@ -1,5 +1,4 @@
 ﻿using System;
-using GRF.Image;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {

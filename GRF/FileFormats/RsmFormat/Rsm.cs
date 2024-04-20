@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using GRF.ContainerFormat;
-using GRF.FileFormats.RsmFormat.MeshStructure;
 using GRF.Graphics;
 using GRF.IO;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.RsmFormat {
@@ -22,12 +20,12 @@ namespace GRF.FileFormats.RsmFormat {
 		public RsmHeader Header { get; private set; }
 		public List<string> MainMeshNames = new List<string>();
 		private readonly List<ScaleKeyFrame> _scaleKeyFrames = new List<ScaleKeyFrame>();
-		public Mesh MainMesh { get; private set; }
-		public int AnimationLength { get; private set; }
+		public Mesh MainMesh { get; set; }
+		public int AnimationLength { get; set; }
 		public int ShadeType { get; set; }
 		public byte Alpha { get; set; }
 		public BoundingBox Box { get; private set; }
-		public byte[] Reserved { get; private set; }
+		public byte[] Reserved { get; internal set; }
 		public float FrameRatePerSecond { get; set; }
 		private readonly List<Mesh> _meshes = new List<Mesh>();
 		private readonly List<Mesh> _parents = new List<Mesh>();
@@ -138,13 +136,7 @@ namespace GRF.FileFormats.RsmFormat {
 				count = reader.Int32();
 
 				for (int i = 0; i < count; i++) {
-					_scaleKeyFrames.Add(new ScaleKeyFrame {
-						Frame = reader.Int32(),
-						Sx = reader.Float(),
-						Sy = reader.Float(),
-						Sz = reader.Float(),
-						Data = reader.Float()
-					});
+					_scaleKeyFrames.Add(new ScaleKeyFrame(reader));
 				}
 			}
 
@@ -161,7 +153,6 @@ namespace GRF.FileFormats.RsmFormat {
 				}
 			}
 
-			//_uniqueTextures();
 			Box = new BoundingBox();
 		}
 
@@ -198,18 +189,6 @@ namespace GRF.FileFormats.RsmFormat {
 
 		#endregion
 
-		private void _uniqueTextures() {
-			HashSet<string> textures = new HashSet<string>();
-
-			for (int i = 0; i < Textures.Count; i++) {
-				if (!textures.Add(Textures[i])) {
-					Textures[i] = "Duplicate_[" + Methods.StringLimit(Textures[i], 18) + "]" + Methods.RandomString(128);
-					Textures[i] = Methods.StringLimit(Textures[i], 39);
-					i--;
-				}
-			}
-		}
-
 		private void _setParents() {
 			// Bandaid, as we really want only 1 root mesh
 			if (MainMeshNames.Count > 1) {
@@ -217,7 +196,7 @@ namespace GRF.FileFormats.RsmFormat {
 					mesh.ParentName = "__ROOT";
 				}
 
-				Mesh root = new Mesh { Name = "__ROOT" };
+				Mesh root = new Mesh(this) { Name = "__ROOT" };
 				MainMesh = root;
 				Meshes.Add(root);
 			}
@@ -238,141 +217,12 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 		}
 
-		private void _calcBoundingBox() {
-			Box = new BoundingBox();
-		}
-
-		public void CalculateBoundingBox(bool apply = true) {
-			MainMesh.Calculate(Matrix4.Identity, apply);
-			
-			for (int i = 0; i < 3; i++) {
-				for (int j = 0; j < Meshes.Count; j++) {
-					Box.Max[i] = Math.Max(Box.Max[i], Meshes[j].BoundingBox.Max[i]);
-					Box.Min[i] = Math.Min(Box.Min[i], Meshes[j].BoundingBox.Min[i]);
-				}
-
-				Box.Offset[i] = (Box.Max[i] + Box.Min[i]) / 2.0f;
-				Box.Range[i] = (Box.Max[i] - Box.Min[i]) / 2.0f;
-				Box.Center[i] = Box.Min[i] + Box.Range[i];
-			}
-		}
-
 		public void Downgrade() {
-			Header.SetVersion(1, 4);
-
-			// Move model to match the bounding box at 0,0
-			_calcBoundingBox();
-
-			AnimationLength = AnimationLength * 50;
-
-			CalculateBoundingBox(false);
-			double diff = -Box.Center[1];
-
-			for (int k = 0; k < _meshes.Count; k++) {
-				var node = _meshes[k];
-
-				for (int index = 0; index < node.Vertices.Count; index++) {
-					var vertex = node.Vertices[index];
-					node.Vertices[index] = new Vertex(vertex.X, -(vertex.Y + (k == 0 ? diff : 0)), vertex.Z);
-					//node.Vertices[index] = new Vertex(vertex.X, -(vertex.Y + diff), vertex.Z);
-				}
-
-				//if (!(k == 0 || node.RotFrames.Count > 0)) {
-				//	_meshes.RemoveAt(k);
-				//	k--;
-				//	continue;
-				//}
-
-				//for (int index = 0; index < node.Faces.Count; index++) {
-				//	node.Faces[index].TwoSide = 1;
-				//}
-
-				for (int i = 0; i < node.RotationKeyFrames.Count; i++) {
-					node.RotationKeyFrames[i] = new RotKeyFrame {
-						Frame = node.RotationKeyFrames[i].Frame * 50,
-						Quaternion = new TkQuaternion(
-							-node.RotationKeyFrames[i].Quaternion.X,
-							node.RotationKeyFrames[i].Quaternion.Y,
-							-node.RotationKeyFrames[i].Quaternion.Z,
-							node.RotationKeyFrames[i].Quaternion.W)
-					};
-				}
-
-				for (int i = 0; i < node.PosKeyFrames.Count; i++) {
-					node.PosKeyFrames[i] = new PosKeyFrame {
-						Frame = node.PosKeyFrames[i].Frame * 50,
-						X = node.PosKeyFrames[i].X,
-						Y = -node.PosKeyFrames[i].Y,
-						Z = node.PosKeyFrames[i].Z,
-					};
-				}
-
-				foreach (var face in node.Faces) {
-					var temp = face.VertexIds[1];
-					face.VertexIds[1] = face.VertexIds[2];
-					face.VertexIds[2] = temp;
-				
-					temp = face.TextureVertexIds[1];
-					face.TextureVertexIds[1] = face.TextureVertexIds[2];
-					face.TextureVertexIds[2] = temp;
-				}
-
-				node.Position = new Vertex(node.Position_[0], -node.Position_[1], node.Position_[2]);
-				node.Position_ = new Vertex(0, 0, 0);
-			}
-
-			_downgradeSub(null, MainMesh);
-
-			for (int k = 0; k < _meshes.Count; k++) {
-				var node = _meshes[k];
-
-				if (node == MainMesh) {
-					
-				}
-				else if (node.Parent == MainMesh) {
-					double scaleY = new Vertex(node.TransformationMatrix[3], node.TransformationMatrix[4], node.TransformationMatrix[5]).Length;
-					node.Position = new Vertex(node.Position[0], -(-node.Position[1] + diff * scaleY), node.Position[2]);
-					Z.F();
-				}
-				else {
-					
-				}
-			}
-
-			Reserved = new byte[16];
+			Rsm2Converter.Downgrade(this);
 		}
 
-		private void _downgradeSub(Mesh parent, Mesh child) {
-			if (parent != null) {
-				//if (child.Name.Contains("_e_05")) {
-				//	Z.F();
-				//}
-				//Matrix4 m = new Matrix4(parent.OffsetMatrix);
-				//m = Matrix4.Multiply(m, new Matrix4(child.OffsetMatrix));
-				//child.OffsetMatrix[0] = m[0];
-				//child.OffsetMatrix[1] = m[1];
-				//child.OffsetMatrix[2] = m[2];
-				//child.OffsetMatrix[3] = m[4];
-				//child.OffsetMatrix[4] = m[5];
-				//child.OffsetMatrix[5] = m[6];
-				//child.OffsetMatrix[6] = m[8];
-				//child.OffsetMatrix[7] = m[9];
-				//child.OffsetMatrix[8] = m[10];
-			}
-
-			foreach (var node in child.Children) {
-				_downgradeSub(child, node);
-			}
-
-			if (parent != null) {
-				child.Position -= parent.Position;
-			}
-		}
-
-		public void ClearBuffers() {
-			foreach (var mesh in Meshes) {
-				mesh.ClearBuffer();
-			}
+		public void Flatten() {
+			Rsm2Converter.Flatten(this);
 		}
 
 		internal void Save(BinaryWriter writer) {

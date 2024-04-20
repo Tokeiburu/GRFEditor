@@ -428,10 +428,13 @@
     <SolidColorBrush x:Key="ListItemSearchBackground" Color="White"/>
     <SolidColorBrush x:Key="MouseOverTextBrush" Color="Blue" />
     <SolidColorBrush x:Key="AvalonEditorBackground" Color="White"/>
-    <SolidColorBrush x:Key="AvalonEditorSelectionBrush" Color="#A0ACD5FE" />
+    <SolidColorBrush x:Key="AvalonEditorSelectionBackgroundBrush" Color="#A0ACD5FE" />
+    <SolidColorBrush x:Key="AvalonEditorSelectionForegroundBrush" Color="#FF000000" />
+    <SolidColorBrush x:Key="AvalonEditorSearchForegroundBrush" Color="#FFFFFF00" />
     <SolidColorBrush x:Key="AvalonEditorMarkerBrush" Color="#8FFF8F" />
     <SolidColorBrush x:Key="ImageConverterGrayBrush" Color="Gray" />
     <SolidColorBrush x:Key="EncryptionDialogBorderBrush" Color="#CDD5E2" />
+    <SolidColorBrush x:Key="HyperlinkForegroundBrush" Color="#FF0000FF" />
 
     <SolidColorBrush x:Key="TextForeground" Color="Black"/>
     <SolidColorBrush x:Key="UIBackgroundBrush" Color="White" />

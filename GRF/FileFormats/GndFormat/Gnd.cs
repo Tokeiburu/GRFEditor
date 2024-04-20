@@ -4,11 +4,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 using ErrorManager;
 using GRF.ContainerFormat;
-using GRF.FileFormats.RsmFormat.MeshStructure;
 using GRF.FileFormats.RswFormat;
-using GRF.Graphics;
 using GRF.IO;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.GndFormat {
@@ -210,12 +207,65 @@ namespace GRF.FileFormats.GndFormat {
 		private void _loadCubes(IBinaryReader data) {
 			_cubes.Capacity = Header.Width * Header.Height;
 
-			for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
-				_cubes.Add(new Cube(data));
+			if (Header.Version <= 1) {
+				GridSizeX = 8;
+				GridSizeY = 8;
+				GridSizeCell = 1;
+
+				byte[] light = new byte[256];
+
+				for (int i = 0; i < 64; i++) {
+					light[i] = 255;
+				}
+
+				LightmapContainer.Add(light);
+				
+				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
+					Tile[] tiles = new Tile[3] { new Tile(), new Tile(), new Tile() };	// up, front, side
+					Cube cube = new Cube();
+
+					for (int l = 0; l < 3; l++) {
+						tiles[l].TileColor = new Image.GrfColor(255, 255, 255, 255);
+						tiles[l].TextureIndex = (short)data.Int32();
+					}
+
+					cube.BottomLeft = data.Float(); cube.BottomRight = data.Float(); cube.TopLeft = data.Float(); cube.TopRight = data.Float();
+					data.Forward(8);
+
+					for (int l = 0; l < 3; l++)
+						for (int j = 0; j < 4; j++)
+							for (int k = 0; k < 2; k++)
+								tiles[l].TexCoords[j][k] = data.Float();
+
+					cube.TileUp = cube.TileSide = cube.TileFront = -1;
+
+					if (tiles[0].TextureIndex > -1) {
+						cube.TileUp = Tiles.Count;
+						Tiles.Add(tiles[0]);
+					}
+					if (tiles[1].TextureIndex > -1) {
+						cube.TileSide = Tiles.Count;
+						Tiles.Add(tiles[1]);
+					}
+					if (tiles[2].TextureIndex > -1) {
+						cube.TileFront = Tiles.Count;
+						Tiles.Add(tiles[2]);
+					}
+
+					Cubes.Add(cube);
+				}
+			}
+			else {
+				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
+					_cubes.Add(new Cube(Header, data));
+				}
 			}
 		}
 
 		private void _loadTiles(IBinaryReader data) {
+			if (Header.Version <= 1)
+				return;
+
 			NumberOfTiles = data.Int32();
 			Tiles.Capacity = NumberOfTiles;
 
@@ -227,6 +277,9 @@ namespace GRF.FileFormats.GndFormat {
 		}
 
 		private void _loadLightmaps(IBinaryReader data) {
+			if (Header.Version <= 1)
+				return;
+
 			NumberOfLightmaps = data.Int32();
 			GridSizeX = data.Int32();
 			GridSizeY = data.Int32();
@@ -478,315 +531,6 @@ namespace GRF.FileFormats.GndFormat {
 			}
 
 			return data;
-		}
-
-		public GndMesh Compile(float waterLevel, float waterHeight, bool ignoreNormals) {
-			Dictionary<int, List<Vertex>> normals = _getSmoothNormals(ignoreNormals);
-			List<Vertex> n;
-			Tile tile;
-			Cube cell_a, cell_b;
-			int x, y;
-			float[] h_a, h_b;
-
-			int height = Header.Height;
-			int width = Header.Width;
-
-			// Water
-			//List<float[]> mesh = new List<float[]>();
-			//List<float[]> water = new List<float[]>();
-
-			List<MeshRawData> meshRawData = new List<MeshRawData>();
-			List<int> meshOffsets = new List<int>();
-
-			//Dictionary<string, MeshRawData> waterRawData = new Dictionary<string, MeshRawData>();
-
-			//List<MeshTriangle> waterMeshTriangles = new List<MeshTriangle>();
-			//string waterTexture = @"¿öÅÍ\water000.jpg";
-			//waterRawData[waterTexture] = new MeshRawData {
-			//    Alpha = 150,
-			//    Texture = waterTexture
-			//};
-
-			List<int> numberOfTriangles = new List<int>(TexturesPath.Count);
-
-			for (int i = 0; i < TexturesPath.Count; i++) {
-				numberOfTriangles.Add(0);
-				meshOffsets.Add(0);
-				meshRawData.Add(null);
-			}
-
-			for (y = 0; y < height; y++) {
-				for (x = 0; x < width; x++) {
-					cell_a = _cubes[x + y * width];
-
-					if (cell_a.TileUp > -1) {
-						tile = _tiles[cell_a.TileUp];
-
-						if (tile.TextureIndex > -1) {
-							numberOfTriangles[tile.TextureIndex]++;
-						}
-					}
-
-					if (cell_a.TileFront > -1) {
-						tile = _tiles[cell_a.TileFront];
-
-						if (tile.TextureIndex > -1 && _cubes.Count > (x + (y + 1) * width)) {
-							numberOfTriangles[tile.TextureIndex]++;
-						}
-					}
-
-					if (cell_a.TileRight > -1) {
-						tile = _tiles[cell_a.TileRight];
-
-						if (tile.TextureIndex > -1 && _cubes.Count > ((x + 1) + y * width)) {
-							numberOfTriangles[tile.TextureIndex]++;
-						}
-					}
-				}
-			}
-
-			for (int i = 0; i < TexturesPath.Count; i++) {
-				var meshRaw = new MeshRawData();
-				meshRaw.Texture = TexturesPath[i];
-				meshRaw.Alpha = 255;
-				meshRaw.MeshTriangles = new MeshTriangle[numberOfTriangles[i] * 2];
-				meshRawData[i] = meshRaw;
-				meshOffsets[i] = 0;
-			}
-
-			// Compiling mesh
-			for (y = 0; y < height; y++) {
-				for (x = 0; x < width; x++) {
-					cell_a = _cubes[x + y * width];
-					h_a = new float[] { cell_a.BottomLeft, cell_a.BottomRight, cell_a.TopLeft, cell_a.TopRight };
-
-					// Check tile up
-					if (cell_a.TileUp > -1) {
-						tile = _tiles[cell_a.TileUp];
-
-						// Check if has texture
-						if (tile.TextureIndex > -1) {
-							n = normals[x + y * width];
-
-							MeshTriangle face1 = new MeshTriangle();
-							face1.Normals[0] = n[0];
-							face1.Normals[1] = n[1];
-							face1.Normals[2] = n[2];
-							face1.Positions[0] = new Vertex((x + 0) * 2, h_a[0] / 5f, (y + 0) * 2);
-							face1.Positions[1] = new Vertex((x + 1) * 2, h_a[1] / 5f, (y + 0) * 2);
-							face1.Positions[2] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face1.TextureCoords[0] = new Point(tile.U1, tile.V1);
-							face1.TextureCoords[1] = new Point(tile.U2, tile.V2);
-							face1.TextureCoords[2] = new Point(tile.U4, tile.V4);
-
-							MeshTriangle face2 = new MeshTriangle();
-							face2.Normals[0] = n[2];
-							face2.Normals[1] = n[3];
-							face2.Normals[2] = n[0];
-							face2.Positions[0] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face2.Positions[1] = new Vertex((x + 0) * 2, h_a[2] / 5f, (y + 1) * 2);
-							face2.Positions[2] = new Vertex((x + 0) * 2, h_a[0] / 5f, (y + 0) * 2);
-							face2.TextureCoords[0] = new Point(tile.U4, tile.V4);
-							face2.TextureCoords[1] = new Point(tile.U3, tile.V3);
-							face2.TextureCoords[2] = new Point(tile.U1, tile.V1);
-
-							var textIndex = tile.TextureIndex;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face1;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face2;
-						}
-					}
-
-					// Check tile front
-					if (cell_a.TileFront > -1) {
-						tile = _tiles[cell_a.TileFront];
-
-						// Check if has texture
-						if (tile.TextureIndex > -1 && _cubes.Count > (x + (y + 1) * width)) {
-							cell_b = _cubes[x + (y + 1) * width];
-							h_b = new float[] { cell_b.BottomLeft, cell_b.BottomRight, cell_b.TopLeft, cell_b.TopRight };
-							//generateLightmapAltlas(tile.LightmapIndex);
-
-							float mult = h_a[0] < h_b[0] ? 1f : -1f;
-
-							MeshTriangle face1 = new MeshTriangle();
-							face1.Normals[0] = new Vertex(0.0f, 0.0f, 1.0f * mult);
-							face1.Normals[1] = new Vertex(0.0f, 0.0f, 1.0f * mult);
-							face1.Normals[2] = new Vertex(0.0f, 0.0f, 1.0f * mult);
-							face1.Positions[0] = new Vertex((x + 0) * 2, h_b[0] / 5f, (y + 1) * 2);
-							face1.Positions[1] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face1.Positions[2] = new Vertex((x + 1) * 2, h_b[1] / 5f, (y + 1) * 2);
-							face1.TextureCoords[0] = new Point(tile.U3, tile.V3);
-							face1.TextureCoords[1] = new Point(tile.U2, tile.V2);
-							face1.TextureCoords[2] = new Point(tile.U4, tile.V4);
-
-							MeshTriangle face2 = new MeshTriangle();
-							face2.Normals[0] = new Vertex(0.0f, 0.0f, -1.0f * mult);
-							face2.Normals[1] = new Vertex(0.0f, 0.0f, -1.0f * mult);
-							face2.Normals[2] = new Vertex(0.0f, 0.0f, -1.0f * mult);
-							face2.Positions[0] = new Vertex((x + 0) * 2, h_b[0] / 5f, (y + 1) * 2);
-							face2.Positions[1] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face2.Positions[2] = new Vertex((x + 0) * 2, h_a[2] / 5f, (y + 1) * 2);
-							face2.TextureCoords[0] = new Point(tile.U3, tile.V3);
-							face2.TextureCoords[1] = new Point(tile.U2, tile.V2);
-							face2.TextureCoords[2] = new Point(tile.U1, tile.V1);
-
-							var textIndex = tile.TextureIndex;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face1;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face2;
-						}
-					}
-
-					// Check tile right
-					if (cell_a.TileRight > -1) {
-						tile = _tiles[cell_a.TileRight];
-
-						// Check if has texture
-						if (tile.TextureIndex > -1 && _cubes.Count > ((x + 1) + y * width)) {
-							cell_b = _cubes[(x + 1) + y * width];
-							h_b = new float[] { cell_b.BottomLeft, cell_b.BottomRight, cell_b.TopLeft, cell_b.TopRight };
-
-							float mult = h_a[0] > h_b[0] ? 1f : -1f;
-
-							MeshTriangle face1 = new MeshTriangle();
-							face1.Normals[0] = new Vertex(1.0f * mult, 0.0f, 0.0f);
-							face1.Normals[1] = new Vertex(1.0f * mult, 0.0f, 0.0f);
-							face1.Normals[2] = new Vertex(1.0f * mult, 0.0f, 0.0f);
-							face1.Positions[0] = new Vertex((x + 1) * 2, h_a[1] / 5f, (y + 0) * 2);
-							face1.Positions[1] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face1.Positions[2] = new Vertex((x + 1) * 2, h_b[0] / 5f, (y + 0) * 2);
-							face1.TextureCoords[0] = new Point(tile.U2, tile.V2);
-							face1.TextureCoords[1] = new Point(tile.U1, tile.V1);
-							face1.TextureCoords[2] = new Point(tile.U4, tile.V4);
-
-							MeshTriangle face2 = new MeshTriangle();
-							face2.Normals[0] = new Vertex(-1.0f * mult, 0.0f, 0.0f);
-							face2.Normals[1] = new Vertex(-1.0f * mult, 0.0f, 0.0f);
-							face2.Normals[2] = new Vertex(-1.0f * mult, 0.0f, 0.0f);
-							face2.Positions[0] = new Vertex((x + 1) * 2, h_b[0] / 5f, (y + 0) * 2);
-							face2.Positions[1] = new Vertex((x + 1) * 2, h_b[2] / 5f, (y + 1) * 2);
-							face2.Positions[2] = new Vertex((x + 1) * 2, h_a[3] / 5f, (y + 1) * 2);
-							face2.TextureCoords[0] = new Point(tile.U4, tile.V4);
-							face2.TextureCoords[1] = new Point(tile.U3, tile.V3);
-							face2.TextureCoords[2] = new Point(tile.U1, tile.V1);
-
-							var textIndex = tile.TextureIndex;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face1;
-							meshRawData[textIndex].MeshTriangles[meshOffsets[textIndex]++] = face2;
-						}
-					}
-				}
-			}
-
-			//waterRawData[waterTexture].MeshTriangles = waterMeshTriangles.ToArray();
-			Dictionary<string, MeshRawData> meshRawDataDico = new Dictionary<string, MeshRawData>();
-
-			for (int i = 0; i < TexturesPath.Count; i++) {
-				meshRawDataDico[TexturesPath[i]] = meshRawData[i];
-			}
-
-			// Return mesh informations
-			return new GndMesh {
-				Width = Header.Width,
-				Height = Header.Height,
-
-				//Lightmap = lightmap,
-				//LightmapSize = lightmap.Length,
-				//TileColor = CreateTilesColorImage(),
-				//ShadowMap = CreateShadowMapData(),
-
-				//Mesh = mesh,
-				//MeshVertCount = mesh.Count / 12,
-				MeshRawData = meshRawDataDico,
-				//WaterMesh = water,
-				//WaterVertCount = water.Count / 5,
-
-				//WaterRawData = waterRawData,
-			};
-		}
-
-		private Dictionary<int, List<Vertex>> _getSmoothNormals(bool ignoreNormals) {
-			int x, y;
-			Vertex a = new Vertex();
-			Vertex b = new Vertex();
-			Vertex c = new Vertex();
-			Vertex d = new Vertex();
-			List<Vertex> n;
-
-			Dictionary<int, Vertex> tmp = new Dictionary<int, Vertex>();
-			Dictionary<int, List<Vertex>> normals = new Dictionary<int, List<Vertex>>();
-
-			Vertex emptyVec = new Vertex();
-			Cube cell;
-
-			// Calculate normal for each cells
-			for (y = 0; y < Header.Height; y++) {
-				for (x = 0; x < Header.Width; x++) {
-					tmp[x + y * Header.Width] = new Vertex();
-
-					if (!ignoreNormals)
-						continue;
-
-					cell = _cubes[x + y * Header.Width];
-
-					// Tile Up
-					if (cell.TileUp > -1 && _tiles[cell.TileUp].TextureIndex > -1) {
-						a[0] = (x + 0) * 2;
-						a[1] = cell.BottomLeft;
-						a[2] = (y + 0) * 2;
-						b[0] = (x + 1) * 2;
-						b[1] = cell.BottomRight;
-						b[2] = (y + 0) * 2;
-						c[0] = (x + 1) * 2;
-						c[1] = cell.TopLeft;
-						c[2] = (y + 1) * 2;
-						d[0] = (x + 0) * 2;
-						d[1] = cell.TopRight;
-						d[2] = (y + 1) * 2;
-
-						tmp[x + y * Header.Width] = Vertex.CalculateNormal(a, b, c, d);
-					}
-				}
-			}
-
-			// Smooth normals
-			for (y = 0; y < Header.Height; y++) {
-				for (x = 0; x < Header.Width; x++) {
-					n = normals[x + y * Header.Width] = new List<Vertex> { new Vertex(), new Vertex(), new Vertex(), new Vertex() };
-
-					if (ignoreNormals)
-						continue;
-
-					// Up Left
-					n[0] = n[0] + tmp[(x + 0) + (y + 0) * Header.Width];
-					n[0] = n[0] + (tmp.ContainsKey((x - 1) + (y + 0) * Header.Width) ? tmp[(x - 1) + (y + 0) * Header.Width] : emptyVec);
-					n[0] = n[0] + (tmp.ContainsKey((x - 1) + (y - 1) * Header.Width) ? tmp[(x - 1) + (y - 1) * Header.Width] : emptyVec);
-					n[0] = n[0] + (tmp.ContainsKey((x + 0) + (y - 1) * Header.Width) ? tmp[(x + 0) + (y - 1) * Header.Width] : emptyVec);
-					n[0] = Vertex.Normalize(n[0]);
-
-					// Up Right
-					n[1] = n[1] + tmp[(x + 0) + (y + 0) * Header.Width];
-					n[1] = n[1] + (tmp.ContainsKey((x + 1) + (y + 0) * Header.Width) ? tmp[(x + 1) + (y + 0) * Header.Width] : emptyVec);
-					n[1] = n[1] + (tmp.ContainsKey((x + 1) + (y - 1) * Header.Width) ? tmp[(x + 1) + (y - 1) * Header.Width] : emptyVec);
-					n[1] = n[1] + (tmp.ContainsKey((x + 0) + (y - 1) * Header.Width) ? tmp[(x + 0) + (y - 1) * Header.Width] : emptyVec);
-					n[1] = Vertex.Normalize(n[1]);
-
-					// Bottom Right
-					n[2] = n[2] + tmp[(x + 0) + (y + 0) * Header.Width];
-					n[2] = n[2] + (tmp.ContainsKey((x + 1) + (y + 0) * Header.Width) ? tmp[(x + 1) + (y + 0) * Header.Width] : emptyVec);
-					n[2] = n[2] + (tmp.ContainsKey((x + 1) + (y + 1) * Header.Width) ? tmp[(x + 1) + (y + 1) * Header.Width] : emptyVec);
-					n[2] = n[2] + (tmp.ContainsKey((x + 0) + (y + 1) * Header.Width) ? tmp[(x + 0) + (y + 1) * Header.Width] : emptyVec);
-					n[2] = Vertex.Normalize(n[2]);
-
-					// Bottom Left
-					n[3] = n[3] + tmp[(x + 0) + (y + 0) * Header.Width];
-					n[3] = n[3] + (tmp.ContainsKey((x - 1) + (y + 0) * Header.Width) ? tmp[(x - 1) + (y + 0) * Header.Width] : emptyVec);
-					n[3] = n[3] + (tmp.ContainsKey((x - 1) + (y + 1) * Header.Width) ? tmp[(x - 1) + (y + 1) * Header.Width] : emptyVec);
-					n[3] = n[3] + (tmp.ContainsKey((x + 0) + (y + 1) * Header.Width) ? tmp[(x + 0) + (y + 1) * Header.Width] : emptyVec);
-					n[3] = Vertex.Normalize(n[3]);
-				}
-			}
-
-			return normals;
 		}
 
 		/// <summary>

@@ -1,5 +1,4 @@
-﻿using System;
-using GRF.Core;
+﻿using GRF.Core;
 using GRF.FileFormats;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.PalFormat;

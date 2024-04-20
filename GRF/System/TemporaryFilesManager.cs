@@ -8,7 +8,7 @@ using GRF.Threading;
 namespace GRF.System {
 	public static class TemporaryFilesManager {
 		private static readonly object _lock = new object();
-		private static readonly Dictionary<string, List<string>> _patterns = new Dictionary<string, List<string>>();
+		private static readonly Dictionary<string, HashSet<string>> _patterns = new Dictionary<string, HashSet<string>>();
 		private static readonly Dictionary<string, Stream> _streams = new Dictionary<string, Stream>();
 
 		/// <summary>
@@ -38,24 +38,25 @@ namespace GRF.System {
 			string path;
 			bool isUnique = _patterns.ContainsKey(fileNamePattern);
 
-			List<string> usedPatterns = null;
+			HashSet<string> usedPatterns = null;
 
-			if (isUnique) {
-				usedPatterns = _patterns[fileNamePattern];
-				currentIndex = _patterns[fileNamePattern].Count - 1;
+			if (!isUnique) {
+				UniquePattern(fileNamePattern);
+				isUnique = true;
 			}
 
-			List<string> files = Directory.GetFiles(Settings.TempPath, "*").ToList();
+			usedPatterns = _patterns[fileNamePattern];
+			currentIndex = _patterns[fileNamePattern].Count - 1;
+
+			HashSet<string> files = new HashSet<string>(Directory.GetFiles(Settings.TempPath, "*").ToList());
 
 			lock (_lock) {
 				do {
 					currentIndex++;
 					path = Path.Combine(Settings.TempPath, String.Format(fileNamePattern, currentIndex));
-				} while (files.Contains(path) || (isUnique && usedPatterns.Contains(path)) || File.Exists(path));
+				} while (files.Contains(path) || usedPatterns.Contains(path) || File.Exists(path));
 
-				if (isUnique) {
-					usedPatterns.Add(path);
-				}
+				usedPatterns.Add(path);
 			}
 
 			return path;
@@ -71,7 +72,7 @@ namespace GRF.System {
 			string path;
 			bool isUnique = _patterns.ContainsKey(pathPattern);
 
-			List<string> usedPatterns = null;
+			HashSet<string> usedPatterns = null;
 
 			if (isUnique) {
 				usedPatterns = _patterns[pathPattern];
@@ -99,10 +100,10 @@ namespace GRF.System {
 		/// This is useful if a large amount of temporary files with the pattern is used.
 		/// </summary>
 		/// <param name="fileNamePattern">The file name pattern.</param>
-		public static void UniquePattern(string fileNamePattern) {
+		private static void UniquePattern(string fileNamePattern) {
 			lock (_lock) {
 				if (!_patterns.ContainsKey(fileNamePattern))
-					_patterns.Add(fileNamePattern, new List<string>());
+					_patterns.Add(fileNamePattern, new HashSet<string>());
 			}
 		}
 

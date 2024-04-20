@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using GRF.Graphics;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
+using Utilities;
 using Utilities.Services;
+using Matrix3 = OpenTK.Matrix3;
+using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL {
 	// A simple class meant to help create shaders.
@@ -100,7 +104,7 @@ namespace GRFEditor.OpenGL {
 				// We can use `GL.GetShaderInfoLog(shader)` to get information about the error.
 				var infoLog = GL.GetShaderInfoLog(shader);
 
-				Console.Write(infoLog);
+				GLHelper.OnLog(() => "Error: " + infoLog);
 			}
 		}
 
@@ -114,7 +118,7 @@ namespace GRFEditor.OpenGL {
 			GL.GetProgram(program, GetProgramParameterName.LinkStatus, out code);
 			if (code != (int)All.True) {
 				// We can use `GL.GetProgramInfoLog(program)` to get information about the error.
-				Console.Write("Error occurred whilst linking Program({program})");
+				GLHelper.OnLog(() => "Error: " + "Error occurred whilst linking Program({program})");
 			}
 		}
 
@@ -144,17 +148,9 @@ namespace GRFEditor.OpenGL {
 
 		public void SetBool(string name, bool data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 
-			//object outData;
-			//
-			//if (_values.TryGetValue(name, out outData) && (bool)outData == data) {
-			//	return;
-			//}
-			//
-			//_values[name] = data;
 			GL.Uniform1(_uniformLocations[name], data ? 1 : 0);
 		}
 
@@ -165,17 +161,9 @@ namespace GRFEditor.OpenGL {
 		/// <param name="data">The data to set</param>
 		public void SetInt(string name, int data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 
-			//object outData;
-			//
-			//if (_values.TryGetValue(name, out outData) && (int)outData == data) {
-			//	return;
-			//}
-			//
-			//_values[name] = data;
 			GL.Uniform1(_uniformLocations[name], data);
 		}
 
@@ -186,18 +174,9 @@ namespace GRFEditor.OpenGL {
 		/// <param name="data">The data to set</param>
 		public void SetFloat(string name, float data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 			
-			//object outData;
-			//
-			//// ReSharper disable once CompareOfFloatsByEqualityOperator
-			//if (_values.TryGetValue(name, out outData) && (float)outData == data) {
-			//	return;
-			//}
-			//
-			//_values[name] = data;
 			GL.Uniform1(_uniformLocations[name], data);
 		}
 
@@ -213,7 +192,6 @@ namespace GRFEditor.OpenGL {
 		/// </remarks>
 		public void SetMatrix4(string name, Matrix4 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 
@@ -232,7 +210,6 @@ namespace GRFEditor.OpenGL {
 		/// </remarks>
 		public void SetMatrix3(string name, Matrix3 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 			
@@ -246,17 +223,9 @@ namespace GRFEditor.OpenGL {
 		/// <param name="data">The data to set</param>
 		public void SetVector3(string name, Vector3 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 
-			//object outData;
-			//
-			//if (_values.TryGetValue(name, out outData) && (Vector3)outData == data) {
-			//	return;
-			//}
-			//
-			//_values[name] = data;
 			GL.Uniform3(_uniformLocations[name], data);
 		}
 
@@ -267,23 +236,14 @@ namespace GRFEditor.OpenGL {
 		/// <param name="data">The data to set</param>
 		public void SetVector2(string name, Vector2 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 
-			//object outData;
-			//
-			//if (_values.TryGetValue(name, out outData) && (Vector2)outData == data) {
-			//	return;
-			//}
-			//
-			//_values[name] = data;
 			GL.Uniform2(_uniformLocations[name], data);
 		}
 
 		public void SetVector4(string name, Vector4 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
-				//Console.WriteLine("Warning: property '" + name + "' not found in the shader.");
 				return;
 			}
 

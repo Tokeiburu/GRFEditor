@@ -19,7 +19,7 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 
 			Name = reader.String(80, '\0');
 			WaveName = reader.String(80, '\0');
-			Position = reader.Vertex();
+			Position = reader.Vector3();
 			Volume = reader.Float();
 			Width = reader.Int32();
 			Height = reader.Int32();

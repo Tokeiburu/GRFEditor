@@ -1,11 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using GRF.FileFormats.StrFormat;
+using GRF.Graphics;
 using GRF.Image;
 using GRF.IO;
 using GRFEditor.WPF.PreviewTabs;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.StrGroup {
 	public class GLLayer : GLObject {
@@ -89,6 +91,7 @@ namespace GRFEditor.OpenGL.StrGroup {
 			ChangeVertexCoord(3, Inter.TextCoords[0], Inter.TextCoords[3] + Inter.TextCoords[1]);
 			UpdateVertexCoords();
 
+			Shader.Use();
 			Shader.SetVector4("colorMult", new Vector4(Inter.Color[0] / 255f, Inter.Color[1] / 255f, Inter.Color[2] / 255f, Inter.Color[3] / 255f));
 
 			Matrix4 rotation = Matrix4.CreateRotationZ(GLHelper.ToRad(-Inter.Angle));
@@ -109,8 +112,6 @@ namespace GRFEditor.OpenGL.StrGroup {
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Linear);
 			
-			Shader.Use();
-
 			Shader.SetMatrix4("model", Model);
 			Shader.SetMatrix4("view", viewport.View);
 			Shader.SetMatrix4("projection", viewport.Projection);

@@ -10,6 +10,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
+using GRF.FileFormats.GatFormat;
+using GRF.FileFormats.GndFormat;
+using GRF.FileFormats.RswFormat;
 using GRF.System;
 using GRF.Threading;
 using GRFEditor.Core;
@@ -51,6 +54,14 @@ namespace GRFEditor {
 		public static EditorMainWindow Instance;
 
 		public EditorMainWindow() {
+			//Gnd gnd = new Gnd(@"C:\Gravity Ragnarok - Copy\data\jor_mbase.gnd");
+			//Gat gat = new Gat(@"C:\Gravity Ragnarok - Copy\data\jor_mbase.gat");
+			//Rsw rsw = new Rsw(@"C:\Gravity Ragnarok - Copy\data\jor_mbase.rsw");
+			//
+			//Z.F(gnd);
+			//Z.F(gat);
+			//Z.F(rsw);
+
 			Instance = this;
 			InitializeComponent();
 			_parseCommandLineArguments();

@@ -5,11 +5,14 @@ using System.Linq;
 using System.Windows.Controls;
 using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
+using GRF.Graphics;
 using GRF.Threading;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Matrix4 = OpenTK.Matrix4;
+using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class MapRendererOptions {
@@ -31,6 +34,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		public int FpsCap { get; set; }
 		public bool EnableFaceCulling { get; set; }
 		public bool MinimapMode { get; set; }
+		public bool MinimapWaterOverride { get; set; }
 		public int ForceShader { get; set; }
 
 		public Vector4 SkymapBackgroundColor = new Vector4(102, 152, 204, 255) / 255f;	// rbga
@@ -56,6 +60,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			FpsCap = 60;
 			EnableFaceCulling = false;
 			MinimapMode = false;
+			MinimapWaterOverride = false;
 		}
 	}
 
@@ -442,6 +447,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						if (modelRsm.Rsm.AnimationLength > 0) {
 							bool any = modelRsm.Rsm.Meshes.Any(p => p.IsAnimated);
 
+							//if (true) {
 							if (any) {
 								if (!sharedRsmRenderers.ContainsKey(model.ModelName)) {
 									sharedRsmRenderers[model.ModelName] = new SharedRsmRenderer(_request, Shader, modelRsm.Rsm, gnd, rsw);

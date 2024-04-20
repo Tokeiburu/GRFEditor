@@ -6,57 +6,6 @@ using GRF.Image;
 
 namespace GRF.FileFormats.GndFormat {
 	internal class TextureMapsGenerator {
-		public byte[] CreateTextureMap(Gnd gnd, Container container) {
-			int height = gnd.Header.Height;
-			int width = gnd.Header.Width;
-			Dictionary<string, GrfImage> images = new Dictionary<string, GrfImage>();
-			byte[] result = new byte[height * width * 6 * 6 * 4];
-			GrfImage resImage = new GrfImage(ref result, width * 6, height * 6, GrfImageType.Bgra32);
-
-			for (int y = 0; y < height; y++) {
-				for (int x = 0; x < width; x++) {
-					var cube = gnd.Cubes[y * width + x];
-					if (cube.TileUp < 0) continue;
-					var tile = gnd.Tiles[cube.TileUp];
-					if (tile.TextureIndex < 0) continue;
-					var texture = gnd.TexturesPath[tile.TextureIndex];
-					var path = @"data\texture\" + texture;
-					GrfImage image;
-					if (images.ContainsKey(path)) {
-						image = images[path];
-					}
-					else {
-						var entry = container.Table.TryGet(path);
-
-						if (entry == null) continue;
-						image = new GrfImage(entry.GetDecompressedData());
-						image.Convert(GrfImageType.Bgra32);
-						image.Scale(96f / image.Width, 96f / image.Height, GrfScalingMode.LinearScaling);
-						images[path] = image;
-					}
-
-					GrfImage outputImage = image.UVMap(new float[] { tile.U1, tile.U2, tile.U3, tile.U4 }, new float[] { tile.V1, tile.V2, tile.V3, tile.V4 });
-					//outputImage.Convert(GrfImageType.Bgra32);
-
-					// Scale is 6 by 6
-					double multX = 6d / outputImage.Width;
-					double multY = 6d / outputImage.Height;
-					outputImage.Scale((float) multX, (float) multY, GrfScalingMode.LinearScaling);
-					//outputImage.Redim(6, 6);
-
-					try {
-						resImage.SetPixels(x * 6, y * 6, 6, 6, outputImage.Pixels);
-					}
-					catch (Exception err) {
-						ErrorHandler.HandleException(err);
-					}
-					//tile.U1
-				}
-			}
-
-			return result;
-		}
-
 		public byte[] CreatePreviewMapData(Gnd gnd) {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;

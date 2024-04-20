@@ -11,6 +11,7 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 	public class Model : RswObject {
 		private RswHeader _header;
 		private byte Unknown { get; set; }
+		private int Unknown2 { get; set; }
 
 		private Model() {
 		}
@@ -33,8 +34,16 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 
 				BlockType = reader.Int32();
 
-				if (_header.IsCompatibleWith(2, 6) && _header.BuildNumber >= 186) {
+				if (_header.Version >= 2.6 && _header.BuildNumber >= 186) {
 					Unknown = reader.Byte();
+				}
+
+				if (_header.Version >= 2.7) {
+					Unknown2 = reader.Int32();
+
+					if (Unknown2 != -1) {
+						Z.F();
+					}
 				}
 			}
 			else {
@@ -46,9 +55,9 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 
 			ModelName = reader.String(80, '\0');
 			NodeName = reader.String(80, '\0');
-			Position = reader.Vertex();
-			Rotation = reader.Vertex();
-			Scale = reader.Vertex();
+			Position = reader.Vector3();
+			Rotation = reader.Vector3();
+			Scale = reader.Vector3();
 		}
 
 		public string Name { get; set; }
@@ -59,8 +68,8 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 		public string ModelName { get; set; }
 		public string NodeName { get; set; }
 
-		public Vertex Rotation { get; set; }
-		public Vertex Scale { get; set; }
+		public TkVector3 Rotation { get; set; }
+		public TkVector3 Scale { get; set; }
 
 		public override void Write(BinaryWriter writer) {
 			base.Write(writer);
@@ -70,8 +79,12 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 				writer.Write(AnimationSpeed);
 				writer.Write(BlockType);
 
-				if (_header.IsCompatibleWith(2, 6) && _header.BuildNumber >= 186) {
+				if (_header.Version >= 2.6 && _header.BuildNumber >= 186) {
 					writer.Write(Unknown);
+				}
+
+				if (_header.Version >= 2.7) {
+					writer.Write(Unknown2);
 				}
 			}
 
@@ -97,22 +110,10 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 			model.NodeName = NodeName;
 			model.Rotation = Rotation;
 			model.Scale = Scale;
+			model.Unknown = Unknown;
+			model.Unknown2 = Unknown2;
 
 			return model;
-		}
-
-		public Matrix4 GetMatrix() {
-			Matrix4 mat = Matrix4.Identity;
-
-			Vertex up = new Vertex(0, 1, 0);
-
-			mat = Matrix4.Scale(mat, Scale);
-			mat = Matrix4.Scale(mat, 1 / 5f);
-			//mat.SelfTranslate(Position.Z, Position.Y, Position.X);
-			mat = Matrix4.Rotate(mat, up, Rotation.X);
-			mat = Matrix4.Rotate(mat, up, Rotation.Y);
-			mat = Matrix4.Rotate(mat, up, Rotation.Z);
-			return mat;
 		}
 	}
 }

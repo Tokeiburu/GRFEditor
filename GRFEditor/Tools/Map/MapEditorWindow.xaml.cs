@@ -61,7 +61,7 @@ namespace GRFEditor.Tools.Map {
 			_cwater0.ColorChanged += (s, c) => _updateTextures();
 			_cwater1.ColorChanged += (s, c) => _updateTextures();
 			_cwall.ColorChanged += (s, c) => _updateTextures();
-			_cwall.ColorChanged += (s, c) => _updateTextures();
+			//_cwall.ColorChanged += (s, c) => _updateTextures();
 			_c0.ColorChanged += (s, c) => _updateTextures();
 			_c1.ColorChanged += (s, c) => _updateTextures();
 			_c2.ColorChanged += (s, c) => _updateTextures();
@@ -95,7 +95,9 @@ namespace GRFEditor.Tools.Map {
 			Action action = new Action(delegate {
 				_cbGutterLines.IsEnabled = GrfEditorConfiguration.UseCustomTextures;
 				_cbStickGatCells.IsEnabled = GrfEditorConfiguration.UseCustomTextures;
+				_cbTextureBlack.IsEnabled = GrfEditorConfiguration.UseCustomTextures;
 				_cbTextureWalls.IsEnabled = GrfEditorConfiguration.UseCustomTextures;
+				_cbTextureOriginal.IsEnabled = GrfEditorConfiguration.UseCustomTextures;
 			});
 
 			Binder.Bind(_cbUseCustomTextures, () => GrfEditorConfiguration.UseCustomTextures, action, true);

@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+﻿using System.Globalization;
 using System.Text;
-using System.Text.RegularExpressions;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.MapRenderers;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
-using Utilities;
 
 namespace GRFEditor.OpenGL {
 	public static class ClipboardBE {
@@ -105,19 +100,19 @@ namespace GRFEditor.OpenGL {
 			b.AppendLine("  {");
 			b.AppendLine("   \"gatType\": " + (int)_cell.Type + ",");
 			b.Append("   \"h1\": ");
-			b.Append(ClipboardBE.F2S(_cell.BottomLeft));
+			b.Append(ClipboardBE.F2S(_cell[0]));
 			b.AppendLine(",");
 
 			b.Append("   \"h2\": ");
-			b.Append(ClipboardBE.F2S(_cell.BottomRight));
+			b.Append(ClipboardBE.F2S(_cell[1]));
 			b.AppendLine(",");
 
 			b.Append("   \"h3\": ");
-			b.Append(ClipboardBE.F2S(_cell.TopLeft));
+			b.Append(ClipboardBE.F2S(_cell[2]));
 			b.AppendLine(",");
 
 			b.Append("   \"h4\": ");
-			b.Append(ClipboardBE.F2S(_cell.TopRight));
+			b.Append(ClipboardBE.F2S(_cell[3]));
 			b.AppendLine(",");
 
 			b.Append("   \"pos\": [");
@@ -318,7 +313,7 @@ namespace GRFEditor.OpenGL {
 				case RswObjectType.Light:
 					b.AppendLine("     \"affectLightmap\": true,");
 					b.AppendLine("     \"affectShadowMap\": true,");
-					b.AppendLine("     \"color\": [" + ClipboardBE.F2S(light.ColorVertex.X) + "," + ClipboardBE.F2S(light.ColorVertex.Y) + "," + ClipboardBE.F2S(light.ColorVertex.Z) + "],");
+					b.AppendLine("     \"color\": [" + ClipboardBE.F2S(light.ColorVector.X) + "," + ClipboardBE.F2S(light.ColorVector.Y) + "," + ClipboardBE.F2S(light.ColorVector.Z) + "],");
 					b.AppendLine("     \"cutOff\": 0.5,");
 					b.AppendLine("     \"direction\": [0.5773502588272095,-0.5773502588272095,0.5773502588272095],");
 					b.AppendLine("     \"enabled\": true,");

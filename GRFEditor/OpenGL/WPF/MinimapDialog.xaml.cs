@@ -4,6 +4,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using ErrorManager;
+using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
@@ -63,6 +64,9 @@ namespace GRFEditor.OpenGL.WPF {
 			};
 
 			Binder.Bind(_tbMargin, () => GrfEditorConfiguration.MapRendererMinimapMargin, v => GrfEditorConfiguration.MapRendererMinimapMargin = v);
+			Binder.Bind(_cbEnableWater, () => GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride, v => GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride = v, delegate {
+				viewport.RenderOptions.MinimapWaterOverride = GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride;
+			}, true);
 		}
 
 		private void _buttonSave_Click(object sender, RoutedEventArgs e) {

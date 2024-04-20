@@ -1,6 +1,4 @@
 ﻿using System;
-using GRF.FileFormats.ActFormat;
-using GRF.FileFormats.ActFormat.Commands;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {

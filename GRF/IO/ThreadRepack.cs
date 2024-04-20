@@ -72,14 +72,12 @@ namespace GRF.IO {
 							Buffer.BlockCopy(data, (int) entry.TemporaryOffset, dataTmp, 0, entry.SizeCompressed);
 
 							try {
-								if (sortedEntries[0].RelativePath.Contains("07.png")) {
-									Z.F();
-								}
-
-								if (Compression.IsNormalCompression && dataTmp[0] == 0)
-									dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
+								if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+									dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 								else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
 									dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
+								else if (Compression.IsNormalCompression && dataTmp[0] == 0)
+									dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
 								else
 									dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 
@@ -104,10 +102,12 @@ namespace GRF.IO {
 								bool compress = true;
 
 								try {
-									if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
+									if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
 										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
+									else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
+										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
 									else
 										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 								}
@@ -158,18 +158,6 @@ namespace GRF.IO {
 				Exception = err;
 				Error = true;
 			}
-				//catch (Exception err) {
-				//    Console.WriteLine(err);
-
-				//    List<FileEntry> allSortedEntries = new List<FileEntry>();
-
-				//    for (int i = StartIndex; i < EndIndex; i++) {
-				//        //allSortedEntries.Add(_grfData.FileTable[_folders[i]]);
-				//    }
-
-				//    List<FileEntry> entriesNotCopied = allSortedEntries.Where(p => p.NewOffset != -1).ToList();
-				//    Z.F(entriesNotCopied);
-				//}
 			finally {
 				Terminated = true;
 			}

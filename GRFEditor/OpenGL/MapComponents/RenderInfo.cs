@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using GRF.Graphics;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
+using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class RenderInfo {
@@ -98,7 +99,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[4] = tex.Y;
 		}
 
-		public Vertex(Vector3 pos, Vector2 t1, Vector2 t2, Vector4 c1, Vector3 n) {
+		public Vertex(Vector3 pos, Vector2 t1, Vector2 t2, TkVector4 c1, Vector3 n) {
 			data = new float[14];
 			data[0] = pos.X;
 			data[1] = pos.Y;
@@ -157,9 +158,12 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public static void DelVao(int id) {
 			if (_manager.VertexArrayObjects.ContainsKey(id)) {
 				_manager.VertexArrayObjects[id]--;
+
+				if (_manager.VertexArrayObjects[id] == 0)
+					_manager.VertexArrayObjects.Remove(id);
 			}
 			else {
-				Console.WriteLine("Attempted to remove a non-existing VAO: " + id);
+				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing VAO: " + id);
 			}
 		}
 
@@ -177,9 +181,12 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public static void DelVbo(int id) {
 			if (_manager.VertexBufferObjects.ContainsKey(id)) {
 				_manager.VertexBufferObjects[id]--;
+
+				if (_manager.VertexBufferObjects[id] == 0)
+					_manager.VertexBufferObjects.Remove(id);
 			}
 			else {
-				Console.WriteLine("Attempted to remove a non-existing VBO: " + id);
+				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing VBO: " + id);
 			}
 		}
 

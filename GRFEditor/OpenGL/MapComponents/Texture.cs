@@ -220,7 +220,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			Dictionary<string, int> contextTextureCounter;
 
 			if (!_contextBufferedTextures.TryGetValue(context, out contextTextureCounter)) {
-				Console.WriteLine("This context doesn't exist while trying to unload a texture: " + context, ", texture: " + texture);
+				GLHelper.OnLog(() => "Error: " + "This context doesn't exist while trying to unload a texture: " + context + ", texture: " + texture);
 				return;
 			}
 
@@ -231,7 +231,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 					contextTextureCounter.Remove(texture);
 			}
 			else {
-				Console.WriteLine("This texture does not exist in this context: " + context, ", texture: " + texture);
+				GLHelper.OnLog(() => "Error: " + "This texture does not exist in this context: " + context + ", texture: " + texture);
 				return;
 			}
 
@@ -254,12 +254,13 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 			List<string> keys = new List<string>();
 
-			foreach (var contextTexture in contextTextureCounter) {
+			foreach (var contextTexture_c in contextTextureCounter) {
+				var contextTexture = contextTexture_c;
 				var t = _bufferedTextures[contextTexture.Key];
 				t.Item2 -= contextTexture.Value;
 
 				if (t.Item2 < 0) {
-					Console.WriteLine("Attempted to unload a texture more often than it has instances of: " + contextTexture.Key + ", context: " + context.GetHashCode());
+					GLHelper.OnLog(() => "Error: " + "Attempted to unload a texture more often than it has instances of: " + contextTexture.Key + ", context: " + context.GetHashCode());
 				}
 				else if (t.Item2 == 0) {
 					t.Item1.Unload();

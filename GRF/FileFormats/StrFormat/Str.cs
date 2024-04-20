@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using GRF.ContainerFormat;
 using GRF.FileFormats.StrFormat.Commands;
-using GRF.Graphics;
 using GRF.IO;
 
 namespace GRF.FileFormats.StrFormat {

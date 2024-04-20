@@ -1,6 +1,5 @@
 using System.IO;
 using GRF.ContainerFormat;
-using GRF.Core.Exceptions;
 using GRF.FileFormats;
 using GRF.IO;
 using Utilities.Services;

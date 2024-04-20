@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using GRF.Image;
+﻿using System.Collections.Generic;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {

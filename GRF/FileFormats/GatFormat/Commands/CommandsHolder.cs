@@ -1,5 +1,4 @@
-﻿using Utilities;
-using Utilities.Commands;
+﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.GatFormat.Commands {
 	public class CommandsHolder : AbstractCommand<IGatCommand> {

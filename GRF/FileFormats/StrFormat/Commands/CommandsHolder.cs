@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GRF.Graphics;
 using GRF.Image;
 using Utilities.Commands;
 
@@ -140,18 +141,18 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void FlipH(int layerIndex, int keyIndex) {
-			_str.Commands.StoreAndExecute(new FlipHCommand(layerIndex, keyIndex, new Graphics.Point(319, 291)));
+			_str.Commands.StoreAndExecute(new FlipHCommand(layerIndex, keyIndex, new TkVector2(319, 291)));
 		}
 
-		public void FlipH(int layerIndex, int keyIndex, Graphics.Point origin) {
+		public void FlipH(int layerIndex, int keyIndex, TkVector2 origin) {
 			_str.Commands.StoreAndExecute(new FlipHCommand(layerIndex, keyIndex, origin));
 		}
 
 		public void FlipV(int layerIndex, int keyIndex) {
-			_str.Commands.StoreAndExecute(new FlipVCommand(layerIndex, keyIndex, new Graphics.Point(319, 291)));
+			_str.Commands.StoreAndExecute(new FlipVCommand(layerIndex, keyIndex, new TkVector2(319, 291)));
 		}
 
-		public void FlipV(int layerIndex, int keyIndex, Graphics.Point origin) {
+		public void FlipV(int layerIndex, int keyIndex, TkVector2 origin) {
 			_str.Commands.StoreAndExecute(new FlipVCommand(layerIndex, keyIndex, origin));
 		}
 

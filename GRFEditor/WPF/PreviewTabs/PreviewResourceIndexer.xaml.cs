@@ -48,7 +48,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_tree.CopyMethod = delegate {
 				if (_tree.SelectedItem != null)
-					Clipboard.SetDataObject(((MapExtractorTreeViewItem)_tree.SelectedItem).ResourcePath.RelativePath);
+					Clipboard.SetDataObject(((MapExtractorTreeViewItem)_tree.SelectedItem).ResourcePath.GetMostRelative());
 			};
 
 			_labelHeader.Dispatch(p => p.Content = "Searching usages of " + Path.GetFileName(_fileName));

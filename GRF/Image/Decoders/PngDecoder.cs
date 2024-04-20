@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
-using GRF.ContainerFormat;
-using GRF.IO;
-using Utilities;
-using Utilities.Extension;
-using Utilities.Tools;
-
-/*
+﻿/*
 namespace GRF.Image.Decoders {
 	public class PngHeader {
 		public byte[] Magic { get; internal set; }

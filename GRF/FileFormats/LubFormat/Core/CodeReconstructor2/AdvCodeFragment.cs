@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor2 {
+﻿namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor2 {
 	//public class AdvCodeFragment {
 	//	public bool IsRoot { get; set; }
 	//	public string Label { get; set; }

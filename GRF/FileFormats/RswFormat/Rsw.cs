@@ -7,6 +7,7 @@ using GRF.Core;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.IO;
+using Utilities;
 
 namespace GRF.FileFormats.RswFormat {
 	/// <summary>
@@ -40,6 +41,11 @@ namespace GRF.FileFormats.RswFormat {
 			Light = new RswLight(reader, Header);
 			Ground = new RswGround(reader, Header);
 
+			if (Header.Version >= 2.7) {
+				int count = reader.Int32();
+				reader.Forward(4 * count);
+			}
+
 			_loadOjbects(reader);
 
 			ModelResources = Objects.Where(p => p.Type == RswObjectType.Model).Cast<Model>().Select(p => p.ModelName).Distinct().ToList();
@@ -62,7 +68,7 @@ namespace GRF.FileFormats.RswFormat {
 		/// <summary>
 		/// Gets or sets the water.
 		/// </summary>
-		public RswWater Water { get; private set; }
+		public RswWater Water { get; set; }
 
 		/// <summary>
 		/// Gets the light.
@@ -172,6 +178,11 @@ namespace GRF.FileFormats.RswFormat {
 			Water.Write(stream, Header);
 			Light.Write(stream, Header);
 			Ground.Write(stream, Header);
+
+			if (Header.Version >= 2.7) {
+				// ?? no idea what this data is
+				stream.Write(0);
+			}
 
 			stream.Write(Objects.Count);
 

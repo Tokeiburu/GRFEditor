@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
-using System.Reflection;
 using GRF.Core.GrfCompression;
 using GRF.Core.GrfCompression.GZip;
 using GRF.IO;
@@ -120,6 +118,48 @@ namespace GRF.Core {
 
 		public static byte[] Decompress(byte[] arrCompressed, long uncompressedLength) {
 			return CompressionAlgorithm.Decompress(arrCompressed, uncompressedLength);
+		}
+
+		public static byte[] LzssDecompress(byte[] arrCompressed, long uncompressedLength) {
+			byte[] output = new byte[uncompressedLength];
+			var output_offset = 0;
+			ByteReader input = new ByteReader(arrCompressed);
+
+			if (input.Length == 0 || uncompressedLength == 0)
+				return new byte[0];
+
+			byte control = input.Byte();
+			int control_count = 0;
+
+			while (true) {
+				if ((control & 1) == 0) {
+					output[output_offset] = input.Byte();
+					output_offset++;
+				}
+				else {
+					ushort codeword = input.UInt16();
+					int phrase_length = ((codeword & 0xf000) >> 12) + 2;
+					int phrase_index = (codeword & 0x0fff);
+
+					for (int i = 0; i < phrase_length; i++) {
+						output[output_offset] = output[output_offset - phrase_index];
+						output_offset++;
+					}
+				}
+
+				control = (byte)(control >> 1);
+				control_count++;
+
+				if (!input.CanRead)
+					break;
+
+				if (control_count >= 8) {
+					control = input.Byte();
+					control_count = 0;
+				}
+			}
+
+			return output;
 		}
 
 		public static byte[] RawDecompress(byte[] arrCompressed, long uncompressedLength) {

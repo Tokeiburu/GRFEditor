@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Linq;
-using ErrorManager;
 using GRF.FileFormats.SprFormat;
 using GRF.FileFormats.SprFormat.Commands;
 using GRF.Image;
 using GRF.Image.Decoders;
-using Utilities;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.ActFormat.Commands {

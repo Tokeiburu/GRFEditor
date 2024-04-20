@@ -1,7 +1,4 @@
-﻿using GRF.Image;
-using Utilities.Commands;
-
-namespace GRF.FileFormats.StrFormat.Commands {
+﻿namespace GRF.FileFormats.StrFormat.Commands {
 	public class DeleteLayerCommand : IStrCommand {
 		private readonly int _layerIdx;
 		private bool _isExecute;

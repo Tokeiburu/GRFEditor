@@ -133,9 +133,6 @@ namespace GRF.FileFormats.GatFormat {
 				case GatPreviewFormat.Shadow:
 					_generateShadowMapImage(gatSource, fileName, grfData);
 					break;
-				case GatPreviewFormat.Texture:
-					_generateTextureMapImage(gatSource, fileName, grfData);
-					break;
 			}
 
 			if (options.HasFlags(GatPreviewOptions.Rescale)) {
@@ -167,13 +164,6 @@ namespace GRF.FileFormats.GatFormat {
 		private static void _generateShadowMapImage(IImageable gatSource, string fileName, GrfHolder grf) {
 			Gnd gnd = new Gnd(grf.FileTable.TryGet(fileName.ReplaceExtension(".gnd")).GetDecompressedData());
 			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateShadowmapData(gnd), gnd.Header.Width * (gnd.GridSizeX - 2), gnd.Header.Height * (gnd.GridSizeY - 2), GrfImageType.Bgra32);
-			gatSource.Image.Flip(FlipDirection.Vertical);
-		}
-
-		private static void _generateTextureMapImage(IImageable gatSource, string fileName, GrfHolder grf) {
-			Gnd gnd = new Gnd(grf.FileTable.TryGet(fileName.ReplaceExtension(".gnd")).GetDecompressedData());
-			Rsw rsw = new Rsw(grf.FileTable.TryGet(fileName.ReplaceExtension(".rsw")).GetDecompressedData());
-			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateTextureMap(gnd, grf.Container), gnd.Header.Width * 6, gnd.Header.Height * 6, GrfImageType.Bgra32);
 			gatSource.Image.Flip(FlipDirection.Vertical);
 		}
 

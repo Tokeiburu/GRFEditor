@@ -9,6 +9,7 @@ using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.FileFormats;
 using GRF.FileFormats.ActFormat;
+using GRF.Graphics;
 using GRF.Image;
 using GRF.Image.Decoders;
 using GRF.Threading;
@@ -18,7 +19,6 @@ using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
 using Action = System.Action;
-using Point = GRF.Graphics.Point;
 
 namespace GrfToWpfBridge {
 	public static partial class Imaging {
@@ -428,8 +428,8 @@ namespace GrfToWpfBridge {
 
 		#region Others
 
-		public static Point ToGrfPoint(this System.Windows.Point point) {
-			return new Point(point.X, point.Y);
+		public static TkVector2 ToTkVector2(this System.Windows.Point point) {
+			return new TkVector2(point.X, point.Y);
 		}
 
 		#endregion

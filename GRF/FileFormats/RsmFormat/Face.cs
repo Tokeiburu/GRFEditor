@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using GRF.IO;
-using Utilities;
 
 namespace GRF.FileFormats.RsmFormat {
 	/// <summary>
@@ -47,10 +46,9 @@ namespace GRF.FileFormats.RsmFormat {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Face" /> class.
 		/// </summary>
-		/// <param name="header">Rsm Header</param>
 		/// <param name="reader">The reader.</param>
 		/// <param name="smoothGroup">The smooth group.</param>
-		public Face(RsmHeader header, IBinaryReader reader, int smoothGroup) {
+		public Face(IBinaryReader reader, int smoothGroup) {
 			VertexIds = reader.ArrayUInt16(3);
 			TextureVertexIds = reader.ArrayUInt16(3);
 			TextureId = reader.UInt16();

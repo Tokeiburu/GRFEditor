@@ -13,10 +13,6 @@ namespace GRF.FileFormats.SprFormat {
 	public class SprAbstract {
 		protected readonly SprHeader _header;
 
-		static SprAbstract() {
-			TemporaryFilesManager.UniquePattern(Process.GetCurrentProcess().Id + "_spr_writer_{0:0000}.spr");
-		}
-
 		protected SprAbstract(SprHeader header) {
 			_header = header;
 		}

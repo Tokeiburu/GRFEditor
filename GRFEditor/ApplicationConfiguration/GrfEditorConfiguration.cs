@@ -11,6 +11,7 @@ using ErrorManager;
 using GRF;
 using GRF.Core;
 using GRF.Core.GroupedGrf;
+using GRF.Graphics;
 using GRF.IO;
 using GRF.Image;
 using GRF.System;
@@ -148,6 +149,7 @@ namespace GRFEditor.ApplicationConfiguration {
 			private bool _modified = false;
 			private List<string> _resources = new List<string>();
 			private bool _threadLoad = false;
+			private bool _firstLoad;
 
 			public delegate void LoadedEventHandler();
 			public delegate void ModifiedEventHandler();
@@ -241,8 +243,14 @@ namespace GRFEditor.ApplicationConfiguration {
 			public GrfResources(GrfHolder grf) {
 				_multiGrf.CurrentGrfAlwaysFirst = true;
 				_grf = grf;
+				_firstLoad = false;
 
 				_grf.ContainerOpened += delegate {
+					if (!_firstLoad) {
+						_firstLoad = true;
+						return;
+					}
+
 					if (_threadLoad)
 						return;
 
@@ -288,7 +296,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.6.4"; }
+			get { return "1.8.7.1"; }
 		}
 
 		public static string Author {
@@ -306,10 +314,6 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static int PatchId {
 			get { return Int32.Parse(ConfigAsker["[GRFEditor - Patch ID]", "0"]); }
 			set { ConfigAsker["[GRFEditor - Patch ID]"] = value.ToString(CultureInfo.InvariantCulture); }
-		}
-
-		public static string WebHost {
-			get { return @"https://googledrive.com/host/0B8dzg7ZYdSrSYjdyNHpac2hrV1U/"; }
 		}
 
 		#endregion
@@ -557,6 +561,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static int MapRenderFpsCap {
 			get { return int.Parse(ConfigAsker["[GRFEditor - MapRenderFpsCap]", "60"]); }
 			set { ConfigAsker["[GRFEditor - MapRenderFpsCap]"] = value.ToString(CultureInfo.InvariantCulture); }
+		}
+
+		public static bool MapRenderMinimapEnableWaterOverride {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]"] = value.ToString(); }
 		}
 
 		public static int MapRendererMinimapMargin {

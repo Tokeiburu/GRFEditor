@@ -277,7 +277,7 @@ namespace GRFEditor.OpenGL.WPF {
 
 			if (RotateCamera)
 				IsRotatingCamera = true;
-
+			
 			Rsw rsw = new Rsw(ResourceManager.GetData(request.Resource + ".rsw"));
 			Gnd gnd = new Gnd(ResourceManager.GetData(request.Resource + ".gnd"));
 
@@ -327,7 +327,7 @@ namespace GRFEditor.OpenGL.WPF {
 			RenderOptions.ForceShader = 4;
 			RenderOptions.RenderingMap = false;
 			GLHelper.OnLog(() => "Message: Loading RSM \"" + request.Resource + "\"");
-
+			
 			if (RotateCamera)
 				IsRotatingCamera = true;
 
@@ -335,7 +335,7 @@ namespace GRFEditor.OpenGL.WPF {
 			_renderers.Add(new ModelRenderer(request, rsm, Shader_rsm));
 
 			if (ResetCameraPosition)
-				_camera.LookAt = rsm.Version >= 2.0 ? new Vector3(-rsm.DrawnBox.Center) : new Vector3(0, 0, 0);
+				_camera.LookAt = new Vector3(0, 0, 0);
 
 			if (ResetCameraDistance)
 				_camera.Distance = Math.Max(Math.Max(rsm.DrawnBox.Range[0], rsm.DrawnBox.Range[1]), rsm.DrawnBox.Range[2]) * _camera.DistanceMultiplier_Rsm;
@@ -390,7 +390,6 @@ namespace GRFEditor.OpenGL.WPF {
 				_primary.MakeCurrent();
 
 				GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-				//_background.Render(this);
 				GL.Disable(EnableCap.CullFace);
 				GL.Enable(EnableCap.DepthTest);
 				GL.Enable(EnableCap.Blend);

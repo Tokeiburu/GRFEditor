@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using GRF.FileFormats.LubFormat.Core.CodeReconstructor;
-using GRF.FileFormats.LubFormat.Core.CodeReconstructor2;
 
 namespace GRF.FileFormats.LubFormat.Core {
 	public static class CodeLogic {

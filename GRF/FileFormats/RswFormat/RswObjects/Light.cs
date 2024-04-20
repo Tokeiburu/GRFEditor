@@ -12,16 +12,16 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 	public class Light : RswObject {
 		public Light(IBinaryReader reader) : base(RswObjectType.Light) {
 			Name = reader.String(80, '\0');
-			Position = reader.Vertex();
-			ColorVertex = new Vertex(reader.Float(), reader.Float(), reader.Float());
+			Position = reader.Vector3();
+			ColorVector = new TkVector3(reader.Float(), reader.Float(), reader.Float());
 			Color = GrfColor.FromArgb(255,
-				(byte)(ColorVertex.X * 255f),
-				(byte)(ColorVertex.Y * 255f),
-				(byte)(ColorVertex.Z * 255f));
+				(byte)(ColorVector.X * 255f),
+				(byte)(ColorVector.Y * 255f),
+				(byte)(ColorVector.Z * 255f));
 			Range = reader.Float();
 		}
 
-		public Vertex ColorVertex { get; set; }
+		public TkVector3 ColorVector { get; set; }
 
 		public string Name { get; private set; }
 		public GrfColor Color { get; private set; }
@@ -40,9 +40,9 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 			base.Write(writer);
 			writer.WriteANSI(Name, 80);
 			Position.Write(writer);
-			writer.Write(ColorVertex.X);
-			writer.Write(ColorVertex.Y);
-			writer.Write(ColorVertex.Z);
+			writer.Write(ColorVector.X);
+			writer.Write(ColorVector.Y);
+			writer.Write(ColorVector.Z);
 			writer.Write(Range);
 		}
 

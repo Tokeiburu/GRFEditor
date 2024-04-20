@@ -188,7 +188,7 @@ namespace GRF.FileFormats.GatFormat {
 		/// <param name="height">The water height.</param>
 		public void IdentifyWaterCells(float height) {
 			foreach (Cell cell in _cells) {
-				if ((cell.Type == GatType.Walkable || cell.Type == GatType.Unknown) && cell.BottomLeft > height)
+				if ((cell.Type == GatType.Walkable || cell.Type == GatType.Unknown) && cell[0] > height)
 					cell.IsWater = true;
 			}
 		}
@@ -250,7 +250,7 @@ namespace GRF.FileFormats.GatFormat {
 		/// Adds a red circle on the map at the location.
 		/// </summary>
 		/// <param name="point">The center offset of the portal.</param>
-		public void AddPortal(Point point) {
+		public void AddPortal(TkVector2 point) {
 			const int MapSize = 512;
 
 			int max = Math.Max(Header.Width, Header.Height);

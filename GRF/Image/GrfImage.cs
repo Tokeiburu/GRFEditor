@@ -740,12 +740,12 @@ namespace GRF.Image {
 
 			Margin(0, tM, rM, 0);
 
-			Vertex p1 = new Vertex(x1, y1);
-			Vertex p2 = new Vertex(x2, y2);
-			Vertex diff = p2 - p1;
+			TkVector2 p1 = new TkVector2(x1, y1);
+			TkVector2 p2 = new TkVector2(x2, y2);
+			TkVector2 diff = p2 - p1;
 
 			int length = (int) Math.Ceiling(diff.Length);
-			diff = Vertex.Normalize(diff);
+			diff = TkVector2.Normalize(diff);
 
 			for (int i = 0; i < length; i++) {
 				int x = x1 + (int)(diff.X * i);
@@ -785,6 +785,33 @@ namespace GRF.Image {
 		public void SetGrfImageType(GrfImageType type) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfImageType = type;
+		}
+
+		public void Stroke(int thickness, int pixelIndex) {
+			
+		}
+
+		public void Stroke(int thickness, GrfColor color) {
+			//GrfExceptions.IfTrueThrowClosedImage(_isClosed);
+			//GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
+			//int bpp = GetBpp();
+			//GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
+			//
+			//var stroke = new bool[this.Pixels.Length / bpp];
+			//
+			//if (GrfImageType == Image.GrfImageType.Bgra32) {
+			//	for (int y = 0; y < Height; y++) {
+			//		for (int x = 0; x < Width; x++) {
+			//			int idx = y * Height + x;
+			//			int alpha = idx * bpp + 3;
+			//			
+			//			if (Pixels[alpha] == 0)
+			//		}
+			//	}
+			//}
+			//else {
+			//	throw GrfExceptions.__UnsupportedImageFormat.Create();
+			//}
 		}
 
 		/// <summary>
@@ -1008,7 +1035,7 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
-		/// Gets the bit per pixel info
+		/// Gets the bit per pixel rate.
 		/// </summary>
 		/// <returns></returns>
 		public int GetBpp() {
@@ -1203,6 +1230,51 @@ namespace GRF.Image {
 			}
 
 			return new GrfImage(ref pixels, Width, Height, GrfImageType) { TransparentPixels = transPixels };
+		}
+
+		/// <summary>
+		/// Creates the transparency image using two composites.
+		/// The black composite is the original image using a black background, while the white one uses a white background.
+		/// </summary>
+		/// <param name="blackComposite">The black composite.</param>
+		/// <param name="whiteComposite">The white composite.</param>
+		/// <returns></returns>
+		public static GrfImage CreateTransparencyImage(GrfImage blackComposite, GrfImage whiteComposite) {
+			if (blackComposite.GrfImageType != GrfImageType.Bgr24 && blackComposite.GrfImageType != GrfImageType.Bgr32)
+				throw GrfExceptions.__UnsupportedImageFormat.Create();
+
+			if (whiteComposite.GrfImageType != GrfImageType.Bgr24 && whiteComposite.GrfImageType != GrfImageType.Bgr32)
+				throw GrfExceptions.__UnsupportedImageFormat.Create();
+
+			if (whiteComposite.GrfImageType != blackComposite.GrfImageType)
+				throw GrfExceptions.__UnsupportedImageFormat.Create();
+
+			GrfImage result = new GrfImage(new byte[blackComposite.Width * blackComposite.Height * 4], blackComposite.Width, blackComposite.Height, GrfImageType.Bgra32);
+			
+			int bpp = blackComposite.GetBpp();
+			int count = blackComposite.Pixels.Length / bpp;
+			int idx = 0;
+			int idxR = 0;
+
+			for (int j = 0; j < count; j++) {
+				byte transparency = 0;
+
+				for (int i = 0; i < 3; i++) {
+					transparency = Math.Max(transparency, (byte)(255 - whiteComposite.Pixels[idx + i] + blackComposite.Pixels[idx + i]));
+				}
+
+				if (transparency > 0) {
+					for (int i = 0; i < 3; i++) {
+						result.Pixels[idxR + i] = (byte)(Math.Round(255f * blackComposite.Pixels[idx + i] / transparency, MidpointRounding.AwayFromZero));
+					}
+				}
+
+				result.Pixels[idxR + 3] = transparency;
+				idx += bpp;
+				idxR += 4;
+			}
+
+			return result;
 		}
 		#endregion
 

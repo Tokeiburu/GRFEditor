@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
+using ErrorManager;
 using GRF.Core;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.Threading {
@@ -59,6 +60,11 @@ namespace GRF.Threading {
 							entry = sortedEntries[i];
 							entry.DesDecrypt(data, (int) entry.TemporaryOffset);
 
+							if (entry.IsEmpty() || entry.TemporaryOffset >= data.Length) {
+								NumberOfFilesProcessed++;
+								continue;
+							}
+
 							if (data[entry.TemporaryOffset] != 0x78 && !entry.IsEmpty() && data[entry.TemporaryOffset] != 0) {
 								NumberOfFilesProcessed++;
 								continue;
@@ -68,10 +74,12 @@ namespace GRF.Threading {
 
 							try {
 								try {
-									if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
+									if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
 										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
+									else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
+										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
 									else
 										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 								}

@@ -23,5 +23,6 @@ namespace GRF.Core {
 		FileNameRenamed = 1 << 8,
 		LzmaCompressed = 1 << 9,
 		RawDataFile = 1 << 10,
+		LZSS = 1 << 11,
 	}
 }

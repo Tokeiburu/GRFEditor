@@ -1,5 +1,4 @@
 ﻿using System;
-using GRF.ContainerFormat;
 
 namespace GRF.Threading {
 	/// <summary>

@@ -1,5 +1,4 @@
-﻿using System;
-using GRF.ContainerFormat;
+﻿using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.IO;
 using Utilities.Extension;

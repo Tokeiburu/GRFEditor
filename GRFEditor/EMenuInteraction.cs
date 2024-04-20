@@ -609,7 +609,9 @@ namespace GRFEditor {
 			_miDelete.Click += new RoutedEventHandler(_menuItemsDelete_Click);
 			_miRename.Click += new RoutedEventHandler(_menuItemsRename_Click);
 			_miSaveMapAs.Click += new RoutedEventHandler(_menuItemsSaveMapAs_Click);
-			_miConvertRsm2.Click += new RoutedEventHandler(_miConvertRsm2_Click);
+			_miConvertRsw_Anim.Click += new RoutedEventHandler(_miConvertRsw_Anim_Click);
+			_miConvertRsm_Anim.Click += new RoutedEventHandler(_miConvertRsm_Anim_Click);
+			_miConvertRsm_Flat.Click += new RoutedEventHandler(_miConvertRsm_Flat_Click);
 			_miEncrypt.Click += new RoutedEventHandler(_menuItemsEncrypt_Click);
 			_miDecrypt.Click += new RoutedEventHandler(_menuItemsDecrypt_Click);
 			_miProperties.Click += new RoutedEventHandler(_menuItemsProperties_Click);
@@ -627,7 +629,9 @@ namespace GRFEditor {
 			_contextMenuEntries.Items.Add(_miExportAsThor);
 			_contextMenuEntries.Items.Add(_miExportMapFiles);
 			_contextMenuEntries.Items.Add(_miSaveMapAs);
-			_contextMenuEntries.Items.Add(_miConvertRsm2);
+			_contextMenuEntries.Items.Add(_miConvertRsw_Anim);
+			_contextMenuEntries.Items.Add(_miConvertRsm_Anim);
+			_contextMenuEntries.Items.Add(_miConvertRsm_Flat);
 			_contextMenuEntries.Items.Add(_miFlagRemove);
 			_contextMenuEntries.Items.Add(_miDelete);
 			_contextMenuEntries.Items.Add(_miRename);
@@ -696,7 +700,9 @@ namespace GRFEditor {
 		private readonly MenuItem _miProperties = new MenuItem { Header = "Properties", Icon = new Image { Source = ApplicationManager.GetResourceImage("properties.png") } };
 		private readonly MenuItem _miRename = new MenuItem { Header = "Rename...", Icon = new Image { Source = ApplicationManager.GetResourceImage("refresh.png") } };
 		private readonly MenuItem _miSaveMapAs = new MenuItem { Header = "Save map as...", Icon = new Image { Source = ApplicationManager.GetResourceImage("imconvert.png") } };
-		private readonly MenuItem _miConvertRsm2 = new MenuItem { Header = "Convert RSM2 to RSM1", Icon = new Image { Source = ApplicationManager.GetResourceImage("imconvert.png") } };
+		private readonly MenuItem _miConvertRsm_Anim = new MenuItem { Header = "RSM2 to RSM1 (anim)", Icon = new Image { Source = ApplicationManager.GetResourceImage("downgrade.png") } };
+		private readonly MenuItem _miConvertRsm_Flat = new MenuItem { Header = "RSM2 to RSM1 (flat)", Icon = new Image { Source = ApplicationManager.GetResourceImage("downgrade.png") } };
+		private readonly MenuItem _miConvertRsw_Anim = new MenuItem { Header = "Downgrade", Icon = new Image { Source = ApplicationManager.GetResourceImage("downgrade.png") } };
 		private readonly MenuItem _miSelect = new MenuItem { Header = "Select", Icon = new Image { Source = ApplicationManager.GetResourceImage("arrowdown.png") } };
 		private readonly MenuItem _miSetEncryptionKey = new MenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.GetResourceImage("lock.png") } };
 		private readonly MenuItem _miToNpc = new MenuItem { Header = "Copy NPC name", Icon = new Image { Source = ApplicationManager.GetResourceImage("copy.png") } };

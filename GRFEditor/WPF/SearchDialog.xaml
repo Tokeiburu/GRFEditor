@@ -65,7 +65,7 @@
                     </Grid>
                 </Border>
 
-                <Button Margin="3" Content="Search (Enter)" Name="_buttonSearch" Click="_buttonSearch_Click" Width="100" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" />
+                <Button Margin="3" Content="Search (Enter)" Name="_buttonSearch" Click="_buttonSearch_Click" Width="100" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" Height="24" />
             </DockPanel>
 
             <Label Content="File filter" VerticalAlignment="Center" Padding="0" Margin="3" HorizontalAlignment="Left" Grid.Row="1" />
