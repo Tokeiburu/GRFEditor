@@ -1,47 +1,50 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Windows.Media;
+using GRF;
+using GRF.Core.GroupedGrf;
 using TokeiLibrary;
 using Utilities;
+using Utilities.Extension;
 
 namespace GrfToWpfBridge.MultiGrf {
-	public class TkPathView : INotifyPropertyChanged {
+	public class MultiGrfPathView : INotifyPropertyChanged {
 		private bool _fileNotFound;
-		private TkPath _path;
+		private MultiGrfPath _resource;
 
-		public TkPathView(TkPath path) {
-			_path = path;
+		public MultiGrfPathView(MultiGrfPath resource) {
+			_resource = resource;
 
-			ImageSource image;
-
-			if (path.FilePath.ToLower().EndsWith(".grf")) {
-				image = ApplicationManager.PreloadResourceImage("grf-16.png");
+			switch(resource.Path.GetExtension()) {
+				case ".grf":
+					DataImage = ApplicationManager.PreloadResourceImage("grf-16.png");
+					break;
+				case ".gpf":
+					DataImage = ApplicationManager.PreloadResourceImage("gpf-16.png");
+					break;
+				case ".rgz":
+					DataImage = ApplicationManager.PreloadResourceImage("rgz-16.png");
+					break;
+				case ".thor":
+					DataImage = ApplicationManager.PreloadResourceImage("thor-16.png");
+					break;
+				default:
+					DataImage = ApplicationManager.PreloadResourceImage("folderClosed.png");
+					break;
 			}
-			else if (path.FilePath.ToLower().EndsWith(".gpf")) {
-				image = ApplicationManager.PreloadResourceImage("gpf-16.png");
-			}
-			else if (path.FilePath.ToLower().EndsWith(".rgz")) {
-				image = ApplicationManager.PreloadResourceImage("rgz-16.png");
-			}
-			else if (path.FilePath.ToLower().EndsWith(".thor")) {
-				image = ApplicationManager.PreloadResourceImage("thor-16.png");
-			}
-			else {
-				image = ApplicationManager.PreloadResourceImage("folderClosed.png");
-			}
-
-			DataImage = image;
 		}
 
 		public ImageSource DataImage { get; set; }
 
-		public TkPath Path {
-			get { return _path; }
-			set { _path = value; }
+		public MultiGrfPath Resource {
+			get { return _resource; }
+			set { _resource = value; }
 		}
 
 		public string DisplayFileName {
-			get { return String.IsNullOrEmpty(_path.FilePath) ? _path.RelativePath : _path.FilePath; }
+			get {
+				return (_resource.IsCurrentlyLoadedGrf ? GrfStrings.CurrentlyOpenedGrfHeader : "") + _resource.Path;
+			}
 		}
 
 		public bool FileNotFound {

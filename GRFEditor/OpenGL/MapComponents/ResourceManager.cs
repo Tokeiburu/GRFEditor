@@ -1,5 +1,4 @@
-﻿using GRF.Core.GroupedGrf;
-using GRFEditor.ApplicationConfiguration;
+﻿using GRFEditor.ApplicationConfiguration;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public static class ResourceManager {

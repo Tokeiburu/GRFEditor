@@ -12,7 +12,6 @@ using System.Windows.Media;
 using System.Xml;
 using System.Xml.Linq;
 using ErrorManager;
-using Utilities;
 using Application = System.Windows.Application;
 using Binding = System.Windows.Data.Binding;
 using Control = System.Windows.Controls.Control;

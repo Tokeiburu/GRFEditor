@@ -14,7 +14,6 @@ using GRF.ContainerFormat;
 using GRF.ContainerFormat.Commands;
 using GRF.Core;
 using GRF.FileFormats;
-using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;

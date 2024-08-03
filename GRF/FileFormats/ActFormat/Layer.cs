@@ -198,7 +198,7 @@ namespace GRF.FileFormats.ActFormat {
 			if (sprite != null) {
 				GrfImage image = sprite.GetImage(this);
 
-				if (this.SpriteIndex < 0) {
+				if (SpriteIndex < 0) {
 					writer.Write(0);
 					writer.Write(0);
 				}

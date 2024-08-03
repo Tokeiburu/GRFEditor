@@ -50,6 +50,7 @@ namespace GRFEditor.WPF {
 			UIPanelPreviewBackgroundPick(_qcsBackground);
 
 			_comboBoxCompression.Init();
+			_comboBoxEncryption.Init();
 
 			_comboBoxWarningLevel.SelectedIndex = (int)Configuration.WarningLevel;
 			_textBoxMaxThreads.Text = GrfEditorConfiguration.MaximumNumberOfThreads.ToString(CultureInfo.InvariantCulture);

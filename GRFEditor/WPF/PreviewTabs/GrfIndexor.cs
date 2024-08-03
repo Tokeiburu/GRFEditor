@@ -56,18 +56,18 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public void Add(TkPath path, MultiGrfReader metaGrf, Action<float> progress) {
 			if (path.RelativePath != null) return;
 
-			string name = String.Format("db_{0}_{1}.tdb", path.FilePath.GetHashCode(), new FileInfo(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrf, "")).LastWriteTimeUtc.Ticks);
+			string name = String.Format("db_{0}_{1}.tdb", path.FilePath.GetHashCode(), new FileInfo(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, "")).LastWriteTimeUtc.Ticks);
 			string fileName = Path.Combine(GrfEditorConfiguration.ProgramDataPath, name);
 
 			if (File.Exists(fileName)) {
 				_load(fileName);
 			}
 			else {
-				GrfHolder grf = metaGrf.GetGrf(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrf, ""));
+				GrfHolder grf = metaGrf.GetGrf(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, ""));
 
 				if (grf == null) {
 					grf = new GrfHolder();
-					grf.Open(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrf, ""));
+					grf.Open(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, ""));
 				}
 
 				grf.ThreadOperation(progress, () => false, (entry, data) => {

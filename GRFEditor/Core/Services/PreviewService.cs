@@ -18,7 +18,6 @@ using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.Application;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
-using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
 using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;

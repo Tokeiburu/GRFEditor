@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using GRF.Graphics;
-using Utilities;
 
 namespace GRF.FileFormats.StrFormat {
 	public partial class Str {
@@ -53,8 +52,6 @@ namespace GRF.FileFormats.StrFormat {
 			float[] previousBias = new float[8];
 
 			float[] diff = new float[8];
-			bool ignoreX = false;
-			bool ignoreY = false;
 
 			var biasRecord = new List<List<float>>();
 			int startComp = 0;
@@ -74,7 +71,6 @@ namespace GRF.FileFormats.StrFormat {
 			    diff[1] == 0 &&
 			    diff[2] == 0 &&
 			    diff[3] == 0) {
-				ignoreX = true;
 				startComp = 4;
 			}
 
@@ -82,7 +78,6 @@ namespace GRF.FileFormats.StrFormat {
 				diff[5] == 0 &&
 				diff[6] == 0 &&
 				diff[7] == 0) {
-				ignoreY = true;
 				endComp = 4;
 			}
 

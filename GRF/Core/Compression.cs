@@ -9,7 +9,7 @@ using GRF.System;
 using GRF.Threading;
 
 namespace GRF.Core {
-	public class Compression {
+	public sealed class Compression {
 		private static ICompression _compressionAlgorithm;
 
 		private static readonly ICompression _dotNetCompression = new DotNetCompression();

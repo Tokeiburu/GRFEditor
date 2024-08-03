@@ -15,7 +15,6 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using ICSharpCode.AvalonEdit.Rendering;
 using TokeiLibrary;
-using Utilities;
 
 namespace GRFEditor.Core.Avalon {
 	/// <summary>

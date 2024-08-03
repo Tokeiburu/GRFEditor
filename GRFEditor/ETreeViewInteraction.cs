@@ -5,13 +5,11 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
 using GRF;
-using GRF.ContainerFormat.Commands;
 using GRF.Core;
 using GRF.FileFormats;
 using GRF.IO;
@@ -440,7 +438,7 @@ namespace GRFEditor {
 							}
 
 							((TreeViewItem) _treeView.SelectedItem).IsSelected = false;
-							TreeViewItem item = (TkTreeViewItem)_treeView.GetObjectAtPoint<TreeViewItem>(e.GetPosition(_treeView));
+							TreeViewItem item = _treeView.GetObjectAtPoint<TreeViewItem>(e.GetPosition(_treeView));
 							TreeViewItem selectedNode = _treeViewPathManager.GetNode(new TkPath { FilePath = _grfHolder.FileName, RelativePath = destinationPath });
 
 							if (selectedNode != null)

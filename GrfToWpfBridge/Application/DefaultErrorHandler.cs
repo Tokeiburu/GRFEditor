@@ -85,12 +85,12 @@ namespace GrfToWpfBridge.Application {
 				return _dotTerminate(ex.Message);
 
 			if (ex.Message.EndsWith("\r\n\r\n"))
-				return _dotTerminate(ex.Message) + "Inner exception : " + ex.InnerException.Message;
+				return _dotTerminate(ex.Message) + "Inner exception: " + ex.InnerException.Message;
 
 			if (ex.Message.EndsWith("\r\n"))
-				return _dotTerminate(ex.Message) + "\r\nInner exception : " + ex.InnerException.Message;
+				return _dotTerminate(ex.Message) + "\r\nInner exception: " + ex.InnerException.Message;
 
-			return _dotTerminate(ex.Message) + "\r\n\r\nInner exception : " + ex.InnerException.Message;
+			return _dotTerminate(ex.Message) + "\r\n\r\nInner exception: " + ex.InnerException.Message;
 		}
 
 		private static string _dotTerminate(string s) {

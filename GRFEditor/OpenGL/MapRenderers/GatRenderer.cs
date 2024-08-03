@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using GRF.FileFormats.GatFormat;
-using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;

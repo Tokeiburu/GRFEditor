@@ -88,7 +88,7 @@
                                     <CheckBox.ToolTip>
                                         <TextBlock>
                                             Instead of extracting files to the current location of the GRF,
-                                            <LineBreak />
+                                            <LineBreak />encr
                                             files will be extracted at the path below.
                                         </TextBlock>
                                     </CheckBox.ToolTip>
@@ -242,6 +242,7 @@
                                         </TextBlock>
                                     </Label.ToolTip>
                                 </Label>
+                                <Label Content="Encryption method" Grid.Row="6" />
                                 <TextBox Name="_tbConfig" Grid.Row="1" Grid.Column="1" Margin="3" IsReadOnly="True" />
                                 <TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" />
                                 <TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" />
@@ -251,6 +252,7 @@
                                     <ComboBoxItem Content="Warning" />
                                     <ComboBoxItem Content="Critical" />
                                 </ComboBox>
+                                <Application:EncryptionMethodPicker Grid.Row="6" Grid.Column="1" Name="_comboBoxEncryption" VerticalAlignment="Center" Margin="3" />
                             </Grid>
                         </StackPanel>
                     </TabItem>

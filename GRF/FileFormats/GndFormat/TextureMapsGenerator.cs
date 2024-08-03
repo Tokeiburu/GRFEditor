@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using ErrorManager;
-using GRF.Core;
-using GRF.Image;
+﻿using GRF.Image;
 
 namespace GRF.FileFormats.GndFormat {
 	internal class TextureMapsGenerator {

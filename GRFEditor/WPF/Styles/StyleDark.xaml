@@ -962,6 +962,9 @@
     <Style TargetType="{x:Type application:CompressionMethodPicker}" BasedOn="{StaticResource ComboBoxTheme}">
     </Style>
 
+    <Style TargetType="{x:Type application:EncryptionMethodPicker}" BasedOn="{StaticResource ComboBoxTheme}">
+    </Style>
+
     <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxTheme}">
     </Style>
 

@@ -9,7 +9,6 @@ using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using TokeiLibrary.WPF.Styles.ListView;
-using Utilities;
 
 namespace TokeiLibrary.WPF.Styles {
 	public class TkProgressBar : UserControl {

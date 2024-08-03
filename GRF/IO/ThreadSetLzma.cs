@@ -22,7 +22,7 @@ namespace GRF.IO {
 			try {
 				uint offset;
 
-				using (var originalStream = ((Container)_grfData).GetSourceStream()) {
+				using (var originalStream = _grfData.GetSourceStream()) {
 					byte[] data;
 					int toIndex = 0;
 					int fromIndex;

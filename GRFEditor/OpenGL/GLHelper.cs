@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using GRF.Graphics;
 using GRF.Image;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -26,19 +25,6 @@ namespace GRFEditor.OpenGL {
 
 		public static Dictionary<string, int> IndexedTextures = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 		public static Dictionary<string, GrfImage> IndexedImages = new Dictionary<string, GrfImage>(StringComparer.OrdinalIgnoreCase);
-
-		public static int LoadTexture(string file, string uniqueIdentifier) {
-			try {
-				if (IndexedTextures.ContainsKey(uniqueIdentifier)) {
-					return IndexedTextures[uniqueIdentifier];
-				}
-
-				return LoadTexture(new GrfImage(file), uniqueIdentifier);
-			}
-			catch {
-				return -1;
-			}
-		}
 
 		public static int LoadTexture(GrfImage image, string uniqueIdentifier) {
 			try {

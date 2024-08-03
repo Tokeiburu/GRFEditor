@@ -11,7 +11,6 @@ using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
 using GRF.IO;
-using GRF.Threading;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GRFEditor.Tools.MapExtractor;

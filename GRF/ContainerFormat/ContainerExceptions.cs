@@ -58,6 +58,9 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __UnsupportedFileVersion = "Unsupported file version.";
 		public static readonly FormattedExceptionMessage __CompressionDllFailed = "Failed to load the decompression library ({0}).";
 		public static readonly FormattedExceptionMessage __CompressionDllFailed2 = "Failed to load the decompression library ({0}).\r\n\r\nYou are most likely missing the following VC++ Redistributable: {1}.";
+		public static readonly FormattedExceptionMessage __EncryptionDllFailed = "Last LoadLibrary error: {1}.";
+		public static readonly FormattedExceptionMessage __EncryptionDllFailed2 = "Last LoadLibrary error: {1}.\nInvalid compilation target, expected {2}-bit DLL, found {3}-bit DLL.";
+		public static readonly FormattedExceptionMessage __DllMissingFunction = "Failed to load the library, missing function ({0}).";
 		public static readonly FormattedExceptionMessage __FailedToCompressData = "Failed to compress data.";
 		public static readonly FormattedExceptionMessage __FailedToDecompressData = "Failed to decompress data.";
 		public static readonly FormattedExceptionMessage __MergeVersionEncryptionException = "The destination GRF must have a version higher than 0x100 when merging with an ecrypted GRF.";

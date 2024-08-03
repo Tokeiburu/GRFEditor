@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Input;
-using System.Windows.Media;
 using ErrorManager;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Services;
-using Utilities.Extension;
 
 namespace TokeiLibrary.WPF {
 	public class TkTreeViewItem : TreeViewItem {
@@ -150,7 +144,12 @@ namespace TokeiLibrary.WPF {
 
 		public bool? IsChecked {
 			get { return (bool?)GetValue(IsCheckedProperty); }
-			set { SetValue(IsCheckedProperty, value); }
+			set {
+				if (!CheckBoxHeaderIsEnabled)
+					return;
+
+				SetValue(IsCheckedProperty, value);
+			}
 		}
 
 		public string CurrentPath { get; set; }

@@ -5,12 +5,10 @@ using System.Text;
 using System.Windows.Forms;
 using ErrorManager;
 using GRF.FileFormats.GatFormat;
-using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-using Utilities;
 using ButtonState = OpenTK.Input.ButtonState;
 using Clipboard = System.Windows.Clipboard;
 using Control = System.Windows.Forms.Control;
@@ -77,8 +75,8 @@ namespace GRFEditor.OpenGL.WPF {
 
 				if (mouseState.LeftButton == ButtonState.Pressed && Keyboard.IsKeyDown(Key.LeftShift) && _editorWindow != null && _editorWindow.IsActive) {
 					var pt = _primary.PointToClient(Control.MousePosition);
-					int mouseX = (int)pt.X;
-					int mouseY = (int)pt.Y;
+					int mouseX = pt.X;
+					int mouseY = pt.Y;
 
 					int[] viewPort = new int[] { 0, 0, _primary.Width, _primary.Height };
 					Vector2 mousePosScreenSpace = new Vector2(mouseX, mouseY);

@@ -265,7 +265,7 @@ namespace GRF.Core {
 
 			if ((Header.IsEncrypted && Flags.HasFlags(EntryType.GrfEditorCrypted)) || Modification.HasFlags(Modification.Decrypt)) {
 				if (Header.EncryptionKey != null) {
-					Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, data, SizeDecompressed);
+					Encryption.Decrypt(Header.EncryptionKey, data, SizeDecompressed);
 				}
 				else {
 					throw GrfExceptions.__NoKeyFileSet.Create();
@@ -277,7 +277,7 @@ namespace GRF.Core {
 				// (The flags are set asynchronously to avoid UI lags)
 				if (Ee322.a184e9055afb92382b66a5d5b739e726(data) && (data.Length > 2 && data[0] != 0)) {
 					if (Header.EncryptionKey != null) {
-						Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, data, SizeDecompressed);
+						Encryption.Decrypt(Header.EncryptionKey, data, SizeDecompressed);
 					}
 					else {
 						throw GrfExceptions.__NoKeyFileSet.Create();
@@ -413,7 +413,7 @@ namespace GRF.Core {
 					}
 					else {
 						if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
-							data[fileName.Length + 22] = (byte)0;
+							data[fileName.Length + 22] = 0;
 						}
 						else {
 							data[fileName.Length + 22] = (byte) EntryType.File;
@@ -496,7 +496,7 @@ namespace GRF.Core {
 				if (Header.EncryptionKey != null) {
 					byte[] dataTmp = new byte[SizeCompressedAlignment];
 					Buffer.BlockCopy(dataStream, (int) TemporaryOffset, dataTmp, 0, dataTmp.Length);
-					Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, dataTmp, SizeDecompressed);
+					Encryption.Decrypt(Header.EncryptionKey, dataTmp, SizeDecompressed);
 					Buffer.BlockCopy(dataTmp, 0, dataStream, (int) TemporaryOffset, dataTmp.Length);
 				}
 			}
@@ -576,10 +576,10 @@ namespace GRF.Core {
 				// Fix : 2015-04-04
 				// Added lzma compression support
 				if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataTmp) || (dataTmp.Length > 2 && dataTmp[0] == 0x0)) {
-					Ee322.ebfd0ac060c6a005e565726f05d6aac8(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
+					Encryption.Encrypt(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
 
 					if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataTmp) || dataTmp[0] == 0x0)
-						Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
+						Encryption.Decrypt(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
 				}
 			}
 		}
@@ -595,10 +595,10 @@ namespace GRF.Core {
 				// Fix : 2015-04-04
 				// Added lzma compression support
 				if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataTmp) || (dataTmp.Length > 2 && dataTmp[0] == 0x0)) {
-					Ee322.ebfd0ac060c6a005e565726f05d6aac8(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
+					Encryption.Encrypt(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
 
 					if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataTmp) || dataTmp[0] == 0x0) {
-						Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
+						Encryption.Decrypt(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
 						return false;
 					}
 					else {
@@ -619,10 +619,10 @@ namespace GRF.Core {
 				// Fix : 2015-04-04
 				// Added lzma compression support
 				if (Ee322.a184e9055afb92382b66a5d5b739e726(dataTmp) && (dataTmp.Length > 2 && dataTmp[0] != 0)) {
-					Ee322.f8881b1c7355d58161c07ae1c35cfb13(Header.EncryptionKey, dataTmp, SizeDecompressed);
+					Encryption.Decrypt(Header.EncryptionKey, dataTmp, SizeDecompressed);
 
 					if (Ee322.a184e9055afb92382b66a5d5b739e726(dataTmp) && dataTmp[0] != 0)
-						Ee322.ebfd0ac060c6a005e565726f05d6aac8(Header.EncryptionKey, dataTmp, SizeDecompressed);
+						Encryption.Encrypt(Header.EncryptionKey, dataTmp, SizeDecompressed);
 					else
 						Buffer.BlockCopy(dataTmp, 0, dataStream, offset, offset + dataTmp.Length > dataStream.Length ? dataStream.Length - offset : dataTmp.Length);
 				}

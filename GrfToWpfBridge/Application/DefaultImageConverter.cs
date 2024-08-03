@@ -6,7 +6,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using GRF.FileFormats.TgaFormat;
 using GRF.Image;
-using GRF.Image.Decoders;
 using Utilities;
 
 namespace GrfToWpfBridge.Application {

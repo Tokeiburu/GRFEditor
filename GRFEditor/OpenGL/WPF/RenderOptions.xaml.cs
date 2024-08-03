@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.OpenGL.MapRenderers;
 using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge;
 using TokeiLibrary.WPF.Styles.ListView;

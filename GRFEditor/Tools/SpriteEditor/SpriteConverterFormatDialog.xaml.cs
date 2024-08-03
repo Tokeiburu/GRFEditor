@@ -12,7 +12,6 @@ using GRF.Image;
 using GRF.Image.Decoders;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
-using Utilities.Extension;
 
 namespace GRFEditor.Tools.SpriteEditor {
 	/// <summary>

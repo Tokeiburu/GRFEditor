@@ -1,13 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using ErrorManager;
 using GRF.Core;
 using GRFEditor.Tools.MapExtractor;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>

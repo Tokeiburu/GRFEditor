@@ -24,8 +24,9 @@ namespace GRF.Core.GroupedGrf {
 		public override sealed FileEntry this[string key] {
 			get {
 				if (_hasProcessed == null) {
-					foreach (string gPath in _multiGrfHolder.Paths) {
-						var path = gPath;
+					foreach (var gResource in _multiGrfHolder.Paths) {
+						var resource = gResource;
+						var path = resource.Path;
 
 						if (Directory.Exists(path)) {
 							path = Path.GetDirectoryName(path);
@@ -150,11 +151,12 @@ namespace GRF.Core.GroupedGrf {
 		private void _generateBuffers() {
 			_bufferedEntries.Clear();
 
-			foreach (string gPath in _multiGrfHolder.Paths.Reverse()) {
-				var path = gPath;
+			foreach (var gResource in _multiGrfHolder.Paths.Reverse()) {
+				var resource = gResource;
+				var path = resource.Path;
 
 				if (Directory.Exists(path)) {
-					var cleanPath = GrfPath.GetDirectoryName(gPath).TrimEnd('/', '\\');
+					var cleanPath = GrfPath.GetDirectoryName(path).TrimEnd('/', '\\');
 
 					if (!Directory.Exists(cleanPath)) continue;
 
@@ -200,11 +202,11 @@ namespace GRF.Core.GroupedGrf {
 				return mappedFiles.Where(file => file.EndsWith(fileName, StringComparison.OrdinalIgnoreCase)).Select(p => _bufferedEntries[p]).ToList();
 			}
 
-			foreach (string gPath in _multiGrfHolder.Paths) {
-				var path = gPath;
+			foreach (var gResource in _multiGrfHolder.Paths) {
+				var path = gResource.Path;
 
 				if (Directory.Exists(path)) {
-					var cleanPath = GrfPath.GetDirectoryName(gPath).TrimEnd('/', '\\');
+					var cleanPath = GrfPath.GetDirectoryName(path).TrimEnd('/', '\\');
 
 					if (!Directory.Exists(cleanPath)) continue;
 
@@ -251,11 +253,11 @@ namespace GRF.Core.GroupedGrf {
 				return files2.Select(p => _bufferedEntries[p].RelativePath).Distinct().ToList();
 			}
 
-			foreach (string gPath in _multiGrfHolder.Paths.Reverse()) {
-				var path = gPath;
+			foreach (var gResource in _multiGrfHolder.Paths.Reverse()) {
+				var path = gResource.Path;
 
 				if (Directory.Exists(path)) {
-					var cleanPath = GrfPath.GetDirectoryName(gPath).TrimEnd('/', '\\');
+					var cleanPath = GrfPath.GetDirectoryName(path).TrimEnd('/', '\\');
 					var tDirectory = EncodingService.ConvertStringToAnsi(directory);
 
 					if (!Directory.Exists(GrfPath.Combine(cleanPath, tDirectory))) continue;

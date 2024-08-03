@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using GRF.FileFormats.StrFormat;
-using GRF.Graphics;
 using GRF.Image;
 using GRF.IO;
 using GRFEditor.WPF.PreviewTabs;
@@ -97,8 +96,8 @@ namespace GRFEditor.OpenGL.StrGroup {
 			Matrix4 rotation = Matrix4.CreateRotationZ(GLHelper.ToRad(-Inter.Angle));
 
 			Model = rotation;
-			Model[3, 0] = (float)(Inter.Offset.X - 319);
-			Model[3, 1] = (float)(-Inter.Offset.Y + 291);
+			Model[3, 0] = Inter.Offset.X - 319;
+			Model[3, 1] = -Inter.Offset.Y + 291;
 
 			if (Inter.TextureIndex < 0 || Inter.TextureIndex >= _textureIds.Count || _textureIds[Inter.TextureIndex] < 0)
 				return;

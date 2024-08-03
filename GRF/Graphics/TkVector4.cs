@@ -178,20 +178,20 @@ namespace GRF.Graphics {
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Add() method instead.")]
 		public void Add(TkVector4 right) {
-			this.X += right.X;
-			this.Y += right.Y;
-			this.Z += right.Z;
-			this.W += right.W;
+			X += right.X;
+			Y += right.Y;
+			Z += right.Z;
+			W += right.W;
 		}
 
 		/// <summary>Add the Vector passed as parameter to this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Add() method instead.")]
 		public void Add(ref TkVector4 right) {
-			this.X += right.X;
-			this.Y += right.Y;
-			this.Z += right.Z;
-			this.W += right.W;
+			X += right.X;
+			Y += right.Y;
+			Z += right.Z;
+			W += right.W;
 		}
 
 		#endregion public void Add()
@@ -202,20 +202,20 @@ namespace GRF.Graphics {
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Subtract() method instead.")]
 		public void Sub(TkVector4 right) {
-			this.X -= right.X;
-			this.Y -= right.Y;
-			this.Z -= right.Z;
-			this.W -= right.W;
+			X -= right.X;
+			Y -= right.Y;
+			Z -= right.Z;
+			W -= right.W;
 		}
 
 		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Subtract() method instead.")]
 		public void Sub(ref TkVector4 right) {
-			this.X -= right.X;
-			this.Y -= right.Y;
-			this.Z -= right.Z;
-			this.W -= right.W;
+			X -= right.X;
+			Y -= right.Y;
+			Z -= right.Z;
+			W -= right.W;
 		}
 
 		#endregion public void Sub()
@@ -226,10 +226,10 @@ namespace GRF.Graphics {
 		/// <param name="f">Scalar operand.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Mult(float f) {
-			this.X *= f;
-			this.Y *= f;
-			this.Z *= f;
-			this.W *= f;
+			X *= f;
+			Y *= f;
+			Z *= f;
+			W *= f;
 		}
 
 		#endregion public void Mult()
@@ -241,10 +241,10 @@ namespace GRF.Graphics {
 		[Obsolete("Use static Divide() method instead.")]
 		public void Div(float f) {
 			float mult = 1.0f / f;
-			this.X *= mult;
-			this.Y *= mult;
-			this.Z *= mult;
-			this.W *= mult;
+			X *= mult;
+			Y *= mult;
+			Z *= mult;
+			W *= mult;
 		}
 
 		#endregion public void Div()
@@ -258,7 +258,7 @@ namespace GRF.Graphics {
 		/// <seealso cref="LengthSquared"/>
 		public float Length {
 			get {
-				return (float)global::System.Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
+				return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
 			}
 		}
 
@@ -318,7 +318,7 @@ namespace GRF.Graphics {
 		/// Scales the Vector4 to unit length.
 		/// </summary>
 		public void Normalize() {
-			float scale = 1.0f / this.Length;
+			float scale = 1.0f / Length;
 			X *= scale;
 			Y *= scale;
 			Z *= scale;
@@ -353,30 +353,30 @@ namespace GRF.Graphics {
 		/// <param name="sw">The scale of the Z component.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(float sx, float sy, float sz, float sw) {
-			this.X = X * sx;
-			this.Y = Y * sy;
-			this.Z = Z * sz;
-			this.W = W * sw;
+			X = X * sx;
+			Y = Y * sy;
+			Z = Z * sz;
+			W = W * sw;
 		}
 
 		/// <summary>Scales this instance by the given parameter.</summary>
 		/// <param name="scale">The scaling of the individual components.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(TkVector4 scale) {
-			this.X *= scale.X;
-			this.Y *= scale.Y;
-			this.Z *= scale.Z;
-			this.W *= scale.W;
+			X *= scale.X;
+			Y *= scale.Y;
+			Z *= scale.Z;
+			W *= scale.W;
 		}
 
 		/// <summary>Scales this instance by the given parameter.</summary>
 		/// <param name="scale">The scaling of the individual components.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(ref TkVector4 scale) {
-			this.X *= scale.X;
-			this.Y *= scale.Y;
-			this.Z *= scale.Z;
-			this.W *= scale.W;
+			X *= scale.X;
+			Y *= scale.Y;
+			Z *= scale.Z;
+			W *= scale.W;
 		}
 
 		#endregion public void Scale()
@@ -1209,7 +1209,7 @@ namespace GRF.Graphics {
 			if (!(obj is TkVector4))
 				return false;
 
-			return this.Equals((TkVector4)obj);
+			return Equals((TkVector4)obj);
 		}
 
 		#endregion

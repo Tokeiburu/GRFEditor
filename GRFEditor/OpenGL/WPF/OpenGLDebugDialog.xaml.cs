@@ -9,7 +9,6 @@ using System.Windows.Input;
 using GRF.Threading;
 using GRFEditor.Core.Avalon;
 using GRFEditor.OpenGL.MapComponents;
-using GRFEditor.OpenGL.MapRenderers;
 using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
 using TokeiLibrary;

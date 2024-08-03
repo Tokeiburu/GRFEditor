@@ -6,7 +6,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using TokeiLibrary;
-using Utilities;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>

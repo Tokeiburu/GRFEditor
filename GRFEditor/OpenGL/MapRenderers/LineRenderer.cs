@@ -1,5 +1,4 @@
-﻿using GRF.Graphics;
-using GRFEditor.OpenGL.MapComponents;
+﻿using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;

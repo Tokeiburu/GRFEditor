@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using GRF;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.Graphics;
 using GRF.IO;
 using OpenTK;
-using Utilities;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	/// <summary>

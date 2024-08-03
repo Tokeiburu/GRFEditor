@@ -2,7 +2,6 @@
 using System.Linq;
 using GRF.Core;
 using GRF.FileFormats.GndFormat;
-using GRF.FileFormats.RswFormat;
 using GRF.Image;
 using Utilities.Extension;
 

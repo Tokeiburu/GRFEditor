@@ -15,7 +15,6 @@ using GRF.System;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;
-using GrfToWpfBridge.TreeViewManager;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles.ListView;
 using Utilities.Extension;

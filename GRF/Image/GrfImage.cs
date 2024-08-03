@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using GRF.ContainerFormat;
+using GRF.FileFormats.SprFormat;
 using GRF.FileFormats.TgaFormat;
 using GRF.Graphics;
 using GRF.Image.Decoders;
 using Utilities;
+using Utilities.Extension;
 
 namespace GRF.Image {
 	/// <summary>
@@ -508,7 +510,7 @@ namespace GRF.Image {
 		}
 
 		public bool IsIdentical(GrfImage image) {
-			return Methods.ByteArrayCompare(image.Pixels, this.Pixels) && Methods.ByteArrayCompare(image.Palette, this.Palette);
+			return Methods.ByteArrayCompare(image.Pixels, Pixels) && Methods.ByteArrayCompare(image.Palette, Palette);
 		}
 
 		/// <summary>
@@ -1710,7 +1712,7 @@ namespace GRF.Image {
 				}
 
 				byte[] palette = Palette == null ? new byte[1024] : Methods.Copy(Palette);
-				GrfImage image = new GrfImage(ref pixels, newWidth, newHeight, this.GrfImageType, ref palette);
+				GrfImage image = new GrfImage(ref pixels, newWidth, newHeight, GrfImageType, ref palette);
 
 				if (u[0] < u[1]) {
 					image.Flip(FlipDirection.Vertical);
@@ -1722,7 +1724,7 @@ namespace GRF.Image {
 
 				return image;
 			}
-			return this.Copy();
+			return Copy();
 		}
 
 		public static GrfImage Empty(GrfImageType type) {
@@ -1751,6 +1753,134 @@ namespace GRF.Image {
 			}
 			
 			return new GrfImage(ref data, 1, 1, type);
+		}
+
+		public static GrfImage SpriteImageToIndexed8(Spr spr, GrfImage imageSource, bool useDithering) {
+			GrfImage im = imageSource.Copy();
+			byte[] originalPalette = spr.Palette.BytePalette;
+			HashSet<byte> unusedIndexesHS = spr.GetUnusedPaletteIndexes();
+			unusedIndexesHS.Remove(0);
+			List<byte> unusedIndexes = new List<byte>(unusedIndexesHS);
+			byte[] newPalette = new byte[1024];
+
+			Buffer.BlockCopy(originalPalette, 0, newPalette, 0, 1024);
+
+			int numberOfAvailableColors = unusedIndexes.Count;
+
+			if (imageSource.GrfImageType == GrfImageType.Indexed8) {
+				List<byte> newImageUsedIndexes = new List<byte>();
+				for (int i = 0; i < 256; i++) {
+					if (Array.IndexOf(im.Pixels, (byte)i) > -1) {
+						newImageUsedIndexes.Add((byte)i);
+					}
+				}
+
+				if (newImageUsedIndexes.Count < numberOfAvailableColors) {
+					for (int usedIndex = 0; usedIndex < newImageUsedIndexes.Count; usedIndex++) {
+						byte index = newImageUsedIndexes[usedIndex];
+
+						for (int i = 0; i < 256; i++) {
+							if (
+								im.Palette[4 * index + 0] == originalPalette[4 * i + 0] &&
+								im.Palette[4 * index + 1] == originalPalette[4 * i + 1] &&
+								im.Palette[4 * index + 2] == originalPalette[4 * i + 2]) {
+								newImageUsedIndexes.Remove(index);
+								usedIndex--;
+
+								if (unusedIndexes.Contains(index))
+									unusedIndexes.Remove(index);
+
+								break;
+							}
+						}
+					}
+				}
+				else {
+					List<Tuple<int, byte>> colors = newImageUsedIndexes.Select(t => new Tuple<int, byte>((im.Palette[4 * t + 0]) << 16 | (im.Palette[4 * t + 1]) << 8 | (im.Palette[4 * t + 2]), t)).ToList();
+					colors = colors.OrderBy(p => p.Item1).ToList();
+
+					List<byte> newImageTempUsedIndexes = new List<byte>();
+					newImageTempUsedIndexes.Add(colors[0].Item2);
+					newImageTempUsedIndexes.Add(colors[colors.Count - 1].Item2);
+
+					int numberToAdd = unusedIndexes.Count - 2;
+					int numberOfItems = newImageUsedIndexes.Count - 2;
+
+					for (int i = 0; i < numberToAdd; i++) {
+						newImageTempUsedIndexes.Add(colors[(int)(((float)i / numberToAdd) * numberOfItems)].Item2);
+					}
+
+					newImageUsedIndexes = new List<byte>(newImageTempUsedIndexes);
+				}
+
+				for (int i = 0; i < newImageUsedIndexes.Count; i++) {
+					if (unusedIndexes.Count <= 0) break;
+
+					byte unused = unusedIndexes[0];
+					newPalette[4 * unused + 0] = im.Palette[4 * newImageUsedIndexes[i] + 0];
+					newPalette[4 * unused + 1] = im.Palette[4 * newImageUsedIndexes[i] + 1];
+					newPalette[4 * unused + 2] = im.Palette[4 * newImageUsedIndexes[i] + 2];
+					newPalette[4 * unused + 3] = im.Palette[4 * newImageUsedIndexes[i] + 3];
+					unusedIndexes.RemoveAt(0);
+				}
+			}
+			else {
+				GrfImage imTemp = im.Copy();
+				Bgr32FormatConverter tconv = new Bgr32FormatConverter();
+				tconv.BackgroundColor = GrfColor.White;
+				imTemp.Convert(tconv, null);
+
+				List<int> colors = new List<int>(imTemp.Pixels.Length / 4);
+
+				int index;
+				for (int i = 0; i < imTemp.Pixels.Length / 4; i++) {
+					index = 4 * i;
+					if (imTemp.Pixels[index + 3] != 0)
+						colors.Add(imTemp.Pixels[index + 2] << 16 | imTemp.Pixels[index + 1] << 8 | imTemp.Pixels[index + 0]);
+				}
+
+				colors = colors.Distinct().OrderBy(p => p).ToList();
+
+				int color;
+				for (int i = 0; i < 256; i++) {
+					color = originalPalette[4 * i + 0] << 16 | originalPalette[4 * i + 1] << 8 | originalPalette[4 * i + 2];
+					if (!unusedIndexesHS.Contains((byte)i) && colors.Contains(color)) {
+						colors.Remove(color);
+					}
+				}
+
+				int numberOfColorsToAdd = numberOfAvailableColors - 1;
+				numberOfColorsToAdd = colors.Count < numberOfColorsToAdd ? colors.Count : numberOfColorsToAdd;
+
+				for (int i = 0; i < numberOfColorsToAdd - 1; i++) {
+					byte unused = unusedIndexes[0];
+					newPalette[4 * unused + 0] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0xFF0000) >> 16);
+					newPalette[4 * unused + 1] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0x00FF00) >> 8);
+					newPalette[4 * unused + 2] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0x0000FF));
+					newPalette[4 * unused + 3] = 255;
+					unusedIndexes.RemoveAt(0);
+				}
+
+				if (numberOfColorsToAdd > 0) {
+					byte unused = unusedIndexes[0];
+					newPalette[4 * unused + 0] = (byte)((colors[colors.Count - 1] & 0xFF0000) >> 16);
+					newPalette[4 * unused + 1] = (byte)((colors[colors.Count - 1] & 0x00FF00) >> 8);
+					newPalette[4 * unused + 2] = (byte)((colors[colors.Count - 1] & 0x0000FF));
+					newPalette[4 * unused + 3] = 255;
+					unusedIndexes.RemoveAt(0);
+				}
+			}
+
+			Indexed8FormatConverter conv = new Indexed8FormatConverter();
+			conv.BackgroundColor = new GrfColor(255, 255, 0, 255);
+
+			if (useDithering) {
+				conv.Options |= Indexed8FormatConverter.PaletteOptions.UseDithering;
+			}
+
+			conv.ExistingPalette = newPalette;
+			im.Convert(conv, null);
+			return im;
 		}
 	}
 }

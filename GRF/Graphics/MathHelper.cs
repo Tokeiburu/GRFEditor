@@ -80,7 +80,7 @@ namespace GRF.Graphics {
 		/// <returns>The next power of two.</returns>
 		public static long NextPowerOfTwo(long n) {
 			if (n < 0) throw new ArgumentOutOfRangeException("n", "Must be positive.");
-			return (long)global::System.Math.Pow(2, global::System.Math.Ceiling(global::System.Math.Log((double)n, 2)));
+			return (long)Math.Pow(2, Math.Ceiling(Math.Log(n, 2)));
 		}
 
 		/// <summary>
@@ -90,7 +90,7 @@ namespace GRF.Graphics {
 		/// <returns>The next power of two.</returns>
 		public static int NextPowerOfTwo(int n) {
 			if (n < 0) throw new ArgumentOutOfRangeException("n", "Must be positive.");
-			return (int)global::System.Math.Pow(2, global::System.Math.Ceiling(global::System.Math.Log((double)n, 2)));
+			return (int)Math.Pow(2, Math.Ceiling(Math.Log(n, 2)));
 		}
 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace GRF.Graphics {
 		/// <returns>The next power of two.</returns>
 		public static float NextPowerOfTwo(float n) {
 			if (n < 0) throw new ArgumentOutOfRangeException("n", "Must be positive.");
-			return (float)global::System.Math.Pow(2, global::System.Math.Ceiling(global::System.Math.Log((double)n, 2)));
+			return (float)Math.Pow(2, Math.Ceiling(Math.Log(n, 2)));
 		}
 
 		/// <summary>
@@ -110,7 +110,7 @@ namespace GRF.Graphics {
 		/// <returns>The next power of two.</returns>
 		public static double NextPowerOfTwo(double n) {
 			if (n < 0) throw new ArgumentOutOfRangeException("n", "Must be positive.");
-			return global::System.Math.Pow(2, global::System.Math.Ceiling(global::System.Math.Log((double)n, 2)));
+			return Math.Pow(2, Math.Ceiling(Math.Log(n, 2)));
 		}
 
 		#endregion
@@ -207,7 +207,7 @@ namespace GRF.Graphics {
 		/// <param name="degrees">An angle in degrees</param>
 		/// <returns>The angle expressed in radians</returns>
 		public static float DegreesToRadians(float degrees) {
-			const float degToRad = (float)global::System.Math.PI / 180.0f;
+			const float degToRad = (float)Math.PI / 180.0f;
 			return degrees * degToRad;
 		}
 
@@ -217,7 +217,7 @@ namespace GRF.Graphics {
 		/// <param name="radians">An angle in radians</param>
 		/// <returns>The angle expressed in degrees</returns>
 		public static float RadiansToDegrees(float radians) {
-			const float radToDeg = 180.0f / (float)global::System.Math.PI;
+			const float radToDeg = 180.0f / (float)Math.PI;
 			return radians * radToDeg;
 		}
 
@@ -227,7 +227,7 @@ namespace GRF.Graphics {
 		/// <param name="degrees">An angle in degrees</param>
 		/// <returns>The angle expressed in radians</returns>
 		public static double DegreesToRadians(double degrees) {
-			const double degToRad = global::System.Math.PI / 180.0;
+			const double degToRad = Math.PI / 180.0;
 			return degrees * degToRad;
 		}
 
@@ -237,7 +237,7 @@ namespace GRF.Graphics {
 		/// <param name="radians">An angle in radians</param>
 		/// <returns>The angle expressed in degrees</returns>
 		public static double RadiansToDegrees(double radians) {
-			const double radToDeg = 180.0 / global::System.Math.PI;
+			const double radToDeg = 180.0 / Math.PI;
 			return radians * radToDeg;
 		}
 

@@ -4,9 +4,8 @@ using System.IO;
 using System.Threading;
 using GRF.Core;
 using GRF.System;
-using GRF.Threading;
 
-namespace GRF.IO {
+namespace GRF.Threading {
 	/// <summary>
 	/// This class creates a temporary file from the GRF added resources
 	/// (ONLY for the added resources, the other files are processed normally (via direct copy))

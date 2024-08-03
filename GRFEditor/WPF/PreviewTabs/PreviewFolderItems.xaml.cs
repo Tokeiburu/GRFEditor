@@ -10,7 +10,6 @@ using ErrorManager;
 using GRF.Core;
 using GRF.Image;
 using GRFEditor.Core.Services;
-using GRFEditor.OpenGL.MapComponents;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;

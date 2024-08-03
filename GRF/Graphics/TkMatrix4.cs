@@ -266,7 +266,7 @@ namespace GRF.Graphics {
 		/// Converts this instance into its transpose.
 		/// </summary>
 		public void Transpose() {
-			this = TkMatrix4.Transpose(this);
+			this = Transpose(this);
 		}
 
 		#endregion
@@ -284,8 +284,8 @@ namespace GRF.Graphics {
 		/// <param name="angle">Angle in radians to rotate counter-clockwise (looking in the direction of the given axis).</param>
 		/// <param name="result">A matrix instance.</param>
 		public static void CreateFromAxisAngle(TkVector3 axis, float angle, out TkMatrix4 result) {
-			float cos = (float)global::System.Math.Cos(-angle);
-			float sin = (float)global::System.Math.Sin(-angle);
+			float cos = (float)Math.Cos(-angle);
+			float sin = (float)Math.Sin(-angle);
 			float t = 1.0f - cos;
 
 			axis.Normalize();
@@ -318,8 +318,8 @@ namespace GRF.Graphics {
 		/// <param name="angle">The counter-clockwise angle in radians.</param>
 		/// <param name="result">The resulting Matrix4 instance.</param>
 		public static void CreateRotationX(float angle, out TkMatrix4 result) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			result.Row0 = TkVector4.UnitX;
 			result.Row1 = new TkVector4(0.0f, cos, sin, 0.0f);
@@ -344,8 +344,8 @@ namespace GRF.Graphics {
 		/// <param name="angle">The counter-clockwise angle in radians.</param>
 		/// <param name="result">The resulting Matrix4 instance.</param>
 		public static void CreateRotationY(float angle, out TkMatrix4 result) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			result.Row0 = new TkVector4(cos, 0.0f, -sin, 0.0f);
 			result.Row1 = TkVector4.UnitY;
@@ -370,8 +370,8 @@ namespace GRF.Graphics {
 		/// <param name="angle">The counter-clockwise angle in radians.</param>
 		/// <param name="result">The resulting Matrix4 instance.</param>
 		public static void CreateRotationZ(float angle, out TkMatrix4 result) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			result.Row0 = new TkVector4(cos, sin, 0.0f, 0.0f);
 			result.Row1 = new TkVector4(-sin, cos, 0.0f, 0.0f);
@@ -549,7 +549,7 @@ namespace GRF.Graphics {
 			if (zFar <= 0)
 				throw new ArgumentOutOfRangeException("zFar");
 
-			float yMax = zNear * (float)global::System.Math.Tan(0.5f * fovy);
+			float yMax = zNear * (float)Math.Tan(0.5f * fovy);
 			float yMin = -yMax;
 			float xMin = yMin * aspect;
 			float xMax = yMax * aspect;
@@ -729,8 +729,8 @@ namespace GRF.Graphics {
 		/// <returns>A rotation matrix</returns>
 		[Obsolete("Use CreateRotationX instead.")]
 		public static TkMatrix4 RotateX(float angle) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			TkMatrix4 result;
 			result.Row0 = TkVector4.UnitX;
@@ -747,8 +747,8 @@ namespace GRF.Graphics {
 		/// <returns>A rotation matrix</returns>
 		[Obsolete("Use CreateRotationY instead.")]
 		public static TkMatrix4 RotateY(float angle) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			TkMatrix4 result;
 			result.Row0 = new TkVector4(cos, 0.0f, -sin, 0.0f);
@@ -765,8 +765,8 @@ namespace GRF.Graphics {
 		/// <returns>A rotation matrix</returns>
 		[Obsolete("Use CreateRotationZ instead.")]
 		public static TkMatrix4 RotateZ(float angle) {
-			float cos = (float)global::System.Math.Cos(angle);
-			float sin = (float)global::System.Math.Sin(angle);
+			float cos = (float)Math.Cos(angle);
+			float sin = (float)Math.Sin(angle);
 
 			TkMatrix4 result;
 			result.Row0 = new TkVector4(cos, sin, 0.0f, 0.0f);
@@ -784,8 +784,8 @@ namespace GRF.Graphics {
 		/// <returns>A rotation matrix</returns>
 		[Obsolete("Use CreateFromAxisAngle instead.")]
 		public static TkMatrix4 Rotate(TkVector3 axis, float angle) {
-			float cos = (float)global::System.Math.Cos(-angle);
-			float sin = (float)global::System.Math.Sin(-angle);
+			float cos = (float)Math.Cos(-angle);
+			float sin = (float)Math.Sin(-angle);
 			float t = 1.0f - cos;
 
 			axis.Normalize();
@@ -831,7 +831,7 @@ namespace GRF.Graphics {
 										new TkVector4(x.Z, y.Z, z.Z, 0.0f),
 										TkVector4.UnitW);
 
-			TkMatrix4 trans = TkMatrix4.CreateTranslation(-eye);
+			TkMatrix4 trans = CreateTranslation(-eye);
 
 			return trans * rot;
 		}
@@ -884,7 +884,7 @@ namespace GRF.Graphics {
 		/// <returns>A projection matrix that transforms camera space to raster space</returns>
 		[Obsolete("Use CreatePerspectiveFieldOfView instead.")]
 		public static TkMatrix4 Perspective(float fovy, float aspect, float near, float far) {
-			float yMax = near * (float)global::System.Math.Tan(0.5f * fovy);
+			float yMax = near * (float)Math.Tan(0.5f * fovy);
 			float yMin = -yMax;
 			float xMin = yMin * aspect;
 			float xMax = yMax * aspect;
@@ -1077,7 +1077,7 @@ namespace GRF.Graphics {
 		/// <param name="right">right-hand operand</param>
 		/// <returns>A new Matrix44 which holds the result of the multiplication</returns>
 		public static TkMatrix4 operator *(TkMatrix4 left, TkMatrix4 right) {
-			return TkMatrix4.Mult(left, right);
+			return Mult(left, right);
 		}
 
 		/// <summary>
@@ -1139,7 +1139,7 @@ namespace GRF.Graphics {
 			if (!(obj is TkMatrix4))
 				return false;
 
-			return this.Equals((TkMatrix4)obj);
+			return Equals((TkMatrix4)obj);
 		}
 
 		#endregion

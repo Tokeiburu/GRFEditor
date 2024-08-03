@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using GRF.Graphics;
+﻿using System.Collections.Generic;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
-using Utilities;
 using Utilities.Services;
 using Matrix3 = OpenTK.Matrix3;
 using Matrix4 = OpenTK.Matrix4;
@@ -12,16 +9,17 @@ using Matrix4 = OpenTK.Matrix4;
 namespace GRFEditor.OpenGL {
 	// A simple class meant to help create shaders.
 	public class Shader {
+		private readonly string _vertPath;
 		public readonly int Handle;
 
 		private readonly Dictionary<string, int> _uniformLocations;
-		private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
 
 		// This is how you create a simple shader.
 		// Shaders are written in GLSL, which is a language very similar to C in its semantics.
 		// The GLSL source is compiled *at runtime*, so it can optimize itself for the graphics card it's currently being used on.
 		// A commented example of GLSL can be found in shader.vert.
 		public Shader(string vertPath, string fragPath) {
+			_vertPath = vertPath;
 			// There are several different types of shaders, but the only two you need for basic rendering are the vertex and fragment shaders.
 			// The vertex shader is responsible for moving around vertices, and uploading that data to the fragment shader.
 			//   The vertex shader won't be too important here, but they'll be more important later.

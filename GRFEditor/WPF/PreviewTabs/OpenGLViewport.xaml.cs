@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows.Forms;
 using GRF.Core;
 using GRF.FileFormats.StrFormat;
-using GRF.Graphics;
 using GRFEditor.OpenGL;
 using GRFEditor.OpenGL.StrGroup;
 using OpenTK;

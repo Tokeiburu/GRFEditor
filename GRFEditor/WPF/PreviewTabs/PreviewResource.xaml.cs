@@ -3,7 +3,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using Be.Windows.Forms;
-using ErrorManager;
 using GRF.Core;
 using TokeiLibrary;
 using Utilities.Extension;

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using ErrorManager;
+﻿using System.Windows;
 using TokeiLibrary.WPF;
-using Utilities;
 
 namespace GrfToWpfBridge.TreeViewManager {
 	public class TypeTreeViewItem : TkTreeViewItem {

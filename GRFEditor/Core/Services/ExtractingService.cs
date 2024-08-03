@@ -5,7 +5,6 @@ using System.Linq;
 using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats;
-using GRF.IO;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge.Application;

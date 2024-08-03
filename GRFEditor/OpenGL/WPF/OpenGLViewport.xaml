@@ -7,6 +7,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
+        <Grid Name="_host2">
+            
+        </Grid>
         <WindowsFormsHost Name="_host">
         </WindowsFormsHost>
         <Grid Name="_crashGrid" Background="LightGray" Visibility="Collapsed">

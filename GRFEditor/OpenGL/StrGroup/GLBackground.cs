@@ -39,8 +39,8 @@ namespace GRFEditor.OpenGL.StrGroup {
 
 			GL.BindTexture(TextureTarget.Texture2D, _textId);
 
-			Model[0, 0] = (float)(viewport._primary.Width);
-			Model[1, 1] = (float)(viewport._primary.Height);
+			Model[0, 0] = viewport._primary.Width;
+			Model[1, 1] = viewport._primary.Height;
 			Model[3, 0] = -(float)((relativeCenter.X * viewport._primary.Width - viewport._primary.Width / 2d));
 			Model[3, 1] = -(float)((-relativeCenter.Y * viewport._primary.Height + viewport._primary.Height / 2d));
 

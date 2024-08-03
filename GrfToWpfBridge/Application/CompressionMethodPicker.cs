@@ -20,7 +20,7 @@ namespace GrfToWpfBridge.Application {
 
 			SettingGuard = new Setting(v => { Configuration.ConfigAsker["[GRFEditor - Loading custom DLL state]"] = v.ToString(); }, () => Boolean.Parse(Configuration.ConfigAsker["[GRFEditor - Loading custom DLL state]", false.ToString()]));
 
-			SettingCustomPath = new Setting(v => { Configuration.ConfigAsker["[GRFEditor - Custom compression library"] = v.ToString(); }, () => Configuration.ConfigAsker["[GRFEditor - Custom compression library]", ""]);
+			SettingCustomPath = new Setting(v => { Configuration.ConfigAsker["[GRFEditor - Custom compression library]"] = v.ToString(); }, () => Configuration.ConfigAsker["[GRFEditor - Custom compression library]", ""]);
 		}
 
 		public Action<ICompression> SetCompression { get; set; }

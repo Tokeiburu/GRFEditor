@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using Utilities.Extension;
 
 namespace Database {
 	public static class DatabaseExceptions {

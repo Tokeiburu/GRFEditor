@@ -8,11 +8,21 @@ using Utilities;
 using Utilities.Extension;
 
 namespace GRF.Core.GroupedGrf {
+	public class MultiGrfPath {
+		public string Path { get; set; }
+		public bool FromConfiguration { get; set; }
+		public bool IsCurrentlyLoadedGrf { get; set; }
+
+		public MultiGrfPath(string path) {
+			Path = path;
+		}
+	}
+
 	public class MultiGrfReader : IDisposable {
 		private readonly Dictionary<string, byte[]> _bufferedData = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<string, GrfHolder> _containers = new Dictionary<string, GrfHolder>(StringComparer.OrdinalIgnoreCase);
 		private readonly MultiFileTable _multiFileTable;
-		private readonly List<string> _paths = new List<string>();
+		private readonly List<MultiGrfPath> _paths = new List<MultiGrfPath>();
 		private bool _disposed;
 		public bool CurrentGrfAlwaysFirst { get; set; }
 
@@ -29,7 +39,7 @@ namespace GRF.Core.GroupedGrf {
 			get { return _containers; }
 		}
 
-		public ReadOnlyCollection<string> Paths {
+		public ReadOnlyCollection<MultiGrfPath> Paths {
 			get { return _paths.AsReadOnly(); }
 		}
 
@@ -41,20 +51,20 @@ namespace GRF.Core.GroupedGrf {
 
 		#endregion
 
-		public void Update(List<TkPath> paths, GrfHolder extraGrf = null) {
+		public void Update(List<MultiGrfPath> paths, GrfHolder extraGrf = null) {
 			_openGrfs(paths, extraGrf);
 		}
 
 		public void Update(string path) {
-			Update(new List<TkPath> {new TkPath(path)});
+			Update(new List<MultiGrfPath> { new MultiGrfPath(path) });
 		}
 
 		public void Update(GrfHolder grf) {
-			Update(new List<TkPath> {new TkPath(GrfStrings.CurrentlyOpenedGrf + grf.FileName)}, grf);
+			Update(new List<MultiGrfPath> { new MultiGrfPath(grf.FileName) { IsCurrentlyLoadedGrf = true }}, grf);
 		}
 
 		public void Add(string path) {
-			_openGrfs(new List<TkPath> { new TkPath(path) }, null, false);
+			_openGrfs(new List<MultiGrfPath> { new MultiGrfPath(path) }, null, false);
 		}
 
 		public void Reload() {
@@ -100,7 +110,7 @@ namespace GRF.Core.GroupedGrf {
 			return null;
 		}
 
-		private void _openGrfs(List<TkPath> paths, GrfHolder extraGrf, bool clear = true) {
+		private void _openGrfs(List<MultiGrfPath> paths, GrfHolder extraGrf, bool clear = true) {
 			try {
 				if (clear) {
 					_paths.Clear();
@@ -113,14 +123,12 @@ namespace GRF.Core.GroupedGrf {
 
 					_containers.Clear();
 
-					foreach (var path in paths) {
-						var cleanPath = path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrf, "");
-
-						if (copy.ContainsKey(cleanPath)) {
-							if (copy[cleanPath] == extraGrf)	// Never keep the current GRF
+					foreach (var resource in paths) {
+						if (copy.ContainsKey(resource.Path)) {
+							if (copy[resource.Path] == extraGrf)	// Never keep the current GRF
 								continue;
-							_containers[cleanPath] = copy[cleanPath];
-							copy[cleanPath].Attached["MultiGrfRreader.Delete"] = false;
+							_containers[resource.Path] = copy[resource.Path];
+							copy[resource.Path].Attached["MultiGrfRreader.Delete"] = false;
 						}
 					}
 
@@ -135,28 +143,28 @@ namespace GRF.Core.GroupedGrf {
 					copy.Clear();
 				}
 
-				foreach (TkPath resource in paths) {
-					if ((!String.IsNullOrEmpty(resource.FilePath)) && File.Exists(resource.FilePath)) {
-						_paths.Add(resource.FilePath);
-
-						if (!_containers.ContainsKey(resource.FilePath)) {
-							GrfHolder grf = new GrfHolder();
-							grf.Open(resource.FilePath);
-							_containers[resource.FilePath] = grf;
-						}
-					}
-					else if (resource.FilePath.StartsWith(GrfStrings.CurrentlyOpenedGrf)) {
+				foreach (var resource in paths) {
+					if (resource.IsCurrentlyLoadedGrf) {
 						if (CurrentGrfAlwaysFirst)
-							_paths.Insert(0, extraGrf.FileName);
+							_paths.Insert(0, new MultiGrfPath(extraGrf.FileName) { IsCurrentlyLoadedGrf = true });
 						else
-							_paths.Add(extraGrf.FileName);
+							_paths.Add(new MultiGrfPath(extraGrf.FileName) { IsCurrentlyLoadedGrf = true });
 
 						if (!_containers.ContainsKey(extraGrf.FileName)) {
 							_containers[extraGrf.FileName] = extraGrf;
 						}
 					}
+					else if ((!String.IsNullOrEmpty(resource.Path)) && File.Exists(resource.Path)) {
+						_paths.Add(resource);
+
+						if (!_containers.ContainsKey(resource.Path)) {
+							GrfHolder grf = new GrfHolder();
+							grf.Open(resource.Path);
+							_containers[resource.Path] = grf;
+						}
+					}
 					else {
-						_paths.Add(resource.FilePath);
+						_paths.Add(resource);
 					}
 				}
 			}

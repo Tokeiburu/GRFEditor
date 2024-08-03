@@ -60,24 +60,24 @@ namespace GRF.Graphics {
 		public float this[int index] {
 			get {
 				if (index == 0)
-					return this.X;
+					return X;
 				if (index == 1)
-					return this.Y;
+					return Y;
 				if (index == 2)
-					return this.Z;
+					return Z;
 				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
 			}
 			set {
 				if (index == 0) {
-					this.X = value;
+					X = value;
 				}
 				else if (index == 1) {
-					this.Y = value;
+					Y = value;
 				}
 				else {
 					if (index != 2)
 						throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
-					this.Z = value;
+					Z = value;
 				}
 			}
 		}

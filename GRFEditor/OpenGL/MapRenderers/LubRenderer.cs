@@ -6,7 +6,6 @@ using System.Linq;
 using ErrorManager;
 using GRF.FileFormats.LubFormat;
 using GRF.FileFormats.RswFormat;
-using GRF.Graphics;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using Lua;

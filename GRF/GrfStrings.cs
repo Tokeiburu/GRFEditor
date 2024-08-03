@@ -39,6 +39,7 @@ namespace GRF {
 		public const string DisplayNullCompression = "No compression (debug mode)";
 		public const string RecoveryCompression = "Force decompression (Recovery)";
 		public const string CustomCompression = "Custom compression...";
+		public const string CustomEncryption = "Custom encryption...";
 		#endregion
 
 		#region Encryption
@@ -63,7 +64,8 @@ namespace GRF {
 		public const string DisplayNoFileType =  "None";
 		public const string EncryptionFilename = "__encryption.info";
 		public const string RgzRoot = "root\\";
-		public const string CurrentlyOpenedGrf = "Loaded: ";	// Used by MultiGrfReader
+		public const string CurrentlyOpenedGrfHeader = "Loaded: ";	// Used by MultiGrfReader
+		public const string CurrentlyOpenedGrfTag = "CURRENTLY_LOADED";	// Used by MultiGrfReader
 		public const string NoExceptions = "No exceptions.";
 		public const string DataStreamId = "[data stream]";
 		public const string EncryptionDbFile = "_encryptiondb.grf";

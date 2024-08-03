@@ -101,7 +101,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 				return Matrix4.CreateOrthographicOffCenter(-w, w, -h, h, -5000f, 5000f);
 			}
 
-			//ZFar = _viewport.RenderOptions.UseClientPov ? 7000f : 5000f;
 			ZFar = 99999f;
 			float fovy = GLHelper.ToRad(_viewport.RenderOptions.UseClientPov ? 15 : 45);
 

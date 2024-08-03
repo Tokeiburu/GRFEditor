@@ -4,6 +4,7 @@ using System.Linq;
 using GRF.FileFormats.ActFormat;
 using GRF.Graphics;
 using Utilities.IndexProviders;
+using Action = GRF.FileFormats.ActFormat.Action;
 
 namespace GRF.Image {
 	public class Margin {
@@ -79,7 +80,7 @@ namespace GRF.Image {
 			var x = 0;
 			var y = 0;
 
-			shadowAct.Actions.Add(new FileFormats.ActFormat.Action());
+			shadowAct.Actions.Add(new Action());
 			shadowAct[0].Frames.Add(new Frame());
 			shadowAct[0, 0].Layers.Add(new Layer());
 			shadowAct[0, 0, 0].SpriteIndex = 0;

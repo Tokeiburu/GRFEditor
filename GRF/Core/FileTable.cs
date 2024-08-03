@@ -350,10 +350,10 @@ namespace GRF.Core {
 
 					if (header.EncryptFileTable) {
 						if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataCompressed)) {
-							Ee322.ebfd0ac060c6a005e565726f05d6aac8(header.EncryptionKey, dataCompressed, TableSize + 8);
+							Encryption.Encrypt(header.EncryptionKey, dataCompressed, TableSize + 8);
 
 							if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataCompressed))
-								Ee322.f8881b1c7355d58161c07ae1c35cfb13(header.EncryptionKey, dataCompressed, TableSize + 8);
+								Encryption.Decrypt(header.EncryptionKey, dataCompressed, TableSize + 8);
 						}
 					}
 

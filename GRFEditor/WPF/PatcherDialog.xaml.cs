@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using ErrorManager;
 using GRF.Core;
-using GRF.FileFormats.ActFormat;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge.Application;
@@ -13,7 +12,6 @@ using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
 using Utilities.Services;
-using Action = GRF.FileFormats.ActFormat.Action;
 
 namespace GRFEditor.WPF {
 	/// <summary>

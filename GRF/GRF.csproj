@@ -127,6 +127,7 @@
     <Compile Include="ContainerFormat\Commands\CommandsHolder.cs" />
     <Compile Include="ContainerFormat\Commands\AddFilesToRemove.cs" />
     <Compile Include="ContainerFormat\ContainerResources.cs" />
+    <Compile Include="Core\Encryption.cs" />
     <Compile Include="Core\Enums\ExtractOptions.cs" />
     <Compile Include="Core\Enums\SavingMode.cs" />
     <Compile Include="Core\Enums\SyncMode.cs" />
@@ -192,6 +193,7 @@
     <Compile Include="Image\Decoders\PngDecoder.cs" />
     <Compile Include="Image\SpriteSheetGenerator.cs" />
     <Compile Include="IO\GrfMemoryStream.cs" />
+    <Compile Include="IO\ImageFileHeader.cs" />
     <Compile Include="MultiType.cs" />
     <Compile Include="Core\GrfCompression\RecoveryCompression.cs" />
     <Compile Include="Core\GrfCompression\LzmaCompression.cs" />
@@ -356,7 +358,7 @@
     <Compile Include="IO\ThreadSetLzma.cs" />
     <Compile Include="IO\EntrySearchNode.cs" />
     <Compile Include="IO\LineTextReader.cs" />
-    <Compile Include="IO\ThreadCompressFiles.cs" />
+    <Compile Include="Threading\ThreadCompressFiles.cs" />
     <Compile Include="IO\ThreadSetEncryption.cs" />
     <Compile Include="IO\TableDictionary.cs" />
     <Compile Include="IO\IBinaryReader.cs" />

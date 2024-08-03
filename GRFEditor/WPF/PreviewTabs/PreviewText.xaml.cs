@@ -98,10 +98,20 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private void _textEditor_TextChanged(object sender, EventArgs e) {
 			try {
+				if (_buttonSave.IsButtonEnabled)
+					return;
+
 				string ext = _entry.RelativePath.GetExtension();
 
-				if (ext == ".txt" || ext == ".log" || ext == ".xml" || ext == ".lua" || ext == ".json" || ext == ".ezv") {
-					_buttonSave.IsButtonEnabled = true;
+				switch(ext) {
+					case ".txt":
+					case ".log":
+					case ".xml":
+					case ".lua":
+					case ".json":
+					case ".ezv":
+						_buttonSave.IsButtonEnabled = true;
+						break;
 				}
 			}
 			catch {

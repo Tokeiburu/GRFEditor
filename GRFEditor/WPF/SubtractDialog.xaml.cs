@@ -9,7 +9,6 @@ using GRF.Core;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using TokeiLibrary;
-using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
 using Utilities.Services;

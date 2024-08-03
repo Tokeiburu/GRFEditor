@@ -6,7 +6,6 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using ErrorManager;
 using GRF;
 using GRF.Core;
@@ -159,6 +158,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			gndTextureNode.Dispatcher.Invoke(new Action(delegate {
 				gndTextureNode.CheckBoxHeaderIsEnabled = false;
 				gndTextureNode.ResourcePath = null;
+				gndTextureNode.RelativeGrfPath = null;
 			}));
 		}
 
@@ -310,6 +310,7 @@ namespace GRFEditor.Tools.MapExtractor {
 					var path = GrfEditorConfiguration.Resources.MultiGrf.FindTkPath(relativePath);
 
 					mainNode.ResourcePath = path;
+					mainNode.RelativeGrfPath = relativePath;
 
 					if (parent != null)
 						parent.Items.Add(mainNode);
@@ -411,8 +412,8 @@ namespace GRFEditor.Tools.MapExtractor {
 					}
 				}
 				else {
-					if (node.IsChecked == true) {
-						paths.Add(new Utilities.Extension.Tuple<TkPath, string>(node.ResourcePath, node.ResourcePath.RelativePath));
+					if (node.IsChecked == true && node.CheckBoxHeaderIsEnabled) {
+						paths.Add(new Utilities.Extension.Tuple<TkPath, string>(node.ResourcePath, node.RelativeGrfPath));
 					}
 
 					foreach (MapExtractorTreeViewItem mapNode in node.Items) {
@@ -546,16 +547,22 @@ namespace GRFEditor.Tools.MapExtractor {
 
 		private void _menuItemsSelectInExplorer_Click(object sender, RoutedEventArgs e) {
 			try {
-				TkPath path = ((MapExtractorTreeViewItem)_treeViewMapExtractor.SelectedItem).ResourcePath;
+				var node = (MapExtractorTreeViewItem)_treeViewMapExtractor.SelectedItem;
+				TkPath path = node.ResourcePath;
 
 				if (path == null) {
 					ErrorHandler.HandleException("This file isn't present in the currently opened GRF.", ErrorLevel.Low);
 					return;
 				}
 
-				var destinationPath = GrfPath.Combine(Configuration.OverrideExtractionPath ? Configuration.DefaultExtractingPath : Path.GetDirectoryName(new FileInfo(_grf.FileName).FullName), path.RelativePath);
+				var destinationPath = GrfPath.Combine(Configuration.OverrideExtractionPath ? Configuration.DefaultExtractingPath : Path.GetDirectoryName(new FileInfo(_grf.FileName).FullName), node.RelativeGrfPath);
 
-				OpeningService.FileOrFolder(destinationPath);
+				if (path.RelativePath == null) {
+					OpeningService.FileOrFolder(path.FilePath);
+				}
+				else {
+					OpeningService.FileOrFolder(destinationPath);
+				}
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);

@@ -416,7 +416,7 @@ namespace GRF.FileFormats.RsmFormat {
 
 		public string GetAbsoluteTexture(int relativeId) {
 			if (Model.Header.IsCompatibleWith(2, 3)) {
-				return this.Textures[_textureIndexes[relativeId]];
+				return Textures[_textureIndexes[relativeId]];
 			}
 			else {
 				return Model.Textures[_textureIndexes[relativeId]];

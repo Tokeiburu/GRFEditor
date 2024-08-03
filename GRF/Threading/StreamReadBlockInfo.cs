@@ -68,7 +68,7 @@ namespace GRF.Threading {
 			for (int i = 0; i < blocks.Count; i++) {
 				bi = blocks[i];
 
-				stream.Seek((uint) bi.StreamPosition, SeekOrigin.Begin);
+				stream.Seek(bi.StreamPosition, SeekOrigin.Begin);
 				stream.Read(data, bi.BufferPosition, bi.StreamReadLength);
 			}
 
@@ -134,12 +134,12 @@ namespace GRF.Threading {
 				bi = blocks[i];
 
 				if (bi.BufferLength == bi.StreamReadLength) {
-					stream.Seek((uint)bi.StreamPosition, SeekOrigin.Begin);
+					stream.Seek(bi.StreamPosition, SeekOrigin.Begin);
 					stream.Read(data, bi.BufferPosition, bi.StreamReadLength);
 				}
 				else {
 					byte[] streamData = new byte[bi.StreamReadLength];
-					stream.Seek((uint)bi.StreamPosition, SeekOrigin.Begin);
+					stream.Seek(bi.StreamPosition, SeekOrigin.Begin);
 					stream.Read(streamData, 0, bi.StreamReadLength);
 
 					for (int j = bi.From, top = bi.To; j < top; ) {
@@ -243,12 +243,12 @@ namespace GRF.Threading {
 				bi = blocks[i];
 
 				if (bi.BufferLength == bi.StreamReadLength) {
-					stream.Seek((uint)bi.StreamPosition, SeekOrigin.Begin);
+					stream.Seek(bi.StreamPosition, SeekOrigin.Begin);
 					stream.Read(data, bi.BufferPosition, bi.StreamReadLength);
 				}
 				else {
 					byte[] streamData = new byte[bi.StreamReadLength];
-					stream.Seek((uint)bi.StreamPosition, SeekOrigin.Begin);
+					stream.Seek(bi.StreamPosition, SeekOrigin.Begin);
 					stream.Read(streamData, 0, bi.StreamReadLength);
 
 					for (int j = bi.From, top = bi.To; j < top;) {

@@ -11,7 +11,6 @@ using ErrorManager;
 using GRF;
 using GRF.Core;
 using GRF.Core.GroupedGrf;
-using GRF.Graphics;
 using GRF.IO;
 using GRF.Image;
 using GRF.System;
@@ -147,7 +146,7 @@ namespace GRFEditor.ApplicationConfiguration {
 			private MultiGrfReader _multiGrf = new MultiGrfReader();
 			private bool _loaded = false;
 			private bool _modified = false;
-			private List<string> _resources = new List<string>();
+			private List<MultiGrfPath> _resources = new List<MultiGrfPath>();
 			private bool _threadLoad = false;
 			private bool _firstLoad;
 
@@ -191,38 +190,40 @@ namespace GRFEditor.ApplicationConfiguration {
 				OnModified();
 			}
 
-			public List<string> LoadResources() {
+			/// <summary>
+			/// Loads the GRF resource paths from the configuration file.
+			/// </summary>
+			/// <returns>A list of the GRF resource paths.</returns>
+			public List<MultiGrfPath> LoadResources() {
 				if (!Dirty)
 					return _resources;
 
-				bool currentFound = false;
-				var items = Methods.StringToList(_mapExtractorResources);
+				var items = Methods.StringToList(_mapExtractorResources).Select(p => new MultiGrfPath(p) { FromConfiguration = true, IsCurrentlyLoadedGrf = false }).ToList();
 
+				// Remove this old system
 				for (int i = 0; i < items.Count; i++) {
-					if (items[i].StartsWith(GrfStrings.CurrentlyOpenedGrf)) {
-						items[i] = items[i].Replace(GrfStrings.CurrentlyOpenedGrf, "");
-					}
-
-					// Changed strings at some point, bandaid.
-					if (items[i].StartsWith("Currently opened GRF: ")) {
-						items[i] = items[i].Replace("Currently opened GRF: ", "");
-					}
-
-					if (items[i].StartsWith("Currently opened GRF : ")) {
-						items[i] = items[i].Replace("Currently opened GRF : ", "");
-					}
-
-					if (_grf != null && items[i] == _grf.FileName) {
-						items[i] = GrfStrings.CurrentlyOpenedGrf + items[i];
-						currentFound = true;
+					if (items[i].Path.StartsWith(GrfStrings.CurrentlyOpenedGrfHeader) ||
+						items[i].Path.StartsWith("Currently opened GRF: ") ||
+						items[i].Path.StartsWith("Currently opened GRF : ")) {
+						items.RemoveAt(i);
+						i--;
 					}
 				}
 
-				if (!currentFound && _grf != null) {
-					items.Insert(0, GrfStrings.CurrentlyOpenedGrf + _grf.FileName);
+				bool loadedGrf = false;
+
+				// Mark the currently opened GRF
+				for (int i = 0; i < items.Count; i++) {
+					if (items[i].Path == _grf.FileName) {
+						items[i].IsCurrentlyLoadedGrf = true;
+						loadedGrf = true;
+					}
 				}
 
-				_resources = items;
+				if (!loadedGrf)
+					items.Insert(0, new MultiGrfPath(_grf.FileName) { FromConfiguration = false, IsCurrentlyLoadedGrf = true });
+
+				_resources = items.ToList();
 				return items;
 			}
 
@@ -230,10 +231,21 @@ namespace GRFEditor.ApplicationConfiguration {
 				try {
 					if (!Dirty)
 						return;
-					var paths = LoadResources().Select(p => new TkPath(p, null)).ToList();
+					var paths = LoadResources();
+
+					// When loading the GRFs, always make the open one to the front
+					for (int i = 1; i < paths.Count; i++) {
+						if (paths[i].IsCurrentlyLoadedGrf) {
+							paths.Insert(0, paths[i]);
+							paths.RemoveAt(i + 1);
+							break;
+						}
+					}
+
 					_multiGrf.Update(paths, _grf);
 					_modified = false;
 					_loaded = true;
+					OnModified();
 				}
 				finally {
 					_threadLoad = false;
@@ -296,7 +308,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.7.1"; }
+			get { return "1.8.7.4"; }
 		}
 
 		public static string Author {

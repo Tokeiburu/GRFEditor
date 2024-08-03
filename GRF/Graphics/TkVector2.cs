@@ -50,19 +50,19 @@ namespace GRF.Graphics {
 		public float this[int index] {
 			get {
 				if (index == 0)
-					return this.X;
+					return X;
 				if (index == 1)
-					return this.Y;
+					return Y;
 				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
 			}
 			set {
 				if (index == 0) {
-					this.X = value;
+					X = value;
 				}
 				else {
 					if (index != 1)
 						throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
-					this.Y = value;
+					Y = value;
 				}
 			}
 		}
@@ -150,16 +150,16 @@ namespace GRF.Graphics {
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Add() method instead.")]
 		public void Add(TkVector2 right) {
-			this.X += right.X;
-			this.Y += right.Y;
+			X += right.X;
+			Y += right.Y;
 		}
 
 		/// <summary>Add the Vector passed as parameter to this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Add() method instead.")]
 		public void Add(ref TkVector2 right) {
-			this.X += right.X;
-			this.Y += right.Y;
+			X += right.X;
+			Y += right.Y;
 		}
 
 		#endregion public void Add()
@@ -170,16 +170,16 @@ namespace GRF.Graphics {
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Subtract() method instead.")]
 		public void Sub(TkVector2 right) {
-			this.X -= right.X;
-			this.Y -= right.Y;
+			X -= right.X;
+			Y -= right.Y;
 		}
 
 		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
 		/// <param name="right">Right operand. This parameter is only read from.</param>
 		[Obsolete("Use static Subtract() method instead.")]
 		public void Sub(ref TkVector2 right) {
-			this.X -= right.X;
-			this.Y -= right.Y;
+			X -= right.X;
+			Y -= right.Y;
 		}
 
 		#endregion public void Sub()
@@ -190,8 +190,8 @@ namespace GRF.Graphics {
 		/// <param name="f">Scalar operand.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Mult(float f) {
-			this.X *= f;
-			this.Y *= f;
+			X *= f;
+			Y *= f;
 		}
 
 		#endregion public void Mult()
@@ -203,8 +203,8 @@ namespace GRF.Graphics {
 		[Obsolete("Use static Divide() method instead.")]
 		public void Div(float f) {
 			float mult = 1.0f / f;
-			this.X *= mult;
-			this.Y *= mult;
+			X *= mult;
+			Y *= mult;
 		}
 
 		#endregion public void Div()
@@ -294,7 +294,7 @@ namespace GRF.Graphics {
 		/// Scales the Vector2 to unit length.
 		/// </summary>
 		public void Normalize() {
-			float scale = 1.0f / this.Length;
+			float scale = 1.0f / Length;
 			X *= scale;
 			Y *= scale;
 		}
@@ -323,24 +323,24 @@ namespace GRF.Graphics {
 		/// <param name="sy">The scale of the Y component.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(float sx, float sy) {
-			this.X = X * sx;
-			this.Y = Y * sy;
+			X = X * sx;
+			Y = Y * sy;
 		}
 
 		/// <summary>Scales this instance by the given parameter.</summary>
 		/// <param name="scale">The scaling of the individual components.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(TkVector2 scale) {
-			this.X *= scale.X;
-			this.Y *= scale.Y;
+			X *= scale.X;
+			Y *= scale.Y;
 		}
 
 		/// <summary>Scales this instance by the given parameter.</summary>
 		/// <param name="scale">The scaling of the individual components.</param>
 		[Obsolete("Use static Multiply() method instead.")]
 		public void Scale(ref TkVector2 scale) {
-			this.X *= scale.X;
-			this.Y *= scale.Y;
+			X *= scale.X;
+			Y *= scale.Y;
 		}
 
 		#endregion public void Scale()
@@ -1046,7 +1046,7 @@ namespace GRF.Graphics {
 			if (!(obj is TkVector2))
 				return false;
 
-			return this.Equals((TkVector2)obj);
+			return Equals((TkVector2)obj);
 		}
 
 		#endregion

@@ -5,8 +5,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using ErrorManager;
@@ -17,9 +15,6 @@ using GRF.Graphics;
 using GRF.Image;
 using GrfToWpfBridge.TreeViewManager;
 using TokeiLibrary;
-using TokeiLibrary.WPF;
-using Utilities;
-using Utilities.Extension;
 using Utilities.Services;
 
 namespace GRFEditor.WPF.PreviewTabs {

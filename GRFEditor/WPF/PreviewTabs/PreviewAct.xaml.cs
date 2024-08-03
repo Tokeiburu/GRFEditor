@@ -13,7 +13,6 @@ using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.FileFormats.ActFormat;
-using GRF.Image;
 using GRF.IO;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
@@ -235,7 +234,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			if (actionIndex < 0)
 				return;
 
-			if ((int) _act[actionIndex].AnimationSpeed * 25 == 0 ||
+			if ((int) _act[actionIndex].AnimationSpeed * 24 == 0 ||
 			    float.IsNaN(_act[actionIndex].AnimationSpeed)) {
 				if (_act[actionIndex].Frames[0].Layers[0].SpriteIndex < 0) {
 					_imagePreview.Dispatch(p => p.Source = null);
@@ -245,7 +244,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_imagePreview.Dispatch(p => p.Source = _act.Sprite.Images[_act[actionIndex].Frames[0].Layers[0].SpriteIndex].Cast<BitmapSource>());
 			}
 			else {
-				_actThreadSleepDelay = (int) (_act[actionIndex].AnimationSpeed * 25);
+				_actThreadSleepDelay = (int) (_act[actionIndex].AnimationSpeed * 24);
 			}
 
 			_enableActThread = true;
@@ -357,7 +356,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					if (actionIndex < 0)
 						return;
 
-					if ((int) _act[actionIndex].AnimationSpeed * 25 == 0 ||
+					if ((int) _act[actionIndex].AnimationSpeed * 24 == 0 ||
 					    float.IsNaN(_act[actionIndex].AnimationSpeed)) {
 						if (_act[actionIndex].Frames[0].Layers[0].SpriteIndex < 0) {
 							_imagePreview.Source = null;
@@ -367,7 +366,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 						_imagePreview.Source = _act.Sprite.Images[_act[actionIndex].Frames[0].Layers[0].SpriteIndex].Cast<BitmapSource>();
 					}
 					else {
-						_actThreadSleepDelay = (int) (_act[actionIndex].AnimationSpeed * 25);
+						_actThreadSleepDelay = (int) (_act[actionIndex].AnimationSpeed * 24);
 					}
 
 					_actionIndex = actionIndex;

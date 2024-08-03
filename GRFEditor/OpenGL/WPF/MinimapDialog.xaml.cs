@@ -4,7 +4,6 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Windows;
 using ErrorManager;
-using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;

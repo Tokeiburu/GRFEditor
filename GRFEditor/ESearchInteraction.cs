@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -12,7 +10,6 @@ using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
 using GRF.Threading;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.OpenGL.MapComponents;
 using GrfToWpfBridge;

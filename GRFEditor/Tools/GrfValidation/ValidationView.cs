@@ -2,7 +2,6 @@
 using System.IO;
 using ErrorManager;
 using TokeiLibrary;
-using Utilities.Extension;
 
 namespace GRFEditor.Tools.GrfValidation {
 	public class ValidationView {

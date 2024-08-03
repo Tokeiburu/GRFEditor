@@ -1,5 +1,4 @@
-﻿using GRFEditor.Tools.SpriteEditor;
-using TokeiLibrary.Paths;
+﻿using TokeiLibrary.Paths;
 using Utilities;
 
 namespace GRFEditor.ApplicationConfiguration {

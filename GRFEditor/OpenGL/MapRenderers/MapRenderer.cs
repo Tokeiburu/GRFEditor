@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows.Controls;
 using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
-using GRF.Graphics;
 using GRF.Threading;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
@@ -15,55 +14,6 @@ using Matrix4 = OpenTK.Matrix4;
 using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
-	public class MapRendererOptions {
-		public bool Water { get; set; }
-		public bool Ground { get; set; }
-		public bool Objects { get; set; }
-		public bool AnimateMap { get; set; }
-		public bool Lightmap { get; set; }
-		public bool Shadowmap { get; set; }
-		public bool ShowFps { get; set; }
-		public bool ShowBlackTiles { get; set; }
-		public bool LubEffect { get; set; }
-		public bool ViewStickToGround { get; set; }
-		public bool UseClientPov { get; set; }
-		public bool RenderSkymapFeature { get; set; }
-		public bool RenderSkymapDetected { get; set; }
-		public bool RenderingMap { get; set; }
-		public bool SmoothCamera { get; set; }
-		public int FpsCap { get; set; }
-		public bool EnableFaceCulling { get; set; }
-		public bool MinimapMode { get; set; }
-		public bool MinimapWaterOverride { get; set; }
-		public int ForceShader { get; set; }
-
-		public Vector4 SkymapBackgroundColor = new Vector4(102, 152, 204, 255) / 255f;	// rbga
-		public Vector4 MinimapWaterColor = new Vector4(0, 0, 128, 144) / 255f;	// rgba
-		public Vector4 MinimapWalkColor = new Vector4(0.5f, 0.5f, 0.5f, 1f);
-		public Vector4 MinimapNonWalkColor = new Vector4(0, 0, 0, 0.4f);
-
-		public MapRendererOptions() {
-			Water = true;
-			Ground = true;
-			Objects = true;
-			AnimateMap = true;
-			Lightmap = true;
-			Shadowmap = true;
-			ShowFps = false;
-			ShowBlackTiles = false;
-			LubEffect = true;
-			ViewStickToGround = true;
-			UseClientPov = false;
-			RenderSkymapFeature = true;
-			RenderSkymapDetected = true;
-			SmoothCamera = true;
-			FpsCap = 60;
-			EnableFaceCulling = false;
-			MinimapMode = false;
-			MinimapWaterOverride = false;
-		}
-	}
-
 	public class MapRenderer : Renderer {
 		private readonly RendererLoadRequest _request;
 		private readonly Rsw _rsw;
@@ -509,7 +459,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 		private void _initMeshInfo(Mesh mesh, ref Matrix4 matrix) {
 			Dictionary<int, Dictionary<int, List<Vertex>>> allVerts;
-			//asdf
+			
 			if (!Verts.TryGetValue(mesh.Model.ShadeType, out allVerts)) {
 				allVerts = new Dictionary<int, Dictionary<int, List<Vertex>>>();
 				Verts[mesh.Model.ShadeType] = allVerts;

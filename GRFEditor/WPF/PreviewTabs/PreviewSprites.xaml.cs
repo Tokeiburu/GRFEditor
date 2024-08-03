@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -11,11 +10,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.Core;
-using GRF.FileFormats.SprFormat;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
-using GRFEditor.Tools.GrfValidation;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.WPF;

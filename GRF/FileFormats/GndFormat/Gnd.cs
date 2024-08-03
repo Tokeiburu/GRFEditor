@@ -5,6 +5,7 @@ using System.IO;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats.RswFormat;
+using GRF.Image;
 using GRF.IO;
 using Utilities.Extension;
 
@@ -225,7 +226,7 @@ namespace GRF.FileFormats.GndFormat {
 					Cube cube = new Cube();
 
 					for (int l = 0; l < 3; l++) {
-						tiles[l].TileColor = new Image.GrfColor(255, 255, 255, 255);
+						tiles[l].TileColor = new GrfColor(255, 255, 255, 255);
 						tiles[l].TextureIndex = (short)data.Int32();
 					}
 

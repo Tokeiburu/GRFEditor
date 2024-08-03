@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Utilities.Extension;
-using Utilities.Parsers.Libconfig;
 
 namespace Utilities.Parsers.Yaml {
 	public class YamlParser {

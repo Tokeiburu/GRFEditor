@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using Utilities;
 
 namespace GRF.FileFormats.BsonFormat {
 	public static class Json {
@@ -107,7 +108,7 @@ namespace GRF.FileFormats.BsonFormat {
 						}
 
 						if (number.Contains(".")) {
-							return new BsonDouble(Utilities.FormatConverters.DoubleConverter(number));
+							return new BsonDouble(FormatConverters.DoubleConverter(number));
 						}
 
 						return new BsonInteger(Int32.Parse(number));

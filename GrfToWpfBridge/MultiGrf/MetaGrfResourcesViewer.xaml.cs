@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Input;
 using ErrorManager;
 using GRF;
+using GRF.Core.GroupedGrf;
 using TokeiLibrary;
 using TokeiLibrary.Paths;
 using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF;
-using TokeiLibrary.WPF.Styles;
 using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Services;
@@ -32,7 +31,7 @@ namespace GrfToWpfBridge.MultiGrf {
 
 		#endregion
 
-		private readonly ObservableCollection<TkPathView> _itemsResourcesSource = new ObservableCollection<TkPathView>();
+		private readonly ObservableCollection<MultiGrfPathView> _itemsResourcesSource = new ObservableCollection<MultiGrfPathView>();
 		private bool _canDeleteMainGrf = true;
 
 		public MetaGrfResourcesViewer() {
@@ -55,12 +54,12 @@ namespace GrfToWpfBridge.MultiGrf {
 
 		public Setting Setting { get; set; }
 
-		public List<TkPath> Paths {
-			get { return _itemsResources.Items.Cast<TkPathView>().Select(p => p.Path).ToList(); }
+		public List<MultiGrfPath> Paths {
+			get { return _itemsResources.Items.Cast<MultiGrfPathView>().Select(p => p.Resource).ToList(); }
 		}
 
 		public Action<string> SaveResourceMethod { get; set; }
-		public Func<List<string>> LoadResourceMethod { get; set; }
+		public Func<List<MultiGrfPath>> LoadResourceMethod { get; set; }
 
 		public bool CanDeleteMainGrf {
 			get { return _canDeleteMainGrf; }
@@ -85,10 +84,10 @@ namespace GrfToWpfBridge.MultiGrf {
 					_menuItemsSelectInExplorer.IsEnabled = true;
 					_menuItemsAdd.IsEnabled = true;
 
-					var view = lvi.Content as TkPathView;
+					var view = lvi.Content as MultiGrfPathView;
 
 					if (view != null) {
-						if (!CanDeleteMainGrf && view.Path.GetFullPath().StartsWith(GrfStrings.CurrentlyOpenedGrf)) {
+						if (!CanDeleteMainGrf && view.Resource.IsCurrentlyLoadedGrf) {
 							_menuItemsDelete.IsEnabled = false;
 						}
 					}
@@ -118,7 +117,7 @@ namespace GrfToWpfBridge.MultiGrf {
 					string[] files = e.Get<string[]>(DataFormats.FileDrop);
 
 					foreach (string file in files) {
-						_itemsResourcesSource.Add(new TkPathView(new TkPath { FilePath = file }));
+						_itemsResourcesSource.Add(new MultiGrfPathView(new MultiGrfPath(file)));
 					}
 
 					_saveResourcesInfo();
@@ -136,7 +135,7 @@ namespace GrfToWpfBridge.MultiGrf {
 		private void _menuItemsMoveDown_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
-					TkPathView rme = (TkPathView) _itemsResources.SelectedItem;
+					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
 
 					if (_itemsResourcesSource.Count <= 1)
 						return;
@@ -144,7 +143,7 @@ namespace GrfToWpfBridge.MultiGrf {
 					int index = _getIndex(rme);
 
 					if (index < _itemsResourcesSource.Count - 1) {
-						TkPathView old = _itemsResourcesSource[index + 1];
+						MultiGrfPathView old = _itemsResourcesSource[index + 1];
 						_itemsResourcesSource.RemoveAt(index + 1);
 						_itemsResourcesSource.Insert(index, old);
 
@@ -161,7 +160,7 @@ namespace GrfToWpfBridge.MultiGrf {
 		private void _menuItemsMoveUp_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
-					TkPathView rme = (TkPathView) _itemsResources.SelectedItem;
+					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
 
 					if (_itemsResourcesSource.Count <= 1)
 						return;
@@ -169,7 +168,7 @@ namespace GrfToWpfBridge.MultiGrf {
 					int index = _getIndex(rme);
 
 					if (index > 0) {
-						TkPathView old = _itemsResourcesSource[index - 1];
+						MultiGrfPathView old = _itemsResourcesSource[index - 1];
 						_itemsResourcesSource.RemoveAt(index - 1);
 						_itemsResourcesSource.Insert(index, old);
 
@@ -189,7 +188,7 @@ namespace GrfToWpfBridge.MultiGrf {
 
 				if (paths != null && paths.Length > 0) {
 					foreach (string file in paths) {
-						_itemsResourcesSource.Add(new TkPathView(new TkPath { FilePath = file }));
+						_itemsResourcesSource.Add(new MultiGrfPathView(new MultiGrfPath(file)));
 					}
 
 					_saveResourcesInfo();
@@ -204,9 +203,9 @@ namespace GrfToWpfBridge.MultiGrf {
 		private void _menuItemsSelectInExplorer_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
-					TkPathView rme = (TkPathView) _itemsResources.SelectedItem;
+					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
 
-					OpeningService.FilesOrFolders(new string[] { rme.Path.FilePath.Replace(GrfStrings.CurrentlyOpenedGrf, "") });
+					OpeningService.FilesOrFolders(new string[] { rme.Resource.Path });
 				}
 			}
 			catch (Exception err) {
@@ -219,9 +218,9 @@ namespace GrfToWpfBridge.MultiGrf {
 				int deletedCount = 0;
 
 				for (int index = 0; index < _itemsResources.SelectedItems.Count; index++) {
-					TkPathView rme = (TkPathView) _itemsResources.SelectedItems[index];
+					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItems[index];
 
-					if (!CanDeleteMainGrf && rme.Path.GetFullPath().StartsWith(GrfStrings.CurrentlyOpenedGrf)) {
+					if (!CanDeleteMainGrf && rme.Resource.IsCurrentlyLoadedGrf) {
 						continue;
 					}
 
@@ -241,11 +240,16 @@ namespace GrfToWpfBridge.MultiGrf {
 		}
 
 		private void _saveResourcesInfo() {
-			if (SaveResourceMethod != null)
-				SaveResourceMethod(Methods.ListToString(_itemsResourcesSource.Select(p => p.Path.GetFullPath()).ToList()));
+			if (SaveResourceMethod != null) {
+				// From configuration is always saved
+				// If not from either, then it was manually added
+				var t = _itemsResourcesSource.Where(p => p.Resource.FromConfiguration || (!p.Resource.FromConfiguration && !p.Resource.IsCurrentlyLoadedGrf)).Select(p => p.Resource.Path).ToList();
+				SaveResourceMethod(Methods.ListToString(t));
+				LoadResourcesInfo();
+			}
 		}
 
-		private int _getIndex(TkPathView rme) {
+		private int _getIndex(MultiGrfPathView rme) {
 			for (int i = 0; i < _itemsResourcesSource.Count; i++) {
 				if (_itemsResourcesSource[i] == rme)
 					return i;
@@ -265,12 +269,12 @@ namespace GrfToWpfBridge.MultiGrf {
 
 					bool needsVisualReload = false;
 
-					List<string> resources = LoadResourceMethod();
+					var resources = LoadResourceMethod();
 
 					if (resources.Count == _itemsResourcesSource.Count) {
 						for (int index = 0; index < resources.Count; index++) {
-							string resourcePath = resources[index];
-							if (_itemsResourcesSource[index].Path.GetFullPath() != resourcePath) {
+							string resourcePath = resources[index].Path;
+							if (_itemsResourcesSource[index].Resource.Path != resourcePath) {
 								needsVisualReload = true;
 								break;
 							}
@@ -283,8 +287,8 @@ namespace GrfToWpfBridge.MultiGrf {
 					if (needsVisualReload) {
 						_itemsResourcesSource.Clear();
 
-						foreach (string resourcePath in LoadResourceMethod()) {
-							_itemsResourcesSource.Add(new TkPathView(new TkPath(resourcePath)));
+						foreach (var resourcePath in LoadResourceMethod()) {
+							_itemsResourcesSource.Add(new MultiGrfPathView(resourcePath));
 						}
 
 						OnModified();

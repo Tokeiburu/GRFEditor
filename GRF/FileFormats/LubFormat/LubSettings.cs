@@ -1,6 +1,4 @@
-﻿using Utilities;
-
-namespace GRF.FileFormats.LubFormat {
+﻿namespace GRF.FileFormats.LubFormat {
 	public class LubSettings {
 		private bool _groupIfAllKeyValues;
 		private bool? _oldGroupIfAllKeyValues;

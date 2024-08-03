@@ -590,7 +590,7 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 			if (Execution == null)
 				return false;
 
-			this.RemoveChildReference(Execution);
+			RemoveChildReference(Execution);
 			_removeExecutionLine();
 			return true;
 		}
@@ -616,7 +616,7 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 						return;
 					}
 
-					if (this.IsMergeElseIf()) {
+					if (IsMergeElseIf()) {
 						return;
 					}
 

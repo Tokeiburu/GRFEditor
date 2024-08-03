@@ -138,6 +138,7 @@
     <Compile Include="OpenGL\MapComponents\Camera.cs" />
     <Compile Include="OpenGL\MapComponents\GndFormat.cs" />
     <Compile Include="OpenGL\MapComponents\Ray.cs" />
+    <Compile Include="OpenGL\MapComponents\RendererOptions.cs" />
     <Compile Include="OpenGL\MapComponents\RenderInfo.cs" />
     <Compile Include="OpenGL\MapComponents\ResourceManager.cs" />
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />

@@ -7,13 +7,11 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using GRFEditor.ApplicationConfiguration;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
 using TokeiLibrary;
-using Utilities;
 using Utilities.Extension;
 using SearchPanel = GRFEditor.WPF.SearchPanel;
 

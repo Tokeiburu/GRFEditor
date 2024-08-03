@@ -232,7 +232,7 @@ namespace GRF.Graphics {
 		/// Scales the TkQuaternion to unit length.
 		/// </summary>
 		public void Normalize() {
-			float scale = 1.0f / this.Length;
+			float scale = 1.0f / Length;
 			Xyz *= scale;
 			W *= scale;
 		}

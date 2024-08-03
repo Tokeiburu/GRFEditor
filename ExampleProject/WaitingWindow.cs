@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Windows.Forms;
-using GRF;
 using GRF.Threading;
 
 namespace ExampleProject {

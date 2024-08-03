@@ -16,7 +16,6 @@ using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using Utilities;
-using Utilities.CommandLine;
 using Utilities.Extension;
 
 namespace GRFEditor.Tools.Map {

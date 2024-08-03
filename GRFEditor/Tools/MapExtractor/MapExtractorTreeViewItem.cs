@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Windows;
-using System.Windows.Controls;
-using TokeiLibrary;
 using TokeiLibrary.WPF;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 
 namespace GRFEditor.Tools.MapExtractor {

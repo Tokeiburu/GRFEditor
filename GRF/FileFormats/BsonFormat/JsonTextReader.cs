@@ -25,7 +25,7 @@
 		public bool ReadUntil(char c) {
 			char d = c == '\0' ? '1' : '\0';
 
-			while (this.CanRead && (d = this.ReadChar()) != c) {
+			while (CanRead && (d = ReadChar()) != c) {
 				// skip
 			}
 
@@ -35,8 +35,8 @@
 		public void SkipSpace() {
 			bool keepReading = true;
 
-			while (keepReading && this.CanRead) {
-				switch (this.PeekChar()) {
+			while (keepReading && CanRead) {
+				switch (PeekChar()) {
 					case '\r':
 					case '\n':
 					case '\t':

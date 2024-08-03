@@ -1,5 +1,4 @@
 ﻿using System;
-using Utilities.Extension;
 
 namespace Database {
 	public class DbAttribute {

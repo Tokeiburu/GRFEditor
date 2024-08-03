@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using GRF.Core;
 using GRF.IO;
-using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using ICSharpCode.AvalonEdit.Search;
 

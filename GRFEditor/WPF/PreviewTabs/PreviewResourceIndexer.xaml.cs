@@ -149,7 +149,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 							try {
 								_subIndex = index;
-								_indexer.Add(path, GrfEditorConfiguration.Resources.MultiGrf, _update);
+								_indexer.Add(new TkPath(path.Path), GrfEditorConfiguration.Resources.MultiGrf, _update);
 							}
 							catch {
 								// May come from closing the window...!

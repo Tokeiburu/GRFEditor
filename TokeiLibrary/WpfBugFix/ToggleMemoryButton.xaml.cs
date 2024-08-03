@@ -6,7 +6,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using TokeiLibrary.WPF.Styles.ListView;
-using Utilities;
 using Utilities.Commands;
 
 namespace TokeiLibrary.WpfBugFix {
@@ -128,8 +127,8 @@ namespace TokeiLibrary.WpfBugFix {
 			var item = _listView.GetObjectAtPoint<ListViewItem>(e.GetPosition(_listView));
 
 			if (item != null) {
-				CurrentIndex = _listView.Items.IndexOf(((ListViewItem)item).Content);
-				((ListViewItem)item).Focus();
+				CurrentIndex = _listView.Items.IndexOf(item.Content);
+				item.Focus();
 			}
 			else {
 				CurrentIndex = -1;

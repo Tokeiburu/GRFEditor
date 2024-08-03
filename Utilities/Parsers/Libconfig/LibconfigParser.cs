@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Utilities.Extension;
 
 namespace Utilities.Parsers.Libconfig {
 	public class LibconfigParser {

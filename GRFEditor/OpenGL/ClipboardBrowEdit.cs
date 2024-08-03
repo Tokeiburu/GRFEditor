@@ -261,9 +261,6 @@ namespace GRFEditor.OpenGL {
 			var light = _obj as Light;
 			var effect = _obj as Effect;
 
-			if (model != null) {
-			}
-
 			switch(_obj.Type) {
 				case RswObjectType.Model:
 					b.AppendLine("     \"rotation\": [" + ClipboardBE.F2S(model.Rotation.X) + "," + ClipboardBE.F2S(model.Rotation.Y) + "," + ClipboardBE.F2S(model.Rotation.Z) + "],");

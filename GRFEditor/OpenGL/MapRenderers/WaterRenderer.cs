@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using GRF.FileFormats.RswFormat;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;

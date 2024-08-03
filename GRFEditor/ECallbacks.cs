@@ -7,7 +7,6 @@ using GRF.Core;
 using GRFEditor.Core.Services;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
-using TokeiLibrary.WPF.Styles.ListView;
 
 namespace GRFEditor {
 	public partial class EditorMainWindow : Window {

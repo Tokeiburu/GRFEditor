@@ -1,5 +1,4 @@
 ﻿using System.Windows.Controls;
-using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF.PreviewTabs;
