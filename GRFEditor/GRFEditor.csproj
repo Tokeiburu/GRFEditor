@@ -1082,6 +1082,9 @@
     <EmbeddedDlls Include="$(GrfEditorDllsPath)Utilities.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)ErrorManager.dll" Visible="false" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\cps.dll" />
+  </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />
     <Copy SourceFiles="@(EmbeddedDlls)" DestinationFolder="$(EmbeddedDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
