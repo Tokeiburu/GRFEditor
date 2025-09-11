@@ -17,6 +17,7 @@
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
             <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="auto"/>
             <ColumnDefinition />
         </Grid.ColumnDefinitions>
         <CheckBox Name="_checkBoxRenderWater" Grid.Row="0" Content="Render water" Margin="3" VerticalAlignment="Center" />
@@ -39,5 +40,7 @@
         <CheckBox Name="_checkBoxSmoothCamera" Grid.Row="2" Grid.Column="3" Content="Smooth camera" Margin="3" VerticalAlignment="Center" />
 
         <CheckBox Name="_checkBoxFSAA" Grid.Row="2" Grid.Column="1" Content="Anti-aliasing (x8)" Margin="3" VerticalAlignment="Center" />
+        
+        <CheckBox Name="_checkBoxRenderGat" Grid.Row="0" Grid.Column="4" Content="Render gat types" Margin="3" VerticalAlignment="Center" />
     </Grid>
 </Window>

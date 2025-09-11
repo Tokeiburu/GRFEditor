@@ -11,7 +11,7 @@ using GRF.Core;
 using GRF.FileFormats.GatFormat;
 using GRF.IO;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;

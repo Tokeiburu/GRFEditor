@@ -8,7 +8,7 @@ using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.Core.GrfCompression;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;

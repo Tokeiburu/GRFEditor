@@ -12,6 +12,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		Client,
 		PerspectiveOpenGL,
 		PerspectiveDirectX,
+		Orthographic,
 	}
 
 	public class Camera {
@@ -66,6 +67,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Vector2 DeltaEye;
 		public Vector3 DeltaLookAt;
 		public double DeltaDistance;
+		public float MaxDistance = 3500f;
 
 		private double _renderTimePerFrameCamera;
 
@@ -77,6 +79,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			Distance = 20;
 			_updateWatch.Start();
 			_viewport = viewport;
+			ZFar = 99999f;
 		}
 
 		public Matrix4 GetProjectionMatrix() {
@@ -101,10 +104,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 				return Matrix4.CreateOrthographicOffCenter(-w, w, -h, h, -5000f, 5000f);
 			}
 
-			ZFar = 99999f;
 			float fovy = GLHelper.ToRad(_viewport.RenderOptions.UseClientPov ? 15 : 45);
 
-			switch(Mode) {
+			switch (Mode) {
 				case CameraMode.PerspectiveDirectX:
 					float aspectRatio = _viewport._primary.Width / (float)(_viewport._primary.Height);
 					float num = (float)Math.Tan(fovy / 2.0);
@@ -113,6 +115,17 @@ namespace GRFEditor.OpenGL.MapComponents {
 					float m22 = -1.0f;
 					float offsetZ = ZNear * m22;
 					return new Matrix4(m00, 0.0f, 0.0f, 0.0f, 0.0f, m11, 0.0f, 0.0f, 0.0f, 0.0f, m22, -1.0f, 0.0f, 0.0f, offsetZ, 0.0f);
+				case CameraMode.Orthographic: {
+					float ratio = _viewport._primary.Width / (float)_viewport._primary.Height;
+					float w = (float)Distance / 2f * ratio;
+					float h = (float)Distance / 2f * 1;
+
+					return Matrix4.CreateOrthographicOffCenter(-w, w, -h, h, -ZNear, ZFar);
+					//float zoom = (float)Distance / _viewport._primary.Width;
+					//float zoomX = zoom * ratio;
+					//float zoomY = zoom * 1f;
+					//return Matrix4.CreateOrthographic(_viewport._primary.Width * zoomX, _viewport._primary.Height * zoomY, ZNear, ZFar);
+				}
 				case CameraMode.PerspectiveOpenGL:
 				default:
 					return Matrix4.CreatePerspectiveFieldOfView(fovy, _viewport._primary.Width / (float)(_viewport._primary.Height), ZNear, ZFar);
@@ -123,8 +136,12 @@ namespace GRFEditor.OpenGL.MapComponents {
 			return Matrix4.LookAt(Position, LookAt, new Vector3(0, 1, 0));
 		}
 
+		public string GetStringCopy() {
+			return Position.X + ";" + Position.Y + ";" + Position.Z + ";" + LookAt.X + ";" + LookAt.Y + ";" + LookAt.Z + ";" + Distance + ";" + AngleX_Degree + ";" + AngleY_Degree;
+		}
+
 		public void Copy() {
-			string copy = Position.X + ";" + Position.Y + ";" + Position.Z + ";" + LookAt.X + ";" + LookAt.Y + ";" + LookAt.Z + ";" + Distance + ";" + AngleX_Degree + ";" + AngleY_Degree;
+			string copy = GetStringCopy();
 			Clipboard.SetDataObject(copy);
 			GLHelper.OnLog(() => "Saved camera settings: " + copy);
 		}
@@ -154,7 +171,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 		public void Update() {
 			if (_viewport.IsRotatingCamera && _viewport.RotateCamera) {
-				AngleX_Degree += GLHelper.ToDegree(0.0006 * _viewport.FrameRenderTime);
+				AngleX_Degree += GLHelper.ToDegree(_viewport.RenderOptions.RotateSpeed / (double)10000 * _viewport.FrameRenderTime);
 			}
 
 			if (_viewport.RenderOptions.SmoothCamera) {
@@ -187,7 +204,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 					Distance += DeltaDistance;
 					DeltaDistance *= 0.9f;
-					Distance = GLHelper.Clamp(0f, 3500f, Distance);
+					Distance = GLHelper.Clamp(0f, MaxDistance, Distance);
 
 					if (Math.Abs(DeltaDistance) < 0.0001d)
 						DeltaDistance = 0;
@@ -238,7 +255,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 			else {	
 				Distance *= mult;
-				Distance = GLHelper.Clamp(0f, 3500f, Distance);
+				Distance = GLHelper.Clamp(0f, MaxDistance, Distance);
 			}
 		}
 

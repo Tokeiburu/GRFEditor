@@ -9,7 +9,7 @@ using Utilities;
 namespace GRF.Threading {
 	internal class StreamReadBlockInfo {
 		internal struct BlockInfo {
-			public uint StreamPosition;
+			public long StreamPosition;
 			public int StreamReadLength;
 			public int BufferPosition;
 			public int BufferLength;
@@ -37,14 +37,14 @@ namespace GRF.Threading {
 				entryFrom = entries[from];
 				block.From = from;
 
-				entryFrom.TemporaryOffset = (uint) (streamBufferSize + bufferLength);
+				entryFrom.TemporaryOffset = streamBufferSize + bufferLength;
 				bufferLength += entryFrom.SizeCompressedAlignment;
 				from++;
 
 				while (bufferLength < _bufferSize && from < to) {
 					if (entries[from - 1].FileExactOffset + entries[from - 1].SizeCompressedAlignment == entries[from].FileExactOffset) {
 						entryFrom = entries[from];
-						entryFrom.TemporaryOffset = (uint) (streamBufferSize + bufferLength);
+						entryFrom.TemporaryOffset = streamBufferSize + bufferLength;
 						bufferLength += entryFrom.SizeCompressedAlignment;
 						from++;
 					}
@@ -96,7 +96,7 @@ namespace GRF.Threading {
 				block.From = from;
 				block.BufferPosition = ovDataBufferLength;
 
-				entryFrom.TemporaryOffset = (uint) bufferLength;
+				entryFrom.TemporaryOffset = bufferLength;
 				bufferLength += entryFrom.SizeCompressedAlignment;
 				dataBufferLength += entryFrom.TemporarySizeCompressedAlignment;
 				from++;
@@ -104,7 +104,7 @@ namespace GRF.Threading {
 				while (bufferLength < _bufferSize && from < to) {
 					if (entries[from - 1].FileExactOffset + entries[from - 1].SizeCompressedAlignment == entries[from].FileExactOffset) {
 						entryFrom = entries[from];
-						entryFrom.TemporaryOffset = (uint) bufferLength;
+						entryFrom.TemporaryOffset = bufferLength;
 						bufferLength += entryFrom.SizeCompressedAlignment;
 						dataBufferLength += entryFrom.TemporarySizeCompressedAlignment;
 						from++;
@@ -178,7 +178,7 @@ namespace GRF.Threading {
 			offset = 0;
 
 			for (int i = init; i < from; i++) {
-				entries[i].TemporaryOffset = (uint) offset;
+				entries[i].TemporaryOffset = offset;
 				offset += entries[i].TemporarySizeCompressedAlignment;
 			}
 
@@ -205,7 +205,7 @@ namespace GRF.Threading {
 				block.From = from;
 				block.BufferPosition = ovDataBufferLength;
 
-				entryFrom.TemporaryOffset = (uint) bufferLength;
+				entryFrom.TemporaryOffset = bufferLength;
 				bufferLength += entryFrom.SizeCompressed;
 				dataBufferLength += entryFrom.TemporarySizeCompressedAlignment;
 				from++;
@@ -213,7 +213,7 @@ namespace GRF.Threading {
 				while (bufferLength < _bufferSize && from < to) {
 					if (entries[from - 1].Offset + entries[from - 1].SizeCompressed == entries[from].Offset) {
 						entryFrom = entries[from];
-						entryFrom.TemporaryOffset = (uint) bufferLength;
+						entryFrom.TemporaryOffset = bufferLength;
 						bufferLength += entryFrom.SizeCompressed;
 						dataBufferLength += entryFrom.TemporarySizeCompressedAlignment;
 						from++;
@@ -287,7 +287,7 @@ namespace GRF.Threading {
 			offset = 0;
 
 			for (int i = init; i < from; i++) {
-			    entries[i].TemporaryOffset = (uint) offset;
+			    entries[i].TemporaryOffset = offset;
 			    offset += entries[i].TemporarySizeCompressedAlignment;
 			}
 

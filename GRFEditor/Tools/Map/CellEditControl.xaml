@@ -1,0 +1,34 @@
+﻿<UserControl x:Class="GRFEditor.Tools.Map.CellEditControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:wpf="clr-namespace:GRFEditor.WPF"
+             mc:Ignorable="d" >
+    <Border BorderThickness="1" CornerRadius="2" BorderBrush="{DynamicResource FancyButtonMouseOverBorderBrush}" Margin="2 1 2 1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto" />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TextBlock Name="_tbHeader" Margin="3 2 2 2" Padding="0" Foreground="{DynamicResource FancyButtonHeaderForeground}" HorizontalAlignment="Left" />
+            <Grid Grid.Row="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Color" Padding="0" Margin="3" Grid.Row="0" VerticalAlignment="Center" />
+                <wpf:QuickColorSelector x:Name="_qcs" Grid.Row="0" Grid.Column="1" Margin="3 2 3 2" Height="22" Width="120" HorizontalAlignment="Left" />
+            </Grid>
+            <Image Name="_imagePreview" Grid.Column="1" Grid.RowSpan="2" VerticalAlignment="Center" RenderOptions.BitmapScalingMode="HighQuality" Margin="3" Stretch="None" />
+        </Grid>
+    </Border>
+</UserControl>

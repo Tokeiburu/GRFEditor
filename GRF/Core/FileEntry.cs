@@ -11,7 +11,6 @@ using Utilities.Services;
 
 namespace GRF.Core {
 	public sealed class FileEntry : ContainerEntry, INotifyPropertyChanged {
-		private string _fileName;
 		private GrfHeader _header;
 
 		/// <summary>
@@ -62,10 +61,10 @@ namespace GRF.Core {
 				endCharPosition++;
 			}
 
-			_fileName = EncodingService.DisplayEncoding.GetString(data, offset, endCharPosition - offset).Replace("/", "\\");
+			_relativePath = EncodingService.DisplayEncoding.GetString(data, offset, endCharPosition - offset).Replace("/", "\\");
 
-			if (_fileName.IndexOf('?', 0, _fileName.Length) > -1) {
-				header.SetError(GrfStrings.FailedEncodingString, _fileName);
+			if (_relativePath.IndexOf('?', 0, _relativePath.Length) > -1) {
+				header.SetError(GrfStrings.FailedEncodingString, _relativePath);
 			}
 
 			offset = endCharPosition + 1;
@@ -74,7 +73,15 @@ namespace GRF.Core {
 			TemporarySizeCompressedAlignment = SizeCompressedAlignment = BitConverter.ToInt32(data, offset + 4);
 			NewSizeDecompressed = SizeDecompressed = BitConverter.ToInt32(data, offset + 8);
 			Flags = (EntryType) data[offset + 12];
-			FileExactOffset = TemporaryOffset = BitConverter.ToUInt32(data, offset + 13) + GrfHeader.StructSize;
+
+			if (header.IsCompatibleWith(3, 0)) {
+				FileExactOffset = TemporaryOffset = BitConverter.ToInt64(data, offset + 13) + GrfHeader.DataByteSize;
+				offset = offset + 21;
+			}
+			else {
+				FileExactOffset = TemporaryOffset = BitConverter.ToUInt32(data, offset + 13) + GrfHeader.DataByteSize;
+				offset = offset + 17;
+			}
 
 			switch (Flags) {
 				case EntryType.FileAndHeaderCrypted:
@@ -89,7 +96,6 @@ namespace GRF.Core {
 					Cycle = -1;
 					break;
 			}
-			offset = offset + 17;
 		}
 
 		/// <summary>
@@ -104,8 +110,11 @@ namespace GRF.Core {
 		/// Gets the path of the entry in the container.
 		/// </summary>
 		public override string RelativePath {
-			get { return _fileName; }
-			internal set { _fileName = value.Replace("/", "\\"); }
+			get { return _relativePath; }
+			internal set {
+				_relativePath = value.Replace("/", "\\");
+				_relativePathModified = true;
+			}
 		}
 
 		/// <summary>
@@ -117,7 +126,7 @@ namespace GRF.Core {
 		/// <summary>
 		/// Gets the file exact offset in the stream.
 		/// </summary>
-		public uint FileExactOffset { get; internal set; }
+		public long FileExactOffset { get; internal set; }
 
 		/// <summary>
 		/// Value used to retrieve decompress data from GetDecompressData<para></para>
@@ -213,8 +222,8 @@ namespace GRF.Core {
 			}
 		}
 
-		public bool Lzma {
-			get { return (Flags & EntryType.LzmaCompressed) == EntryType.LzmaCompressed; }
+		public bool CustomCompressed {
+			get { return (Flags & EntryType.CustomCompressed) == EntryType.CustomCompressed; }
 		}
 
 		public bool Removed {
@@ -259,7 +268,7 @@ namespace GRF.Core {
 				BypassSaveCheck = false;
 
 			lock (Stream.SharedLock) {
-				Stream.PositionUInt = FileExactOffset;
+				Stream.PositionLong = FileExactOffset;
 				data = Stream.Bytes(SizeCompressedAlignment);
 			}
 
@@ -299,10 +308,13 @@ namespace GRF.Core {
 
 			// Fix : 2015-04-04
 			// Compression detection.
-			if (Compression.IsNormalCompression || Compression.IsLzma) {
+			if (Compression.IsNormalCompression || Compression.IsLzma || Compression.IsCustom) {
 				if (data.Length > 1 && data[0] == 0) {
-					Flags |= EntryType.LzmaCompressed;
-					OnPropertyChanged("Lzma");
+					Flags |= EntryType.CustomCompressed;
+					OnPropertyChanged("CustomCompressed");
+
+					if (Compression.IsCustom)
+						return Compression.Decompress(data, SizeCompressed, SizeDecompressed);
 
 					return Compression.DecompressLzma(data, SizeDecompressed);
 				}
@@ -384,10 +396,10 @@ namespace GRF.Core {
 
 			// Fix : 2015-04-06
 			// Negative offsets are no longer possible
-			if (TemporaryOffset < GrfHeader.StructSize) {
+			if (TemporaryOffset < GrfHeader.DataByteSize) {
 				TemporaryOffset = FileExactOffset;
 
-				if (TemporaryOffset < GrfHeader.StructSize) {
+				if (TemporaryOffset < GrfHeader.DataByteSize) {
 					throw GrfExceptions.__EntryDataInvalid.Create(RelativePath);
 				}
 			}
@@ -420,7 +432,7 @@ namespace GRF.Core {
 						}
 					}
 
-					Buffer.BlockCopy(BitConverter.GetBytes(TemporaryOffset - GrfHeader.StructSize), 0, data, fileName.Length + 23, 4);
+					Buffer.BlockCopy(BitConverter.GetBytes((uint)TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 23, 4);
 
 					fileEntryBuffer.Write(data, 0, data.Length);
 				}
@@ -428,7 +440,7 @@ namespace GRF.Core {
 			else {
 				if (!Modification.HasFlags(Modification.Removed)) {
 					byte[] fileName = EncodingService.Ansi.GetBytes(EncodingService.GetAnsiString(GetFixedFileName()));
-					byte[] data = new byte[18 + fileName.Length];
+					byte[] data = new byte[18 + fileName.Length + (header.IsCompatibleWith(3, 0) ? 4 : 0)];
 
 					Buffer.BlockCopy(fileName, 0, data, 0, fileName.Length);
 					Buffer.BlockCopy(BitConverter.GetBytes(NewSizeCompressed), 0, data, fileName.Length + 1, 4);
@@ -444,7 +456,12 @@ namespace GRF.Core {
 						data[fileName.Length + 13] = (byte)baseFlag;
 					}
 
-					Buffer.BlockCopy(BitConverter.GetBytes(TemporaryOffset - GrfHeader.StructSize), 0, data, fileName.Length + 14, 4);
+					if (header.IsCompatibleWith(3, 0)) {
+						Buffer.BlockCopy(BitConverter.GetBytes(TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 14, 8);
+					}
+					else {
+						Buffer.BlockCopy(BitConverter.GetBytes((uint)TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 14, 4);
+					}
 
 					fileEntryBuffer.Write(data, 0, data.Length);
 				}
@@ -467,7 +484,7 @@ namespace GRF.Core {
 		//}
 
 		internal int GenerateCycle() {
-			string ext = _fileName.GetExtension();
+			string ext = _relativePath.GetExtension();
 			int cycle = 0;
 
 			if (ext != null && ext != ".gnd" && ext != ".gat" && ext != ".act" && ext != ".str") {
@@ -688,7 +705,7 @@ namespace GRF.Core {
 			if (handler != null) handler(this, new PropertyChangedEventArgs(propertyName));
 		}
 
-		public static FileEntry CreateBufferedEntry(string name, string relativePath, uint offset, int compressedLength, int alignment, int uncompressedLength) {
+		public static FileEntry CreateBufferedEntry(string name, string relativePath, long offset, int compressedLength, int alignment, int uncompressedLength) {
 			FileEntry entry = new FileEntry();
 			entry.RelativePath = relativePath;
 			entry.SourceFilePath = name;

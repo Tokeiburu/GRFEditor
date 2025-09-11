@@ -24,7 +24,6 @@ namespace GRF.FileFormats.SprFormat.Builder {
 
 		//public delegate void SaveImageDelegate(string pathToExtract, string filenameWithoutExtension, int imageIndex, GRFImage image, bool useTga);
 
-		public static ISprConverter[] _converters = new ISprConverter[] { SprConverterProvider.GetConverter(2, 1), SprConverterProvider.GetConverter(2, 0) };
 		private readonly List<SprBuilderImageView> _imagesBgra32 = new List<SprBuilderImageView>();
 		private readonly List<SprBuilderImageView> _imagesIndexed8 = new List<SprBuilderImageView>();
 		//private readonly PaletteValidator _palValidator = new PaletteValidator();
@@ -33,23 +32,13 @@ namespace GRF.FileFormats.SprFormat.Builder {
 		private string _internalSpriteFullPath;
 		private bool _paletteIsSet;
 
-		public SprBuilderInterface() {
-			Converter = Converters[0];
-		}
-
 		public Pal Palette {
 			get { return _palette; }
-		}
-
-		public static ISprConverter[] Converters {
-			get { return _converters; }
 		}
 
 		public static SprBuilderInterface Instance {
 			get { return new SprBuilderInterface(); }
 		}
-
-		public ISprConverter Converter { get; set; }
 
 		private string _spriteFullPath {
 			get { return _internalSpriteFullPath ?? (_internalSpriteFullPath = ""); }
@@ -96,10 +85,8 @@ namespace GRF.FileFormats.SprFormat.Builder {
 		}
 
 		public void Create(string filename) {
-			if (Converter == null)
-				throw new SprException("No converter has been chosen yet.");
-
 			Spr spr = new Spr();
+
 			foreach (SprBuilderImageView view in _imagesIndexed8) {
 				spr.AddImage(view.Image);
 			}
@@ -107,7 +94,8 @@ namespace GRF.FileFormats.SprFormat.Builder {
 			foreach (SprBuilderImageView view in _imagesBgra32) {
 				spr.AddImage(view.Image);
 			}
-			Converter.Save(spr, filename);
+
+			spr.Save(filename);
 		}
 
 		internal SprBuilderImageView Insert(GrfImage image, int index, string imageOriginalName = null) {
@@ -238,13 +226,11 @@ namespace GRF.FileFormats.SprFormat.Builder {
 
 		public void Open(string path) {
 			Spr spr = new Spr(File.ReadAllBytes(path));
-			Converter = spr.Converter;
 			_spriteFullPath = path;
 			_reloadLists(spr);
 		}
 
 		public void Open(Spr sprite) {
-			Converter = sprite.Converter;
 			_reloadLists(sprite);
 		}
 

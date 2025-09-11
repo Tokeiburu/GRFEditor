@@ -1,6 +1,8 @@
 ﻿using System.IO;
+using GRF.Graphics;
 using GRF.IO;
 using GRF.Image;
+using Utilities;
 
 namespace GRF.FileFormats.GatFormat {
 	public class Cell : IWriteableObject {
@@ -28,9 +30,15 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="data">The data.</param>
 		public Cell(IBinaryReader data) {
-			Heights = data.ArrayFloat(4);
+			Heights[0] = data.Float();
+			Heights[1] = data.Float();
+			Heights[2] = data.Float();
+			Heights[3] = data.Float();
 			Average = Heights[2];
 			Type = (GatType) data.Int32();
+
+			if (Gat.AutomaticallyFixNegativeGatTypes && (int)Type < 0)
+				Type = (GatType)((int)Type & ~0x80000000);
 		}
 
 		/// <summary>
@@ -131,6 +139,17 @@ namespace GRF.FileFormats.GatFormat {
 		public void Move(float y) {
 			for (int i = 0; i < 4; i++)
 				Heights[i] += y;
+		}
+
+		public TkVector3 CalcNormal() {
+			var v1 = new TkVector3(10, -Heights[0], 0);
+			var v2 = new TkVector3(0, -Heights[1], 0);
+			var v3 = new TkVector3(10, -Heights[2], 10);
+			var v4 = new TkVector3(0, -Heights[3], 10);
+
+			var normal1 = TkVector3.Normalize(TkVector3.Cross(v4 - v3, v1 - v3));
+			var normal2 = TkVector3.Normalize(TkVector3.Cross(v1 - v2, v4 - v2));
+			return TkVector3.Normalize(normal1 + normal2);
 		}
 	}
 }

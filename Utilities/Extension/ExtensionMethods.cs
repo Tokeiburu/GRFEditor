@@ -37,6 +37,21 @@ namespace Utilities.Extension {
 			return text;
 		}
 
+		/// <summary>
+		/// Replaces the first.
+		/// </summary>
+		/// <param name="text">The text.</param>
+		/// <param name="oldChar">The old char.</param>
+		/// <param name="newChar">The new char.</param>
+		/// <param name="compare">The comparison method.</param>
+		/// <returns></returns>
+		public static string ReplaceFirst(this String text, string oldChar, string newChar, StringComparison compare) {
+			if (text.StartsWith(oldChar, compare)) {
+				return newChar + text.Substring(oldChar.Length);
+			}
+			return text;
+		}
+
 		public static string RemoveComment(this String text) {
 			int start = text.IndexOf("//", System.StringComparison.Ordinal);
 
@@ -342,25 +357,25 @@ namespace Utilities.Extension {
 				toStream.Write(bytes, 0, dataRead);
 		}
 
-		public static HashSet<T> ToHashSet<T>(this IEnumerable<T> list) {
-			HashSet<T> set = new HashSet<T>();
+		//public static HashSet<T> ToHashSet<T>(this IEnumerable<T> list) {
+		//	HashSet<T> set = new HashSet<T>();
+		//
+		//	foreach (var item in list) {
+		//		set.Add(item);
+		//	}
+		//
+		//	return set;
+		//}
 
-			foreach (var item in list) {
-				set.Add(item);
-			}
-
-			return set;
-		}
-
-		public static HashSet<T2> ToHashSet<T, T2>(this Dictionary<T, T2>.ValueCollection list) {
-			HashSet<T2> set = new HashSet<T2>();
-
-			foreach (var item in list) {
-				set.Add(item);
-			}
-
-			return set;
-		}
+		//public static HashSet<T2> ToHashSet<T, T2>(this Dictionary<T, T2>.ValueCollection list) {
+		//	HashSet<T2> set = new HashSet<T2>();
+		//
+		//	foreach (var item in list) {
+		//		set.Add(item);
+		//	}
+		//
+		//	return set;
+		//}
 
 		public static string ReplaceAll(this string text, string oldChar, string newChar) {
 			if (text == null) return null;
@@ -727,10 +742,20 @@ namespace Utilities.Extension {
 			return toReturn;
 		}
 
-		public static void WriteANSI(this BinaryWriter writer, string value, int length) {
+		public static void WriteANSI(this BinaryWriter writer, string value, int length, bool forceNullTerminated = false) {
 			byte[] data = EncodingService.DisplayEncoding.GetBytes(value);
-			writer.Write(data);
-			for (int i = 0; i < (length - data.Length); i++) {
+
+			// Accomodate for null-terminated byte
+			int dataLength;
+
+			if (forceNullTerminated)
+				dataLength = Math.Min(data.Length, length - 1);
+			else
+				dataLength = Math.Min(data.Length, length);
+
+			writer.Write(data, 0, dataLength);
+
+			for (int i = 0; i < (length - dataLength); i++) {
 				writer.Write((byte)'\0');
 			}
 		}

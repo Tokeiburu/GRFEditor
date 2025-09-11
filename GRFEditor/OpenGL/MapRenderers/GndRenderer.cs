@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using GRF.FileFormats.RswFormat;
 using GRF.Graphics;
 using GRF.Image;
@@ -40,7 +41,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				return;
 
 			foreach (var texture in _gnd.Textures) {
-				Textures.Add(TextureManager.LoadTextureAsync(texture, Rsm.RsmTexturePath + texture, TextureRenderMode.GndTexture, _request));
+				Textures.Add(TextureManager.LoadTextureAsync(texture, Path.GetPathRoot(texture) != "" ? texture : Rsm.RsmTexturePath + texture, TextureRenderMode.GndTexture, _request));
 			}
 
 			if (_request.CancelRequired())
@@ -140,10 +141,17 @@ namespace GRFEditor.OpenGL.MapRenderers {
 							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
 								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
 
-							Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, new Vector3(-1, 0, 0));
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, new Vector3(-1, 0, 0));
-							Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, new Vector3(-1, 0, 0));
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, new Vector3(-1, 0, 0));
+							Vector3 n = new Vector3(-1, 0, 0);
+							Cube cubeN = _gnd[x + 1, y];
+
+							if (cubeN != null && cube[1] < cubeN[0]) {
+								n *= -1;
+							}
+
+							Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, n);
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, n);
+							Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, n);
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, n);
 
 							List<Vertex> l;
 
@@ -152,8 +160,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 								verts[tile.TextureIndex] = l;
 							}
 
-							l.Add(v3); l.Add(v2); l.Add(v1);
-							l.Add(v4); l.Add(v2); l.Add(v3);
+							l.Add(v1); l.Add(v3); l.Add(v4);
+							l.Add(v4); l.Add(v2); l.Add(v1);
 						}
 
 						if (cube.TileFront != -1 && y < _gnd.Height - 1) {
@@ -170,10 +178,17 @@ namespace GRFEditor.OpenGL.MapRenderers {
 							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
 								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
 
-							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, new Vector3(0, 0, 1));
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, new Vector3(0, 0, 1));
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x, y + 1][1], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, new Vector3(0, 0, 1));
-							Vertex v3 = new Vertex(new Vector3(10 * x, -_gnd[x, y + 1][0], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, new Vector3(0, 0, 1));
+							Vector3 n = new Vector3(0, 0, -1);
+							Cube cubeN = _gnd[x, y + 1];
+
+							if (cubeN != null && cube[2] < cubeN[0]) {
+								n *= -1;
+							}
+
+							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, n);
+							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, n);
+							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x, y + 1][1], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, n);
+							Vertex v3 = new Vertex(new Vector3(10 * x, -_gnd[x, y + 1][0], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, n);
 
 							List<Vertex> l;
 
@@ -245,9 +260,18 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || !viewport.RenderOptions.Ground)
 				return;
 
+			if (viewport.RenderPass > 1)
+				return;
+
 			if (!IsLoaded) {
 				Load(viewport);
 			}
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
 
 			if (!_ri.VaoCreated()) {
 				if (_request.CancelRequired())
@@ -272,7 +296,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				Shader.Use();
 				Matrix3 mat = Matrix3.Identity;
 				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
-				mat = GLHelper.Rotate(mat, GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
+				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
 
 				Vector3 lightDirection = mat * new Vector3(0, 1, 0);
 
@@ -299,7 +323,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				Shader.Use();
 				Matrix3 mat = Matrix3.Identity;
 				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
-				mat = GLHelper.Rotate(mat, GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
+				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
 
 				Vector3 lightDirection = mat * new Vector3(0, 1, 0);
 
@@ -315,12 +339,24 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			GL.ActiveTexture(TextureUnit.Texture0);
 
 			Shader.Use();
-			Shader.SetMatrix4("cameraMatrix", viewport.View);
-			Shader.SetMatrix4("projectionMatrix", viewport.Projection);
+			Shader.SetMatrix4("cameraMatrix", ref viewport.View);
+			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
+
+			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
+				Shader.SetBool("fixedColor", true);
+			}
+			else {
+				Shader.SetBool("fixedColor", false);
+			}
 
 			_ri.BindVao();
 
 			foreach (var vboIndex in VertIndices) {
+				if (viewport.RenderPass == 0 && (vboIndex.Texture >= 0 && Textures[vboIndex.Texture].IsSemiTransparent))
+					continue;
+				if (viewport.RenderPass == 1 && (vboIndex.Texture < 0 || !Textures[vboIndex.Texture].IsSemiTransparent))
+					continue;
+
 				if (vboIndex.Texture != -1) {
 					Textures[vboIndex.Texture].Bind();
 				}
@@ -335,6 +371,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					Shader.SetInt("showLightmap", 1);
 				}
 			}
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 		}
 
 		public override void Unload() {

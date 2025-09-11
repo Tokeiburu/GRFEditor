@@ -183,7 +183,7 @@ namespace GRF.FileFormats.ThorFormat {
 
 					tableStream.Write(BitConverter.GetBytes(entry.TemporarySizeCompressedAlignment == 0 ? entry.SizeCompressed : entry.TemporarySizeCompressedAlignment), 0, 4);
 					tableStream.Write(BitConverter.GetBytes(entry.SizeDecompressed), 0, 4);
-					tableStream.Write(BitConverter.GetBytes(entry.TemporaryOffset + 12), 0, 4);
+					tableStream.Write(BitConverter.GetBytes((uint)entry.TemporaryOffset + 12), 0, 4);
 				}
 
 				tableStream.Seek(0, SeekOrigin.Begin);

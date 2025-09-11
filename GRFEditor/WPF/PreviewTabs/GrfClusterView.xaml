@@ -7,7 +7,7 @@
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid Name="_primaryGrid">
         <Canvas Name="_canvas">
-            
-        </Canvas>
+			<Image x:Name="_drawImage" Stretch="Fill" RenderOptions.BitmapScalingMode="NearestNeighbor" />
+		</Canvas>
     </Grid>
 </UserControl>

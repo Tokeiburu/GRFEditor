@@ -5,7 +5,7 @@ using System.IO.Compression;
 using GRF.Core.GrfCompression;
 using GRF.Core.GrfCompression.GZip;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 
 namespace GRF.Core {
@@ -35,6 +35,10 @@ namespace GRF.Core {
 
 		public static bool IsLzma {
 			get { return _compressionAlgorithm is LzmaCompression; }
+		}
+
+		public static bool IsCustom {
+			get { return _compressionAlgorithm is CustomCompression; }
 		}
 
 		public static ICompression CompressionAlgorithm {
@@ -72,7 +76,7 @@ namespace GRF.Core {
 		}
 
 		public static byte[] DecompressDotNet(byte[] compressed) {
-			return _dotNetCompression.Decompress(compressed, -1);
+			return _dotNetCompression.Decompress(compressed, compressed.Length, - 1);
 		}
 
 		public static byte[] Compress(byte[] uncompressed) {
@@ -92,7 +96,7 @@ namespace GRF.Core {
 		}
 
 		public static byte[] DecompressLzma(byte[] compressed, long uncompressedLength) {
-			return _lzmaCompression.Decompress(compressed, uncompressedLength);
+			return _lzmaCompression.Decompress(compressed, compressed.Length, uncompressedLength);
 		}
 
 		public static byte[] CompressRecovery(byte[] uncompressed) {
@@ -100,7 +104,7 @@ namespace GRF.Core {
 		}
 
 		public static byte[] DecompressRecovery(byte[] compressed, long uncompressedLength) {
-			return _recoveryCompression.Decompress(compressed, uncompressedLength);
+			return _recoveryCompression.Decompress(compressed, compressed.Length, uncompressedLength);
 		}
 
 		public static void CopyStream(Stream input, Stream output) {
@@ -113,11 +117,15 @@ namespace GRF.Core {
 		}
 
 		public static byte[] DecompressZlib(byte[] arrCompressed, long uncompressedLength) {
-			return _zlibCompression.Decompress(arrCompressed, uncompressedLength);
+			return _zlibCompression.Decompress(arrCompressed, arrCompressed.Length, uncompressedLength);
 		}
 
 		public static byte[] Decompress(byte[] arrCompressed, long uncompressedLength) {
-			return CompressionAlgorithm.Decompress(arrCompressed, uncompressedLength);
+			return CompressionAlgorithm.Decompress(arrCompressed, arrCompressed.Length, uncompressedLength);
+		}
+
+		public static byte[] Decompress(byte[] arrCompressed, long compressedLength, long uncompressedLength) {
+			return CompressionAlgorithm.Decompress(arrCompressed, compressedLength, uncompressedLength);
 		}
 
 		public static byte[] LzssDecompress(byte[] arrCompressed, long uncompressedLength) {

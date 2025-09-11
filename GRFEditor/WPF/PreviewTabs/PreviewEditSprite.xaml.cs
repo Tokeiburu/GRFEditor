@@ -4,7 +4,7 @@ using System.Windows;
 using ErrorManager;
 using GRF.Core;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using GRFEditor.Tools.SpriteEditor;

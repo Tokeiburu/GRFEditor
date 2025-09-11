@@ -132,7 +132,7 @@ namespace GrfToWpfBridge.MultiGrf {
 			}
 		}
 
-		private void _menuItemsMoveDown_Click(object sender, RoutedEventArgs e) {
+		public void _menuItemsMoveDown_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
 					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
@@ -157,7 +157,7 @@ namespace GrfToWpfBridge.MultiGrf {
 			}
 		}
 
-		private void _menuItemsMoveUp_Click(object sender, RoutedEventArgs e) {
+		public void _menuItemsMoveUp_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
 					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
@@ -182,7 +182,7 @@ namespace GrfToWpfBridge.MultiGrf {
 			}
 		}
 
-		private void _menuItemsAdd_Click(object sender, RoutedEventArgs e) {
+		public void _menuItemsAdd_Click(object sender, RoutedEventArgs e) {
 			try {
 				string[] paths = TkPathRequest.OpenFiles(Setting, "filter", "Container Files|*.grf;*.gpf;*.thor");
 
@@ -200,7 +200,7 @@ namespace GrfToWpfBridge.MultiGrf {
 			}
 		}
 
-		private void _menuItemsSelectInExplorer_Click(object sender, RoutedEventArgs e) {
+		public void _menuItemsSelectInExplorer_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (_itemsResources.SelectedItem != null) {
 					MultiGrfPathView rme = (MultiGrfPathView) _itemsResources.SelectedItem;
@@ -213,7 +213,7 @@ namespace GrfToWpfBridge.MultiGrf {
 			}
 		}
 
-		private void _menuItemsDelete_Click(object sender, RoutedEventArgs e) {
+		public void _menuItemsDelete_Click(object sender, RoutedEventArgs e) {
 			try {
 				int deletedCount = 0;
 

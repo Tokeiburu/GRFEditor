@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
+using System.Text;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.Image;
 using GRF.IO;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.GndFormat {
@@ -29,9 +32,9 @@ namespace GRF.FileFormats.GndFormat {
 			LightmapContainer = new LightmapContainer(this);
 
 			Header = new GndHeader(sizeX, sizeY);
-			GridSizeCell = 1;
-			GridSizeX = 8;
-			GridSizeY = 8;
+			LightmapSizeCell = 1;
+			LightmapWidth = 8;
+			LightmapHeight = 8;
 			AddTexture("backside.bmp");
 
 			for (int i = 0; i < sizeX * sizeY; i++) {
@@ -85,17 +88,17 @@ namespace GRF.FileFormats.GndFormat {
 		/// <summary>
 		/// Gets the lightmap detail width per tile.
 		/// </summary>
-		public int GridSizeX { get; set; }
+		public int LightmapWidth { get; set; }
 
 		/// <summary>
 		/// Gets the lightmap detail height per tile.
 		/// </summary>
-		public int GridSizeY { get; set; }
+		public int LightmapHeight { get; set; }
 
 		/// <summary>
 		/// Gets the number of lightmap cells per tile.
 		/// </summary>
-		public int GridSizeCell { get; set; }
+		public int LightmapSizeCell { get; set; }
 
 		/// <summary>
 		/// Gets or sets the number of lightmaps.
@@ -209,9 +212,9 @@ namespace GRF.FileFormats.GndFormat {
 			_cubes.Capacity = Header.Width * Header.Height;
 
 			if (Header.Version <= 1) {
-				GridSizeX = 8;
-				GridSizeY = 8;
-				GridSizeCell = 1;
+				LightmapWidth = 8;
+				LightmapHeight = 8;
+				LightmapSizeCell = 1;
 
 				byte[] light = new byte[256];
 
@@ -282,10 +285,10 @@ namespace GRF.FileFormats.GndFormat {
 				return;
 
 			NumberOfLightmaps = data.Int32();
-			GridSizeX = data.Int32();
-			GridSizeY = data.Int32();
-			GridSizeCell = data.Int32();
-			PerCell = GridSizeX * GridSizeY * GridSizeCell;
+			LightmapWidth = data.Int32();
+			LightmapHeight = data.Int32();
+			LightmapSizeCell = data.Int32();
+			PerCell = LightmapWidth * LightmapHeight * LightmapSizeCell;
 			int size = PerCell * 4;
 
 			for (int i = 0; i < NumberOfLightmaps; i++) {
@@ -384,9 +387,9 @@ namespace GRF.FileFormats.GndFormat {
 			}
 
 			stream.Write(LightmapContainer.Lightmaps.Count);
-			stream.Write(GridSizeX);
-			stream.Write(GridSizeY);
-			stream.Write(GridSizeCell);
+			stream.Write(LightmapWidth);
+			stream.Write(LightmapHeight);
+			stream.Write(LightmapSizeCell);
 
 			foreach (Lightmap light in LightmapContainer.Lightmaps) {
 				stream.Write(light.Data);
@@ -487,6 +490,22 @@ namespace GRF.FileFormats.GndFormat {
 			}
 		}
 
+		public void RemoveLight() {
+			foreach (var container in LightmapContainer.Lightmaps) {
+				for (int i = 64; i < 256; i++) {
+					container.Data[i] = 0;
+				}
+			}
+		}
+
+		public void RemoveShadow() {
+			foreach (var container in LightmapContainer.Lightmaps) {
+				for (int i = 0; i < 64; i++) {
+					container.Data[i] = 255;
+				}
+			}
+		}
+
 		public byte[] CreateLightmapImage() {
 			int x = 0;
 			int y = 0;
@@ -541,6 +560,111 @@ namespace GRF.FileFormats.GndFormat {
 		public void SetCubesHeight(float height) {
 			for (int i = 0; i < _cubes.Count; i++) {
 				_cubes[i].SetHeight(height);
+			}
+		}
+
+		public void RemoveTileColor() {
+			var defColor = new GrfColor(255, 255, 255, 255);
+
+			foreach (var tile in _tiles) {
+				tile.TileColor = defColor;
+			}
+		}
+
+		public class LightComparer : IEqualityComparer<byte[]> {
+			
+			public bool Equals(byte[] x, byte[] y) {
+				return Methods.ByteArrayCompare(x, y);
+			}
+
+			public int GetHashCode(byte[] obj) {
+				if (obj.Length != 256)
+					return obj[0] | obj[obj.Length / 4] << 8 | obj[obj.Length / 2] << 16 | obj[3 * obj.Length / 4] << 24;
+				
+				int h = 0;
+
+				for (int i = 0; i < 32; i++)
+					h |= (obj[i * 8] & 0x1) << i;
+
+				return h;
+			}
+		}
+
+		public void CleanDuplicateTiles() {
+			var comparer = new LightComparer();
+			Dictionary<byte[], ushort> light_uid2index = new Dictionary<byte[], ushort>(comparer);
+
+			foreach (var light in LightmapContainer.Lightmaps) {
+				ushort v;
+
+				if (!light_uid2index.TryGetValue(light.Data, out v)) {
+					light_uid2index[light.Data] = (ushort)light_uid2index.Count;
+				}
+			}
+
+			List<byte[]> outputLights = light_uid2index.Keys.ToList();
+
+			for (int i = 0; i < Cubes.Count; i++) {
+				var cube = Cubes[i];
+
+				if (cube.TileUp > -1) {
+					var tile = Tiles[cube.TileUp];
+					tile.LightmapIndex = light_uid2index[LightmapContainer[tile.LightmapIndex].Data];
+				}
+
+				if (cube.TileSide > -1) {
+					var tile = Tiles[cube.TileSide];
+					tile.LightmapIndex = light_uid2index[LightmapContainer[tile.LightmapIndex].Data];
+				}
+
+				if (cube.TileFront > -1) {
+					var tile = Tiles[cube.TileFront];
+					tile.LightmapIndex = light_uid2index[LightmapContainer[tile.LightmapIndex].Data];
+				}
+			}
+
+			LightmapContainer.Lightmaps.Clear();
+			LightmapContainer.Lightmaps.AddRange(outputLights.Select(p => new Lightmap(p)));
+
+			Z.F();
+		}
+
+		public void CleanupLightmaps() {
+			Dictionary<int, List<int>> light2lightmapIndex = new Dictionary<int, List<int>>();
+			Dictionary<int, ushort> oldIndex2newIndex = new Dictionary<int, ushort>();
+			List<Lightmap> newLightmaps = new List<Lightmap>();
+
+			var lightmaps = LightmapContainer.Lightmaps;
+
+			for (int i = 0; i < lightmaps.Count; i++) {
+				int hash = lightmaps[i].Hash(this);
+				bool found = false;
+
+				if (light2lightmapIndex.ContainsKey(hash)) {
+					foreach (var ii in light2lightmapIndex[hash]) {
+						if (lightmaps[i] == lightmaps[ii]) {
+							oldIndex2newIndex[i] = oldIndex2newIndex[ii];
+							found = true;
+							break;
+						}
+					}
+				}
+
+				if (!found) {
+					if (!light2lightmapIndex.ContainsKey(hash))
+						light2lightmapIndex[hash] = new List<int>();
+
+					light2lightmapIndex[hash].Add(i);
+					oldIndex2newIndex[i] = (ushort)newLightmaps.Count;
+					newLightmaps.Add(new Lightmap(lightmaps[i].Data));
+				}
+			}
+
+			LightmapContainer.Lightmaps.Clear();
+			LightmapContainer.Lightmaps.AddRange(newLightmaps);
+
+			foreach (var tile in Tiles) {
+				tile.LightmapIndex = oldIndex2newIndex[tile.LightmapIndex];
 			}
 		}
 	}

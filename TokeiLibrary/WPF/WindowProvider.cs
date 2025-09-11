@@ -5,10 +5,20 @@ using TokeiLibrary.WPF.Styles;
 
 namespace TokeiLibrary.WPF {
 	public static class WindowProvider {
+		public delegate void ShowWindowEventHandler(TkWindow window);
+
+		public static event ShowWindowEventHandler WindowOpened;
+
+		private static void OnWindowOpened(TkWindow window) {
+			ShowWindowEventHandler handler = WindowOpened;
+			if (handler != null) handler(window);
+		}
+
 		public static bool? ShowWindow(TkWindow window, Window owner = null) {
 			if (owner != null)
 				window.Owner = owner;
 
+			OnWindowOpened(window);
 			return window.ShowDialog();
 		}
 
@@ -30,6 +40,7 @@ namespace TokeiLibrary.WPF {
 						window.Owner.Activate();
 					}
 				};
+				OnWindowOpened(window);
 				window.Show();
 			}
 		}
@@ -56,12 +67,14 @@ namespace TokeiLibrary.WPF {
 						window.Owner.Activate();
 					}
 				};
+				OnWindowOpened(window);
 				window.Show();
 			}
 		}
 
 		public static T ShowWindow<T>(TkWindow window, Window owner) where T : TkWindow {
 			window.Owner = owner;
+			OnWindowOpened(window);
 			window.ShowDialog();
 			return (T) window;
 		}
@@ -72,12 +85,13 @@ namespace TokeiLibrary.WPF {
 			if (Application.Current == null)
 				return MessageBoxResult.Cancel;
 
-			return (MessageBoxResult)Application.Current.Dispatcher.Invoke(new Func<MessageBoxResult>(() => {
+			return (MessageBoxResult)Application.Current.Dispatch(() => {
 				try {
 					MessageDialog dialog = new MessageDialog(message, buttons, caption, yes, no, cancel);
 					Window topWindow = WpfUtilities.TopWindow;
 
 					dialog.Owner = topWindow;
+					OnWindowOpened(dialog);
 					dialog.ShowDialog();
 					
 					dialog.Closed += delegate {
@@ -92,14 +106,14 @@ namespace TokeiLibrary.WPF {
 				catch {
 					return MessageBox.Show(message, caption, MessageBoxButton.YesNoCancel);
 				}
-			}));
+			});
 		}
 
 		public static MessageBoxResult ShowDialog(string message) {
 			if (Application.Current == null)
 				return MessageBoxResult.Cancel;
 
-			return (MessageBoxResult)Application.Current.Dispatcher.Invoke(new Func<MessageBoxResult>(() => {
+			return (MessageBoxResult)Application.Current.Dispatch(() => {
 				MessageDialog dialog = new MessageDialog(message, MessageBoxButton.OK, "");
 
 				if (Application.Current.MainWindow.IsVisible) {
@@ -113,9 +127,10 @@ namespace TokeiLibrary.WPF {
 					}
 				}
 
+				OnWindowOpened(dialog);
 				dialog.ShowDialog();
 				return dialog.Result;
-			}));
+			});
 		}
 	}
 }

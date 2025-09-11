@@ -17,7 +17,7 @@ namespace TokeiLibrary.WPF {
 		public AboutDialog(string productVersion, string assemblyVersion, string author, string programName, string imageName) : base("About " + programName, "help.ico"){
 			InitializeComponent();
 
-			_imageBackground.Source = ApplicationManager.GetResourceImage(imageName);
+			_imageBackground.Source = ApplicationManager.PreloadResourceImage(imageName);
 			_labelSoftwareName.Text = programName;
 			_labelSoftwareName_2.Text = programName;
 			_textBlock.Text = String.Format(programName + "\n\nProduct version : " + productVersion + "\nAssembly version : " + assemblyVersion + "\nAuthor : " + author + "\n\n" + "This program was designed by " + author + ". " +

@@ -9,6 +9,8 @@ using ErrorManager;
 namespace TokeiLibrary.WPF.Styles {
 	public class TkWindow : Window {
 		public TkWindow() {
+			SnapsToDevicePixels = true;
+			//UseLayoutRounding = true;
 		}
 
 		public TkWindow(string title, string icon, SizeToContent sizeToContent = SizeToContent.WidthAndHeight, ResizeMode resizeMode = ResizeMode.NoResize, Assembly assembly = null) {
@@ -19,6 +21,7 @@ namespace TokeiLibrary.WPF.Styles {
 			KeyDown += new KeyEventHandler(GRFEditorWindowKeyDown);
 
 			SnapsToDevicePixels = true;
+			//UseLayoutRounding = true;
 			Title = title;
 			SizeToContent = sizeToContent;
 
@@ -47,7 +50,7 @@ namespace TokeiLibrary.WPF.Styles {
 				}
 				catch (Exception) {
 					try {
-						Icon = ApplicationManager.GetResourceImage(icon);
+						Icon = ApplicationManager.PreloadResourceImage(icon);
 						return;
 					}
 					catch { }

@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using ErrorManager;
+using Microsoft.Win32;
 
 namespace Utilities {
 	/// <summary>
@@ -56,11 +57,32 @@ namespace Utilities {
 			}
 		}
 
+		/// <summary>
+		/// Stops a stopwatch with the specified ID.
+		/// </summary>
+		/// <param name="opId">The stopwatch ID.</param>
+		/// <param name="display">Display the stopwatch duration or not.</param>
+		public static void Reset(int opId, bool display = false) {
+			if (_watches.ContainsKey(opId)) {
+				if (display) {
+					Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
+				}
+
+				_watches[opId].Reset();
+			}
+		}
+
 		public static void StopAndDisplayAll() {
 			foreach (var watch in _watches.OrderBy(p => p.Key)) {
 				watch.Value.Stop();
 				Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", watch.Value.ElapsedMilliseconds, watch.Value.ElapsedTicks, "Timer ID = " + watch.Key);
 				watch.Value.Reset();
+			}
+		}
+
+		public static void Display(int opId, string extra = "") {
+			if (_watches.ContainsKey(opId)) {
+				Console.WriteLine((String.IsNullOrEmpty(extra) ? "" : extra + " - ") + "{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
 			}
 		}
 
@@ -76,6 +98,14 @@ namespace Utilities {
 			}
 
 			return "0";
+		}
+
+		public static long GetCounterMs(int opId) {
+			if (_watches.ContainsKey(opId)) {
+				return _watches[opId].ElapsedMilliseconds;
+			}
+
+			return 0;
 		}
 
 		public static int GetRandomInteger(int from, int to) {
@@ -332,18 +362,6 @@ namespace Utilities {
 
 		private const string _emptyStringIdentifier = "__%EmptyString%";
 		private const string _nullStringIdentifier = "__%NullString%";
-
-		public static bool HasWriteAccessToFolder(string path) {
-			try {
-				path = path ?? Directory.GetCurrentDirectory();
-
-				System.Security.AccessControl.DirectorySecurity ds = Directory.GetAccessControl(path);
-				return true;
-			}
-			catch (UnauthorizedAccessException) {
-				return false;
-			}
-		}
 
 		public static IntPtr LockFile(string file) {
 			NativeMethods.OFSTRUCT st;
@@ -709,10 +727,15 @@ namespace Utilities {
 
 				return size < 10 ? String.Format("{0:0.00} KB", size) : String.Format(size < 100 ? "{0:0.0} KB" : "{0:0} KB", size);
 			}
-			else {
+			if (fizeSize < (1024 * 1024 * 1024)) {
 				float size = fizeSize / (float)(1024 * 1024);
 
 				return size < 10 ? String.Format("{0:0.00} MB", size) : String.Format(size < 100 ? "{0:0.0} MB" : "{0:0} MB", size);
+			}
+			else {
+				float size = fizeSize / (float)(1024 * 1024 * 1024);
+
+				return size < 10 ? String.Format("{0:0.00} GB", size) : String.Format(size < 100 ? "{0:0.0} GB" : "{0:0} GB", size);
 			}
 		}
 		public static string FileSizeToString(ulong fizeSize) {
@@ -785,6 +808,25 @@ namespace Utilities {
 		}
 		public static string ObjectToStringHash(object obj) {
 			return ByteArrayToString(BitConverter.GetBytes(obj.GetHashCode()));
+		}
+
+		public static int IndexOf(byte[] data, byte[] needle, int startIndex = 0) {
+			for (int i = startIndex; i < data.Length; i++) {
+				if (data[i] == needle[0]) {
+					int j = 1;
+
+					for (; j < needle.Length; j++) {
+						if (data[i + j] != needle[j])
+							break;
+					}
+
+					if (j == needle.Length) {
+						return i;
+					}
+				}
+			}
+
+			return -1;
 		}
 
 		public static bool ByteArrayCompare(byte[] b1, byte[] b2) {
@@ -874,6 +916,16 @@ namespace Utilities {
 		public static bool IsWinVistaOrHigher() {
 			OperatingSystem os = Environment.OSVersion;
 			return (os.Platform == PlatformID.Win32NT) && (os.Version.Major >= 6);
+		}
+
+		public static bool IsWin10OrHigher() {
+			var osVersionInfo = new NativeMethods.OSVERSIONINFOEX { OSVersionInfoSize = Marshal.SizeOf(typeof(NativeMethods.OSVERSIONINFOEX)) };
+
+			if (NativeMethods.RtlGetVersion(ref osVersionInfo) != NativeMethods.NTSTATUS.STATUS_SUCCESS) {
+				return false;
+			}
+
+			return osVersionInfo.MajorVersion >= 10;
 		}
 
 		public static int Align(int size) {

@@ -153,6 +153,7 @@ namespace GRFEditor {
 
 			var app = new App();
 			app.StartupUri = new Uri("EditorMainWindow.xaml", UriKind.Relative);
+			//app.StartupUri = new Uri("TestWindow.xaml", UriKind.Relative);
 			//app.StartupUri = new Uri("MapTest.xaml", UriKind.Relative);
 			//app.StartupUri = new Uri("Basic.xaml", UriKind.Relative);
 			//app.StartupUri = new Uri("WPF\\3DTests.xaml", UriKind.Relative);

@@ -4,7 +4,7 @@ using System.IO;
 using System.Text;
 using GRF.ContainerFormat;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -109,7 +109,7 @@ namespace GRF.Core {
 		public int GetLength() {
 			switch(Type) {
 				case GrfBlockType.Header:
-					return GrfHeader.StructSize;
+					return GrfHeader.DataByteSize;
 				case GrfBlockType.FileTable:
 					return Data.Length;
 				case GrfBlockType.Entry:

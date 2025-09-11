@@ -24,6 +24,7 @@ namespace TokeiLibrary.WPF {
 		#endregion
 
 		private readonly DispatcherTimer _treeViewTimer = new DispatcherTimer();
+		private Stopwatch _watch = new Stopwatch();
 		public DoDragDropDelegate DoDragDropCustomMethod;
 		private TkTreeViewItem _previewItem;
 		private SelectedItemsList _selectedItems = new SelectedItemsList();
@@ -41,6 +42,8 @@ namespace TokeiLibrary.WPF {
 			_treeViewTimer.Interval = new TimeSpan(0, 0, 0, 0, 650);
 			_treeViewTimer.Tick += _treeViewTimer_Tick;
 
+			//_watch.Start();
+
 			FocusVisualStyle = null;
 			Drop += _treeView_Drop;
 			DragEnter += _treeView_DragEnter;
@@ -51,6 +54,8 @@ namespace TokeiLibrary.WPF {
 			KeyDown += new KeyEventHandler(_tKView_KeyDown);
 			DisplayEncoding = EncodingService.DisplayEncoding;
 			base.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(_base_SelectedItemChanged);
+
+			SetValue(DragDropExtension.ScrollOnDragDropProperty, true);
 		}
 
 		private void _treeView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
@@ -63,6 +68,10 @@ namespace TokeiLibrary.WPF {
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
+		}
+
+		public void SelectNext(TkTreeViewItem item, Key select) {
+			_selectNext(item, select);
 		}
 
 		private void _selectNext(TkTreeViewItem item, Key select) {
@@ -329,6 +338,10 @@ namespace TokeiLibrary.WPF {
 			return (Keyboard.Modifiers & ModifierKeys.Control) == ModifierKeys.Control;
 		}
 
+		private void _treeViewMoveTimer_Tick(object sender, EventArgs e) {
+			//DragDropExtension.OnContainerScroll(this, Mouse.GetPosition(this));
+		}
+
 		private void _treeViewTimer_Tick(object sender, EventArgs e) {
 			if (_previewItem != null && _previewItem.Items.Count > 0) {
 				_previewItem.IsExpanded = true;
@@ -375,12 +388,19 @@ namespace TokeiLibrary.WPF {
 				}
 			}
 		}
+
 		private void _treeView_PreviewMouseMove(object sender, MouseEventArgs e) {
 			try {
+				if (e.LeftButton == MouseButtonState.Pressed && _watch.ElapsedMilliseconds > 200) {
+					//DragDropExtension.OnContainerScroll(this, Mouse.GetPosition(this), 20);
+					//_watch.Reset();
+					//_watch.Start();
+				}
+
 				if (Configuration.TreeBehaviorUseAlt && (e.LeftButton == MouseButtonState.Pressed && (Keyboard.IsKeyDown(Key.LeftAlt) || Keyboard.IsKeyDown(Key.RightAlt))) ||
 					!Configuration.TreeBehaviorUseAlt && (e.LeftButton == MouseButtonState.Pressed)) {
 					var tItem = _getTreeViewItemClicked((FrameworkElement) e.OriginalSource, this);
-					
+
 					if (tItem == null)
 						return;
 
@@ -406,14 +426,6 @@ namespace TokeiLibrary.WPF {
 					e.Handled = false;
 				}
 				else if (Configuration.TreeBehaviorUseAlt && e.LeftButton == MouseButtonState.Pressed) {
-					//if (!this.IsMouseCaptured) {
-					//    this.CaptureMouse();
-					//    this.MouseUp += delegate {
-					//        this.ReleaseMouseCapture();
-					//    };
-					//}
-
-					//var tItem = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 					var tItem = _getTreeViewMousePos(e);
 
 					if (tItem == null)
@@ -512,11 +524,11 @@ namespace TokeiLibrary.WPF {
 
 			string currentPath = null;
 			if (item != null) {
-				currentPath = (string)item.Dispatcher.Invoke(new Func<string>(() => item.HeaderText));
+				currentPath = (string)item.Dispatch(() => item.HeaderText);
 
 				while (item.Parent != null && !(item.Parent is TreeView)) {
 					item = ((TkTreeViewItem)item.Parent);
-					currentPath = item.Dispatcher.Invoke(new Func<string>(() => item.HeaderText)) + "\\" + currentPath;
+					currentPath = item.Dispatch(() => item.HeaderText) + "\\" + currentPath;
 				}
 			}
 

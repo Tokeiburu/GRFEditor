@@ -3,6 +3,11 @@ using GRF.FileFormats.ThorFormat;
 using Utilities.Extension;
 
 namespace GRF.Core {
+	public class GrfLoadData {
+		public byte[] EncryptionKey {get; set; }
+		public bool DecryptFileTable { get; set; }
+	}
+
 	/// <summary>
 	/// Retrieves a GRF container from various type of files.
 	/// </summary>
@@ -11,12 +16,13 @@ namespace GRF.Core {
 		/// Gets the specified file name.
 		/// </summary>
 		/// <param name="fileName">Name of the file.</param>
+		/// <param name="loadData">Optional loading parameters.</param>
 		/// <returns>The GRF container.</returns>
-		public static Container Get(string fileName) {
+		public static Container Get(string fileName, GrfLoadData loadData = null) {
 			switch (fileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
-					return new Container(fileName);
+					return new Container(fileName, loadData);
 				case ".rgz":
 					using (var file = new Rgz(fileName)) {
 						return file.ToGrfContainer();

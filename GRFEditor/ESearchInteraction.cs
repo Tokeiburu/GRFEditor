@@ -9,6 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
+using GRF.IO;
 using GRF.Threading;
 using GRFEditor.Core;
 using GRFEditor.OpenGL.MapComponents;
@@ -169,66 +170,70 @@ namespace GRFEditor {
 					if (cancel())
 						return;
 
-					List<Utilities.Extension.Tuple<string, string, FileEntry>> entries = _grfHolder.FileTable.FastTupleAccessEntries;
+					var entries = _grfHolder.FileTable.DirectoryStructure[folderListingSearch.RelativePath];
+
+					// No entries were found in this folder
+					if (entries == null)
+						entries = new List<FileEntry>();
+
+					if (cancel())
+						return;
+
 					List<string> search = folderListingSearch.Search.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-					FileEntry[] result;
 
-					if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
-						IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0);
+					var res = search.Count == 0 ? entries : new List<FileEntry>();
 
-						//if (cancel())
-						//	return;
+					for (int i = 0; i < search.Count; i++) {
+						var query = search[i];
 
-						foreach (var query in search) {
-							if (query.Contains("*") || query.Contains("?")) {
-								Regex regex = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
-								res = res.Where(p => regex.IsMatch(p.Item2));
+						if (query.IndexOf("*", StringComparison.OrdinalIgnoreCase) > -1 || query.IndexOf("?", StringComparison.OrdinalIgnoreCase) > -1) {
+							Regex regex = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
+
+							for (int k = 0; k < entries.Count; k++) {
+								if (regex.IsMatch(entries[k].FileName))
+									res.Add(entries[k]);
+
+								if (k % 100 == 0 && cancel())
+									return;
 							}
-							else {
-								res = res.Where(p => p.Item2.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) != -1);
-							}
-
-							//if (cancel())
-							//	return;
-						}
-
-						//if (cancel())
-						//	return;
-
-						result = res.Select(p => p.Item3).ToArray();
-					}
-					else {
-						result = entries.Where(p => String.Compare(p.Item1, folderListingSearch.RelativePath, StringComparison.OrdinalIgnoreCase) == 0 && search.All(q => p.Item2.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Item3).ToArray();//.ToList();
-
-						//if (cancel())
-						//	return;
-
-						if (result.Length < 10000) {
-							_grfEntrySorter.UseAlphaNum = true;
-							Array.Sort(result, _grfEntrySorter);
 						}
 						else {
-							_grfEntrySorter.UseAlphaNum = false;
-							Array.Sort(result, _grfEntrySorter);
+							for (int k = 0; k < entries.Count; k++) {
+								if (entries[k].FileName.IndexOf(query, StringComparison.OrdinalIgnoreCase) != -1)
+									res.Add(entries[k]);
+
+								if (k % 100 == 0 && cancel())
+									return;
+							}
 						}
+
+						entries = res;
+						res.Clear();
+					}
+
+					var result = new FileEntry[entries.Count];
+
+					for (int i = 0; i < entries.Count; i++) {
+						result[i] = entries[i];
+
+						if (result[i].DataImage == null) {
+							result[i].DataImage = IconProvider.GetSmallIcon(entries[i].RelativePath);
+						}
+					}
+
+					if (result.Length < 10000) {
+						_grfEntrySorter.UseAlphaNum = true;
+						Array.Sort(result, _grfEntrySorter);
+					}
+					else {
+						_grfEntrySorter.UseAlphaNum = false;
+						Array.Sort(result, _grfEntrySorter);
 					}
 
 					if (cancel())
 						return;
 
-					//result.Clear();
-					//result = new List<FileEntry>();
-					//result.AddRange(_grfHolder.FileTable.FastAccessEntries.Select(p => p.Value).ToList());
 					_itemEntries = new RangeObservableCollection<FileEntry>(result);
-
-					for (int i = 0; i < result.Length; i++) {
-						if (result[i].DataImage == null) {
-							result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
-						}
-					}
-
-					//if (cancel())
-					//	return;
 
 					_items.Dispatch(delegate {
 						_items.ItemsSource = _itemEntries;
@@ -286,7 +291,7 @@ namespace GRFEditor {
 						List<FileEntry> result;
 
 						if (search.Any(p => p.Contains("*") || p.Contains("?"))) {
-							IEnumerable<Utilities.Extension.Tuple<string, string, FileEntry>> res = _grfHolder.FileTable.FastTupleAccessEntries;
+							IEnumerable<(string Directory, string Filename, FileEntry Entry)> res = _grfHolder.FileTable.FastTupleAccessEntries;
 
 							foreach (var query in search) {
 								if (query.Contains("*") || query.Contains("?")) {
@@ -294,14 +299,14 @@ namespace GRFEditor {
 									res = res.Where(p => regex.IsMatch(p.Item2) || regex.IsMatch(p.Item3.RelativePath));
 								}
 								else {
-									res = res.Where(p => p.Item3.RelativePath.IndexOf(query, StringComparison.InvariantCultureIgnoreCase) != -1);
+									res = res.Where(p => p.Item3.RelativePath.IndexOf(query, StringComparison.OrdinalIgnoreCase) != -1);
 								}
 							}
 
 							result = res.Select(p => p.Item3).ToList();
 						}
 						else {
-							var res = entries.Where(p => search.All(q => p.Key.IndexOf(q, StringComparison.InvariantCultureIgnoreCase) != -1)).Select(p => p.Value).ToList();
+							var res = entries.Where(p => search.All(q => p.Key.IndexOf(q, StringComparison.OrdinalIgnoreCase) != -1)).Select(p => p.Value).ToList();
 
 							if (res.Count < 10000) {
 								_grfSearchEntrySorter.UseAlphaNum = true;

@@ -64,6 +64,9 @@ namespace GrfToWpfBridge.TreeViewManager {
 				case ".thor":
 					ImagePath = ApplicationManager.PreloadResourceImage("thor-16.png");
 					break;
+				default:
+					ImagePath = ApplicationManager.PreloadResourceImage(ext.Substring(1) + "-16.png");
+					break;
 			}
 
 			Style = (Style)this.TryFindResource("ProjectTreeViewItemStyle");

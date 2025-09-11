@@ -120,21 +120,24 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			try {
 				if (element != null) {
 					element.Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
-					element.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					//element.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					element.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 					element.Stretch = Stretch.None;
 				}
 
 				MenuItem mi = d as MenuItem;
 				if (mi != null) {
 					Image image = new Image { Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString()), Stretch = Stretch.None };
-					image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					//image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 					mi.Icon = image;
 				}
 
 				Button b = d as Button;
 				if (b != null) {
 					Image image = new Image { Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString()), Stretch = Stretch.None };
-					image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					//image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+					image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 					b.Content = image;
 				}
 			}
@@ -225,7 +228,8 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 			if (menuItem != null) {
 				Image image = new Image();
-				image.Source = ApplicationManager.GetResourceImage(e.NewValue.ToString());
+				image.Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
+				image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 				image.Width = 16;
 				image.Height = 16;
 				menuItem.Icon = image;
@@ -435,7 +439,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			string headerProperty;
 
 			try {
-				headerProperty = lv.Dispatcher.Invoke(new Func<object>(delegate {
+				headerProperty = lv.Dispatch(delegate {
 					try {
 						if (GetLastSorted(lv) == null)
 							return null;
@@ -451,7 +455,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 							return null;
 						}
 					}
-				})) as string;
+				}) as string;
 			}
 			catch {
 				headerProperty = null;
@@ -461,14 +465,14 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 		}
 
 		public static void SyncSort(System.Windows.Controls.ListView lv) {
-			Cursor oldCursor = (Cursor) lv.Dispatcher.Invoke(new Func<Cursor>(() => lv.Cursor));
+			Cursor oldCursor = (Cursor) lv.Dispatch(() => lv.Cursor);
 			lv.Dispatch(p => p.Cursor = Cursors.Wait);
 
 			try {
 				string headerProperty;
 
 				try {
-					headerProperty = lv.Dispatcher.Invoke(new Func<object>(delegate {
+					headerProperty = lv.Dispatch(delegate {
 						try {
 							if (GetLastSorted(lv) == null)
 								return null;
@@ -484,7 +488,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 								return null;
 							}
 						}
-					})) as string;
+					}) as string;
 
 					//if (headerProperty == null)
 					//    return;
@@ -493,7 +497,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					headerProperty = null;
 				}
 
-				lv.Dispatcher.Invoke(new Action(delegate {
+				lv.Dispatch(delegate {
 					if (lv.ItemsSource == null)
 						return;
 
@@ -506,7 +510,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 						view.CustomSort = sorter;
 						lv.Items.Refresh();
 					}
-				}));
+				});
 			}
 			catch { }
 			finally {
@@ -534,12 +538,12 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			};
 		}
 
-		public static void AddMouseInOutEffects(UIElement image) {
-			image.MouseEnter += delegate {
+		public static void AddMouseInOutEffects(UIElement element) {
+			element.MouseEnter += delegate {
 				Mouse.OverrideCursor = Cursors.Hand;
 			};
 
-			image.MouseLeave += delegate {
+			element.MouseLeave += delegate {
 				Mouse.OverrideCursor = null;
 			};
 		}
@@ -554,6 +558,24 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			foreach (var box in boxes) {
 				AddMouseInOutEffectsBox(box);
 			}
+		}
+
+		public static void AddMouseInOutEffects(TextBlock tb) {
+			tb.MouseEnter += delegate {
+				Mouse.OverrideCursor = Cursors.Hand;
+				tb.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
+				tb.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
+			};
+
+			tb.MouseLeave += delegate {
+				Mouse.OverrideCursor = null;
+				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+				tb.SetValue(TextBlock.TextDecorationsProperty, null);
+			};
+
+			ApplicationManager.ThemeChanged += delegate {
+				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+			};
 		}
 
 		public static void AddMouseInOutEffectsBox(CheckBox box) {

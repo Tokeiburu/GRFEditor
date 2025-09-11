@@ -5,7 +5,7 @@ using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 
 namespace GRF.FileFormats.RgzFormat {

@@ -20,6 +20,7 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge.Application;
+using GrfToWpfBridge.TreeViewManager;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
@@ -155,11 +156,11 @@ namespace GRFEditor.Tools.MapExtractor {
 		}
 
 		private void _disableNode(MapExtractorTreeViewItem gndTextureNode) {
-			gndTextureNode.Dispatcher.Invoke(new Action(delegate {
+			gndTextureNode.Dispatch(delegate {
 				gndTextureNode.CheckBoxHeaderIsEnabled = false;
 				gndTextureNode.ResourcePath = null;
 				gndTextureNode.RelativeGrfPath = null;
-			}));
+			});
 		}
 
 		private void _checkParents(MapExtractorTreeViewItem item, bool value) {
@@ -265,25 +266,30 @@ namespace GRFEditor.Tools.MapExtractor {
 						_addNode(cancelMethod, mapFile + ".gnd", @"data\", null, fileName.IsExtension(".gnd"));
 
 						if (cancelMethod != null && cancelMethod()) return;
-						_treeViewMapExtractor.Dispatcher.Invoke(new Action(delegate {
+						_treeViewMapExtractor.Dispatch(delegate {
 							foreach (MapExtractorTreeViewItem node in _treeViewMapExtractor.Items) {
 								if (node.IsChecked == true) {
 									node.IsExpanded = true;
 								}
 							}
-						}));
+						});
 
 						_addNode(cancelMethod, mapFile + ".rsw", @"data\", null, fileName.IsExtension(".rsw"));
+						_addNode(cancelMethod, mapFile + ".gat", @"data\", null, fileName.IsExtension(".gat"));
+
+						if (GrfEditorConfiguration.Resources.MultiGrf.Exists(@"data\luafiles514\lua files\effecttool\" + mapFile + ".lub")) {
+							_addNode(cancelMethod, mapFile + ".lub", @"data\luafiles514\lua files\effecttool\", null, fileName.IsExtension(".gat"));
+						}
 					}
 
 					if (cancelMethod != null && cancelMethod()) return;
-					_treeViewMapExtractor.Dispatcher.Invoke(new Action(delegate {
+					_treeViewMapExtractor.Dispatch(delegate {
 						foreach (MapExtractorTreeViewItem node in _treeViewMapExtractor.Items) {
 							if (node.IsChecked == true) {
 								node.IsExpanded = true;
 							}
 						}
-					}));
+					});
 				}
 			}
 			catch (Exception err) {
@@ -298,7 +304,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			try {
 				if (cancelMethod != null && cancelMethod()) return;
 
-				MapExtractorTreeViewItem mainNode = (MapExtractorTreeViewItem)_treeViewMapExtractor.Dispatcher.Invoke(new Func<MapExtractorTreeViewItem>(() => new MapExtractorTreeViewItem(_treeViewMapExtractor)));
+				MapExtractorTreeViewItem mainNode = (MapExtractorTreeViewItem)_treeViewMapExtractor.Dispatch(() => new MapExtractorTreeViewItem(_treeViewMapExtractor));
 				string relativePath = Path.Combine(relativeResourceLocation, subRelativeFile);
 				List<string> resources = new List<string>();
 
@@ -403,7 +409,7 @@ namespace GRFEditor.Tools.MapExtractor {
 		}
 
 		private IEnumerable<Utilities.Extension.Tuple<TkPath, string>> _getSelectedNodes(MapExtractorTreeViewItem node) {
-			return (List<Utilities.Extension.Tuple<TkPath, string>>)_treeViewMapExtractor.Dispatcher.Invoke(new Func<List<Utilities.Extension.Tuple<TkPath, string>>>(delegate {
+			return _treeViewMapExtractor.Dispatch(delegate {
 				List<Utilities.Extension.Tuple<TkPath, string>> paths = new List<Utilities.Extension.Tuple<TkPath, string>>();
 
 				if (node == null) {
@@ -422,7 +428,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				}
 
 				return paths;
-			}));
+			});
 		}
 
 		private void _menuItemsSelectInGrf_Click(object sender, RoutedEventArgs e) {

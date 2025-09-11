@@ -92,7 +92,7 @@ namespace GRF.Core.GroupedGrf {
 			get { throw GrfExceptions.__UnsupportedAction.Create(); }
 		}
 
-		public override sealed List<Tuple<string, string, FileEntry>> FastTupleAccessEntries {
+		public override sealed List<(string Directory, string Filename, FileEntry Entry)> FastTupleAccessEntries {
 			get { throw GrfExceptions.__UnsupportedAction.Create(); }
 		}
 

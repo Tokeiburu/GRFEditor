@@ -11,21 +11,48 @@ using Utilities.Tools;
 
 namespace GRF.Core {
 	public class GrfHeader : FileHeader {
-		public const int StructSize = 46;
+		public const int DataByteSize = 46;
 		private readonly List<string> _errors = new List<string>();
 
-		internal GrfHeader(IBinaryReader reader, Container container) {
+		internal GrfHeader(ByteReaderStream reader, Container container) {
 			Container = container;
 
-			if (reader.LengthLong < StructSize)
-				throw GrfExceptions.__HeaderLengthInvalid.Create(reader.Length, StructSize);
+			if (reader.LengthLong < DataByteSize)
+				throw GrfExceptions.__HeaderLengthInvalid.Create(reader.Length, DataByteSize);
 
-			byte[] data = reader.Bytes(StructSize);
+			byte[] data = reader.Bytes(DataByteSize);
 
 			Magic = Encoding.ASCII.GetString(data, 0, 16);
+			Key = Encoding.ASCII.GetString(data, 16, 14);
 
-			if (Magic.ToLower() != "master of magic\0") {
-				// Attempt to read as alpha GRF
+			int version = BitConverter.ToInt32(data, 42);
+			MajorVersion = (byte) (version >> 8);
+			MinorVersion = (byte) (version & 0x000000FF);
+
+			// Fix : 2024-10-25
+			// Added support for int64 size GRFs
+			if (this.Is(3, 0) && data[35] == 0 && data[36] == 0 && data[37] == 0) {
+				FileTableOffset = BitConverter.ToInt64(data, 30);
+				Seed = 0;
+				RealFilesCount = _filesCount = BitConverter.ToInt32(data, 38);
+			}
+			else {
+				FileTableOffset = BitConverter.ToUInt32(data, 30);
+				Seed = BitConverter.ToInt32(data, 34);
+				_filesCount = BitConverter.ToInt32(data, 38);
+				RealFilesCount = _filesCount - Seed - 7;
+			}
+
+			// This is a GRF header, don't check further
+			if (this.Is(1, 2) ||
+			    this.Is(1, 3) ||
+			    this.Is(2, 0) ||
+				this.Is(3, 0)) {
+				return;
+			}
+
+			// Attempt to read as alpha GRF
+			if (Magic.ToLower() != GrfStrings.MasterOfMagic.ToLowerInvariant()) {
 				reader.PositionUInt = (UInt32)reader.LengthLong - 9;
 				FileTableOffset = reader.UInt32();
 				RealFilesCount = reader.Int32();
@@ -35,40 +62,40 @@ namespace GRF.Core {
 				Seed = 0;
 
 				if (FileTableOffset < reader.LengthLong) {
-					Magic = "Master of Magic\0";
+					Magic = GrfStrings.MasterOfMagic;
 					Key = Encoding.ASCII.GetString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }); // Enable encryption
 					return;
 				}
 
-				SetError(GrfStrings.FailedGrfHeader, Magic);
+				SetError(GrfStrings.FailedData, "Magic (0x00): " + Magic + "\n\tExpected 'Master of Magic\\0'");
+				SetError(GrfStrings.FailedData, "Unknown GRF version\n\tExpected 0x102, 0x103, 0x200 or 0x300.");
+				SetError(GrfStrings.FailedData, "Attempted to read as Alpha GRF, but FileTableOffset value is invalid.\n\tFound " + FileTableOffset + " / " + reader.LengthLong);
+				SetError(GrfStrings.FailedData, "Additional header data:");
+				SetError(GrfStrings.FailedData, "- FileTableOffset (0x1e): " + BitConverter.ToUInt32(data, 30));
+				SetError(GrfStrings.FailedData, "- Seed (0x22): " + BitConverter.ToInt32(data, 34));
+				SetError(GrfStrings.FailedData, "- _filesCount (0x26): " + BitConverter.ToInt32(data, 38));
+				SetError(GrfStrings.FailedData, "- MajorVersion (0x2b): " + (byte)(version >> 8));
+				SetError(GrfStrings.FailedData, "- MinorVersion (0x2a): " + (byte)(version & 0x000000FF));
 			}
-
-			Key = Encoding.ASCII.GetString(data, 16, 14);
-			FileTableOffset = BitConverter.ToUInt32(data, 30);
-			Seed = BitConverter.ToInt32(data, 34);
-			_filesCount = BitConverter.ToInt32(data, 38);
-			int version = BitConverter.ToInt32(data, 42);
-			MajorVersion = (byte) (version >> 8);
-			MinorVersion = (byte) (version & 0x000000FF);
-			RealFilesCount = _filesCount - Seed - 7;
 		}
 
 		internal GrfHeader(Container container) {
 			Container = container;
-			Magic = "Master of Magic\0";
+			Magic = GrfStrings.MasterOfMagic;
 			Key = Encoding.ASCII.GetString(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}); // Enable encryption
 			Seed = 0;
-			FileTableOffset = StructSize;
+			FileTableOffset = DataByteSize;
 			MajorVersion = 2;
 			MinorVersion = 0;
 			RealFilesCount = 0;
 		}
 
 		public bool EncryptFileTable { get; private set; }
+		public bool DecryptFileTable { get; internal set; }
 		internal Container Container { get; private set; }
 
 		public string Key { get; set; }
-		public uint FileTableOffset { get; set; }
+		public long FileTableOffset { get; set; }
 		public int Seed { get; set; }
 		private int _filesCount { get; set; }
 		internal int RealFilesCount { get; set; }
@@ -110,11 +137,19 @@ namespace GRF.Core {
 
 		public void Write(Stream grfStream) {
 			using (BinaryWriter writer = new BinaryWriter(new MemoryStream())) {
-				writer.Write("Master of Magic\0".Bytes(16, Encoding.ASCII), 0, 16);
+				writer.Write(Magic.Bytes(16, Encoding.ASCII), 0, 16);
 				writer.Write(Key.Bytes(14, Encoding.ASCII), 0, 14);
-				writer.Write(FileTableOffset);
-				writer.Write(Seed);
-				writer.Write(RealFilesCount + 7 + Seed);
+
+				if (this.IsCompatibleWith(3, 0)) {
+					writer.Write(FileTableOffset);
+					writer.Write(RealFilesCount);
+				}
+				else {
+					writer.Write((uint)FileTableOffset);
+					writer.Write(Seed);
+					writer.Write(RealFilesCount + 7 + Seed);
+				}
+
 				writer.Write((MajorVersion << 8) + MinorVersion);
 				grfStream.Write(((MemoryStream) writer.BaseStream).GetBuffer(), 0, (int) writer.BaseStream.Position);
 			}

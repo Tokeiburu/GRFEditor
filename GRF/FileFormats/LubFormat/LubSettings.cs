@@ -6,6 +6,7 @@
 		public bool UseCodeReconstructor { get; set; }
 		public bool DecodeInstructions { get; set; }
 		public bool GroupIfAllValues { get; set; }
+		public bool EncapsulateByCheckingOtherKeys { get; set; }
 
 		public bool GroupIfAllKeyValues {
 			get {
@@ -29,6 +30,10 @@
 		}
 
 		public void RemoveOverrides() {
+			if (_oldGroupIfAllKeyValues != null) {
+				_groupIfAllKeyValues = _oldGroupIfAllKeyValues.Value;
+				_oldGroupIfAllKeyValues = null;
+			}
 		}
 	}
 }

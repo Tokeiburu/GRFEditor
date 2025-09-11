@@ -20,6 +20,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		private readonly Tree _tree;
 		private readonly TkView _treeView;
 		private string _container;
+		private bool _ignoreCase = false;
 
 		public TreeViewPathManager(TkView treeView) {
 			_treeView = treeView;
@@ -36,23 +37,27 @@ namespace GrfToWpfBridge.TreeViewManager {
 			AddPath(new TkPath { FilePath = name, RelativePath = "data" });
 		}
 
+		public void SetIgnoreCase(bool ignoreCase) {
+			_ignoreCase = ignoreCase;
+		}
+
 		public void AddNewRgz(string name) {
 			ClearAll();
 			_container = name;
 			AddPath(new TkPath { FilePath = name, RelativePath = "root" });
 		}
 
-		public void AddPath(TkPath path) {
+		public void AddPath(TkPath path, int insertLocation = -1, bool ignoreContainerCheck = false) {
 			path.RelativePath = path.RelativePath.Replace("\\\\", "\\");
 
 			string containerPath = path.FilePath;
 
-			if (_container != containerPath) {
+			if (!ignoreContainerCheck && _container != containerPath) {
 				ClearAll();
 				_container = containerPath;
 			}
 
-			_tree.AddPath(path);
+			_tree.AddPath(path, _ignoreCase, insertLocation);
 		}
 
 		public void Select(TkPath path) {
@@ -60,7 +65,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public void Select(int index) {
-			_treeView.Dispatcher.Invoke(new Action(() => ((TkTreeViewItem) _treeView.Items[index]).IsSelected = true));
+			_treeView.Dispatch(() => ((TkTreeViewItem) _treeView.Items[index]).IsSelected = true);
 		}
 
 		public void ExpandFirstNode() {
@@ -68,11 +73,11 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public void ExpandAll() {
-		    _treeView.Dispatcher.Invoke(new Action(delegate {
+		    _treeView.Dispatch(p => {
 		        foreach (TkTreeViewItem item in _treeView.Items) {
 		            _expandAll(item);
 		        }
-		    }));
+		    });
 		}
 
 		private void _expandAll(TkTreeViewItem item) {
@@ -84,7 +89,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public string GetCurrentRelativePath() {
-			return (string) _treeView.Dispatcher.Invoke(new Func<string>(delegate {
+			return (string) _treeView.Dispatch(delegate {
 				if (_treeView.SelectedItem == null)
 					return "";
 
@@ -110,13 +115,18 @@ namespace GrfToWpfBridge.TreeViewManager {
 				}
 
 				return relativePath;
-			}));
+			});
+		}
+
+		public void ClearItems() {
+			_tree.Clear();
+			_treeView.Dispatch(() => _treeView.SelectedItem = null);
+			_treeView.Dispatch(() => _treeView.Items.Clear());
+			_treeView.Dispatch(() => _treeView.DisplayEncoding = EncodingService.DisplayEncoding);
 		}
 
 		public void ClearAll() {
 			ClearCommands();
-			_addedPaths.Clear();
-			_deletedPaths.Clear();
 			_tree.Clear();
 			_container = null;
 
@@ -151,11 +161,11 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 			string currentPath = null;
 			if (item != null) {
-				currentPath = (string) item.Dispatcher.Invoke(new Func<string>(() => item.HeaderText));
+				currentPath = (string) item.Dispatch(() => item.HeaderText);
 
 				while (item.Parent != null && !(item.Parent is TreeView)) {
 					item = ((TkTreeViewItem) item.Parent);
-					currentPath = item.Dispatcher.Invoke(new Func<string>(() => item.HeaderText)) + "\\" + currentPath;
+					currentPath = item.Dispatch(() => item.HeaderText) + "\\" + currentPath;
 				}
 			}
 
@@ -255,7 +265,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public string GetCurrentPath() {
-			return (string) _treeView.Dispatcher.Invoke(new Func<string>(delegate {
+			return (string) _treeView.Dispatch(delegate {
 				if (_treeView.SelectedItem == null)
 					return "";
 
@@ -284,11 +294,11 @@ namespace GrfToWpfBridge.TreeViewManager {
 				}
 
 				return relativePath;
-			}));
+			});
 		}
 
 		public List<string> GetExpandedFolders() {
-			return (List<string>) _treeView.Dispatcher.Invoke(new Func<List<string>>(delegate {
+			return (List<string>) _treeView.Dispatch(delegate {
 				if (_treeView.Items.Count == 0)
 					return null;
 
@@ -297,7 +307,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 				paths.AddRange(_getExpandedFolders(_treeView.Items[0] as TkTreeViewItem));
 
 				return paths;
-			}));
+			});
 		}
 
 		private IEnumerable<string> _getExpandedFolders(TkTreeViewItem currentNode) {
@@ -323,7 +333,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public void SelectFirstNode() {
-			_treeView.Dispatcher.Invoke(new Action(delegate {
+			_treeView.Dispatch(p => {
 				if (_treeView.Items.Count == 1) {
 					TkTreeViewItem item = (TkTreeViewItem) _treeView.Items[0];
 
@@ -331,10 +341,10 @@ namespace GrfToWpfBridge.TreeViewManager {
 						((TkTreeViewItem)item.Items[0]).IsSelected = true;
 					}
 				}
-			}));
+			});
 		}
 
-		public void AddPaths(string containerPath, List<string> paths) {
+		public void AddPaths(string containerPath, List<string> paths, bool ignoreCase) {
 			if (_container != containerPath) {
 				ClearAll();
 				_container = containerPath;
@@ -353,7 +363,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 						return;
 
 					if (_tree.TreeNode == null)
-						_tree.TreeNode = new TreeNode(_tree, folders[0], tkPath, null);
+						_tree.TreeNode = new TreeNode(_tree, folders[0], tkPath, null, ignoreCase);
 
 					_tree.TreeNode.AddPath(folders, tkPath, 1);
 				}

@@ -24,11 +24,10 @@ namespace GRFEditor.OpenGL.WPF {
 			public List<string> Messages = new List<string>();
 			private readonly object _lock = new object();
 			private OpenGLDebugDialog _dialog;
-			public bool IsTerminated { get; set; }
 
 			public void Start(OpenGLDebugDialog dialog) {
 				_dialog = dialog;
-				GrfThread.Start(_start, "");
+				GrfThread.Start(_start, "GRF - OpenGL Debug");
 			}
 
 			private void _start() {

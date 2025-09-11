@@ -6,6 +6,7 @@ using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities.Services;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class WaterRenderer : Renderer {
@@ -47,7 +48,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					var water = _water.Zones[(_water.WaterSplitHeight - yy - 1) * _water.WaterSplitWidth + xx];
 
 					for (int i = 0; i < 32; i++) {
-						string texture = String.Format(@"data\texture\¿öÅÍ\water{0}{1:00}{2}", water.Type, i, ".jpg");
+						string texture = EncodingService.FromAnsiToDisplayEncoding(String.Format(@"data\texture\¿öÅÍ\water{0}{1:00}{2}", water.Type, i, ".jpg"));
 						Textures.Add(TextureManager.LoadTextureAsync(texture, texture, TextureRenderMode.RsmTexture, _request));
 					}
 
@@ -97,6 +98,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || _water == null || !viewport.RenderOptions.Water)
 				return;
 
+			if (viewport.RenderPass != 1)
+				return;
+
 			if (!_verticesLoaded) {
 				Load(viewport);
 			}
@@ -131,11 +135,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			float time = _watch.ElapsedMilliseconds / 1000f;
 
 			Shader.Use();
-			Shader.SetMatrix4("projectionMatrix", viewport.Projection);
-			Shader.SetMatrix4("viewMatrix", viewport.View);
+			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
+			Shader.SetMatrix4("viewMatrix", ref viewport.View);
 			Shader.SetFloat("time", time);
 
-			GL.DepthMask(false);
+			// The depth mask is set to false from the main render loop, while rendering transparent textures
+			//GL.DepthMask(false);
 
 			_ri.BindVao();
 
@@ -196,7 +201,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				}
 			}
 
-			GL.DepthMask(true);
+			//GL.DepthMask(true);
 		}
 
 		public override void Unload() {

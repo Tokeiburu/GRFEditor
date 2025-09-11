@@ -10,6 +10,7 @@ using GrfToWpfBridge;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary.WPF.Styles;
+using TokeiLibrary.WPF.Styles.ListView;
 using Color = System.Windows.Media.Color;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
@@ -66,6 +67,8 @@ namespace GRFEditor.OpenGL.WPF {
 			Binder.Bind(_cbEnableWater, () => GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride, v => GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride = v, delegate {
 				viewport.RenderOptions.MinimapWaterOverride = GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride;
 			}, true);
+
+			WpfUtils.AddMouseInOutEffectsBox(_cbEnableWater);
 		}
 
 		private void _buttonSave_Click(object sender, RoutedEventArgs e) {

@@ -8,5 +8,6 @@ namespace GRF.Core {
 		OpenOrNew = 1 << 1,
 		New = 1 << 2,
 		Repair = 1 << 3,
+		DecryptFileTable = 1 << 4,
 	}
 }

@@ -64,7 +64,7 @@ namespace Utilities.CommandLine {
 
 			// This is an option
 			if (lineElement[position] == '-') {
-				int spaceIndex = lineElement.IndexOf(" ", position, StringComparison.InvariantCulture);
+				int spaceIndex = lineElement.IndexOf(" ", position, StringComparison.Ordinal);
 				if (spaceIndex == -1) {
 					string temp = lineElement.Substring(position, lineElement.Length - position);
 					position = lineElement.Length;
@@ -77,7 +77,7 @@ namespace Utilities.CommandLine {
 
 			// This is a quote argument (the quotes are removed)
 			if (lineElement[position] == '\"') {
-				int spaceIndex = lineElement.IndexOf("\"", position + 1, StringComparison.InvariantCulture);
+				int spaceIndex = lineElement.IndexOf("\"", position + 1, StringComparison.Ordinal);
 				if (spaceIndex == -1)
 					return null;
 				string toReturn = lineElement.Substring(position + 1, spaceIndex - position - 1);
@@ -85,7 +85,7 @@ namespace Utilities.CommandLine {
 				return toReturn;
 			}
 			else {
-				int spaceIndex = lineElement.IndexOf(" ", position + 1, StringComparison.InvariantCulture);
+				int spaceIndex = lineElement.IndexOf(" ", position + 1, StringComparison.Ordinal);
 
 				if (spaceIndex == -1)
 					spaceIndex = lineElement.Length;

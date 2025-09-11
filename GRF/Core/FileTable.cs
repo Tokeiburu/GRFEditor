@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Encryption;
 using GRF.ContainerFormat;
 using GRF.IO;
@@ -33,7 +34,9 @@ namespace GRF.Core {
 			try {
 				_header = header;
 
-				if (header.IsCompatibleWith(2, 0))
+				if (header.IsCompatibleWith(3, 0))
+					_load300(reader);
+				else if (header.IsCompatibleWith(2, 0))
 					_load200(reader);
 				else if (header.IsCompatibleWith(1, 0))
 					_load100(reader);
@@ -43,7 +46,10 @@ namespace GRF.Core {
 					throw GrfExceptions.__UnsupportedFileFormat.Create(header.HexVersionFormat);
 			}
 			catch (Exception err) {
-				header.SetError("File table instantiation has failed : \r\n" + err.Message);
+				header.SetError("File table instantiation has failed: \r\n" + err.Message);
+				header.SetError(GrfStrings.FailedData, "- FileTableOffset (0x1e): " + header.FileTableOffset);
+				header.SetError(GrfStrings.FailedData, "- MajorVersion (0x2b): " + header.MajorVersion);
+				header.SetError(GrfStrings.FailedData, "- MinorVersion (0x2a): " + header.MinorVersion);
 			}
 		}
 
@@ -59,7 +65,7 @@ namespace GRF.Core {
 
 
 		private void _loadAlpha(ByteReaderStream grfStream) {
-			grfStream.PositionUInt = _header.FileTableOffset;
+			grfStream.PositionLong = _header.FileTableOffset;
 			int filesCount = 0;
 			FileEntry fileEntry;
 
@@ -238,7 +244,7 @@ namespace GRF.Core {
 				fileEntry.SizeCompressed = fileEntry.NewSizeCompressed = compressedLen;
 				fileEntry.SizeCompressedAlignment = fileEntry.TemporarySizeCompressedAlignment = compressedLenAligned;
 				fileEntry.SizeDecompressed = fileEntry.NewSizeDecompressed = realLen;
-				fileEntry.FileExactOffset = fileEntry.TemporaryOffset = pos + GrfHeader.StructSize;
+				fileEntry.FileExactOffset = fileEntry.TemporaryOffset = pos + GrfHeader.DataByteSize;
 				fileEntry.Flags = entryType;
 				fileEntry.Header = _header;
 				fileEntry.SetStream(grfStream);
@@ -277,9 +283,10 @@ namespace GRF.Core {
 		/// Loads the file table using the GRF version 0x200 format.
 		/// </summary>
 		/// <param name="grfStream">The GRF stream.</param>
-		private void _load200(ByteReaderStream grfStream) {
+		private void _load300(ByteReaderStream grfStream) {
 			FileEntry fileEntry;
 
+			grfStream.Forward(4);	// Unknown, always 0?
 			TableSizeCompressed = grfStream.Int32();
 			TableSize = grfStream.Int32();
 
@@ -295,7 +302,65 @@ namespace GRF.Core {
 			while (bufferPosition < streamLength) {
 				fileEntry = new FileEntry(data, ref bufferPosition, _header, grfStream);
 
-				if (ExtensionMethods.ContainsDoubleSlash(fileEntry.RelativePath)) {
+				if (fileEntry.RelativePath.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
+					fileEntry.Modification |= Modification.FileNameRenamed;
+					fileEntry.RelativePath = fileEntry.RelativePath.Replace("\\\\", "\\");
+				}
+
+				// Ignore any other type of entries (such as directories)
+				if (fileEntry.Flags == EntryType.Directory) {
+					if (fileEntry.RelativePath.LastIndexOf('.') != -1) {
+						fileEntry.Flags |= EntryType.RawDataFile;
+					}
+				}
+
+				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile)) > 0) {
+					FileEntry conflict;
+
+					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out conflict)) {
+						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
+							_indexedEntries[fileEntry.RelativePath] = fileEntry;
+						}
+					}
+					else {
+						_indexedEntries.SetQuick(fileEntry.RelativePath, fileEntry);
+					}
+				}
+			}
+
+			if (_indexedEntries.ContainsKey(GrfStrings.EncryptionFilename)) {
+				_indexedEntries[GrfStrings.EncryptionFilename].Modification |= Modification.Removed;
+			}
+
+			_indexedEntries.HasBeenModified = true;
+		}
+
+		/// <summary>
+		/// Loads the file table using the GRF version 0x200 format.
+		/// </summary>
+		/// <param name="grfStream">The GRF stream.</param>
+		private void _load200(ByteReaderStream grfStream) {
+			FileEntry fileEntry;
+
+			TableSizeCompressed = grfStream.Int32();
+			TableSize = grfStream.Int32();
+
+			if (TableSizeCompressed == 0 || TableSize == 0)
+				return;
+
+			byte[] compressedData = grfStream.Bytes(TableSizeCompressed);
+			if (Ee322.a184e9055afb92382b66a5d5b739e726(compressedData))
+				Encryption.Decrypt(_header.EncryptionKey, compressedData, TableSize + 8);
+
+			byte[] data = Compression.Decompress(compressedData, TableSize);
+
+			int bufferPosition = 0;
+			int streamLength = data.Length;
+
+			while (bufferPosition < streamLength) {
+				fileEntry = new FileEntry(data, ref bufferPosition, _header, grfStream);
+
+				if (fileEntry.RelativePath.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
 					fileEntry.Modification |= Modification.FileNameRenamed;
 					fileEntry.RelativePath = fileEntry.RelativePath.Replace("\\\\", "\\");
 				}
@@ -357,12 +422,16 @@ namespace GRF.Core {
 						}
 					}
 
+					if (header.IsCompatibleWith(3, 0)) {
+						grfStream.Write(BitConverter.GetBytes(0), 0, 4);
+					}
+
 					grfStream.Write(BitConverter.GetBytes(TableSizeCompressed), 0, 4);
 					grfStream.Write(BitConverter.GetBytes(TableSize), 0, 4);
 					grfStream.Write(dataCompressed, 0, dataCompressed.Length);
 				}
 
-				return TableSizeCompressed + 8; // 8 is for the 2 int (table size and table compressed size)
+				return TableSizeCompressed + 8 + (header.IsCompatibleWith(3, 0) ? 4 : 0); // 8 is for the 2 int (table size and table compressed size)
 			}
 
 			if (header.IsCompatibleWith(1, 0)) {

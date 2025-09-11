@@ -31,18 +31,40 @@
 		}
 
 		protected virtual void _applyBackgroundColor(GrfImage image, GrfColor backgroundColor) {
-			byte alpha;
-			int position;
+			int bgB = backgroundColor.B;
+			int bgG = backgroundColor.G;
+			int bgR = backgroundColor.R;
 
-			for (int i = 0, size = image.Pixels.Length / 4; i < size; i++) {
-				alpha = image.Pixels[4 * i + 3];
-				position = 4 * i;
+			unsafe {
+				fixed (byte* pBase = image.Pixels) {
+					byte* p = pBase;
+					byte* pEnd = pBase + image.Pixels.Length;
 
-				if (!KeepFullyTransparentBackground || alpha != 0) {
-					image.Pixels[position] = (byte) (((255 - alpha) * backgroundColor.B + alpha * image.Pixels[position]) / 255f);
-					image.Pixels[position + 1] = (byte) (((255 - alpha) * backgroundColor.G + alpha * image.Pixels[position + 1]) / 255f);
-					image.Pixels[position + 2] = (byte) (((255 - alpha) * backgroundColor.R + alpha * image.Pixels[position + 2]) / 255f);
-					image.Pixels[position + 3] = 255;
+					if (KeepFullyTransparentBackground) {
+						while (p < pEnd) {
+							byte a = p[3];
+							int invA = 255 - a;
+							if (a != 0) {
+								p[0] = (byte)((invA * bgB + a * p[0]) / 255);
+								p[1] = (byte)((invA * bgG + a * p[1]) / 255);
+								p[2] = (byte)((invA * bgR + a * p[2]) / 255);
+								p[3] = 255;
+							}
+
+							p += 4;
+						}
+					}
+					else {
+						while (p < pEnd) {
+							byte a = p[3];
+							int invA = 255 - a;
+							p[0] = (byte)((invA * bgB + a * p[0]) / 255);
+							p[1] = (byte)((invA * bgG + a * p[1]) / 255);
+							p[2] = (byte)((invA * bgR + a * p[2]) / 255);
+							p[3] = 255;
+							p += 4;
+						}
+					}
 				}
 			}
 		}

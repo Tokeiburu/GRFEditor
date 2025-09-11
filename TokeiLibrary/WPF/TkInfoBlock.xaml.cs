@@ -17,7 +17,7 @@ namespace TokeiLibrary.WPF {
 			TkInfoBlock block = d as TkInfoBlock;
 
 			if (block != null) {
-				block._image.Source = ApplicationManager.GetResourceImage(e.NewValue.ToString());
+				block._image.Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
 			}
 		}
 

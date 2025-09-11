@@ -511,7 +511,7 @@ namespace TokeiLibrary.WPF.Styles {
 
 			Button button = null;
 
-			var frame = ApplicationManager.GetResourceImage("warning16.png");
+			var frame = ApplicationManager.PreloadResourceImage("warning16.png");
 			Image image = new Image { Source = frame, Stretch = Stretch.None, Width = 20, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 0, 8, 0) };
 			_buttonError = image;
 			_buttonError.SetValue(Grid.ColumnProperty, 0);

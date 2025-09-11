@@ -28,7 +28,7 @@ namespace GRF.Image {
 				case ".png":
 					return new CommonImageFormat(dataDecompressed).Image;
 				case ".gat":
-					return new Gat(dataDecompressed).Image;
+					return GatPreviewImageMaker.LoadQuickPreviewImage(dataDecompressed);
 				case ".tga":
 					return new Tga(dataDecompressed).Image;
 				case ".pal":

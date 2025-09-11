@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities.CommandLine;
 
 namespace GRF.FileFormats.LubFormat {

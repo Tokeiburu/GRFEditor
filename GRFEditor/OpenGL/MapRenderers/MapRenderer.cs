@@ -87,6 +87,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				return;
 			}
 
+			if (viewport.RenderPass > 2)
+				return;
+
 			if (!_directionalLightSetup || ReloadLight) {
 				SharedRsmRenderer.SetupRswLight(Shader, _rsw);
 				_directionalLightSetup = true;
@@ -104,28 +107,50 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			Shader.SetVector2("texMult", new Vector2(1));
 			Shader.SetMatrix4("texRot", Matrix4.Identity);
 			Shader.SetFloat("textureAnimToggle", 0);
+			Shader.SetVector3("lightPosition", viewport.Camera.Position);
+			//Shader.SetFloat("opacity", 0.5f);
 
-			foreach (var shadeGroup in ShadeGroups) {
-				Shader.SetInt("shadeType", shadeGroup.Key);
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 
-				foreach (var riEntry in shadeGroup.Value.OrderBy(p => Textures[p.Key].IsSemiTransparent)) {
-					if (riEntry.Value.Vao == 0)
-						continue;
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
 
-					riEntry.Value.BindVao();
+			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
+				Shader.SetBool("fixedColor", true);
+			}
+			else {
+				Shader.SetBool("fixedColor", false);
+			}
 
-					var texture = Textures[riEntry.Key];
+			if (viewport.RenderPass <= 1) {
+				foreach (var shadeGroup in ShadeGroups) {
+					Shader.SetInt("shadeType", shadeGroup.Key);
 
-					texture.Bind();
+					foreach (var riEntry in shadeGroup.Value.OrderBy(p => Textures[p.Key].IsSemiTransparent)) {
+						if (riEntry.Value.Vao == 0)
+							continue;
 
-					if (texture.IsSemiTransparent) {
-						Shader.SetFloat("discardValue", 0.02f);
+						riEntry.Value.BindVao();
+
+						var texture = Textures[riEntry.Key];
+
+						if (viewport.RenderPass == 0 && texture.IsSemiTransparent)
+							continue;
+						if (viewport.RenderPass == 1 && !texture.IsSemiTransparent)
+							continue;
+
+						texture.Bind();
+
+						if (texture.IsSemiTransparent) {
+							Shader.SetFloat("discardValue", 0f);
+						}
+
+						GL.DrawArrays(PrimitiveType.Triangles, 0, riEntry.Value.Vbo.Length);
 					}
 
-					GL.DrawArrays(PrimitiveType.Triangles, 0, riEntry.Value.Vbo.Length);
+					Shader.SetFloat("discardValue", 0.8f);
 				}
-
-				Shader.SetFloat("discardValue", 0.8f);
 			}
 
 			var sTick = _watch.ElapsedMilliseconds;
@@ -142,8 +167,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				foreach (var model in entry.Value.OrderBy(p => p.Model.AnimationSpeed)) {
 					if (Math.Abs(previousAnimationSpeed - model.Model.AnimationSpeed) > 0.01) {
 						if (instanceMatrixes.Count > 0 || instanceMatrixesReverse.Count > 0) {
-							rsmRenderer.Rsm.SetAnimationIndex(tick, previousAnimationSpeed);
-							rsmRenderer.Rsm.Dirty();
+							if (viewport.RenderPass == 0) {	
+								rsmRenderer.Rsm.SetAnimationIndex(tick, previousAnimationSpeed);
+								rsmRenderer.Rsm.Dirty();
+							}
+
 							if (viewport.RenderOptions.EnableFaceCulling) {
 								if (instanceMatrixesReverse.Count > 0) {
 									GL.FrontFace(FrontFaceDirection.Cw);
@@ -194,6 +222,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			if (viewport.RenderOptions.EnableFaceCulling)
 				GL.FrontFace(FrontFaceDirection.Ccw);
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 		}
 
 		public override void Unload() {
@@ -328,7 +362,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					var rsmEntry = ResourceManager.GetData(Rsm.RsmModelPath + model.ModelName);
 
 					if (rsmEntry != null)
-						models[name] = new Rsm(rsmEntry);
+						try {
+							models[name] = new Rsm(rsmEntry);
+						}
+						catch {
+							models[name] = null;
+						}
 					else
 						models[name] = null;
 				}

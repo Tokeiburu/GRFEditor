@@ -188,6 +188,42 @@ namespace GRFEditor.OpenGL {
 		///   The matrix is transposed before being sent to the shader.
 		///   </para>
 		/// </remarks>
+		public void SetMatrix4(string name, ref Matrix4 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				return;
+			}
+
+			GL.UniformMatrix4(_uniformLocations[name], true, ref data);
+		}
+
+		/// <summary>
+		/// Set a uniform Matrix4 on this shader
+		/// </summary>
+		/// <param name="name">The name of the uniform</param>
+		/// <param name="data">The data to set</param>
+		/// <remarks>
+		///   <para>
+		///   The matrix is transposed before being sent to the shader.
+		///   </para>
+		/// </remarks>
+		public void SetMatrix3(string name, ref Matrix3 data) {
+			if (!_uniformLocations.ContainsKey(name)) {
+				return;
+			}
+
+			GL.UniformMatrix3(_uniformLocations[name], true, ref data);
+		}
+
+		/// <summary>
+		/// Set a uniform Matrix4 on this shader
+		/// </summary>
+		/// <param name="name">The name of the uniform</param>
+		/// <param name="data">The data to set</param>
+		/// <remarks>
+		///   <para>
+		///   The matrix is transposed before being sent to the shader.
+		///   </para>
+		/// </remarks>
 		public void SetMatrix4(string name, Matrix4 data) {
 			if (!_uniformLocations.ContainsKey(name)) {
 				return;
@@ -210,7 +246,7 @@ namespace GRFEditor.OpenGL {
 			if (!_uniformLocations.ContainsKey(name)) {
 				return;
 			}
-			
+
 			GL.UniformMatrix3(_uniformLocations[name], true, ref data);
 		}
 

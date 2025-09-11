@@ -82,13 +82,29 @@ namespace Utilities {
 				value = value.ReplaceAll("\r\n", _lineBreakIdentifier).ReplaceAll("\n", _lineBreakIdentifier);
 
 				lock (_lock) {
-					if (AdvancedSettingEnabled) {
+					ConfigAskerSetting setting = null;
+
+					// Why is this condition here? AdvancedSettingEnabled is only used to retrieve the settings, but without this always activated,
+					// it will fail to trigger the PreviewPropertyChanged event.
+					//if (AdvancedSettingEnabled) {
 						if (this[toFind] != null && _propertySettings.ContainsKey(toFind)) {
-							_propertySettings[toFind].SetValue(value);
+							setting = _propertySettings[toFind];
+							setting.SetValue(value);
 						}
+					//}
+
+					string oldValue = null;
+
+					if (_properties.ContainsKey(toFind)) {
+						oldValue = _properties[toFind];
 					}
 
 					_properties[toFind] = value;
+
+					if (setting != null) {
+						setting.OnPropertyChanged(oldValue, value);
+					}
+					
 					_save();
 				}
 			}

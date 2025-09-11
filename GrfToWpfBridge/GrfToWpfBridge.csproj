@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,10 +10,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GrfToWpfBridge</RootNamespace>
     <AssemblyName>GrfToWpfBridge</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <IsWebBootstrapper>false</IsWebBootstrapper>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -29,26 +30,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x86\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
@@ -59,6 +40,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -70,6 +52,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ErrorManager, Version=1.2.5494.34248, Culture=neutral, processorArchitecture=MSIL">
@@ -84,6 +67,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -117,6 +101,7 @@
     <Compile Include="TaskManager.cs" />
     <Compile Include="TreeViewManager\BaseTree.cs" />
     <Compile Include="TreeViewManager\BaseTreeNode.cs" />
+    <Compile Include="TreeViewManager\MapExtractorTreeViewItem.cs" />
     <Compile Include="TreeViewManager\ProjectTreeViewItem.cs" />
     <Compile Include="TreeViewManager\Tree.cs" />
     <Compile Include="TreeViewManager\TreeNode.cs" />
@@ -165,20 +150,28 @@
       <Name>TokeiLibrary</Name>
     </ProjectReference>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
-      <Project>{CD1BA63F-AB33-4EF4-98BC-CF851F51B38A}</Project>
+      <Project>{b57e7e46-f5d5-4352-979c-13809d4f292a}</Project>
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)\Libraries\$(TargetFileName)"
-echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)..\Libraries\$(TargetFileName)"</PostBuildEvent>
-  </PropertyGroup>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+	<PropertyGroup>
+		<ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
+		<GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
+	</PropertyGroup>
+	<ItemGroup Condition="Exists('$(ExternalDllsPath)')">
+		<ExternalDlls Include="$(ExternalDllsPath)\ErrorManager.dll" Visible="false" />
+		<ExternalDlls Include="$(ExternalDllsPath)\Gif.Components.dll" Visible="false" />
+	</ItemGroup>
+	<Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
+		<MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+		<Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+	</Target>
+	<Target Name="CopyBuildDll" BeforeTargets="AfterBuild">
+		<MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+		<Message Text="$(ProjectName) -> $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+		<Message Text="$(ProjectName) -> $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
+	</Target>
 </Project>

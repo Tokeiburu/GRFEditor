@@ -18,6 +18,7 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GRFEditor.WPF;
+using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.TreeViewManager;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
@@ -124,6 +125,35 @@ namespace GRFEditor {
 			_checkIfEncrypted(false);
 		}
 
+		private void _miDecryptFileTable_Click(object sender, RoutedEventArgs e) {
+			try {
+				if (!_grfHolder.Header.FoundErrors) {
+					return;
+				}
+
+				if (_grfHolder.Header.EncryptionKey == null) {
+					EncryptorInputKeyDialog dialog = new EncryptorInputKeyDialog("Enter the encryption key to decrypt the file table or click cancel to ignore.");
+					dialog.Owner = this;
+					dialog.ShowDialog();
+
+					if (dialog.Result == MessageBoxResult.OK) {
+						Configuration.EncryptorPassword = dialog.Key;
+						_grfHolder.Header.SetKey(Configuration.EncryptorPassword, _grfHolder);
+					}
+				}
+
+				if (_grfHolder.Header.EncryptionKey != null) {
+					Load(new GrfLoadingSettings(_grfLoadingSettings) { FileName = _grfHolder.FileName, DecryptFileTable = true, ReloadKey = false, VisualReloadRequired = true });
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+
+
+			_checkIfEncrypted(false);
+		}
+
 		private void _menuItemFlagRemove_Click(object sender, RoutedEventArgs e) {
 			try {
 				InputDialog dialog = new InputDialog("Type in the files you want to remove (full relative path).\r\nExample : \r\ndata\\map.rsw\r\ndata\\map.gnd.", "Add files to remove", "", false, false);
@@ -164,6 +194,27 @@ namespace GRFEditor {
 			_asyncOperation.SetAndRunOperation(new GrfThread(_extractRgz, _grfHolder, 200));
 		}
 
+		private void _menuItemEditContainerSettings_Click(object sender, RoutedEventArgs e) {
+			_update();
+
+			GrfThread.Start(delegate {
+				int max = 10;
+
+				while (_previewService.QueueCount > 0 && (--max) > 0) {
+					Thread.Sleep(100);
+				}
+
+				this.Dispatch(delegate {
+					foreach (var item in _tabControlPreview.Items.OfType<TabItem>()) {
+						if (item.Content is PreviewContainer && item.Visibility == System.Windows.Visibility.Visible) {
+							item.IsSelected = true;
+							break;
+						}
+					}
+				});
+			});
+		}
+
 		private void _extractRgz() {
 			string path = PathRequest.FolderExtract();
 
@@ -172,13 +223,18 @@ namespace GRFEditor {
 			}
 		}
 
+		string _lastTreeViewSelection = null;
+
 		private void _treeView_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
 			TkTreeViewItem item = _treeView.SelectedItem as TkTreeViewItem;
+			string treeViewSelection = _treeViewPathManager.GetCurrentPath();
 
-			if (item != null) {
+			if (item != null && treeViewSelection != _lastTreeViewSelection) {
 				_loadListItems();
 				_previewService.ShowPreview(_grfHolder, _treeViewPathManager.GetCurrentRelativePath(), null);
 			}
+
+			_lastTreeViewSelection = treeViewSelection;
 		}
 
 		private void _treeView_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e) {
@@ -608,6 +664,7 @@ namespace GRFEditor {
 					bool hasAKey = false;
 
 					_saveTreeExpansion();
+					_treeViewPathManager.SetIgnoreCase(GrfEditorConfiguration.GrfFileTableIgnoreCase);
 
 					if (settings.VisualReloadRequired) {
 						_listBoxResults.Dispatch(p => _itemSearchEntries.Clear());
@@ -628,16 +685,25 @@ namespace GRFEditor {
 					_positions.Reset();
 					_grfHolder.Close();
 
-					_grfHolder.Open(settings.FileName);
+					GrfLoadData loadData = null;
+
+					if (_grfLoadingSettings.DecryptFileTable) {
+						loadData = new GrfLoadData();
+						loadData.DecryptFileTable = true;
+						loadData.EncryptionKey = Configuration.EncryptorPassword;
+						_grfLoadingSettings.DecryptFileTable = false;
+					}
+
+					_grfHolder.Open(settings.FileName, 0, loadData);
 					
 					if (_grfHolder.Header == null) {
-						this.Dispatch(p => p.Title = "GRF Editor");
+						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName);
 						_treeViewPathManager.ClearAll();
 						_grfHolder.Close();
 						_progressBarComponent.Progress = 100;
 					}
 					else {
-						this.Dispatch(p => p.Title = "GRF Editor - " + Methods.CutFileName(settings.FileName));
+						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName + " - " + Methods.CutFileName(settings.FileName));
 
 						if (_grfHolder.Header.IsEncrypted) {
 							_progressBarComponent.Progress = -2;
@@ -682,7 +748,7 @@ namespace GRFEditor {
 							//});
 
 							_treeViewPathManager.AddPath(new TkPath { FilePath = settings.FileName, RelativePath = "" });
-							_treeViewPathManager.AddPaths(settings.FileName, _grfHolder.FileTable.Files.Select(GrfPath.GetDirectoryName).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList());
+							_treeViewPathManager.AddPaths(settings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);
 						}
 
 						if (settings.VisualReloadRequired) {

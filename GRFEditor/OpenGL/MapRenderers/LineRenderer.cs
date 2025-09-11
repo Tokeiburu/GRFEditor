@@ -57,8 +57,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			Shader.SetVector4("color", Color);
 
 			Shader.SetMatrix4("model", Matrix4.Identity);
-			Shader.SetMatrix4("view", viewport.View);
-			Shader.SetMatrix4("projection", viewport.Projection);
+			Shader.SetMatrix4("view", ref viewport.View);
+			Shader.SetMatrix4("projection", ref viewport.Projection);
 
 			if (_mode == LinePointMode.Point) {
 				GL.PointSize(_width);

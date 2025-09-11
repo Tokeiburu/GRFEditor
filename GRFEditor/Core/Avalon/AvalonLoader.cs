@@ -71,7 +71,7 @@ namespace GRFEditor.Core.Avalon {
 		/// <param name="extension">The extension.</param>
 		/// <param name="box">The combo box.</param>
 		public static void Select(string extension, ComboBox box) {
-			box.Dispatcher.Invoke(new Action(delegate {
+			box.Dispatch(delegate {
 				try {
 					var result = box.Items.Cast<object>().FirstOrDefault(p => p.ToString() == extension);
 					if (result != null) {
@@ -80,7 +80,7 @@ namespace GRFEditor.Core.Avalon {
 				}
 				catch {
 				}
-			}));
+			});
 		}
 
 		public static bool IsWordBorder(ITextSource document, int offset) {

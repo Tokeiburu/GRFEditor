@@ -29,5 +29,14 @@ namespace GRF.Core.GrfCompression {
 		/// <param name="uncompressedLength">Length of the uncompressed data.</param>
 		/// <returns>The uncompressed data.</returns>
 		byte[] Decompress(byte[] compressed, long uncompressedLength);
+
+		/// <summary>
+		/// Decompresses the specified data, using a known length.
+		/// </summary>
+		/// <param name="compressed">The compressed data.</param>
+		/// <param name="compressedLength">Length of the compressed data (not aligned).</param>
+		/// <param name="uncompressedLength">Length of the uncompressed data.</param>
+		/// <returns>The uncompressed data.</returns>
+		byte[] Decompress(byte[] compressed, long compressedLength, long uncompressedLength);
 	}
 }

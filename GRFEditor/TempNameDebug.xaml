@@ -1,0 +1,12 @@
+﻿<Window x:Class="GRFEditor.TempNameDebug"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="TempNameDebug" Height="300" Width="300">
+    <Grid>
+        <StackPanel>
+            <TextBox Margin="3" Name="_tbMethod" Text="uncompress" />
+            <TextBox Margin="3" Name="_tbAddress" />
+            <Button Name="_btLoad" Content="Load function..." Click="_btLoad_Click" />
+        </StackPanel>
+    </Grid>
+</Window>

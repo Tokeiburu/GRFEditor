@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Controls;
+using TokeiLibrary;
 using Utilities;
 
 namespace GrfToWpfBridge.Application {
@@ -20,7 +21,7 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		private void _exampleProjectRecentFiles_RecentFilesChanged(List<string> cutNames, List<string> fullFileNames) {
-			_menuItem.Dispatcher.Invoke(new Action(delegate {
+			_menuItem.Dispatch(delegate {
 				_menuItem.Items.Clear();
 				_menuItem.IsEnabled = cutNames.Count != 0;
 
@@ -32,7 +33,7 @@ namespace GrfToWpfBridge.Application {
 					item.Click += (s, e) => OnFileClicked(fullFileNames[fileIndex]);
 					_menuItem.Items.Add(item);
 				}
-			}));
+			});
 		}
 	}
 }

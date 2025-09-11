@@ -72,9 +72,9 @@ namespace GRFEditor.OpenGL.StrGroup {
 			GL.Enable(EnableCap.Texture2D);
 			GL.BindTexture(TextureTarget.Texture2D, _textId);
 
-			Shader.SetMatrix4("model", Model);
-			Shader.SetMatrix4("view", viewport.View);
-			Shader.SetMatrix4("projection", viewport.Projection);
+			Shader.SetMatrix4("model", ref Model);
+			Shader.SetMatrix4("view", ref viewport.View);
+			Shader.SetMatrix4("projection", ref viewport.Projection);
 
 			GL.BindVertexArray(_vertexArrayObject);
 			GL.DrawElements(PrimitiveType.Quads, _indices.Length, DrawElementsType.UnsignedInt, 0);

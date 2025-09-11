@@ -12,8 +12,16 @@ namespace GRF.Image.Decoders {
 		public void ToBgra32(GrfImage image) {
 			int size = image.Width * image.Height;
 
-			for (int i = 0; i < size; i++) {
-				image.Pixels[4 * i + 3] = 255;
+			unsafe {
+				fixed (byte* pBase = image.Pixels) {
+					byte* p = pBase;
+					byte* pEnd = pBase + image.Pixels.Length;
+
+					while (p < pEnd) {
+						p[3] = 255;
+						p += 4;
+					}
+				}
 			}
 
 			image.SetGrfImageType(GrfImageType.Bgra32);
@@ -26,11 +34,6 @@ namespace GRF.Image.Decoders {
 				_applyBackgroundColor(image, BackgroundColor);
 			}
 
-			int size = image.Width * image.Height;
-			byte[] newPixels = new byte[size * 4];
-			Buffer.BlockCopy(image.Pixels, 0, newPixels, 0, size * 4);
-
-			image.SetPixels(ref newPixels);
 			image.SetGrfImageType(GrfImageType.Bgr32);
 		}
 

@@ -1,10 +1,21 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.LubFormat.Types {
+	public enum LubSourceType {
+		Global,
+		Constant
+	}
+
+	public interface ILubObject {
+		void Print(StringBuilder builder, int level);
+		int GetLength();
+	}
+
 	public class LubDictionary : ILubObject {
 		private readonly Dictionary<string, LubKeyValue> _dico;
 		private readonly List<ILubObject> _items;
@@ -30,12 +41,11 @@ namespace GRF.FileFormats.LubFormat.Types {
 		protected int? Length { get; set; }
 
 		#region ILubObject Members
-
 		public void Print(StringBuilder builder, int level) {
 			IsAssigned = true;
 
 			if (builder.Length > 0 && builder[builder.Length - 1] == '\n') {
-				builder.AppendIndent(level - 1);
+				builder.AppendIndent(level);
 			}
 
 			if (Count == 0) {
@@ -60,17 +70,18 @@ namespace GRF.FileFormats.LubFormat.Types {
 			ILubObject item;
 			bool encapsulate = false;
 
-			for (int i = 0; i < items.Count && i < 2000 && !encapsulate; i++) {
-				var lubKeyValue = items[i] as LubKeyValue;
+			if (Settings.LubDecompilerSettings.EncapsulateByCheckingOtherKeys) {
+				for (int i = 0; i < items.Count && i < 2000; i++) {
+					var lubKeyValue = items[i] as LubKeyValue;
 
-				if (lubKeyValue != null) {
-					for (int j = 0; j < lubKeyValue.Key.Value.Length; j++) {
+					if (lubKeyValue != null) {
 						if (lubKeyValue.Key.Value[0] == '[') {
 							i = items.Count;
+							encapsulate = true;
 							break;
 						}
 
-						if (!LubKeyValue.EncapsulateArray[lubKeyValue.Key.Value[j]]) {
+						if (!lubKeyValue.Key.IsValid()) {
 							encapsulate = true;
 							break;
 						}
@@ -78,25 +89,25 @@ namespace GRF.FileFormats.LubFormat.Types {
 				}
 			}
 
+			int nextLevel = sameLine ? 0 : level + 1;
+			string separator = sameLine ? ", " : ",";
+
 			for (int i = 0; i < items.Count; i++) {
 				item = items[i];
 
 				if (item is LubKeyValue) {
-					((LubKeyValue)item).Print(builder, sameLine && ((LubKeyValue)item).Value is LubValueType ? 0 : level, encapsulate);
+					((LubKeyValue)item).Print(builder, nextLevel, encapsulate);
 				}
 				else if (item is LubValueType) {
-					if (!sameLine) {
-						builder.AppendIndent(level);
-					}
-
-					item.Print(builder, level);
+					builder.AppendIndent(nextLevel);
+					item.Print(builder, nextLevel);
 				}
 				else {
-					item.Print(builder, level + 1);
+					item.Print(builder, nextLevel);
 				}
 
 				if (i < items.Count - 1) {
-					builder.Append(!sameLine ? "," : ", ");
+					builder.Append(separator);
 				}
 
 				if (!sameLine) {
@@ -105,7 +116,7 @@ namespace GRF.FileFormats.LubFormat.Types {
 			}
 
 			if (!sameLine) {
-				builder.AppendIndent(level - 1);
+				builder.AppendIndent(nextLevel - 1);
 				builder.Append("}");
 			}
 			else {
@@ -114,7 +125,7 @@ namespace GRF.FileFormats.LubFormat.Types {
 		}
 
 		public int GetLength() {
-			return Length ?? _items.Sum(p => p.GetLength()) + _dico.Sum(p => p.Value.GetLength());
+			return _items.Sum(p => p.GetLength()) + _dico.Sum(p => p.Value.GetLength());
 		}
 
 		#endregion
@@ -174,7 +185,6 @@ namespace GRF.FileFormats.LubFormat.Types {
 
 		public LubString Key { get; set; }
 		public ILubObject Value { get; set; }
-		protected int? Length { get; set; }
 		internal static string EncapsulateChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
 		internal static bool[] EncapsulateArray = new bool[256];
 
@@ -185,7 +195,6 @@ namespace GRF.FileFormats.LubFormat.Types {
 		}
 
 		#region ILubObject Members
-
 		public void Print(StringBuilder builder, int level, bool encapsulate) {
 			if (builder.Length > 0 && builder[builder.Length - 1] == '\n') {
 				builder.AppendIndent(level);
@@ -198,7 +207,19 @@ namespace GRF.FileFormats.LubFormat.Types {
 			string key = Key.ToString();
 
 			if (encapsulate) {
-				builder.Append("[\"" + Key + "\"]");
+				if (Key.Value == "__newindex" || Key.Value == "__index")
+					builder.Append(key);
+				else if (Key.Value.Length > 0)
+					if (char.IsDigit(Key.Value[0]))
+						builder.Append("[" + Key + "]");
+					else if (key[0] == '[')
+						builder.Append(key);
+					else if (key[0] == '\"')
+						builder.Append("[" + Key + "]");
+					else
+						builder.Append("[\"" + Key + "\"]");
+				else
+					builder.Append("[\"" + Key + "\"]");
 			}
 			else {
 				builder.Append(key);
@@ -211,7 +232,7 @@ namespace GRF.FileFormats.LubFormat.Types {
 				return;
 			}
 
-			Value.Print(builder, level + 1);
+			Value.Print(builder, level);
 		}
 
 		public void Print(StringBuilder builder, int level) {
@@ -219,13 +240,353 @@ namespace GRF.FileFormats.LubFormat.Types {
 		}
 
 		public int GetLength() {
-			return Length ?? Key.GetLength() + (Value == null ? 0 : Value.GetLength()) + 3;
+			return Key.GetLength() + (Value == null ? 0 : Value.GetLength()) + 3;
 		}
 
 		#endregion
 
 		public override string ToString() {
 			return Key.ToString();
+		}
+	}
+
+	public abstract class LubValueType : ILubObject {
+		private LubSourceType _source = LubSourceType.Constant;
+
+		public LubSourceType Source {
+			get { return _source; }
+			set { _source = value; }
+		}
+
+		#region ILubObject Members
+		public abstract void Print(StringBuilder builder, int level);
+
+		public abstract int GetLength();
+		#endregion
+	}
+
+	public class LubReferenceType : ILubObject {
+		public LubReferenceType(LubString key, ILubObject value) {
+			Key = key;
+			Value = value;
+		}
+
+		public LubReferenceType(LubString key, ILubObject value, int start, int end) {
+			Key = key;
+			Value = value;
+			StartLine = start;
+			EndLine = end;
+		}
+
+		public LubString Key { get; set; }
+		public ILubObject Value { get; set; }
+		public ILubObject LoopValue { get; set; }
+		public int StartLine { get; set; }
+		public int EndLine { get; set; }
+
+		private readonly Stack<LubString> _stackKeys = new Stack<LubString>();
+		private readonly Stack<ILubObject> _stackValues = new Stack<ILubObject>();
+
+		#region ILubObject Members
+		public void Print(StringBuilder builder, int level) {
+			if (Value == null) {
+				if (builder.Length > 0 && builder[builder.Length - 1] == '\n')
+					builder.AppendIndent(level);
+
+				builder.Append(Key);
+				return;
+			}
+
+			if (Key.ToString() != "") {
+				builder.Append(Key + " = ");
+			}
+
+			Value.Print(builder, level + 1);
+		}
+
+		public int GetLength() {
+			return Key.GetLength() + (Value == null ? 0 : Value.GetLength()) + 3;
+		}
+
+		#endregion
+
+		public override string ToString() {
+			if (Value is LubReferenceType)
+				return Key + " = " + "ERROR";
+
+			return Key + " = " + Value;
+		}
+
+		public bool IsValid(int pc) {
+			return pc >= StartLine && pc <= EndLine;
+		}
+
+		public void Push() {
+			_stackKeys.Push(Key);
+			_stackValues.Push(Value);
+		}
+
+		public void Pop() {
+			Key = _stackKeys.Pop();
+			Value = _stackValues.Pop();
+		}
+	}
+
+	public class LubMathOutput : LubOutput {
+		private readonly string _value;
+
+		public LubMathOutput(ILubObject left, string op, ILubObject right)
+			: base(left + op + right) {
+			if (left is LubMathOutput && right is LubMathOutput) {
+				_value = "(" + left + ")" + op + "(" + right + ")";
+			}
+			else if (left is LubMathOutput) {
+				_value = "(" + left + ")" + op + right;
+			}
+			else if (right is LubMathOutput) {
+				_value = left + op + "(" + right + ")";
+			}
+			else {
+				_value = left + op + right;
+			}
+		}
+
+		public LubMathOutput(ILubObject left, string op)
+			: base(op + left) {
+			if (left is LubMathOutput) {
+				_value = op + "(" + left + ")";
+			}
+			else {
+				_value = op + left;
+			}
+		}
+
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append(_value);
+		}
+
+		public override int GetLength() {
+			return _value.Length;
+		}
+
+		public override int GetHashCode() {
+			return _value.GetHashCode();
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return _value;
+		}
+	}
+
+	public class LubOutput : LubValueType {
+		private readonly string _value;
+		public bool ValidKey { get; set; }
+
+		public LubOutput(string value, bool validKey = false) {
+			_value = value;
+			ValidKey = validKey;
+		}
+
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append(_value);
+		}
+
+		public override int GetLength() {
+			return _value.Length;
+		}
+
+		public override int GetHashCode() {
+			return _value.GetHashCode();
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return _value;
+		}
+	}
+
+	public class LubString : LubValueType {
+		private readonly string _value;
+		public bool? ValidString { get; set; }
+
+		internal string Value {
+			get { return _value; }
+		}
+
+		public LubString(string value) {
+			_value = value;
+		}
+
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append(_value);
+		}
+
+		public override int GetLength() {
+			return _value.Length;
+		}
+
+		public override int GetHashCode() {
+			return _value.GetHashCode();
+		}
+
+		public bool IsValid() {
+			if (ValidString.HasValue)
+				return ValidString.Value;
+
+			if (Value.Length > 0) {
+				if (char.IsDigit(Value[0])) {
+					ValidString = false;
+					return false;
+				}
+
+				for (int i = 0; i < Value.Length; i++) {
+					if (!char.IsLetterOrDigit(Value[i]) && Value[i] != '_') {
+						ValidString = false;
+						return false;
+					}
+				}
+			}
+
+			ValidString = true;
+			return true;
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return _value;
+		}
+	}
+
+	public class LubNull : LubValueType {
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append("nil");
+		}
+
+		public override int GetLength() {
+			return 3;
+		}
+
+		public override int GetHashCode() {
+			return 0;
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return "nil";
+		}
+	}
+
+	public class LubBoolean : LubValueType {
+		private readonly bool _value;
+
+		public bool Value {
+			get { return _value; }
+		}
+
+		public LubBoolean(bool value) {
+			_value = value;
+		}
+
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append(_value ? "true" : "false");
+		}
+
+		public override int GetLength() {
+			return 5;
+		}
+
+		public override int GetHashCode() {
+			return _value.GetHashCode();
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return _value ? "true" : "false";
+		}
+	}
+
+	public class LubNumber : LubValueType {
+		private readonly double _value;
+
+		public LubNumber(double value) {
+			_value = value;
+		}
+
+		public override void Print(StringBuilder builder, int level) {
+			builder.Append(_value.ToString(CultureInfo.InvariantCulture));
+		}
+
+		public override int GetLength() {
+			if (_value >= 0) {
+				if (_value < 10) return 1;
+				if (_value < 100) return 2;
+				if (_value < 1000) return 3;
+				if (_value < 10000) return 4;
+				if (_value < 100000) return 5;
+				if (_value < 1000000) return 6;
+				if (_value < 10000000) return 7;
+				if (_value < 100000000) return 8;
+				if (_value < 1000000000) return 9;
+				return 10;
+			}
+			else {
+				if (_value > -10) return 2;
+				if (_value > -100) return 3;
+				if (_value > -1000) return 4;
+				if (_value > -10000) return 5;
+				if (_value > -100000) return 6;
+				if (_value > -1000000) return 7;
+				if (_value > -10000000) return 8;
+				if (_value > -100000000) return 9;
+				if (_value > -1000000000) return 10;
+				return 11;
+			}
+		}
+
+		public override int GetHashCode() {
+			return _value.GetHashCode();
+		}
+
+		public override bool Equals(object obj) {
+			if (obj.GetType() == GetType())
+				return obj.GetHashCode() == GetHashCode();
+
+			return false;
+		}
+
+		public override string ToString() {
+			return _value.ToString(CultureInfo.InvariantCulture);
 		}
 	}
 }

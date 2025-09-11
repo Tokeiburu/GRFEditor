@@ -3,6 +3,22 @@
 		public delegate void ConfigAskerSettingEventHandler(object sender, string oldValue, string newValue);
 
 		public event ConfigAskerSettingEventHandler PreviewPropertyChanged;
+		public event ConfigAskerSettingEventHandler PropertyChanged;
+
+		public virtual void OnPropertyChanged(string oldvalue, string newvalue) {
+			if (_isSetting || oldvalue == newvalue)
+				return;
+
+			try {
+				_isSetting = true;
+				ConfigAskerSettingEventHandler handler = PropertyChanged;
+				if (handler != null) handler(this, oldvalue, newvalue);
+			}
+			finally {
+				_isSetting = false;
+			}
+		}
+
 		private bool _isSetting = false;
 
 		public void OnPreviewPropertyChanged(string oldvalue, string newvalue) {

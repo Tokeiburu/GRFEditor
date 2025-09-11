@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GRF.Core;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -62,14 +62,14 @@ namespace GRF.ContainerFormat {
 		/// <summary>
 		/// Gets the entries.
 		/// </summary>
-		public virtual List<Tuple<string, string, TEntry>> FastTupleAccessEntries {
+		public virtual List<(string Directory, string Filename, TEntry Entry)> FastTupleAccessEntries {
 			get { return _indexedEntries.FastTupleAccessEntries; }
 		}
 
 		/// <summary>
 		/// Gets the directory structure.
 		/// </summary>
-		public virtual TkDictionary<string, List<EntrySearchNode<TEntry>>> DirectoryStructure {
+		public virtual TkDictionary<string, List<TEntry>> DirectoryStructure {
 			get { return _indexedEntries.DirectoryStructure; }
 		}
 
@@ -186,7 +186,7 @@ namespace GRF.ContainerFormat {
 					files = files.Where(p => regex.IsMatch(p));
 				}
 				else {
-					files = files.Where(p => p.IndexOf(p, StringComparison.InvariantCultureIgnoreCase) != -1);
+					files = files.Where(p => p.IndexOf(p, StringComparison.OrdinalIgnoreCase) != -1);
 				}
 			}
 
@@ -267,7 +267,7 @@ namespace GRF.ContainerFormat {
 					files = files.Where(p => regex.IsMatch(p)).ToList();
 				}
 				else {
-					files = files.Where(p => p.IndexOf(p, StringComparison.InvariantCultureIgnoreCase) != -1).ToList();
+					files = files.Where(p => p.IndexOf(p, StringComparison.OrdinalIgnoreCase) != -1).ToList();
 				}
 			}
 
@@ -304,12 +304,12 @@ namespace GRF.ContainerFormat {
 			currentPath = currentPath.TrimEnd('\\');
 
 			// Root files
-			IEnumerable<TEntry> files = Entries.Where(file => GrfPath.GetDirectoryName(file.RelativePath).Equals(currentPath)).ToList();
+			IEnumerable<TEntry> files = Entries.Where(file => file.DirectoryPath.Equals(currentPath)).ToList();
 
 			if (options == SearchOption.AllDirectories) {
 				// We add all subfolders
 				currentPath += "\\";
-				files = files.Concat(Entries.Where(file => GrfPath.GetDirectoryName(file.RelativePath).StartsWith(currentPath))).Distinct();
+				files = files.Concat(Entries.Where(file => file.DirectoryPath.StartsWith(currentPath))).Distinct();
 			}
 
 			return files.ToList();
@@ -325,12 +325,12 @@ namespace GRF.ContainerFormat {
 			currentPath = currentPath.TrimEnd('\\').ToLowerInvariant();
 
 			// Root files
-			IEnumerable<TEntry> entries = Entries.Where(file => GrfPath.GetDirectoryName(file.RelativePath.ToLowerInvariant()).Equals(currentPath)).ToList();
+			IEnumerable<TEntry> entries = Entries.Where(file => file.DirectoryPath.Equals(currentPath, StringComparison.OrdinalIgnoreCase)).ToList();
 
 			if (options == SearchOption.AllDirectories) {
 				// We add all subfolders
 				currentPath += "\\";
-				entries = entries.Concat(Entries.Where(file => GrfPath.GetDirectoryName(file.RelativePath.ToLowerInvariant()).StartsWith(currentPath))).Distinct();
+				entries = entries.Concat(Entries.Where(file => file.DirectoryPath.StartsWith(currentPath, StringComparison.OrdinalIgnoreCase))).Distinct();
 			}
 
 			return entries.ToList();

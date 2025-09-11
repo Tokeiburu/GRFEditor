@@ -1,0 +1,29 @@
+﻿<Styles:TkWindow x:Class="GRFEditor.WPF.MagicEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+                 xmlns:forms="clr-namespace:Be.Windows.Forms;assembly=Be.Windows.Forms.HexBox"
+                 MinWidth="570" MaxWidth="570" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
+    <StackPanel>
+        <TextBlock Margin="5 5 5 3" Name="_textBlockMessage" HorizontalAlignment="Left" VerticalAlignment="Center" Text="Modify GRF magic header..." TextWrapping="Wrap" />
+        <WindowsFormsHost Name="_hexEditorHost" Height="50">
+            <forms:HexBox x:Name="_hexEditor" ColumnInfoVisible="True" HexCasing="Lower" StringViewVisible="True" VScrollBarVisible="False" UseFixedBytesPerLine="True" GroupSeparatorVisible="True" Copied="_hexEditor_Copied" ReadOnly="False"></forms:HexBox>
+        </WindowsFormsHost>
+        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+            <Grid Margin="0 0 3 0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+                <DockPanel Grid.Column="2">
+                    <Button  Name="_buttonOK" Content="Ok" Width="100" Height="24" Margin="3" Click="_buttonOK_Click" />
+                    <Button  Name="_buttonCancel" Content="Cancel" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />
+                </DockPanel>
+            </Grid>
+        </Grid>
+    </StackPanel>
+</Styles:TkWindow>

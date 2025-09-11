@@ -22,14 +22,13 @@ namespace GRF.IO {
 	public class TableDictionary<TEntry> : Dictionary<string, TEntry> where TEntry : ContainerEntry {
 		private List<KeyValuePair<string, TEntry>> _fastAccessEntries;
 		private List<TEntry> _fastEntries;
-		private List<Tuple<string, string, TEntry>> _fastTupleAccessEntries;
-		private TkDictionary<string, List<EntrySearchNode<TEntry>>> _directoryStructure = new TkDictionary<string, List<EntrySearchNode<TEntry>>>();
+		private List<(string Directory, string Filename, TEntry Entry)> _fastTupleAccessEntries;
+		private TkDictionary<string, List<TEntry>> _directoryStructure = new TkDictionary<string, List<TEntry>>();
 		private HashSet<string> _files;
 		private HashSet<string> _directories;
 		private HashSet<string> _hiddenDirectories;
 		private bool _hasBeenModified;
 		private HashSet<string> _filesWithHidden;
-		//private Dictionary<string, string> _mapper = new Dictionary<string, string>();
 
 		public TableDictionary() : base(StringComparer.OrdinalIgnoreCase) {
 		}
@@ -101,7 +100,7 @@ namespace GRF.IO {
 				if (_directories == null) {
 					_directories = new HashSet<string>();
 
-					foreach (string directory in Files.Select(GrfPath.GetDirectoryName).Distinct()) {
+					foreach (string directory in Entries.Select(p => p.DirectoryPath).Distinct()) {
 						string temp = directory;
 
 						// Note : 2015-06-30
@@ -123,7 +122,7 @@ namespace GRF.IO {
 				if (_hiddenDirectories == null) {
 					_hiddenDirectories = new HashSet<string>();
 
-					foreach (string directory in Values.Where(p => (p.Modification & Modification.Removed) == Modification.Removed).Select(p => GrfPath.GetDirectoryName(p.RelativePath)).Distinct()) {
+					foreach (string directory in Values.Where(p => (p.Modification & Modification.Removed) == Modification.Removed).Select(p => p.DirectoryPath).Distinct()) {
 						_hiddenDirectories.Add(directory);
 					}
 
@@ -155,11 +154,24 @@ namespace GRF.IO {
 		}
 
 		// Slowest request to the file table
-		public List<Tuple<string, string, TEntry>> FastTupleAccessEntries {
+		public List<(string Directory, string Filename, TEntry Entry)> FastTupleAccessEntries {
 			get {
 				if (_fastTupleAccessEntries == null) {
-					_fastTupleAccessEntries = Values.Where(p => (p.Modification & Modification.Removed) != Modification.Removed).
-						Select(p => new Tuple<string, string, TEntry>(GrfPath.GetDirectoryName(p.RelativePath), Path.GetFileName(p.RelativePath), p)).ToList();
+					_fastTupleAccessEntries = new List<(string Directory, string Filename, TEntry Entry)>();
+					var values = Values.ToList();
+					
+					for (int i = 0; i < values.Count; i++) {
+						var entry = values[i];
+
+						if ((entry.Modification & Modification.Removed) == Modification.Removed)
+							continue;
+
+						string dir;
+						string filename;
+						GrfPath.GetGrfEntryDirectoryNameAndFileName(entry.RelativePath, out dir, out filename);
+						_fastTupleAccessEntries.Add((dir, filename, entry));
+					}
+
 					_hasBeenModified = false;
 				}
 				return _fastTupleAccessEntries;
@@ -167,32 +179,31 @@ namespace GRF.IO {
 		}
 
 		// Slowest request to the file table
-		public TkDictionary<string, List<EntrySearchNode<TEntry>>> DirectoryStructure {
+		public TkDictionary<string, List<TEntry>> DirectoryStructure {
 			get {
 				if (_directoryStructure == null) {
-					_directoryStructure = new TkDictionary<string, List<EntrySearchNode<TEntry>>>();
+					List<TEntry> list = null;
+					var directoryStructure = new TkDictionary<string, List<TEntry>>(StringComparer.OrdinalIgnoreCase);
 
-					List<EntrySearchNode<TEntry>> list = null;
-					string currentPath = null;
+					var values = Values.ToList();
+					for (int i = 0; i < values.Count; i++) {
+						var entry = values[i];
 
-					foreach (var entry in FastTupleAccessEntries.OrderBy(p => p.Item1)) {
-						if (currentPath == null) {
-							currentPath = entry.Item1;
-							list = new List<EntrySearchNode<TEntry>>();
-							_directoryStructure[currentPath] = list;
+						if ((entry.Modification & Modification.Removed) == Modification.Removed)
+							continue;
+
+						if (!directoryStructure.TryGetValue(entry.DirectoryPath, out list)) {
+							list = new List<TEntry>();
+							directoryStructure[entry.DirectoryPath] = list;
 						}
 
-						if (currentPath != entry.Item1) {
-							currentPath = entry.Item1;
-							list = new List<EntrySearchNode<TEntry>>();
-							_directoryStructure[currentPath] = list;
-						}
-
-						list.Add(new EntrySearchNode<TEntry>(entry.Item3, entry.Item2));
+						list.Add(entry);
 					}
 
+					_directoryStructure = directoryStructure;
 					_hasBeenModified = false;
 				}
+
 				return _directoryStructure;
 			}
 		}

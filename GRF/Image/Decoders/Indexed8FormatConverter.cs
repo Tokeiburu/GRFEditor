@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.Image.Decoders {
@@ -9,19 +13,22 @@ namespace GRF.Image.Decoders {
 
 		[Flags]
 		public enum PaletteOptions {
-			UseExistingPalette,
-			UseDithering,
-			AutomaticallyGeneratePalette,
-			MergePalettes,
+			UseExistingPalette = 1,
+			UseExistingLabPalette = 2,
+			UseDithering = 4,
+			AutomaticallyGeneratePalette = 8,
+			MergePalettes = 16,
+			UseLabDistance = 32,
 		}
 
 		#endregion
 
 		private readonly Dictionary<int, byte> _matchClosestSearches = new Dictionary<int, byte>();
-		private readonly Dictionary<int, byte> _matchPaletteSearches = new Dictionary<int, byte>();
+		private readonly ConcurrentDictionary<int, byte> _matchPaletteSearches = new ConcurrentDictionary<int, byte>();
 
 		public PaletteOptions Options;
 		public byte[] ExistingPalette { get; set; }
+		public List<_GrfColorLab> ExistingPaletteLab { get; set; }
 
 		//public void SetMergePaletteData(HashSet<byte> unusedIndexes, ) {
 		//	this.Options |= PaletteOptions.MergePalettes;
@@ -42,6 +49,14 @@ namespace GRF.Image.Decoders {
 			image.SetGrfImageType(GrfImageType.Bgra32);
 		}
 
+		private static int[] _preSquared = new int[256];
+
+		static Indexed8FormatConverter() {
+			for (int i = 0; i < _preSquared.Length; i++) {
+				_preSquared[i] = i * i;
+			}
+		}
+
 		public void Convert(GrfImage image) {
 			if (image.GrfImageType != GrfImageType.Bgra32) throw new Exception("Expected pixel format is Bgra32, found " + image.GrfImageType);
 
@@ -52,283 +67,219 @@ namespace GRF.Image.Decoders {
 			byte[] newPixels = new byte[image.Width * image.Height];
 
 			if ((Options & PaletteOptions.AutomaticallyGeneratePalette) == PaletteOptions.AutomaticallyGeneratePalette) {
-				ExistingPalette = _generatePalette(image);
+				OctreeQuantizer quantizer = new OctreeQuantizer();
+				quantizer.AddImage(image);
+				var colors = quantizer.GeneratePaletteRgbInt(255);
+
+				ExistingPalette = new byte[1024];
+
+				for (int i = 0; i < 256; i++) {
+					if (i < colors.Count) {
+						ExistingPalette[4 * i + 0] = (byte)((colors[i] & 0xFF0000) >> 16);
+						ExistingPalette[4 * i + 1] = (byte)((colors[i] & 0x00FF00) >> 8);
+						ExistingPalette[4 * i + 2] = (byte)(colors[i] & 0x0000FF);
+						ExistingPalette[4 * i + 3] = 255;
+					}
+					else {
+						ExistingPalette[4 * i + 3] = 255;
+					}
+				}
 			}
 
-			if ((Options & PaletteOptions.UseDithering) == PaletteOptions.UseDithering) {
-				GrfColor[] pixels = new GrfColor[image.Width * image.Height];
-				int temp;
+			Dictionary<int, int> matches = new Dictionary<int, int>();
 
-				for (int y = 0; y < image.Height; y++) {
-					for (int x = 0; x < image.Width; x++) {
-						temp = 4 * (y * image.Width + x);
-						pixels[y * image.Width + x] = new GrfColor(255, image.Pixels[temp + 2], image.Pixels[temp + 1], image.Pixels[temp + 0]);
+			if ((Options & PaletteOptions.UseDithering) == PaletteOptions.UseDithering) {
+				bool isLab = (Options & PaletteOptions.UseLabDistance) == PaletteOptions.UseLabDistance;
+				double[] paletteLab = new double[0];
+				byte[] oldPixels = Methods.Copy(image.Pixels);
+				
+				if (isLab) {
+					paletteLab = new double[ExistingPalette.Length / 4 * 3];
+
+					for (int i = 0, size = ExistingPalette.Length / 4; i < size; i++) {
+						var lab = _GrfColorLab.From(ExistingPalette[4 * i + 0], ExistingPalette[4 * i + 1], ExistingPalette[4 * i + 2]);
+						paletteLab[3 * i + 0] = lab.L;
+						paletteLab[3 * i + 1] = lab.A;
+						paletteLab[3 * i + 2] = lab.B;
 					}
 				}
 
-				GrfColor[] pal = new GrfColor[256];
-				for (int i = 0; i < 256; i++) {
-					pal[i] = new GrfColor(255, ExistingPalette[4 * i + 0], ExistingPalette[4 * i + 1], ExistingPalette[4 * i + 2]);
-				}
+				unsafe {
+					int[] dx = { 1, -1, 0, 1 };
+					int[] dy = { 0, 1, 1, 1 };
+					int[] coef = { 7, 3, 5, 1 };
 
-				GrfColor currentError;
-				GrfColor oldColor;
-				GrfColor newColor;
-				int blockOptY;
-				int blockOptX;
-				for (int y = 0; y < image.Height; y++) {
-					blockOptY = y * image.Width;
-					for (int x = 0; x < image.Width; x++) {
-						blockOptX = blockOptY + x;
-						oldColor = pixels[blockOptX];
+					fixed (byte* pPaletteBase = ExistingPalette)
+					fixed (byte* pPixelsBase = oldPixels)
+					fixed (byte* pNewPixelsBase = newPixels)
+					fixed (double* pPaletteLabBase = paletteLab) {
+						// Pixels are in BGRA
+						// Palette is in RGBA
+						byte* pPixels = pPixelsBase;
+						byte* pNewPixels = pNewPixelsBase;
+						byte* pPixelsEnd = pPixelsBase + image.Pixels.Length;
 
-						int index = _findClosestColor(oldColor, pal);
-						newColor = pal[index];
+						for (int y = 0; y < image.Height; y++) {
+							for (int x = 0; x < image.Width; x++) {
+								int idx = y * image.Width + x;
 
-						if (image.Pixels[(blockOptX) * 4 + 3] == 0)
-							newPixels[blockOptX] = 0;
-						else
-							newPixels[blockOptX] = (byte)index;
+								// Find nearest palette color
+								*pNewPixels = isLab ? _findClosetMatchLab(matches, pPixels, pPaletteLabBase) : _findClosetMatch(matches, pPixels, pPaletteBase);
 
-						pixels[blockOptX] = new GrfColor(newColor);
-						currentError = _sub(oldColor, newColor);
+								byte* pPalTarget = pPaletteBase + 4 * (*pNewPixels);
 
-						if (x + 1 < image.Width)
-							pixels[blockOptX + 1] = _add(pixels[blockOptX + 1], _mult(new GrfColor(currentError), 7 / 16f));
+								// Compute error
+								int errR = Math.Max(0, pPixels[2] - pPalTarget[0]);
+								int errG = Math.Max(0, pPixels[1] - pPalTarget[1]);
+								int errB = Math.Max(0, pPixels[0] - pPalTarget[2]);
 
-						if (x - 1 >= 0 && y + 1 < image.Height)
-							pixels[(y + 1) * image.Width + x - 1] = _add(pixels[(y + 1) * image.Width + x - 1], _mult(currentError, 3 / 16f));
+								// Diffuse error
+								for (int k = 0; k < 4; k++) {
+									int nx = x + dx[k];
+									int ny = y + dy[k];
+									if (nx >= 0 && nx < image.Width && ny >= 0 && ny < image.Height) {
+										byte* pPixelTarget = pPixelsBase + 4 * (ny * image.Width + nx);
 
-						if (y + 1 < image.Height)
-							pixels[(y + 1) * image.Width + x] = _add(pixels[(y + 1) * image.Width + x], _mult(currentError, 5 / 16f));
+										if (pPixelTarget[3] == 0)
+											continue;
 
-						if (x + 1 < image.Width && y + 1 < image.Height)
-							pixels[(y + 1) * image.Width + x + 1] = _add(pixels[(y + 1) * image.Width + x + 1], _mult(currentError, 1 / 16f));
+										pPixelTarget[0] = (byte)Math.Min(255, Math.Max(0, pPixelTarget[0] + errB * coef[k] / 16));
+										pPixelTarget[1] = (byte)Math.Min(255, Math.Max(0, pPixelTarget[1] + errG * coef[k] / 16));
+										pPixelTarget[2] = (byte)Math.Min(255, Math.Max(0, pPixelTarget[2] + errR * coef[k] / 16));
+									}
+								}
+
+								pPixels += 4;
+								pNewPixels++;
+							}
+						}
 					}
 				}
 			}
 			else {
-				Tuple<GrfColor, byte>[] colorIndexes = new Tuple<GrfColor, byte>[256];
+				if ((Options & PaletteOptions.UseLabDistance) == PaletteOptions.UseLabDistance) {
+					ExistingPaletteLab = new List<_GrfColorLab>();
+					double[] paletteLab = new double[ExistingPalette.Length / 4 * 3];
 
-				for (int i = 0, size = ExistingPalette.Length / 4; i < size; i++) {
-					colorIndexes[i] = new Tuple<GrfColor, byte>(
-										 GrfColor.FromArgb(255, ExistingPalette[4 * i + 0],
-														   ExistingPalette[4 * i + 1],
-														   ExistingPalette[4 * i + 2]),
-										 (byte)i);
+					for (int i = 0, size = ExistingPalette.Length / 4; i < size; i++) {
+						var lab = _GrfColorLab.From(ExistingPalette[4 * i + 0], ExistingPalette[4 * i + 1], ExistingPalette[4 * i + 2]);
+						paletteLab[3 * i + 0] = lab.L;
+						paletteLab[3 * i + 1] = lab.A;
+						paletteLab[3 * i + 2] = lab.B;
+					}
+
+					unsafe {
+						fixed (byte* pNewPixelsBase = newPixels)
+						fixed (double* pPaletteBase = paletteLab)
+						fixed (byte* pPixelsBase = image.Pixels) {
+							byte* pPixels = pPixelsBase;
+							byte* pNewPixels = pNewPixelsBase;
+							byte* pPixelsEnd = pPixelsBase + image.Pixels.Length;
+
+							while (pPixels < pPixelsEnd) {
+								*pNewPixels = _findClosetMatchLab(matches, pPixels, pPaletteBase);
+								pPixels += 4;
+								pNewPixels++;
+							}
+						}
+					}
 				}
+				else {
+					unsafe {
+						fixed (byte* pNewPixelsBase = newPixels)
+						fixed (byte* pPaletteBase = ExistingPalette)
+						fixed (byte* pPixelsBase = image.Pixels) {
+							byte* pPixels = pPixelsBase;
+							byte* pNewPixels = pNewPixelsBase;
+							byte* pPixelsEnd = pPixelsBase + image.Pixels.Length;
 
-				for (int i = 0; i < newPixels.Length; i++) {
-					if (image.Pixels[4 * i + 3] == 0)
-						newPixels[i] = 0;
-					else {
-						newPixels[i] = _findClosestPaletteMatch(
-							colorIndexes,
-							image.Pixels[4 * i + 2], image.Pixels[4 * i + 1], image.Pixels[4 * i + 0]);
+							while (pPixels < pPixelsEnd) {
+								*pNewPixels = _findClosetMatch(matches, pPixels, pPaletteBase);
+								pPixels += 4;
+								pNewPixels++;
+							}
+						}
 					}
 				}
 			}
 
-			{
-				byte[] pal = new byte[ExistingPalette.Length];
-				Buffer.BlockCopy(ExistingPalette, 0, pal, 0, pal.Length);
+			byte[] imagepal = new byte[ExistingPalette.Length];
+			Buffer.BlockCopy(ExistingPalette, 0, imagepal, 0, imagepal.Length);
 
-				image.SetPalette(ref pal);
-			}
-
+			image.SetPalette(ref imagepal);
 			image.SetGrfImageType(GrfImageType.Indexed8);
 			image.SetPixels(ref newPixels);
 		}
 
 		#endregion
 
-		private byte[] _generatePalette(GrfImage image) {
-			List<int> colors = new List<int>();
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private unsafe byte _findClosetMatchLab(Dictionary<int, int> matches, byte* pPixels, double* pPaletteBase) {
+			if (pPixels[3] == 0)
+				return 0;
 
-			Dictionary<int, int> colorDictionary = new Dictionary<int, int>();
-			colorDictionary.Add(0xff << 24 | 0xff << 16 | 0 << 8 | 0xff, 0);
+			int bestIndex = 0;
+			int l = 1;
+			var lab = _GrfColorLab.From(pPixels[2], pPixels[1], pPixels[0]);
 
-			int color;
-			//int colorTransparent = 0xff << 24 | 0xff << 16 | 0 << 8 | 0xff;
-			byte colorA;
+			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
+				double bestDist = double.MaxValue;
+				double* pPal = pPaletteBase + 3;
+				double* pPalEnd = pPal + ExistingPalette.Length;
 
-			byte[] pixels = image.Pixels;
-			GrfColor background = BackgroundColor;
+				while (pPal < pPalEnd) {
+					double dL = lab.L - pPal[0];
+					double da = lab.A - pPal[1];
+					double db = lab.B - pPal[2];
+					double dist = dL * dL + da * da + db * db;
 
-			for (int i = 0, numPixels = pixels.Length / 4; i < numPixels; i++) {
-				if (pixels[4 * i + 3] != 0) {
-					colorA = pixels[4 * i + 3];
-
-					color = 0xff << 24 |
-							(byte)(((255 - colorA) * background.R + colorA * pixels[4 * i + 2]) / 255f) << 16 |
-							(byte)(((255 - colorA) * background.G + colorA * pixels[4 * i + 1]) / 255f) << 8 |
-							(byte)(((255 - colorA) * background.B + colorA * pixels[4 * i + 0]) / 255f);
-				}
-				else {
-					continue;
-					//color = colorTransparent;
-				}
-
-				if (!colorDictionary.ContainsKey(color)) {
-					colorDictionary.Add(color, 0);
-				}
-			}
-
-			List<GrfColor> toGrfColors = new List<GrfColor>(256);
-			colors = colorDictionary.Keys.ToList();
-
-			for (int i = 0; i < colors.Count; i++) {
-				color = colors[i];
-
-				toGrfColors.Add(new GrfColor(
-									255,
-									(byte)((color & 0x00ff0000) >> 16),
-									(byte)((color & 0x0000ff00) >> 8),
-									(byte)((color & 0x000000ff))
-									));
-			}
-
-			if (toGrfColors.Count > 256)
-				toGrfColors = _reduceImageQuality(toGrfColors);
-
-			while (toGrfColors.Count < 256) {
-				toGrfColors.Add(new GrfColor(255, 0, 0, 0));
-			}
-
-			byte[] palette = new byte[1024];
-
-			for (int i = 0; i < 256; i++) {
-				palette[4 * i + 0] = toGrfColors[i].R;
-				palette[4 * i + 1] = toGrfColors[i].G;
-				palette[4 * i + 2] = toGrfColors[i].B;
-				palette[4 * i + 3] = toGrfColors[i].A;
-			}
-
-			return palette;
-		}
-
-		private List<GrfColor> _reduceImageQuality(List<GrfColor> colors) {
-			int exceedingColors = colors.Count - 256;
-			Dictionary<int, int> closestMatchingColors = new Dictionary<int, int>();
-
-			int searchRadius = (int)(exceedingColors / 150f + 10);
-
-			while (closestMatchingColors.Count < exceedingColors) {
-				closestMatchingColors.Clear();
-
-				for (int i = 1; i < colors.Count; i++) {
-					if (closestMatchingColors.ContainsKey(i))
-						continue;
-
-					for (int j = 1; j < colors.Count; j++) {
-						if (j == i || closestMatchingColors.ContainsKey(j))
-							continue;
-
-						if (Math.Abs(colors[i].R - colors[j].R) + Math.Abs(colors[i].G - colors[j].G) + Math.Abs(colors[i].B - colors[j].B) < searchRadius) {
-							closestMatchingColors.Add(j, i);
-						}
+					if (dist < bestDist) {
+						bestDist = dist;
+						bestIndex = l;
 					}
+
+					pPal += 3;
+					l++;
 				}
 
-				searchRadius *= 2;
+				matches[pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0]] = bestIndex;
 			}
 
-			List<GrfColor> newColors = new List<GrfColor>(colors);
-			foreach (KeyValuePair<int, int> tuple in closestMatchingColors) {
-				newColors[tuple.Key] = colors[tuple.Value];
-			}
-
-			newColors = newColors.Distinct().ToList();
-
-			// We fill in the colors
-
-			List<GrfColor> otherColors = new List<GrfColor>(colors);
-
-			newColors.ForEach(p => otherColors.Remove(p));
-
-			for (int i = 0, toFill = 256 - newColors.Count; i < toFill; i++) {
-				newColors.Add(otherColors[(int) (i / (float) toFill * otherColors.Count)]);
-			}
-
-			return newColors;
+			return (byte)bestIndex;
 		}
 
-		private byte _findClosestPaletteMatch(IList<Tuple<GrfColor, byte>> colorIndexes, byte r, byte g, byte b) {
-			if (_matchPaletteSearches.ContainsKey(r << 16 | g << 8 | b))
-				return _matchPaletteSearches[r << 16 | g << 8 | b];
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private unsafe byte _findClosetMatch(Dictionary<int, int> matches, byte* pPixels, byte* pPaletteBase) {
+			if (pPixels[3] == 0)
+				return 0;
 
-			int min = Int32.MaxValue;
-			int temp;
-			int lastIndex = 0;
+			int bestIndex = 0;
+			int l = 1;
 
-			for (int i = 0; i < colorIndexes.Count; i++) {
-				temp = Math.Abs(r - colorIndexes[i].Item1.R) +
-					   Math.Abs(g - colorIndexes[i].Item1.G) +
-					   Math.Abs(b - colorIndexes[i].Item1.B);
+			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
+				int bestDist = int.MaxValue;
+				byte* pPal = pPaletteBase + 4;
+				byte* pPalEnd = pPal + ExistingPalette.Length;
 
-				if (temp < min) {
-					min = temp;
-					lastIndex = i;
+				while (pPal < pPalEnd) {
+					int dr = Math.Abs(pPixels[2] - pPal[0]);
+					int dg = Math.Abs(pPixels[1] - pPal[1]);
+					int db = Math.Abs(pPixels[0] - pPal[2]);
+					int dist = _preSquared[dr] + _preSquared[dg] + _preSquared[db];
+
+					if (dist < bestDist) {
+						bestDist = dist;
+						bestIndex = l;
+					}
+
+					pPal += 4;
+					l++;
 				}
+
+				matches[pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0]] = bestIndex;
 			}
 
-			_matchPaletteSearches.Add(r << 16 | g << 8 | b, colorIndexes[lastIndex].Item2);
-			return colorIndexes[lastIndex].Item2;
-		}
-
-		private byte _clamp(float color) {
-			return (byte)(color < 0 ? 0 : color > 255 ? 255 : color);
-		}
-
-		private GrfColor _sub(GrfColor oldColor, GrfColor newColor) {
-			return new GrfColor(255,
-							 _clamp(oldColor.R - newColor.R),
-							 _clamp(oldColor.G - newColor.G),
-							 _clamp(oldColor.B - newColor.B)
-					);
-		}
-
-		private GrfColor _add(GrfColor oldColor, GrfColor newColor) {
-			return new GrfColor(255,
-							 _clamp(oldColor.R + newColor.R),
-							 _clamp(oldColor.G + newColor.G),
-							 _clamp(oldColor.B + newColor.B)
-					);
-		}
-
-		private GrfColor _mult(GrfColor oldColor, float mult) {
-			return new GrfColor(255,
-							 _clamp(oldColor.R * mult),
-							 _clamp(oldColor.G * mult),
-							 _clamp(oldColor.B * mult)
-					);
-		}
-
-		private int _findClosestColor(GrfColor oldColor, GrfColor[] pal) {
-			if (_matchClosestSearches.ContainsKey(oldColor.ToRgbInt24()))
-				return _matchClosestSearches[oldColor.ToRgbInt24()];
-
-			int temp;
-			int min = Int32.MaxValue;
-			int lastIndex = 0;
-			int diffR;
-			int diffG;
-			int diffB;
-
-			for (int i = 0; i < pal.Length; i++) {
-				diffR = Math.Abs(oldColor.R - pal[i].R);
-				diffG = Math.Abs(oldColor.G - pal[i].G);
-				diffB = Math.Abs(oldColor.B - pal[i].B);
-
-				temp = diffR + diffG + diffB;
-				if (temp < min) {
-					min = temp;
-					lastIndex = i;
-				}
-			}
-
-			_matchClosestSearches.Add(oldColor.ToRgbInt24(), (byte)lastIndex);
-			return lastIndex;
+			return (byte)bestIndex;
 		}
 	}
 }

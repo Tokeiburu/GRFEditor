@@ -7,7 +7,7 @@ using System.Threading;
 using ErrorManager;
 using GRF.Core;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GrfToWpfBridge.Application;
 using Utilities.CommandLine;

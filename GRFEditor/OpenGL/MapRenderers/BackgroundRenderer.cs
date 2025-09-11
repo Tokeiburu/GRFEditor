@@ -97,6 +97,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded)
 				return;
 
+			if (viewport.RenderPass != 0)
+				return;
+
 			if (!IsLoaded) {
 				Load(viewport);
 			}
@@ -121,7 +124,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			Shader.Use();
 			GL.Disable(EnableCap.Blend);
 
-			if (viewport.RenderOptions.RenderSkymapFeature && viewport.RenderOptions.RenderSkymapDetected && viewport.RenderOptions.RenderingMap) {
+			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
+				Shader.SetVector4("color", new Vector4(1, 1, 1, 1));
+			}
+			else if (viewport.RenderOptions.RenderSkymapFeature && viewport.RenderOptions.RenderSkymapDetected && viewport.RenderOptions.RenderingMap) {
 				Shader.SetVector4("color", viewport.RenderOptions.SkymapBackgroundColor);
 			}
 			else {
@@ -131,7 +137,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			GL.Enable(EnableCap.Texture2D);
 			_backTex.Bind();
 
-			Shader.SetMatrix4("model", _model);
+			Shader.SetMatrix4("model", ref _model);
 			Shader.SetMatrix4("view", Matrix4.Identity);
 			Shader.SetMatrix4("projection", Matrix4.Identity);
 

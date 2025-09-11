@@ -1,22 +1,25 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using GRF.FileFormats.LubFormat.Types;
+using GRF.IO;
 
 namespace GRF.FileFormats.LubFormat {
 	public class Lub {
+		public static string String_LoopPcBounds = "-- loop_pc_bounds: ";
+
 		public int TotalFunctionCount = 0;
 		private List<LubFunction> _functions = new List<LubFunction>();
 		private LubDictionary _globalVariables = new LubDictionary(0, 0);
 
-		public Lub(byte[] data) {
-			int offset = 0;
+		public Lub(MultiType data) {
+			IBinaryReader reader = data.GetBinaryReader();
 
-			Header = new LubHeader(data, ref offset);
+			Header = new LubHeader(reader);
 
-			_functions.Add(new LubFunction(0, data, ref offset, this));
+			_functions.Add(new LubFunction(0, reader, this));
 
-			while (offset < data.Length) {
-				_functions.Add(new LubFunction(1, data, ref offset, this));
+			while (reader.CanRead) {
+				_functions.Add(new LubFunction(1, reader, this));
 			}
 		}
 
@@ -45,14 +48,14 @@ namespace GRF.FileFormats.LubFormat {
 		}
 
 		public static string Escape(string str) {
-			StringBuilder builder = new StringBuilder();
+			StringBuilder builder = new StringBuilder(str.Length);
 			char c;
 
 			for (int i = 0; i < str.Length; i++) {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 							builder.Append(@"\t");
 							break;
@@ -91,7 +94,7 @@ namespace GRF.FileFormats.LubFormat {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 							builder.Append(@"\t");
 							break;
@@ -123,7 +126,7 @@ namespace GRF.FileFormats.LubFormat {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 						case '\f':
 						case '\\':

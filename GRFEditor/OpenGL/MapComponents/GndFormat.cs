@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows;
 using GRF;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.Graphics;
+using GRF.Image;
 using GRF.IO;
 using OpenTK;
 
@@ -20,6 +22,48 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 		public Gnd(MultiType data)
 			: this(data.GetBinaryReader()) {
+		}
+
+		public Gnd(GRF.FileFormats.GndFormat.Gnd gnd) {
+			this.Header = gnd.Header;
+			Textures = gnd.Textures;
+
+
+			LightmapWidth = gnd.LightmapWidth;
+			LightmapHeight = gnd.LightmapHeight;
+			LightmapSizeCell = gnd.LightmapSizeCell;
+
+			foreach (var light in gnd.LightmapContainer.Lightmaps) {
+				Lightmaps.Add(light.Data);
+			}
+			//grfcolor: argb
+			//grfcolor: z = a, y = r, x = g, w = b
+			foreach (var tile in gnd.Tiles) {
+				var nTile = new Tile {
+					Color = new TkVector4(tile.TileColor.G, tile.TileColor.R, tile.TileColor.A, tile.TileColor.B),
+					LightmapIndex = tile.LightmapIndex,
+					TextureIndex = tile.TextureIndex
+				};
+				for (int i = 0; i < 4; i++) {	
+					nTile.TexCoords[i].X = tile.TexCoords[i].X;
+					nTile.TexCoords[i].Y = tile.TexCoords[i].Y;
+				}
+				Tiles.Add(nTile);
+			}
+
+			foreach (var cube in gnd.Cubes) {
+				var nCube = new Cube {
+					TileFront = cube.TileFront,
+					TileSide = cube.TileSide,
+					TileUp = cube.TileUp,
+				};
+				for (int i = 0; i < 4; i++)
+					nCube[i] = cube[i];
+
+				Cubes.Add(nCube);
+			}
+
+			Water = gnd.Water;
 		}
 
 		private Gnd(IBinaryReader data) {
@@ -321,6 +365,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public int TileSide;
 		public Vector3 Normal;
 		public Vector3[] Normals = new Vector3[4];
+		public Vector3[] NormalsLocal = new Vector3[4];
 
 		public Cube() {
 		}
@@ -349,29 +394,45 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public void CalculateNormal() {
-			Vector3 v1 = new Vector3(10, -_heights[0], 0);
-			Vector3 v2 = new Vector3(0, -_heights[1], 0);
-			Vector3 v3 = new Vector3(10, -_heights[2], 10);
-			Vector3 v4 = new Vector3(0, -_heights[3], 10);
+			Vector3 v1 = new Vector3(0, _heights[0], 0);
+			Vector3 v2 = new Vector3(10, _heights[1], 0);
+			Vector3 v3 = new Vector3(0, _heights[2], 10);
+			Vector3 v4 = new Vector3(10, _heights[3], 10);
 
-			Vector3 normal1 = Vector3.NormalizeFast(Vector3.Cross(v4 - v3, v1 - v3));
-			Vector3 normal2 = Vector3.NormalizeFast(Vector3.Cross(v1 - v2, v4 - v2));
-			Normal = Vector3.NormalizeFast(normal1 + normal2);
+			// Do not normalize these vectors, otherwise the ratio when adding the normals won't be valid
+			Vector3 normal1 = Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
+			Vector3 normal2 = Vector3.Normalize(Vector3.Cross(v3 - v4, v2 - v4));
+			Normal = normal1 + normal2;
 
-			for (int i = 0; i < 4; i++)
-				Normals[i] = Normal;
+			Normals[0] = normal1;
+			Normals[1] = Normal;
+			Normals[2] = Normal;
+			Normals[3] = normal1;
+
+			NormalsLocal[0] = normal1;
+			NormalsLocal[1] = Normal;
+			NormalsLocal[2] = Normal;
+			NormalsLocal[3] = normal2;
+
+			Normal = Vector3.Normalize(Normal);
 		}
 
 		public void CalcNormals(Gnd gnd, int x, int y) {
 			for (int i = 0; i < 4; i++) {
-				Normals[i] = new Vector3(0);
+				float h = _heights[i];
 
-				for (int ii = 0; ii < 4; ii++) {
+				for (int ii = 1; ii < 4; ii++) {
 					int xx = (ii % 2) * ((i % 2 == 0) ? -1 : 1);
 					int yy = (ii / 2) * (i < 2 ? -1 : 1);
-					
-					if (gnd[x + xx, y + yy] != null)
-						Normals[i] += gnd[x + xx, y + yy].Normal;
+
+					if (gnd[x + xx, y + yy] != null) {
+						int ci = (i + ii * (1 - 2 * (i & 1))) & 3;
+
+						if (gnd[x + xx, y + yy]._heights[ci] != h)
+							continue;
+
+						Normals[i] += gnd[x + xx, y + yy].NormalsLocal[ci];
+					}
 				}
 				
 				Normals[i] = Vector3.NormalizeFast(Normals[i]);

@@ -49,7 +49,7 @@ namespace GRF.ContainerFormat {
 		/// <summary>
 		/// Offsets in the stream for the container entry (this property is not directly used by GRFs).
 		/// </summary>
-		public uint Offset { get; internal set; }
+		public long Offset { get; internal set; }
 
 		/// <summary>
 		/// Gets the compressed size of the entry. This property may not be set.
@@ -77,10 +77,52 @@ namespace GRF.ContainerFormat {
 		/// </summary>
 		public string SourceFilePath { get; internal set; }
 
+		protected string _relativePath;
+		protected bool _relativePathModified = true;
+
 		/// <summary>
 		/// Gets the path of the entry in the container.
 		/// </summary>
-		public virtual string RelativePath { get; internal set; }
+		public virtual string RelativePath {
+			get {
+				return _relativePath;
+			}
+			internal set {
+				_relativePath = value;
+				_relativePathModified = true;
+			}
+		}
+
+		private string _directoryPath;
+		private string _fileName;
+
+		/// <summary>
+		/// Gets the directory name of the entry in the container.
+		/// </summary>
+		public string DirectoryPath {
+			get {
+				if (_relativePathModified) {
+					GrfPath.GetGrfEntryDirectoryNameAndFileName(_relativePath, out _directoryPath, out _fileName);
+					_relativePathModified = false;
+				}
+
+				return _directoryPath;
+			}
+		}
+
+		/// <summary>
+		/// Gets the file name of the entry in the container.
+		/// </summary>
+		public string FileName {
+			get {
+				if (_relativePathModified) {
+					GrfPath.GetGrfEntryDirectoryNameAndFileName(_relativePath, out _directoryPath, out _fileName);
+					_relativePathModified = false;
+				}
+
+				return _fileName;
+			}
+		}
 
 		/// <summary>
 		/// Gets the current state of the entry.
@@ -95,7 +137,7 @@ namespace GRF.ContainerFormat {
 		/// <summary>
 		/// Offset used when reading the container stream in threads (also used when saving the container).
 		/// </summary>
-		internal uint TemporaryOffset { get; set; }
+		internal long TemporaryOffset { get; set; }
 
 		/// <summary>
 		/// Temporary compressed alignment size used when reading the container <para></para>

@@ -1,0 +1,27 @@
+﻿<Window x:Class="GRFEditor.OpenGL.WPF.RotateOptions"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
+        xmlns:wpf="clr-namespace:GRFEditor.WPF"
+        xmlns:styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        SizeToContent="WidthAndHeight"
+        Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
+    <Grid Name="_gridLight" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="50" />
+            <ColumnDefinition Width="auto" />
+        </Grid.ColumnDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Speed" Margin="3" TextAlignment="Right" VerticalAlignment="Center" />
+        
+        <sliders:SliderColor Grid.Row="0" Grid.Column="2" x:Name="_sliderLatitude" Width="200" Height="19.5" Margin="2" VerticalAlignment="Center" />
+        <TextBlock Name="_tbLatitude" Grid.Row="0" Grid.Column="3" Text="" Margin="3" TextAlignment="Left" VerticalAlignment="Center" />
+        <styles:FancyButton Grid.Row="0" Grid.Column="4" Name="_reset" Width="18" Height="18" ImagePath="reset.png" Margin="3 0 3 0" VerticalAlignment="Center" />
+    </Grid>
+</Window>

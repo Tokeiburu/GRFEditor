@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using GRF.Core;
-using GRF.System;
+using GRF.GrfSystem;
 
 namespace GRF.Threading {
 	/// <summary>

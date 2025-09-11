@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 using GRF.Core;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
 
 namespace GRF.Threading {

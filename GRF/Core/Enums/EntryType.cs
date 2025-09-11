@@ -21,7 +21,7 @@ namespace GRF.Core {
 		Encrypt = 1 << 6,
 		Decrypt = 1 << 7,
 		FileNameRenamed = 1 << 8,
-		LzmaCompressed = 1 << 9,
+		CustomCompressed = 1 << 9,
 		RawDataFile = 1 << 10,
 		LZSS = 1 << 11,
 	}

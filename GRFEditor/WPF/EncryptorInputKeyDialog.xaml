@@ -17,8 +17,8 @@
                     <RowDefinition />
                 </Grid.RowDefinitions>
                 <Label Grid.Row="1" Grid.Column="0" Content="Encryption password" VerticalAlignment="Center" />
-                <TextBox Name="_tbEncryptionPassword" TextChanged="_tbEncryptionPassword_TextChanged" Grid.Row="1" Grid.Column="1" Margin="3" MaxLength="250" />
-                <Styles:ButtonMenu Content="Key..." Margin="2" Grid.Column="2" Grid.Row="1" Width="40">
+                <TextBox Name="_tbEncryptionPassword" VerticalContentAlignment="Center" TextChanged="_tbEncryptionPassword_TextChanged" Grid.Row="1" Grid.Column="1" Margin="3" MaxLength="250" Height="24" />
+                <Styles:ButtonMenu Content="Key..." Margin="2" Grid.Column="2" Grid.Row="1" Width="40" Height="24">
                     <Styles:ButtonMenu.ContextMenu>
                         <ContextMenu>
                             <MenuItem Header="Clear" Click="_miClear_Click" />

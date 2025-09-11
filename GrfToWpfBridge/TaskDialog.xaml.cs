@@ -57,6 +57,10 @@ namespace GrfToWpfBridge {
 			_async.SetAndRunOperation(new GrfThread(() => _start(action, progress), this, 200, null, true, true));
 		}
 
+		public void SetUpdate(string message) {
+			this.Dispatch(p => p._tbInfo.Text = message);
+		}
+
 		private void _start(Action<Func<bool>> action, Func<float> progress) {
 			Progress = -1;
 
@@ -65,7 +69,7 @@ namespace GrfToWpfBridge {
 			grfThread.Finished += delegate {
 				Progress = 100f;
 				_enableClosing = true;
-				Dispatcher.Invoke(new Action(Close));
+				this.Dispatch(Close);
 			};
 			grfThread.Start();
 
@@ -81,7 +85,7 @@ namespace GrfToWpfBridge {
 
 			Progress = 100f;
 			_enableClosing = true;
-			Dispatcher.Invoke(new Action(Close));
+			this.Dispatch(Close);
 		}
 
 		private void _start(Action action, Func<float> progress) {
@@ -92,7 +96,7 @@ namespace GrfToWpfBridge {
 			grfThread.Finished += delegate {
 				Progress = 100f;
 				_enableClosing = true;
-				Dispatcher.Invoke(new Action(Close));
+				this.Dispatch(Close);
 			};
 			grfThread.Start();
 
@@ -108,7 +112,7 @@ namespace GrfToWpfBridge {
 
 			Progress = 100f;
 			_enableClosing = true;
-			Dispatcher.Invoke(new Action(Close));
+			this.Dispatch(Close);
 		}
 
 		private void _buttonCancel_Click(object sender, RoutedEventArgs e) {

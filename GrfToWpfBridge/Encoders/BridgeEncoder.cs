@@ -18,7 +18,7 @@ namespace GrfToWpfBridge.Encoders {
 		}
 
 		public void Save(string file) {
-			using (FileStream stream = File.OpenWrite(file)) {
+			using (FileStream stream = File.Open(file, FileMode.Create)) {
 				if (_encoder != null)
 					_encoder.Save(stream);
 				else if (_wpfEncoder != null)

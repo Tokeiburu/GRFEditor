@@ -2,28 +2,34 @@
 using System.Collections.Generic;
 using System.Text;
 using GRF.ContainerFormat;
+using GRF.FileFormats.LubFormat.VM;
+using GRF.IO;
 
 namespace GRF.FileFormats.LubFormat {
 	public class LubHeader : FileHeader {
-		public LubHeader(byte[] data, ref int offset) {
-			Magic = Encoding.ASCII.GetString(data, 0, 4);
+		public enum LubEndianess {
+			BigEndian = 0,
+			LittleEndian = 1
+		}
+
+		public LubHeader(IBinaryReader reader) {
+			Magic = reader.StringANSI(4);
 
 			if (Magic != Encoding.ASCII.GetString(new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0, 4))
 				throw GrfExceptions.__FileFormatException.Create(Encoding.ASCII.GetString(new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0, 4));
 
-			MajorVersion = (byte) ((data[4] & 0xF0) >> 4);
-			MinorVersion = (byte) (data[4] & 0x0F);
-
-			offset = 4;
+			var v = reader.Byte();
+			MajorVersion = (byte)((v & 0xF0) >> 4);
+			MinorVersion = (byte)(v & 0x0F);
 
 			if (IsCompatibleWith(5, 1)) {
-				Format = data[++offset];
+				Format = reader.Byte();
 			}
 
-			Endianess = (Endianess) data[++offset];
-			SizeOfInt = data[++offset];
-			SizeOfInt64 = data[++offset];
-			SizeOfInstruction = data[++offset];
+			Endianess = (LubEndianess)reader.Byte();
+			SizeOfInt = reader.Byte();
+			SizeOfInt64 = reader.Byte();
+			SizeOfInstruction = reader.Byte();
 
 			if (IsCompatibleWith(5, 1)) {
 				SizeOfOp = 6;
@@ -32,36 +38,37 @@ namespace GRF.FileFormats.LubFormat {
 				SizeOfC = 9;
 			}
 			else if (IsCompatibleWith(5, 0)) {
-				SizeOfOp = data[++offset];
-				SizeOfA = data[++offset];
-				SizeOfB = data[++offset];
-				SizeOfC = data[++offset];
+				SizeOfOp = reader.Byte();
+				SizeOfA = reader.Byte();
+				SizeOfB = reader.Byte();
+				SizeOfC = reader.Byte();
 			}
 
-			SizeOfNumbers = data[++offset];
+			SizeOfNumbers = reader.Byte();
 
 			if (IsCompatibleWith(5, 1)) {
-				IntegralFlag = data[++offset];
-				offset++;
+				IntegralFlag = reader.Byte();
 			}
 			else if (IsCompatibleWith(5, 0)) {
-				SampleNumber1 = BitConverter.ToDouble(data, ++offset);
-				offset += SizeOfNumbers;
+				SampleNumber1 = reader.Double();
 			}
 
 			if (IsCompatibleWith(5, 1)) {
 				ConstantIndexor = 256;
 				OperandCodeReader = new OperandCodeReader51(this);
+				InstructionSet = OpcodeMapper.InstructionSets["0x501"];
 			}
 			else if (IsCompatibleWith(5, 0)) {
 				ConstantIndexor = 250;
 				OperandCodeReader = new OperandCodeReader50(this);
+				InstructionSet = OpcodeMapper.InstructionSets["0x500"];
 			}
 		}
 
 		public OperandCodeReader OperandCodeReader { get; private set; }
+		public List<Func<OpCodes.AbstractInstruction>> InstructionSet { get; private set; }
 
-		public Endianess Endianess { get; set; }
+		public LubEndianess Endianess { get; set; }
 		public int Format { get; set; }
 		public int SizeOfInt { get; set; }
 		public int SizeOfInt64 { get; set; }
@@ -123,7 +130,7 @@ namespace GRF.FileFormats.LubFormat {
 		public override List<int> GetResiters(int instruction, EncodedMode mode) {
 			List<int> registers = new List<int>();
 
-			switch (mode) {
+			switch(mode) {
 				case EncodedMode.ABC:
 					registers.Add(_getUnsignedValue(ShiftRegisterA, _header.SizeOfA, instruction));
 					registers.Add(_getUnsignedValue(ShiftRegisterB, _header.SizeOfB, instruction));
@@ -161,7 +168,7 @@ namespace GRF.FileFormats.LubFormat {
 		public override List<int> GetResiters(int instruction, EncodedMode mode) {
 			List<int> registers = new List<int>();
 
-			switch (mode) {
+			switch(mode) {
 				case EncodedMode.ABC:
 					registers.Add(_getUnsignedValue(ShiftRegisterA, _header.SizeOfA, instruction));
 					registers.Add(_getUnsignedValue(ShiftRegisterB, _header.SizeOfB, instruction));

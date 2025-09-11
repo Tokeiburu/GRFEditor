@@ -48,8 +48,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			FileEntry entryClosure = entry;
 			_labelHeader.Dispatch(p => p.Content = "GRF entry : " + Path.GetFileName(entryClosure.RelativePath));
+			_buttonRawView.Dispatch(p => p.Visibility = System.Windows.Visibility.Collapsed);
 
-			if (GrfEditorConfiguration.PreviewRawGrfProperties) {
+			//if (GrfEditorConfiguration.PreviewRawGrfProperties) {
 				string text = PreviewRawStructure.GetGrfEditorHeader() + FileFormatParser.DisplayObjectPropertiesFromEntry(_grfData, entry);
 
 				if (_isCancelRequired()) return;
@@ -58,15 +59,15 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_textEditor.Dispatch(p => p.Text = text);
 				_textEditor.Dispatch(p => p.Visibility = Visibility.Visible);
 				_typeExplorer.Dispatch(p => p.Visibility = Visibility.Hidden);
-			}
-			else {
-				_typeExplorer.Dispatch(p => p.LoadObject(
-					entry,
-					new TypeExplorer.CancelLoadingDelegate(() => _isCancelRequired()),
-					3));
-				_textEditor.Dispatch(p => p.Visibility = Visibility.Hidden);
-				_typeExplorer.Dispatch(p => p.Visibility = Visibility.Visible);
-			}
+			//}
+			//else {
+			//	_typeExplorer.Dispatch(p => p.LoadObject(
+			//		entry,
+			//		new TypeExplorer.CancelLoadingDelegate(() => _isCancelRequired()),
+			//		3));
+			//	_textEditor.Dispatch(p => p.Visibility = Visibility.Hidden);
+			//	_typeExplorer.Dispatch(p => p.Visibility = Visibility.Visible);
+			//}
 		}
 
 		private void _highlightingComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e) {

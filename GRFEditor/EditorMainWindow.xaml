@@ -6,6 +6,7 @@
         xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
         xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
         xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" xmlns:WPF1="clr-namespace:GRFEditor.WPF"
+		UseLayoutRounding="True"
         xmlns:WpfBugFix="clr-namespace:TokeiLibrary.WpfBugFix;assembly=TokeiLibrary" Title="GRF Editor" Height="549" Width="730" Icon="Resources\internalapp.png" MinWidth="680">
     <Window.Resources>
         <Style TargetType="ListViewItem">
@@ -70,6 +71,8 @@
                 <MenuItem Name="_menuItemSoustract" ListView:WpfUtils.ImagePath="subgrf.png" Header="Subtract" Click="_menuItemSoustract_Click" />
                 <Separator />
                 <MenuItem Name="_menuItemExtractRgz" ListView:WpfUtils.ImagePath="archive.png" Header="Extract Rgz" IsEnabled="False" Click="_menuItemExtractRgz_Click" />
+                <Separator />
+                <MenuItem Name="_menuItemEditContainerSettings" ListView:WpfUtils.ImagePath="properties.png" Header="Edit Grf/Thor settings" Click="_menuItemEditContainerSettings_Click" />
             </MenuItem>
             <MenuItem VerticalAlignment="Center" Visibility="Visible">
                 <MenuItem.Header>
@@ -123,7 +126,7 @@
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <!-- Left Panel -->
-            <Grid Grid.Column="0">
+            <Grid x:Name="_gridGrfContent" Grid.Column="0">
                 <Grid.RowDefinitions>
                     <RowDefinition Name="_rDefSearch" Height="auto" />
                     <RowDefinition Name="_rDefSearchSplitter" Height="auto" />
@@ -148,7 +151,7 @@
 
                 <GridSplitter Name="_gridSplitterSearch" Visibility="Collapsed" MinHeight="0" Height="2" HorizontalAlignment="Stretch" Grid.Row="1" VerticalAlignment="Stretch" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
 
-                <Grid Grid.Row="2">
+                <Grid x:Name="_gridTreeView" Grid.Row="2">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="198" />
                         <ColumnDefinition Width="2" />
@@ -177,7 +180,7 @@
             <Grid Grid.Column="2">
                 <Border Background="{DynamicResource TabControlBackground}">
                     <Grid>
-                        <TabControl Name="_tabControlPreview" Style="{DynamicResource TabControlStyled}">
+                        <TabControl Name="_tabControlPreview" Style="{DynamicResource TabControlStyled}" SnapsToDevicePixels="True">
                         </TabControl>
                         <Styles:FancyButton x:Name="_buttonExpand" Click="_buttonExpand_Click" TextHeader="Hide" HorizontalAlignment="Left" VerticalAlignment="Bottom" Height="35" Width="70" />
                     </Grid>

@@ -3,6 +3,7 @@ using System.Linq;
 using GRF.Core;
 using GRF.FileFormats.GndFormat;
 using GRF.Image;
+using GRF.IO;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.GatFormat {
@@ -102,6 +103,27 @@ namespace GRF.FileFormats.GatFormat {
 			}
 		}
 
+		public static GrfImage LoadQuickPreviewImage(byte[] gatData) {
+			var reader = new ByteReader(gatData);
+			GatHeader header = new GatHeader(reader);
+
+			var pixels = new byte[header.Width * header.Height];
+			var palette = new byte[1024];
+			Buffer.BlockCopy(PaletteTransparentMinimap, 0, palette, 0, 1024);
+			GrfImage image = new GrfImage(ref pixels, header.Width, header.Height, GrfImageType.Indexed8, ref palette);
+
+			int offset = 0;
+			// We need to reverse the image vertically
+			for (int i = header.Height - 1; i > -1; i--) {
+				for (int j = 0; j < header.Width; j++) {
+					reader.Forward(4 * 4);
+					pixels[offset++] = (byte)(reader.Int32() + 1);
+				}
+			}
+
+			return image;
+		}
+
 		public static void LoadImage(Gat gatSource, GatPreviewFormat previewFormat, GatPreviewOptions options, string fileName, GrfHolder grfData) {
 			const int MapSize = 512;
 
@@ -150,19 +172,19 @@ namespace GRF.FileFormats.GatFormat {
 
 		private static void _generateLightAndShadowMapImage(IImageable gatSource, string fileName, GrfHolder grf) {
 			Gnd gnd = new Gnd(grf.FileTable.TryGet(fileName.ReplaceExtension(".gnd")).GetDecompressedData());
-			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreatePreviewMapData(gnd), gnd.Header.Width * (gnd.GridSizeX - 2), gnd.Header.Height * (gnd.GridSizeY - 2), GrfImageType.Bgra32);
+			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreatePreviewMapData(gnd), gnd.Header.Width * (gnd.LightmapWidth - 2), gnd.Header.Height * (gnd.LightmapHeight - 2), GrfImageType.Bgra32);
 			gatSource.Image.Flip(FlipDirection.Vertical);
 		}
 
 		private static void _generateLightMapImage(IImageable gatSource, string fileName, GrfHolder grf) {
 			Gnd gnd = new Gnd(grf.FileTable.TryGet(fileName.ReplaceExtension(".gnd")).GetDecompressedData());
-			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateLightmapData(gnd), gnd.Header.Width * (gnd.GridSizeX - 2), gnd.Header.Height * (gnd.GridSizeY - 2), GrfImageType.Bgra32);
+			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateLightmapData(gnd), gnd.Header.Width * (gnd.LightmapWidth - 2), gnd.Header.Height * (gnd.LightmapHeight - 2), GrfImageType.Bgra32);
 			gatSource.Image.Flip(FlipDirection.Vertical);
 		}
 
 		private static void _generateShadowMapImage(IImageable gatSource, string fileName, GrfHolder grf) {
 			Gnd gnd = new Gnd(grf.FileTable.TryGet(fileName.ReplaceExtension(".gnd")).GetDecompressedData());
-			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateShadowmapData(gnd), gnd.Header.Width * (gnd.GridSizeX - 2), gnd.Header.Height * (gnd.GridSizeY - 2), GrfImageType.Bgra32);
+			gatSource.Image = new GrfImage(new TextureMapsGenerator().CreateShadowmapData(gnd), gnd.Header.Width * (gnd.LightmapWidth - 2), gnd.Header.Height * (gnd.LightmapHeight - 2), GrfImageType.Bgra32);
 			gatSource.Image.Flip(FlipDirection.Vertical);
 		}
 

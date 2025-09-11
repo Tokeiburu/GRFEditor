@@ -8,6 +8,7 @@ using GRF.IO;
 using OpenTK;
 using Matrix3 = OpenTK.Matrix3;
 using Matrix4 = OpenTK.Matrix4;
+using Utilities;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class Face {
@@ -195,7 +196,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 				face.TextureVertexIds[2] = reader.UInt16();
 				face.TextureId = reader.UInt16();
 				face.Padding = reader.UInt16();
-				face.TwoSide = reader.Int32();
+				face.TwoSide = reader.Int32() > 0 ? 1 : 0;
 
 				if (version >= 1.2) {
 					face.SmoothGroup[0] = face.SmoothGroup[1] = face.SmoothGroup[2] = reader.Int32();
@@ -240,35 +241,25 @@ namespace GRFEditor.OpenGL.MapComponents {
 				foreach (var face in Faces) {
 					for (int i = 0; i < 3; i++) {
 						for (int ii = 0; ii < 3; ii++) {
-							if (face.SmoothGroup[ii] != -1) {
-								Dictionary<int, Vector3> groupNormals;
+							Dictionary<int, Vector3> groupNormals;
 				
-								if (!groups.TryGetValue(face.SmoothGroup[ii], out groupNormals)) {
-									groupNormals = new Dictionary<int, Vector3>();
-									groups[face.SmoothGroup[ii]] = groupNormals;
-								}
-				
-								if (!groupNormals.ContainsKey(face.VertexIds[i])) {
-									groupNormals[face.VertexIds[i]] = new Vector3();
-								}
-				
-								groupNormals[face.VertexIds[i]] += face.Normal;
+							if (!groups.TryGetValue(face.SmoothGroup[ii], out groupNormals)) {
+								groupNormals = new Dictionary<int, Vector3>();
+								groups[face.SmoothGroup[ii]] = groupNormals;
 							}
+				
+							if (!groupNormals.ContainsKey(face.VertexIds[i])) {
+								groupNormals[face.VertexIds[i]] = new Vector3();
+							}
+				
+							groupNormals[face.VertexIds[i]] += face.Normal;
 						}
 					}
 				}
 				
 				foreach (var face in Faces) {
-					for (int ii = 0; ii < 3; ii++) {
-						if (face.SmoothGroup[ii] != -1) {
-							for (int i = 0; i < 3; i++) {
-								face.VertexNormals[i] += groups[face.SmoothGroup[0]][face.VertexIds[i]];
-							}
-						}
-					}
-				
 					for (int i = 0; i < 3; i++) {
-						face.VertexNormals[i] = Vector3.NormalizeFast(face.VertexNormals[i]);
+						face.VertexNormals[i] = Vector3.NormalizeFast(groups[face.SmoothGroup[0]][face.VertexIds[i]]);
 					}
 				}
 			}
@@ -314,10 +305,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 
 			if (version < 2.0) {
-				if (RotationKeyFrames.Count > 0)
-					rsm.AnimationLength = Math.Max(rsm.AnimationLength, RotationKeyFrames.Last().Frame);
-				if (ScaleKeyFrames.Count > 0)
-					rsm.AnimationLength = Math.Max(rsm.AnimationLength, ScaleKeyFrames.Last().Frame);
 				rsm.FramesPerSecond = 1000f;
 			}
 
@@ -346,7 +333,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 						int amountFrames = reader.Int32();
 
 						for (int k = 0; k < amountFrames; k++) {
-							_textureKeyFrameGroup.AddTextureKeyFrame(textureId, type, new TextureKeyFrame {
+							_textureKeyFrameGroup.AddTextureKeyFrame(textureId, (TextureTransformTypes)type, new TextureKeyFrame {
 								Frame = reader.Int32(),
 								Offset = reader.Float()
 							});
@@ -382,7 +369,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 				if (RotationKeyFrames.Count == 0) {
 					if (Math.Abs(RotationAngle) > 0.01) {
-						Matrix1 = GLHelper.Rotate(Matrix1, GLHelper.ToRad(RotationAngle * 180.0f / Math.PI), RotationAxis);
+						Matrix1 = GLHelper.Rotate(Matrix1, RotationAngle, RotationAxis);
 					}
 				}
 				else {
@@ -450,17 +437,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 				if (RotationKeyFrames.Count > 0) {
 					float animationFrame = Model.AnimationIndexFloat % Math.Max(1, Model.AnimationLength);
-					//int prevIndex = -1;
-					//int nextIndex = -1;
-					//
-					//while (true) {
-					//	nextIndex++;
-					//
-					//	if (nextIndex == RotationKeyFrames.Count || animationFrame < RotationKeyFrames[nextIndex].Frame)
-					//		break;
-					//
-					//	prevIndex++;
-					//}
 
 					int prevIndex = -1;
 					int nextIndex = -1;
@@ -634,7 +610,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 			if (Model.Version < 2.2) {
 				if (Parent == null && Children.Count == 0) {
-					Matrix2 = GLHelper.Translate(Matrix2, -1.0f * Model.LocalBox.Center);
+					Matrix2 = GLHelper.Translate(Matrix2, Position_);
 				}
 
 				if (Parent != null || Children.Count > 0) {
@@ -773,7 +749,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			return vertices;
 		}
 
-		public float GetTexture(int textureId, int type) {
+		public float GetTexture(int textureId, TextureTransformTypes type) {
 			var frames = _textureKeyFrameGroup.GetTextureKeyFrames(textureId, type);
 
 			if (frames == null || frames.Count == 0)

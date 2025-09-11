@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using ErrorManager;
 using GRF.Core;
+using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using TokeiLibrary;
 using Utilities;
@@ -38,17 +39,19 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
+		public void Update(bool forceUpdate) {
+			if (forceUpdate)
+				_oldPath = null;
+
+			Update();
+		}
+
 		public void Update() {
 			if (_oldPath != null && _oldPath.GetFullPath() == _currentPath.GetFullPath())
 				return;
 
 			if (_oldPath == null)
 				_oldPath = _currentPath;
-
-			Dispatcher.Invoke(new Action(delegate {
-				if (!IsVisible)
-					_clusterView.Dispatch(p => p.Clear());
-			}));
 
 			Thread thread = new Thread(() => _load(_currentPath)) { Name = "GrfEditor - Preview folder structure thread" };
 			thread.SetApartmentState(ApartmentState.STA);
@@ -65,19 +68,19 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 					_labelHeader.Dispatch(p => p.Content = _currentPath.RelativePath);
 
-					List<FileEntry> entries = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.AllDirectories);
-					List<FileEntry> entriesRoot = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.TopDirectoryOnly);
+					List<FileEntry> entries = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.AllDirectories, GrfEditorConfiguration.GrfFileTableIgnoreCase);
+					List<FileEntry> entriesRoot = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.TopDirectoryOnly, GrfEditorConfiguration.GrfFileTableIgnoreCase);
 
-					List<uint> offsets = entries.Select(p => p.FileExactOffset).ToList();
+					List<long> offsets = entries.Select(p => p.FileExactOffset).ToList();
 					List<int> lengths = entries.Select(p => p.SizeCompressedAlignment).ToList();
 
-					List<uint> offsetsRoot = entriesRoot.Select(p => p.FileExactOffset).ToList();
+					List<long> offsetsRoot = entriesRoot.Select(p => p.FileExactOffset).ToList();
 					List<int> lengthsRoot = entriesRoot.Select(p => p.SizeCompressedAlignment).ToList();
 
-					uint fileSize = 0;
+					long fileSize = 0;
 
 					if (!_grfData.IsNewGrf)
-						fileSize = (uint) _grfData.GetFileSize();
+						fileSize = _grfData.GetFileSize();
 
 					if ((int) fileSize == -1)
 						return;
@@ -90,8 +93,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 						decompSize += entry.NewSizeDecompressed;
 					}
 
-					//ulong compSize = entries.Sum(p => (ulong) p.NewSizeCompressed);
-					//ulong decompSize = entries.Sum(p => p.NewSizeDecompressed);
 					compSize = decompSize == 0 ? 1 : compSize;
 					decompSize = decompSize == 0 ? 1 : decompSize;
 
@@ -101,7 +102,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_tbSizeCompressed.Dispatch(p => p.Text = Methods.FileSizeToString(compSize));
 					_tbSizeDecompressed.Dispatch(p => p.Text = Methods.FileSizeToString(decompSize));
 
-					_clusterView.Dispatch(p => p.DrawBackground());
+					_clusterView.DrawBackground();
 
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 
@@ -113,11 +114,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 
-					_clusterView.Draw(fileSize, new uint[] { 0 }, new int[] { GrfHeader.StructSize }, Color.FromArgb(255, 100, 100, 100));
+					_clusterView.Draw(fileSize, new long[] { 0 }, new int[] { GrfHeader.DataByteSize }, Color.FromArgb(255, 100, 100, 100));
 
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 
-					_clusterView.Draw(fileSize, new uint[] { _grfData.Header.FileTableOffset }, new int[] { _grfData.FileTable.TableSizeCompressed }, Color.FromArgb(255, 127, 138, 207));
+					_clusterView.Draw(fileSize, new long[] { _grfData.Header.FileTableOffset }, new int[] { _grfData.FileTable.TableSizeCompressed }, Color.FromArgb(255, 127, 138, 207));
 
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 

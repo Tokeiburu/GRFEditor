@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
-using GRF.System;
-using zlib;
+using ComponentAce.Compression.Libs.zlib;
+using GRF.GrfSystem;
 
 namespace GRF.Core.GrfCompression {
 	/// <summary>
@@ -63,11 +63,22 @@ namespace GRF.Core.GrfCompression {
 		/// The uncompressed data.
 		/// </returns>
 		public byte[] Decompress(byte[] compressed, long uncompressedLength) {
+			return Decompress(compressed, compressed.Length, uncompressedLength);
+		}
+
+		/// <summary>
+		/// Decompresses the specified data, using a known length.
+		/// </summary>
+		/// <param name="compressed">The compressed data.</param>
+		/// <param name="compressedLength">Length of the compressed data (not aligned).</param>
+		/// <param name="uncompressedLength">Length of the uncompressed data.</param>
+		/// <returns>The uncompressed data.</returns>
+		public byte[] Decompress(byte[] compressed, long compressedLength, long uncompressedLength) {
 			if (uncompressedLength == 0)
-				return new byte[] {};
+				return new byte[] { };
 
 			using (MemoryStream decompressStream = new MemoryStream())
-			using (DeflateStream decompressionStream = new DeflateStream(new MemoryStream(compressed, 2, compressed.Length - 4), CompressionMode.Decompress)) {
+			using (DeflateStream decompressionStream = new DeflateStream(new MemoryStream(compressed, 2, (int)compressedLength - 4), CompressionMode.Decompress)) {
 				Compression.CopyStream(decompressionStream, decompressStream);
 				return decompressStream.ToArray();
 			}

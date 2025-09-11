@@ -35,7 +35,7 @@ namespace GRFEditor.Core.Services {
 		private readonly object _previewLockQuick = new object();
 		private readonly string[] _rawStructureTextEditorExtensions = new string[] { ".fna", ".imf", ".rsm", ".rsm2", ".lub", ".str", ".bson" };
 		private readonly TabControl _tabControlPreview;
-		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json" };
+		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json", ".csv" };
 		private readonly TreeView _treeView;
 		private PreviewDisplayConfiguration _currentConf = new PreviewDisplayConfiguration();
 		private string _currentPath;
@@ -43,6 +43,14 @@ namespace GRFEditor.Core.Services {
 		private bool _hasBeenLoaded;
 		private PreviewItem _previewItem;
 		private string _selectedItem = "";
+
+		public int QueueCount {
+			get {
+				lock (_previewLockQuick) {
+					return _previewItems.Count;
+				}
+			}
+		}
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="PreviewService" /> class.
@@ -129,6 +137,8 @@ namespace GRFEditor.Core.Services {
 			}
 		}
 
+		private bool _firstPreview = true;
+
 		private void _showPreview() {
 			try {
 				// Prevents multiple read access (and ultimately slowing down the app)
@@ -142,7 +152,7 @@ namespace GRFEditor.Core.Services {
 					string extension = _previewItem.Extension;
 
 					if (extension == null) {
-						_readAsFolder(_previewItem.FileName);
+						//_readAsFolder(_previewItem.FileName);
 						_readAsFolderStructure(_previewItem.FileName);
 						_readAsContainer(_previewItem.FileName);
 						_readAsPreviewSprites(_previewItem.FileName);
@@ -195,6 +205,7 @@ namespace GRFEditor.Core.Services {
 								case ".integrity":
 								case ".js":
 								case ".ezv":
+								case ".csv":
 									_readAsTxt(node);
 									break;
 								default:
@@ -390,7 +401,7 @@ namespace GRFEditor.Core.Services {
 			if (res.HasValueChanged(new { conf.ShowGat })) _tabItemMapGatPreview.Dispatch(p => p.Visibility = conf.ShowGat ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowHexEditor })) _tabItemResourcePreview.Dispatch(p => p.Visibility = conf.ShowHexEditor ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowTextEditor })) _tabItemTextPreview.Dispatch(p => p.Visibility = conf.ShowTextEditor ? Visibility.Visible : Visibility.Collapsed);
-			if (res.HasValueChanged(new { conf.ShowFolderPreview })) _tabFolderPreview.Dispatch(p => p.Visibility = conf.ShowFolderPreview ? Visibility.Visible : Visibility.Collapsed);
+			//if (res.HasValueChanged(new { conf.ShowFolderPreview })) _tabFolderPreview.Dispatch(p => p.Visibility = conf.ShowFolderPreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowContainerPreview })) _tabContainerPreview.Dispatch(p => p.Visibility = conf.ShowContainerPreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowSpritesPreview })) _tabSpritesPreview.Dispatch(p => p.Visibility = conf.ShowSpritesPreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowFolderStructurePreview })) _tabFolderStructurePreview.Dispatch(p => p.Visibility = conf.ShowFolderStructurePreview ? Visibility.Visible : Visibility.Collapsed);
@@ -406,7 +417,7 @@ namespace GRFEditor.Core.Services {
 			if (res.HasValueChanged(new { conf.ShowSoundPreview })) _tabItemWavPreview.Dispatch(p => p.Visibility = conf.ShowSoundPreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowLubDecompiler })) _tabItemLubPreview.Dispatch(p => p.Visibility = conf.ShowLubDecompiler ? Visibility.Visible : Visibility.Collapsed);
 
-			_tabControlPreview.Dispatcher.Invoke(new Action(delegate {
+			_tabControlPreview.Dispatch(delegate {
 				if (previewItem.FileName != _previewItem.FileName || _previewItems.Count != 0) return;
 
 				if (_tabControlPreview.Items.Count <= 0)
@@ -460,12 +471,25 @@ namespace GRFEditor.Core.Services {
 						}
 					}
 				}
-			}));
+
+				if (_firstPreview && _tabControlPreview.SelectedItem != null) {
+					var tab = _tabControlPreview.SelectedItem as TabItem;
+
+					if (tab != null) {
+						var fileTabItem = tab.Content as IPreviewTab;
+
+						if (fileTabItem != null)
+							fileTabItem.Update(true);
+					}
+
+					_firstPreview = false;
+				}
+			});
 
 			_currentConf = conf;
 		}
 
-		public static void Select(TreeView treeView, ListBox items, string oldSelectedPath) {
+		public static void Select(TreeView treeView, ListBox items, string oldSelectedPath, Action execute = null) {
 			new Thread(new ThreadStart(delegate {
 				try {
 					treeView = treeView ?? TreeView;
@@ -481,7 +505,7 @@ namespace GRFEditor.Core.Services {
 
 					TreeViewItem node = null;
 
-					treeView.Dispatcher.Invoke((Action) delegate {
+					treeView.Dispatch(delegate {
 						if (folders.Length > 0) {
 							node = (TkTreeViewItem) treeView.Items[0];
 						}
@@ -500,12 +524,28 @@ namespace GRFEditor.Core.Services {
 						}
 
 						node.IsSelected = true;
+
+						if (execute != null && !folders.Last().Contains(".")) {
+							
+							int attempts = 40;
+							TreeViewItem currentItem = treeView.Dispatch(() => treeView.SelectedItem as TreeViewItem);
+
+							while (attempts > 0) {
+								attempts--;
+
+								if (!Equals(currentItem, treeView.Dispatch(() => treeView.SelectedItem as TreeViewItem))) {
+									return;
+								}
+							}
+
+							execute();
+						}
 					});
 
 					if (folders.Last().Contains(".")) {
 						int attempts = 40;
-						TreeViewItem currentItem = treeView.Dispatcher.Invoke(new Func<TreeViewItem>(() => treeView.SelectedItem as TreeViewItem)) as TreeViewItem;
-						FileEntry selectedEntry = items.Dispatcher.Invoke(new Func<FileEntry>(() => items.SelectedItem as FileEntry)) as FileEntry;
+						TreeViewItem currentItem = treeView.Dispatch(() => treeView.SelectedItem as TreeViewItem);
+						FileEntry selectedEntry = items.Dispatch(() => items.SelectedItem as FileEntry);
 
 						if (currentItem == null)
 							return;
@@ -515,20 +555,20 @@ namespace GRFEditor.Core.Services {
 						while (attempts > 0) {
 							attempts--;
 
-							if (!Equals(currentItem, treeView.Dispatcher.Invoke(new Func<TreeViewItem>(() => treeView.SelectedItem as TreeViewItem)) as TreeViewItem)) {
+							if (!Equals(currentItem, treeView.Dispatch(() => treeView.SelectedItem as TreeViewItem))) {
 								return;
 							}
 
-							if (selectedEntry != items.Dispatcher.Invoke(new Func<FileEntry>(() => items.SelectedItem as FileEntry)) as FileEntry) {
+							if (selectedEntry != items.Dispatch(() => items.SelectedItem as FileEntry)) {
 								return;
 							}
 
-							if ((int) items.Dispatcher.Invoke(new Func<int>(() => items.Items.Count)) == 0) {
+							if ((int) items.Dispatch(() => items.Items.Count) == 0) {
 								Thread.Sleep(200);
 								continue;
 							}
 
-							bool found = (bool) items.Dispatcher.Invoke(new Func<bool>(delegate {
+							bool found = (bool) items.Dispatch(delegate {
 								bool hasBeenFound = false;
 
 								foreach (FileEntry entry in items.Items) {
@@ -541,16 +581,19 @@ namespace GRFEditor.Core.Services {
 								}
 
 								return hasBeenFound;
-							}));
+							});
 
-							if (found)
+							if (found) {
+								if (execute != null)
+									execute();
 								break;
+							}
 
 							Thread.Sleep(100);
 						}
 					}
 
-					treeView.Dispatcher.Invoke((Action)delegate {
+					treeView.Dispatch(delegate {
 						if (treeView.SelectedItem is TkTreeViewItem) {
 							((TkTreeViewItem)treeView.SelectedItem).ScrollToCenterOfView(treeView);
 							((TkTreeViewItem)treeView.SelectedItem).Focus();

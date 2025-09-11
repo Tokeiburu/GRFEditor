@@ -42,7 +42,7 @@
                 </TextBlock>
 
                 <Application:EncodingPicker Grid.Column="1" Grid.Row="1" Margin="3" Name="_comboBoxEncoding" Width="150" HorizontalAlignment="Left" IsReadOnly="True" />
-                <TextBox IsReadOnly="True" Name="_textBoxSourceFileName" Margin="3" Grid.Column="1" />
+                <TextBox VerticalContentAlignment="Center" Height="24" IsReadOnly="True" Name="_textBoxSourceFileName" Margin="3" Grid.Column="1" />
             </Grid>
             <Label Name="_labelPropetyType" Content="Specific properties" FontWeight="Bold" FontSize="14" Margin="3 10 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
@@ -58,7 +58,7 @@
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="auto" />
-                        <ColumnDefinition Width="250" />
+                        <ColumnDefinition Width="300" />
                     </Grid.ColumnDefinitions>
 
                     <TextBlock Text="Save format" Margin="3" Grid.Row="2" VerticalAlignment="Center">
@@ -69,11 +69,28 @@
                         </TextBlock.ToolTip>
                     </TextBlock>
 
+                    <TextBlock Text="Magic header" Margin="3" Grid.Row="3" VerticalAlignment="Center">
+                        <TextBlock.ToolTip>
+                            <TextBlock>
+                            A magic header is a file signature meant to identify the file type (whether it is a GRF file, an executable, etc).
+                            <LineBreak />
+                            By default, the magic header for GRF is 'Master of Magic'. Changing the header must also be changed in the Ragnarok executable otherwise it will not be readable.
+                            </TextBlock>
+                        </TextBlock.ToolTip>
+                    </TextBlock>
+                    
                     <ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" Width="150" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="3" >
+                        <ComboBoxItem Content="0x300" />
                         <ComboBoxItem Content="0x200" />
                         <ComboBoxItem Content="0x103" />
                         <ComboBoxItem Content="0x102" />
                     </ComboBox>
+
+                    <DockPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Left" >
+                        <TextBox Width="150" Height="24" Name="_tbMagicHeader" HorizontalAlignment="Left" VerticalAlignment="Center" VerticalContentAlignment="Center" Margin="3" IsReadOnly="true" />
+                        <Button Margin="3" Height="24" Name="_buttonMagicEdit" Content="Edit..." Width="50" Click="_buttonMagicEdit_Click" />
+                        <Button Margin="3" Height="24" Name="_buttonMagicReset" Content="Reset" Width="50" Click="_buttonMagicReset_Click" />
+                    </DockPanel>
                 </Grid>
                 <Grid Margin="6 0 0 0" Name="_gridThor" Visibility="Collapsed">
                     <Grid.RowDefinitions>
@@ -97,9 +114,9 @@
                         </TextBlock.ToolTip>
                     </TextBlock>
                     <TextBlock Text="Patching mode" Margin="3" Grid.Row="0" VerticalAlignment="Center" />
-                    <TextBox Name="_textBoxTargetGrf" GotFocus="_tbTarget_GotFocus" LostFocus="_tbTarget_LostFocus" Visibility="Collapsed" Grid.Row="1" Grid.Column="1" Margin="3" />
+                    <TextBox Height="24" VerticalContentAlignment="Center" Name="_textBoxTargetGrf" GotFocus="_tbTarget_GotFocus" LostFocus="_tbTarget_LostFocus" Visibility="Collapsed" Grid.Row="1" Grid.Column="1" Margin="3" />
                     <!--<TextBlock Name="_labelFind" Grid.Row="1" Grid.Column="1" Margin="6 0 6 0" VerticalAlignment="Center" Text="'default.grf'..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />-->
-                    <WPF:TkInfoBlock x:Name="_tkInfo" Margin="3" Visibility="Collapsed" Grid.Row="2" Text="Leaving this field empty will merge into the default GRF." ImagePath="help.png" Grid.Column="0" Grid.ColumnSpan="2" />
+                    <WPF:TkInfoBlock VerticalContentAlignment="Center" Height="24" x:Name="_tkInfo" Margin="3" Visibility="Collapsed" Grid.Row="2" Text="Leaving this field empty will merge into the default GRF." ImagePath="help.png" Grid.Column="0" Grid.ColumnSpan="2" />
                     <ComboBox Grid.Row="0" Grid.Column="1" Width="160" HorizontalAlignment="Left" Name="_comboBoxPatchMode" SelectedIndex="0" VerticalAlignment="Center" Margin="3" >
                         <ComboBoxItem Content="Merge into RO directory" />
                         <ComboBoxItem Content="Merge into GRF" />

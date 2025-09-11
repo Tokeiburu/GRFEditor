@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+             xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="300" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
+             d:DesignHeight="600" d:DesignWidth="400" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid Name="_primaryGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -13,8 +14,8 @@
         </Grid.RowDefinitions>
         <StackPanel>
             <DockPanel>
-                <Label Name="_labelHeader" FontWeight="Bold" Content="Sprites preview" FontSize="16" Margin="3 10 0 5" />
-                <Grid Margin="10 0 0 0" VerticalAlignment="Center" MinWidth="150">
+                <Label Name="_labelHeader" FontWeight="Bold" Content="Folder preview" FontSize="16" Margin="3 10 0 5" />
+                <Grid Margin="10 0 0 0" VerticalAlignment="Center" MinWidth="220">
                     <Grid.RowDefinitions>
                         <RowDefinition />
                         <RowDefinition />
@@ -24,35 +25,24 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <DockPanel>
-                        <Label Padding="0" Margin="2" Content="Per line" VerticalAlignment="Center" />
-                        <Border Margin="1" BorderBrush="Transparent" BorderThickness="1" VerticalAlignment="Center" CornerRadius="1" HorizontalAlignment="Left" >
-                            <TextBox TextAlignment="Right" BorderThickness="0" x:Name="_tbPerLine" VerticalAlignment="Center" Width="50" />
-                        </Border>
+                        <Label Padding="0" Margin="2" Content="Size" VerticalAlignment="Center" />
+                        <sliders:SliderColor Width="100" Height="19.5" x:Name="_gpEase" Margin="2" />
                     </DockPanel>
-                    <CheckBox Grid.Row="1" Name="_cbWrapImages" Content="Wrap images" Margin="1" />
-                    <CheckBox Grid.Row="1" Grid.Column="1" Name="_cbAuto" Content="Auto" Margin="1" />
+                    <CheckBox Grid.Row="1" Name="_cbWrapImages" Content="Wrap images" Margin="1" HorizontalAlignment="Left" />
+                    <CheckBox Grid.Row="1" Grid.Column="1" Name="_cbShowNames" Content="Show names" Margin="1" HorizontalAlignment="Left" />
                 </Grid>
             </DockPanel>
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
-        <ListView TextSearch.TextPath="RelativePath" Foreground="Black" AllowDrop="True" Grid.Row="1" Name="_items" SelectionMode="Extended"
-                              FocusVisualStyle="{x:Null}" MouseDoubleClick="_items_MouseDoubleClick"
-                              ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Select" Name="_miSelect" Click="_miSelect_Click" ListView:WpfUtils.ImagePath="arrowdown.png" />
-                </ContextMenu>
-            </ListView.ContextMenu>
-        </ListView>
+        <ScrollViewer Name="_sv" Grid.Row="1">
+            <Grid Name="_gridBackground">
+                <WrapPanel Name="_wrapPanel" VerticalAlignment="Top">
 
-        <ListView TextSearch.TextPath="RelativePath" Foreground="Black" AllowDrop="True" Grid.Row="1" Name="_itemsLarge" SelectionMode="Extended"
-                              FocusVisualStyle="{x:Null}" MouseDoubleClick="_items2_MouseDoubleClick"
-                              ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-            <ListView.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Select" Click="_miSelect2_Click" ListView:WpfUtils.ImagePath="arrowdown.png" />
-                </ContextMenu>
-            </ListView.ContextMenu>
-        </ListView>
+                </WrapPanel>
+                <StackPanel Name="_stackPanel" VerticalAlignment="Top">
+                    
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
     </Grid>
 </UserControl>

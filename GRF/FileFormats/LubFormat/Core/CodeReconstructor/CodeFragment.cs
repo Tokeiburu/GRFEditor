@@ -2,297 +2,254 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using ErrorManager;
+using GRF.FileFormats.LubFormat.VM;
 using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
-	public class CodeFragment {
+	public partial class CodeFragment {
 		public List<CodeFragment> ChildReferences = new List<CodeFragment>();
 		public List<CodeFragment> ParentReferences = new List<CodeFragment>();
-		public CodeFragment Break;
-		public CodeReconstructorCommon Common = new CodeReconstructorCommon();
+		public TkDictionary<string, CodeFragment> Common = new TkDictionary<string, CodeFragment>();
 		private bool? _leads;
+		private OpCodes.RelationalStatement _condition;
 
-		public int Uid {
-			get;
-			private set;
-		}
+		public int Uid { get; private set; }
 
 		private static int _uid;
 
-		public CodeFragment(int lineStart, int lineEnd, IEnumerable<string> lines, CodeReconstructorCommon common) {
-			_originalLineIndexStart = lineStart;
-			_originalLineIndexEnd = lineEnd;
+		public CodeFragment(int lineStart, int lineEnd, IEnumerable<string> lines, TkDictionary<string, CodeFragment> common) {
 			Common = common;
+			Loop_PC_Start = -1;
 
-			_setLines(lines);
-			IsRoot = lineStart == 0;
-			Label = IsRoot ? "root" : Lines[0].Replace("::", "");
-			Common.Fragments[Label] = this;
+			Content = new LineBlock(lines, lineStart, lineEnd);
+
+			_detectFragmentType();
+
+			Common[Content.Label] = this;
+			Uid = ++_uid;
+
+			PC_Index = Content.GetLabelId();
+		}
+
+		public void NewUid() {
 			Uid = ++_uid;
 		}
 
 		#region Getter and setters
-
-		public int TotalLinesIncludingLabel {
-			get { return Lines.Count; }
-		}
-
-		public int TotalLinesExcludingLabel {
-			get { return IsRoot ? Lines.Count : Lines.Count - 1; }
-		}
-
-		public bool IsPure { get; set; }
-		public bool IsRoot { get; set; }
-
 		public CodeFragment Else {
-			get { return _elseReference(); }
+			get { return FindGotoFragment(LuaToken.ElseGoto); }
 		}
 
 		public CodeFragment If {
-			get { return _ifReference(); }
+			get { return FindGotoFragment(LuaToken.IfGoto); }
+		}
+
+		public CodeFragment For {
+			get { return FindGotoFragment(LuaToken.LoopGoto); }
 		}
 
 		public CodeFragment Execution {
-			get { return _executionReference(); }
+			get { return FindGotoFragment(LuaToken.Execution); }
+		}
+
+		public CodeFragment Break { get; set; }
+
+		public bool IsLoop {
+			get { return FragmentType == FragmentType.Loop; }
 		}
 
 		public bool IsReturn {
-			get { return ChildReferences.Count == 0 && TotalLinesExcludingLabel > 0 && LineHelper.IsStart(Lines[Lines.Count - 1], "return"); }
+			get { return ChildReferences.Count == 0 && Content.LastLineIsReturn(); }
 		}
 
-		public string Label { get; set; }
-		public List<string> Lines { get; set; }
+		public bool IsDeleted {
+			get { return !Content.IsRoot && ParentReferences.Count == 0; }
+		}
+
+		public int PC_Index { get; set; }
+		public int Loop_PC_Start { get; set; }
+		public int Loop_PC_End { get; set; }
+		public bool IsBreakTarget { get; set; }
+		public LineBlock Content { get; set; }
 		public FragmentType FragmentType { get; set; }
+		public CodeFragment LoopScope { get; set; }
 
-		private string _ifCondition {
-			get { return Lines[_ifBranchIndex(0)]; }
-			set { Lines[_ifBranchIndex(0)] = value; }
+		public OpCodes.RelationalStatement IfCondition {
+			get {
+				if (_condition == null) {
+					string rCond = Content.IfLineCondition;
+					_condition = new OpCodes.RelationalStatement(rCond);
+					_condition.Changed += delegate { Content.IfLineCondition = _condition.ToString(); };
+				}
+
+				return _condition;
+			}
 		}
-
-		private string _elseCondition {
-			get { return Lines[_elseBranchIndex(0)]; }
-			set { Lines[_elseBranchIndex(0)] = value; }
-		}
-
-		// The line indexes are irrevelant, the items will be printed
-		// (this avoids a LOT of issues...)
-		private int _originalLineIndexStart { get; set; }
-		private int _originalLineIndexEnd { get; set; }
-
-		private int _printLineStart {
-			get { return IsRoot ? 0 : 1; }
-		}
-
 		#endregion
 
 		public override string ToString() {
-			return Methods.Aggregate(Lines, "\r\n");
+			return Content.ToString();
 		}
 
-		public bool ContainsLine(int line) {
-			return _originalLineIndexStart <= line && line <= _originalLineIndexEnd;
-		}
-
-		public void RemoveEmpty() {
-			if (TotalLinesExcludingLabel == 0 && ChildReferences.Count == 1) {
+		public bool RemoveEmpty() {
+			if (Content.TotalLinesExcludingLabel <= 1 && ChildReferences.Count == 1) {
 				for (int i = 0; i < ParentReferences.Count; i++) {
-					ParentReferences[i]._changeGoto(this, ChildReferences[0]);
+					var child = ChildReferences[0];
+
+					if (ParentReferences[i].RemoveEmptyGoto(this, child)) {
+						child.IsBreakTarget = IsBreakTarget;
+						i--;
+					}
 				}
+
+				return true;
 			}
-			else if (TotalLinesExcludingLabel == 1 && ChildReferences.Count == 1) {
-				for (int i = 0; i < ParentReferences.Count; i++) {
-					ParentReferences[i]._changeGoto(this, ChildReferences[0]);
-				}
-			}
+
+			return false;
 		}
 
-		#region Initialisation
-
-		private void _setLines(IEnumerable<string> lines) {
-			Lines = lines.Skip(_originalLineIndexStart).Take(_originalLineIndexEnd - _originalLineIndexStart + 1).ToList();
-
-			_detectFragmentType();
-		}
-
+		#region Initialization
 		private void _detectFragmentType() {
 			FragmentType = FragmentType.NormalExecution;
 
-			if (CodeLogic.IsIfElseBranch(this)) {
-				int indexIf = _ifBranchIndex(0);
-				int indexEnd = _endBranchIndex(1);
-
+			if (Content.IsIfElse()) {
 				FragmentType = FragmentType.IfElse;
-
-				if (indexIf == _printLineStart && indexEnd == Lines.Count - 1) {
-					IsPure = true;
-				}
-				else if (indexEnd != Lines.Count - 1) {
-					FragmentType = FragmentType.NormalExecution;
-				}
 			}
-			else if (CodeLogic.IsIfBranch(this)) {
-				int indexIf = _ifBranchIndex(0);
-				int indexEnd = _endBranchIndex(1);
+			else if (Content.IsLoop()) {
+				var loop_pc_index = LineHelper.GetLineIndexContains(Content.Lines, Lub.String_LoopPcBounds, 0);
 
-				FragmentType = FragmentType.If;
+				if (loop_pc_index != -1) {
+					string data = Content.Lines[loop_pc_index];
+					Content.Lines.RemoveAt(loop_pc_index);
 
-				if (indexIf == _printLineStart && indexEnd == Lines.Count - 1) {
-					IsPure = true;
+					data = LineHelper.NoIndent(data).Substring(Lub.String_LoopPcBounds.Length);
+					var data2 = data.Split(' ');
+					Loop_PC_Start = Int32.Parse(data2[0]);
+					Loop_PC_End = Int32.Parse(data2[1]);
 				}
-			}
-			else if (CodeLogic.IsForLoopBranch(this)) {
-				FragmentType = FragmentType.ForLoop;
-			}
-
-			if (IsReturn) {
-				if (LineHelper.NoIndent(Lines[Lines.Count - 1]) == "return") {
-					IsPure = true;
+				else {
+					throw new Exception(Lub.String_LoopPcBounds + " not found");
 				}
+
+				FragmentType = FragmentType.Loop;
 			}
 		}
-
 		#endregion
 
 		#region References
-
 		public void SetReferences(List<CodeFragment> fragments) {
-			List<string> tableLines = new List<string>();
-
-			for (int i = 0; i < Lines.Count; i++) {
-				// This is a fail table association, reset it
-				if (LineHelper.IsStart(Lines[i], "{}.")) {
-					tableLines.Add(LineHelper.NoIndent(Lines[i]));
-					continue;
-				}
-
-				if (tableLines.Count > 0) {
-					if (LineHelper.IsStart(Lines[i], "local")) {
-						Lines[i] = Lines[i].Replace("{}", "{ " + Methods.Aggregate(tableLines.Select(p => p.Replace("{}.", "")).ToList(), ", ") + " }");
-						Lines.RemoveRange(i - tableLines.Count, tableLines.Count);
-						i -= tableLines.Count;
-					}
-
-					tableLines.Clear();
-				}
-
-				if (LineHelper.IsStart(Lines[i], "goto ")) {
-					string label = LineHelper.GetLabelFromGoto(Lines[i]);
-					CodeFragment linkedFragment = Common.Fragments[label];
+			for (int i = 0; i < Content.Lines.Count; i++) {
+				if (LineHelper.IsStart(Content.Lines[i], "goto ")) {
+					string label = LineHelper.GetLabelFromGoto(Content.Lines[i]);
+					CodeFragment linkedFragment = Common[label];
 
 					if (linkedFragment != null) {
-						linkedFragment.AddParentReference(this);
-						AddChildReference(linkedFragment);
+						Link(this, linkedFragment);
 					}
 				}
 			}
 
-			string currentLine;
+			for (int i = 1; i < Content.Lines.Count; i++) {
+				string line = LineHelper.NoIndent(Content.Lines[i]);
 
-			for (int i = 1; i < Lines.Count; i++) {
-				currentLine = LineHelper.NoIndent(Lines[i]);
-
-				if (currentLine.StartsWith("if "))
+				if (line.StartsWith("if "))
 					break;
 
-				if (currentLine.StartsWith("return"))
+				if (line.StartsWith("return"))
 					break;
 
-				if (currentLine.StartsWith("goto "))
+				if (line.StartsWith("goto "))
 					break;
 
-				if (i == Lines.Count - 1) {
-					CodeFragment linkedFragment = CodeLogic.GetFragment(fragments, _originalLineIndexEnd + 1);
+				if (i == Content.Lines.Count - 1) {
+					CodeFragment linkedFragment = CodeLogic.GetFragment(fragments, Content._originalLineIndexEnd + 1);
 
 					if (linkedFragment != null) {
-						linkedFragment.AddParentReference(this);
-						_appendGoto(linkedFragment);
-						AddChildReference(linkedFragment);
+						Link(this, linkedFragment);
+						Content.AppendGoto(linkedFragment);
 					}
 				}
 			}
 
-			if (Lines.Count == 1) {
+			if (Content.Lines.Count == 1) {
 				// This reference should not be there at all, this is just a bug fix
-				CodeFragment linkedFragment = CodeLogic.GetFragment(fragments, _originalLineIndexEnd + 1);
+				CodeFragment linkedFragment = CodeLogic.GetFragment(fragments, Content._originalLineIndexEnd + 1);
 
 				if (linkedFragment != null) {
-					linkedFragment.AddParentReference(this);
-					AddChildReference(linkedFragment);
+					Link(this, linkedFragment);
+
+					if (Content.IsRoot)
+						Content.AppendGoto(linkedFragment);
 				}
 			}
 
-			if (FragmentType == FragmentType.ForLoop) {
+			if (FragmentType == FragmentType.Loop) {
 				Break = ChildReferences[1];
+				Break.IsBreakTarget = true;
 			}
 		}
-
-		private void AddParentReference(CodeFragment fragment) {
-			if (!ParentReferences.Contains(fragment)) {
-				ParentReferences.Add(fragment);
-			}
-		}
-
-		private void AddChildReference(IEnumerable<CodeFragment> fragments) {
-			foreach (CodeFragment fragment in fragments) {
-				AddChildReference(fragment);
-			}
-		}
-
-		private void AddChildReference(CodeFragment fragment) {
-			if (!ChildReferences.Contains(fragment))
-				ChildReferences.Add(fragment);
-		}
-
-		public void RemoveChildReference(CodeFragment codeFragment) {
-			ChildReferences.Remove(codeFragment);
-			codeFragment.RemoveParentReference(this);
-		}
-
-		public void RemoveParentReference(CodeFragment codeFragment) {
-			ParentReferences.Remove(codeFragment);
-		}
-
 		#endregion
 
 		#region Utility methods
+		public class PrintData {
+			public HashSet<CodeFragment> Fragments = new HashSet<CodeFragment>();
+			public int BaseIndentDiff { get; set; }
+		}
 
-		public void Print(StringBuilder builder, int level, Dictionary<CodeFragment, int> printedFragments = null) {
-			if (printedFragments == null)
-				printedFragments = new Dictionary<CodeFragment, int>();
-
-			if (printedFragments.ContainsKey(this)) {
-				//if (printedFragments[this] > 1) {
-				builder.AppendLine(LineHelper.GenerateIndent(level + 1) + "-- GRF Editor Decompiler : CodeReconstructor has failed to identify the usage of this goto " + Label);
-				return;
-				//}
-
-				//builder.AppendLine(LineHelper.GenerateIndent(level + 1) + "-- GRF Editor Decompiler : CodeReconstructor has already printed this goto " + Label);
-				//printedFragments[this]++;
+		// Indent rules:
+		// - The code decompiler will either have an indent of 0 or 1, which is defined by function.BaseIndent
+		// - The indent must be correct in the code decompiler (code fragments) structure.
+		// - Do not use final indent for anything; it's either +0 or +1, depending on who called
+		public void Print(StringBuilder builder, LubFunction function, PrintData data, int level) {
+			if (data == null) {
+				data = new PrintData();
+				data.BaseIndentDiff = function.BaseIndent;
 			}
 
-			printedFragments[this] = 1;
+			if (!data.Fragments.Add(this)) {
+				builder.AppendLine(LineHelper.GenerateIndent(level) + "-- GRF Editor Decompiler : CodeReconstructor has failed to identify the usage of this goto " + Content.Label);
+				return;
+			}
 
 			Dictionary<int, CodeFragment> references = new Dictionary<int, CodeFragment>();
 
 			for (int i = 0; i < ChildReferences.Count; i++) {
-				try {
-					references.Add(_getGotoLineIndex(ChildReferences[i]), ChildReferences[i]);
-				}
-				catch (Exception) {
-					//ErrorHandler.HandleException(err);
-				}
+				references.Add(Content.GetGotoLineIndex(ChildReferences[i]), ChildReferences[i]);
 			}
 
-			for (int i = _printLineStart; i < Lines.Count; i++) {
+			var lines = Content.Lines;
+
+			for (int i = Content.PrintLineStart; i < lines.Count; i++) {
 				if (references.ContainsKey(i)) {
-					references[i].Print(builder, level + LineHelper.GetIndent(Lines[i]) - 1, printedFragments);
+					references[i].Print(builder, function, data, level + LineHelper.GetIndent(lines[i]) - data.BaseIndentDiff);
 				}
 				else {
-					builder.AppendIndent(level);
-					builder.AppendLine(Lines[i]);
+					if (i != 0 || !lines[i].StartsWith("function(")) {
+						builder.AppendIndent(level);
+					}
+
+					builder.AppendLine(lines[i]);
 				}
 			}
+		}
+
+		public List<CodeFragment> GetLoopFragments(List<CodeFragment> allFragments) {
+			List<CodeFragment> l = new List<CodeFragment>();
+			int i = 0;
+
+			if (allFragments.Count > 1) {
+				if (allFragments[0].Content.IsRoot && allFragments[1].PC_Index == 0)
+					i = 1;
+			}
+
+			for (; i < allFragments.Count; i++) {
+				if (IsWithinLoop(this, allFragments[i]))
+					l.Add(allFragments[i]);
+			}
+
+			return l;
 		}
 
 		public void GetAllFragments(List<CodeFragment> allFragments, bool enterLoops = true) {
@@ -302,153 +259,31 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 				if (!allFragments.Contains(fragment)) {
 					allFragments.Add(fragment);
 
-					if (!enterLoops && fragment.IsLoop())
+					if (!enterLoops && fragment.IsLoop)
 						continue;
 
 					fragment.GetAllFragments(allFragments);
 				}
 			}
 		}
-
-		public bool IsLoop() {
-			return FragmentType == FragmentType.ForLoop || FragmentType == FragmentType.WhileLoop;
-		}
-
-		private List<string> _getContentLines() {
-			return Lines.Skip(_printLineStart).ToList();
-		}
-
-		#endregion
-
-		#region Code reconstruction
-
-		private void _replaceGotoWithBreak(CodeFragment fragment) {
-			if (ChildReferences.Contains(fragment)) {
-				int lineIndex = _getGotoLineIndex(fragment);
-				Lines[lineIndex] = LineHelper.ReplaceAfterIndent(Lines[lineIndex], "break");
-			}
-		}
-
-		private void _appendGoto(CodeFragment fragment) {
-			if (TotalLinesExcludingLabel == 0) {
-				Lines.Add(LineHelper.GenerateIndent(1) + "goto " + fragment.Label);
-			}
-			else if (TotalLinesExcludingLabel > 0 && !LineHelper.IsStart(Lines[Lines.Count - 1], "goto ")) {
-				Lines.Add(LineHelper.GenerateIndent(LineHelper.GetIndent(Lines[1])) + "goto " + fragment.Label);
-			}
-			else throw new Exception("Appending a goto without removing the previous one first.");
-		}
-
-		private void _changeGoto(CodeFragment oldFragment, CodeFragment newFragment) {
-			int location = _getGotoLineIndex(oldFragment);
-			Lines[location] = LineHelper.ReplaceAfterIndent(Lines[location], "goto " + newFragment.Label);
-			ChildReferences[ChildReferences.IndexOf(oldFragment)] = newFragment;
-
-			newFragment.RemoveParentReference(oldFragment);
-			newFragment.AddParentReference(this);
-
-			if (oldFragment.ParentReferences.Count == 1 && oldFragment.ParentReferences[0] == this) {
-				oldFragment.ChildReferences.ForEach(p => p.RemoveParentReference(oldFragment));
-				oldFragment.FragmentType = FragmentType.NotReferenced;
-				oldFragment.ChildReferences.Clear();
-			}
-
-			oldFragment.RemoveParentReference(this);
-		}
-
-		private void _changeGoto(CodeFragment oldFragment, IEnumerable<string> lines) {
-			int location = _getGotoLineIndex(oldFragment);
-			Lines.RemoveAt(location);
-			Lines.InsertRange(location, lines);
-		}
-
-		private void _removeElseBranch() {
-			int indexIf = _ifBranchIndex(0);
-			int indexElse = _elseBranchIndex(indexIf + 1);
-			int indexEnd = _endBranchIndex(indexElse + 1);
-
-			_removeLines(indexElse, indexEnd - indexElse);
-		}
-
-		public void RemoveElseBranch() {
-			CodeFragment elseFragment = Else;
-
-			if (elseFragment != null) {
-				_removeElseBranch();
-				RemoveChildReference(elseFragment);
-			}
-		}
-
-		public void AppendGoto(CodeFragment fragment) {
-			CodeFragment execution = Execution;
-
-			if (execution != null) {
-				RemoveExecutionLine();
-			}
-
-			_appendGoto(fragment);
-			AddChildReference(fragment);
-		}
-
-		private void _removeLines(int start, int count) {
-			Lines.RemoveRange(start, count);
-		}
-
 		#endregion
 
 		#region CodeLogic getters and setters
-
-		private int _ifBranchIndex(int startIndex) {
-			return LineHelper.GetLineIndexContains(Lines, "\tif ", startIndex);
+		public CodeFragment FindGotoFragment(LuaToken token) {
+			string label = Content.GetGotoLabel(token);
+			if (label == null)
+				return null;
+			return ChildReferences.FirstOrDefault(p => p.Content.Label == label);
 		}
-
-		private int _whileBranchIndex(int startIndex) {
-			return LineHelper.GetLineIndexContains(Lines, "while ", startIndex);
-		}
-
-		private int _elseBranchIndex(int startIndex) {
-			return LineHelper.GetLineIndexEndsWith(Lines, "\telse", startIndex);
-		}
-
-		private int _endBranchIndex(int startIndex) {
-			return LineHelper.GetLineIndexContains(Lines, "\tend", startIndex);
-		}
-
-		private int _executionBranchIndex() {
-			return Lines.Count - 1;
-		}
-
-		private int _getGotoLineIndex(CodeFragment fragment) {
-			return LineHelper.GetLineIndexContains(Lines, "goto " + fragment.Label, 0);
-		}
-
-		private string _getReferenceFromGoto(int i) {
-			return LineHelper.NoIndent(Lines[i].Replace("goto ", ""));
-		}
-
-		private CodeFragment _ifReference() {
-			return ChildReferences.FirstOrDefault(p => p.Label == _getReferenceFromGoto(_ifBranchIndex(0) + 1));
-		}
-
-		private CodeFragment _elseReference() {
-			return ChildReferences.FirstOrDefault(p => p.Label == _getReferenceFromGoto(_elseBranchIndex(0) + 1));
-		}
-
-		private CodeFragment _executionReference() {
-			return ChildReferences.FirstOrDefault(p => p.Label == _getReferenceFromGoto(_executionBranchIndex()));
-		}
-
 		#endregion
 
 		#region CodeLogic
-
 		public void ExtractExecution() {
 			// Checks all the fragments for double references
 			// which must ALL be dealt with;
 			// In theory, the execution reference for the loops
 			// is already handled.
-
-			if (ParentReferences.Count > 1 && !IsLoop()) {
+			if (ParentReferences.Count > 1) {
 				_setCommonParent();
 			}
 		}
@@ -457,77 +292,63 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 			List<CodeFragment> concernedParents = new List<CodeFragment>();
 			_getAllParents(concernedParents);
 			concernedParents.Remove(this);
-			List<CodeFragment> parents = new List<CodeFragment>(concernedParents);
-			List<CodeFragment> commonParents = parents.Where(t => ParentReferences.All(t._anyLeadsToBreakLoop)).ToList();
 
-			if (commonParents.Count == 0)
-				return;
+			try {
+				// The correct parent is the one common to all parent paths?
+				List<List<CodeFragment>> paths = new List<List<CodeFragment>>();
 
-			CodeFragment closestParent;
-
-			if (commonParents.Count > 1) {
-				Dictionary<CodeFragment, int> distances = new Dictionary<CodeFragment, int>();
-
-				for (int i = 0; i < commonParents.Count; i++) {
-					distances.Add(commonParents[i], commonParents[i]._findClosestDistance(this, 0, new List<CodeFragment>()));
+				foreach (var parent in ParentReferences) {
+					var allParents = new List<CodeFragment>();
+					allParents.Add(parent);
+					parent._getAllParents(allParents);
+					allParents.Reverse();
+					paths.Add(allParents);
 				}
 
-				closestParent = distances.OrderBy(p => p.Value).ToList()[0].Key;
-			}
-			else {
-				closestParent = commonParents[0];
-			}
+				CodeFragment closestParent = paths[0][0];
+				int s = 0;
 
-			concernedParents.Remove(closestParent);
+				while (true) {
+					if (paths.All(p => s < p.Count && s < paths[0].Count && p[s] == paths[0][s])) {
+						closestParent = paths[0][s];
+						s++;
+						continue;
+					}
 
-			if (closestParent.Execution == null) {
-				CodeFragment elseReference = closestParent.Else;
-
-				if (elseReference != null && elseReference == this) {
-					closestParent._removeElseBranch();
+					break;
 				}
 
-				closestParent._appendGoto(this);
-				closestParent.AddChildReference(this);
-			}
+				var parents = new List<CodeFragment>(ParentReferences);
+				parents.Remove(closestParent);
 
-			foreach (CodeFragment parent in concernedParents) {
-				if (parent.Execution == this) {
-					parent.RemoveChildReference(parent.Execution);
-					parent._removeExecutionLine();
+				if (closestParent.Execution == null) {
+					CodeFragment elseReference = closestParent.Else;
+
+					if (elseReference != null && elseReference == this) {
+						closestParent.Content.RemoveElseLines();
+					}
+
+					closestParent.AppendGoto(this);
+				}
+
+				foreach (CodeFragment parent in parents) {
+					if (parent.Execution == this) {
+						parent.RemoveExecutionLine();
+					}
 				}
 			}
-		}
-
-		private int _findClosestDistance(CodeFragment fragment, int distance, List<CodeFragment> blockedPaths) {
-			if (this == fragment)
-				return distance;
-
-			if (ChildReferences.Count == 0)
-				return Int32.MaxValue;
-
-			List<CodeFragment> blockedPathsCopy = new List<CodeFragment>(blockedPaths);
-
-			if (IsLoop()) {
-				if (blockedPaths.Contains(Break))
-					return Int32.MaxValue;
-
-				blockedPathsCopy.Add(Break);
-				return Break._findClosestDistance(fragment, distance + 1, blockedPathsCopy);
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
 			}
-
-			List<CodeFragment> children = ChildReferences.Where(p => !blockedPaths.Contains(p)).ToList();
-
-			if (children.Count == 0)
-				return Int32.MaxValue;
-
-			blockedPathsCopy.AddRange(children);
-			return children.Min(p => p._findClosestDistance(fragment, distance + 1, blockedPathsCopy));
 		}
 
 		private void _getAllParents(List<CodeFragment> parents) {
 			foreach (CodeFragment parent in ParentReferences) {
 				if (parents.Contains(parent))
+					continue;
+
+				// This fragment will be a break, so it's going to be resolved and can be safely ignored
+				if (parent.LoopScope != null && parent.LoopScope.Break == this)
 					continue;
 
 				parents.Add(parent);
@@ -537,47 +358,46 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 
 		public void RemoveElse() {
 			try {
+				// Cases with empty code
+				if (FragmentType == FragmentType.IfElse && If == Else) {
+					RemoveElseBranchWithGoto(Else);
+					Content.RemoveLine(LuaToken.IfGoto);
+					FragmentType = FragmentType.NormalExecution;
+					return;
+				}
+
+				// Cases with empty code
+				if (FragmentType == FragmentType.Loop && For == this) {
+					Content.RemoveLine(LuaToken.LoopGoto);
+					FragmentType = FragmentType.NormalExecution;
+					return;
+				}
+
 				if (FragmentType == FragmentType.IfElse) {
 					// Handles pattern #1
 					CodeFragment elseFragment = Else;
 					CodeFragment ifFragment = If;
 
-					if (ifFragment._allLeadsTo(elseFragment)) {// || ifFragment._allLeadsToOrReturn(elseFragment)) {
-						if (ifFragment.ParentReferences.Count > 1)
-							return;
+					var leadsIf = ifFragment.AllLeadsToOrReturn(elseFragment, elseFragment.Uid);
+					var leadsElse = elseFragment.AllLeadsToOrReturn(ifFragment, ifFragment.Uid);
+
+					if (leadsIf || leadsElse) {
+						// Both, take the node with the lowest Uid
+						if ((leadsIf && leadsElse && elseFragment.Uid < ifFragment.Uid) || leadsIf == false) {
+							IfCondition.Reverse();
+							Content.SwapIfElseLines();
+							elseFragment = Else;
+							ifFragment = If;
+						}
 
 						CodeFragment executingFragment = ifFragment.Execution;
 
 						if (executingFragment == elseFragment) {
-							ifFragment.RemoveChildReference(executingFragment);
-							ifFragment._removeExecutionLine();
+							ifFragment.RemoveExecutionLine();
 						}
 
-						_removeElseBranch();
-						_appendGoto(elseFragment);
+						RemoveElseBranchWithGoto(elseFragment);
 						FragmentType = FragmentType.If;
-
-						// Delete all parent references
-						for (int i = 0; i < elseFragment.ParentReferences.Count; i++) {
-							var parent = elseFragment.ParentReferences[i];
-
-							if (parent == this)
-								continue;
-
-							if (parent.FragmentType == FragmentType.ForLoop && parent.RemoveExecutionLine()) {
-								i--;
-							}
-
-							if (parent.FragmentType == FragmentType.IfElse) {
-								if (parent.If == this) {
-									LubErrorHandler.Handle("Failed to remove an if branch.", LubSourceError.CodeReconstructor);
-								}
-								else if (parent.Else == this) {
-									parent.RemoveElseBranch();
-									i--;
-								}
-							}
-						}
 					}
 				}
 			}
@@ -586,230 +406,73 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 			}
 		}
 
-		public bool RemoveExecutionLine() {
-			if (Execution == null)
-				return false;
-
-			RemoveChildReference(Execution);
-			_removeExecutionLine();
-			return true;
-		}
-
-		public void RemoveElseAfterLoop() {
-			if (FragmentType == FragmentType.IfElse) {
-				// Handles pattern #1
-				if (If._allLeadsToBreakLoop(Else)) {
-					CodeFragment elseFragment = Else;
-					_removeElseBranch();
-					_appendGoto(elseFragment);
-					FragmentType = FragmentType.If;
-				}
-			}
-		}
-
 		public void RemoveReturnElseBranches() {
 			if (FragmentType == FragmentType.IfElse) {
-				if (If._allLeadsTo(null)) {
-					CodeFragment elseReference = Else;
+				for (int i = 0; i < 2; i++) {
+					CodeFragment ifFragment = i == 0 ? If : Else;
+					CodeFragment elseFragment = i == 0 ? Else : If;
 
-					if ((elseReference.FragmentType == FragmentType.IfElse || elseReference.FragmentType == FragmentType.If) && !elseReference.IsPure) {
-						return;
-					}
+					if (ifFragment.AllLeadsTo(null, elseFragment.Uid)) {
+						if (IsMergeElseIf()) {
+							return;
+						}
 
-					if (IsMergeElseIf()) {
-						return;
-					}
+						if (i == 1) {
+							ReverseIfElse();
+						}
 
-					// Why does this restriction exist... ??
-					//if (elseReference.FragmentType != FragmentType.IfElse &&
-					//    elseReference.FragmentType != FragmentType.If) {
-						CodeFragment elseFragment = Else;
-						_removeElseBranch();
-						_appendGoto(elseFragment);
+						RemoveElseBranchWithGoto(elseFragment);
 						FragmentType = FragmentType.If;
-					//}
+						return;
+					}
 				}
 			}
 		}
 
-		public void RemoveIf() {
+		public bool MergeIfConditions2() {
+			if (ParentReferences.Count != 1)
+				return false;
+
 			if (FragmentType == FragmentType.IfElse) {
-				// Handles pattern #2
-				if (Else._allLeadsTo(If)) {
-					// I very doubt this one works, seems fishy!
-					int condition = _ifBranchIndex(0);
-					Lines[condition] = CodeLogic.ReverseCondition(Lines[condition]);
-					LineHelper.Swap(Lines, _ifBranchIndex(0) + 1, _elseBranchIndex(2) + 1);
-					_removeElseBranch();
-					_appendGoto(If);
-					FragmentType = FragmentType.If;
-				}
-			}
-		}
-
-		public void MergeIfConditions() {
-			try {
-				// It's always the parent who merges
-				// The else fragment must also be pure (but not the parent!)
-				bool hasMerged = false;
-
-				if (FragmentType == FragmentType.IfElse) {
-					CodeFragment ifFragment = If;
-					CodeFragment elseFragment = Else;
-
-					if (ifFragment.IsPure) {
-						if (ifFragment.FragmentType == FragmentType.IfElse) {
-							// AND cases
-							// Handles pattern #AND.1
-							if (ifFragment.Else == elseFragment) {
-								_ifCondition = CodeLogic.MergeAnd(_ifCondition, ifFragment._ifCondition);
-								_changeGoto(ifFragment, ifFragment.If);
-								hasMerged = true;
-							}
-							else if (ifFragment.If == elseFragment && elseFragment.FragmentType == FragmentType.NormalExecution && ifFragment.Else == elseFragment.Execution) {
-								_ifCondition = CodeLogic.MergeOr(CodeLogic.ReverseCondition(_ifCondition), ifFragment._ifCondition);
-								RemoveElseBranch();
-								_changeGoto(ifFragment, elseFragment);
-								AppendGoto(elseFragment.Execution);
-								FragmentType = FragmentType.If;
-								hasMerged = true;
-							}
-							// Handles pattern #AND.2
-							else if (ifFragment.If == elseFragment) {
-								_ifCondition = CodeLogic.MergeAnd(_ifCondition, CodeLogic.ReverseCondition(ifFragment._ifCondition));
-								_changeGoto(ifFragment, ifFragment.Else);
-								hasMerged = true;
-							}
-						}
-
-						if (ifFragment.FragmentType == FragmentType.If) {
-							// AND cases
-							// Handles pattern #AND.3
-							if (ifFragment.Execution == elseFragment) {
-								_ifCondition = CodeLogic.MergeAnd(_ifCondition, ifFragment._ifCondition);
-								_changeGoto(ifFragment, ifFragment.If);
-								_removeElseBranch();
-								_appendGoto(elseFragment);
-								hasMerged = true;
-							}
-							//else if (elseFragment.Execution) {
-							//	
-							//}
-						}
-					}
-					else {
-						if (ifFragment.FragmentType == FragmentType.If) {
-							// AND cases
-							// Handles pattern #AND.3
-							if (ifFragment.Execution == elseFragment) {
-								// This is not pure, merge carefully
-								ifFragment.RemoveChildReference(ifFragment.Execution);
-								ifFragment._removeExecutionLine();
-								
-								_removeElseBranch();
-								_appendGoto(elseFragment);
-								FragmentType = FragmentType.If;
-
-								// Do not go further
-								MergeIfConditions();
-								return;
-							}
-						}
-					}
-
-					if (elseFragment.IsPure) {
-						if (elseFragment.FragmentType == FragmentType.If) {
-							// Handles pattern #AND.4
-							if (elseFragment.If == ifFragment) {
-								_ifCondition = CodeLogic.MergeAnd(CodeLogic.ReverseCondition(_ifCondition), ifFragment._ifCondition);
-								_changeGoto(ifFragment, elseFragment.If);
-								_removeElseBranch();
-								_appendGoto(ifFragment);
-								hasMerged = true;
-							}
-						}
-
-						if (elseFragment.FragmentType == FragmentType.IfElse) {
-							// OR cases
-							// Handles pattern #OR.1
-							if (elseFragment.If == ifFragment) {
-								_ifCondition = CodeLogic.MergeOr(_ifCondition, elseFragment._ifCondition);
-								_changeGoto(elseFragment, elseFragment.Else);
-								hasMerged = true;
-							}
-
-								// Handles pattern #OR.2
-							else if (elseFragment.Else == ifFragment) {
-								_ifCondition = CodeLogic.MergeOr(_ifCondition, CodeLogic.ReverseCondition(elseFragment._ifCondition));
-								_changeGoto(elseFragment, elseFragment.If);
-								hasMerged = true;
-							}
-						}
-					}
-
-					if (!ifFragment.IsPure && ifFragment.FragmentType == FragmentType.IfElse && !IsPure) {
-						// Cannot merge, but check where they lead
-						if (ifFragment.Else != elseFragment && ifFragment.Else._allLeadsTo(elseFragment)) {
-							// That means we can remove the else branches
-							_removeElseBranch();
-							ifFragment._removeElseBranch();
-							_appendGoto(elseFragment);
-							ifFragment.FragmentType = FragmentType.If;
-							FragmentType = FragmentType.If;
-							hasMerged = true;
-						}
-					}
-
-					if (hasMerged) {
-						MergeIfConditions();
-					}
-				}
-				else if (FragmentType == FragmentType.If) {
-					CodeFragment ifFragment = If;
-					CodeFragment executionFragment = Execution;
-
-					if (ifFragment.IsPure) {
-						// Handles pattern #AND.5
-						if (ifFragment.FragmentType == FragmentType.IfElse) {
-							if (ifFragment.Else == executionFragment) {
-								_ifCondition = CodeLogic.MergeAnd(_ifCondition, ifFragment._ifCondition);
-								_changeGoto(ifFragment, ifFragment.If);
-							}
-						}
-
-							// Handles pattern #AND.6
-						else if (ifFragment.FragmentType == FragmentType.If) {
-							if (ifFragment.Execution == executionFragment) {
-								_ifCondition = CodeLogic.MergeAnd(_ifCondition, ifFragment._ifCondition);
-								_changeGoto(ifFragment, ifFragment.If);
-							}
-						}
-					}
-				}
-			}
-			catch (Exception) {
-				//ErrorHandler.HandleException(err);
-				MergeIfConditions();
-			}
-		}
-
-		public bool IsMergeElseIf() {
-			if (FragmentType == FragmentType.IfElse || FragmentType == FragmentType.ElseIf) {
+				CodeFragment ifFragment = If;
 				CodeFragment elseFragment = Else;
 
-				if (elseFragment == null)
-					return false;
+				var parent = ParentReferences[0];
 
-				if (elseFragment.IsPure && elseFragment.ParentReferences.Count == 1) {
-					if (elseFragment.FragmentType == FragmentType.IfElse) {
+				if (ParentReferences.Count == 1 && parent.FragmentType == FragmentType.IfElse) {
+					if (parent.If == this && parent.Else == Else) {
+						parent.IfCondition.Combine(IfCondition, OpCodes.ConditionToken.And);
+						parent.SetIf(ifFragment);
+						Unlink(this, elseFragment);
+						Unlink(this, ifFragment);
 						return true;
 					}
 
-					if (elseFragment.FragmentType == FragmentType.If) {
+					if (parent.If == this && parent.Else == If) {
+						parent.ReverseIfElse();
+						parent.IfCondition.Combine(IfCondition, OpCodes.ConditionToken.Or);
+						parent.SetElse(elseFragment);
+						Unlink(this, elseFragment);
+						Unlink(this, ifFragment);
 						return true;
 					}
 
-					if (elseFragment.FragmentType == FragmentType.ElseIf) {
+					if (parent.Else == this && parent.If == If) {
+						parent.IfCondition.Combine(IfCondition, OpCodes.ConditionToken.Or);
+						parent.SetElse(elseFragment);
+						Unlink(this, elseFragment);
+						Unlink(this, ifFragment);
+						return true;
+					}
+
+					// This is never created by the compiler; so this must be an elseif block
+					if (parent.Else == this && parent.If == Else) {
+						parent.ReverseIfElse();
+						parent.IfCondition.Combine(IfCondition, OpCodes.ConditionToken.And);
+						parent.SetIf(ifFragment);
+						Unlink(this, elseFragment);
+						Unlink(this, ifFragment);
+						//throw new Exception("Not tested");
 						return true;
 					}
 				}
@@ -818,88 +481,71 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 			return false;
 		}
 
-		public void MergeElseIf() {
-			bool merged = false;
-
+		public bool IsMergeElseIf() {
 			if (FragmentType == FragmentType.IfElse || FragmentType == FragmentType.ElseIf) {
-				CodeFragment elseFragment = Else;
+				for (int i = 0; i < 2; i++) {
+					CodeFragment fragment = i == 0 ? Else : If;
 
-				if (elseFragment == null)
-					return;
+					if (fragment == null)
+						continue;
 
-				// ?? Major change, added  && elseFragment.ParentReferences.Count == 1
-				if (elseFragment.IsPure && elseFragment.ParentReferences.Count == 1) {
-					if (elseFragment.FragmentType == FragmentType.IfElse) {
-						// Simple direct merge
-						merged = true;
-						_elseCondition = CodeLogic.ToElseIf(_elseCondition, elseFragment._ifCondition);
-
-						List<string> linesToAppend = elseFragment._getContentLines();
-						linesToAppend.RemoveAt(0);
-						linesToAppend.RemoveAt(linesToAppend.Count - 1);
-
-						_changeGoto(elseFragment, linesToAppend);
-						AddChildReference(elseFragment.ChildReferences);
-						RemoveChildReference(elseFragment);
-
-						FragmentType = FragmentType.ElseIf;
-					}
-
-					if (elseFragment.FragmentType == FragmentType.If) {
-						merged = true;
-						_elseCondition = CodeLogic.ToElseIf(_elseCondition, elseFragment._ifCondition);
-
-						List<string> linesToAppend = elseFragment._getContentLines();
-						linesToAppend.RemoveAt(0);
-						Lines.RemoveAt(Lines.Count - 1);
-
-						_changeGoto(elseFragment, linesToAppend);
-						AddChildReference(elseFragment.ChildReferences);
-						RemoveChildReference(elseFragment);
-
-						FragmentType = FragmentType.ElseIf;
-					}
-
-					if (elseFragment.FragmentType == FragmentType.ElseIf) {
-						// There are two types of else ifs
-						if (elseFragment.Execution == null) {
-							// Simple direct merge
-							merged = true;
-							_elseCondition = CodeLogic.ToElseIf(_elseCondition, elseFragment._ifCondition);
-
-							List<string> linesToAppend = elseFragment._getContentLines();
-							linesToAppend.RemoveAt(0);
-							linesToAppend.RemoveAt(linesToAppend.Count - 1);
-
-							_changeGoto(elseFragment, linesToAppend);
-							AddChildReference(elseFragment.ChildReferences);
-							RemoveChildReference(elseFragment);
-
-							FragmentType = FragmentType.ElseIf;
-						}
-						else {
-							merged = true;
-							_elseCondition = CodeLogic.ToElseIf(_elseCondition, elseFragment._ifCondition);
-
-							List<string> linesToAppend = elseFragment._getContentLines();
-							linesToAppend.RemoveAt(0);
-							Lines.RemoveAt(Lines.Count - 1);
-
-							_changeGoto(elseFragment, linesToAppend);
-							AddChildReference(elseFragment.ChildReferences);
-							RemoveChildReference(elseFragment);
-
-							FragmentType = FragmentType.ElseIf;
+					if (fragment.ParentReferences.Count == 1) {
+						if (fragment.FragmentType == FragmentType.IfElse ||
+						    fragment.FragmentType == FragmentType.If ||
+						    fragment.FragmentType == FragmentType.ElseIf) {
+							return true;
 						}
 					}
 				}
 			}
 
-			if (merged)
-				MergeElseIf();
+			return false;
 		}
 
-		public void AnalyseLogicalExecutionLoops(List<CodeFragment> processedFragments = null) {
+		public void MergeElseIf() {
+			if (FragmentType == FragmentType.IfElse || FragmentType == FragmentType.ElseIf) {
+				for (int i = 0; i < 2; i++) {
+					CodeFragment fragment = i == 0 ? Else : If;
+
+					if (fragment == null)
+						continue;
+
+					if (fragment.ParentReferences.Count == 1) {
+						if (fragment.FragmentType == FragmentType.IfElse ||
+						    fragment.FragmentType == FragmentType.If ||
+						    fragment.FragmentType == FragmentType.ElseIf) {
+							if (i == 1) {
+								if (Else.Uid > If.Uid)
+									return;
+
+								ReverseIfElse();
+							}
+
+							ElseIfMerge(fragment);
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		private void ElseIfMerge(CodeFragment elseFragment) {
+			var elseIndex = Content.IndexOf(LuaToken.Else);
+			Content.ReplaceElseContent(elseFragment.Content);
+			Content.Lines[elseIndex] = LineHelper.ReplaceAfterIndent(Content.Lines[elseIndex], "elseif " + elseFragment.IfCondition + " then");
+			Unlink(this, elseFragment);
+
+			var children = elseFragment.ChildReferences.ToList();
+
+			foreach (var child in children) {
+				Unlink(elseFragment, child);
+				Link(this, child);
+			}
+
+			FragmentType = FragmentType.ElseIf;
+		}
+
+		public void AnalyseLogicalExecutionLoops(List<CodeFragment> allFragments, List<CodeFragment> processedFragments = null) {
 			try {
 				// This process cuts off the fragments; they will no longer
 				// be linked properly beyond this point.
@@ -912,10 +558,10 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 
 				processedFragments.Add(this);
 
-				if (IsLoop()) {
-					List<CodeFragment> fragments = new List<CodeFragment>();
-					fragments.Add(this);
-					GetAllFragments(fragments, false);
+				ChildReferences.ForEach(p => p.AnalyseLogicalExecutionLoops(allFragments, processedFragments));
+
+				if (IsLoop) {
+					var fragments = GetLoopFragments(allFragments).Where(p => p.LoopScope == this).ToList();
 
 					fragments.Remove(this);
 
@@ -924,85 +570,58 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 
 					for (int i = 0; i < fragments.Count; i++) {
 						fragment = fragments[i];
-
 						executionFragment = fragment.Execution;
 
 						if (executionFragment != null) {
 							if (executionFragment == this) {
 								if (executionFragment.ParentReferences.Count > 1) {
-									fragment.RemoveChildReference(executionFragment);
-									fragment._removeExecutionLine();
+									fragment.RemoveExecutionLine();
 								}
 							}
 						}
 
-						if (!fragment.IsLoop()) {
+						if (!fragment.IsLoop) {
+							if (fragment.FragmentType == FragmentType.IfElse) {
+								if (fragment.Else == this) {
+									fragment.RemoveElseBranch();
+								}
+							}
 							foreach (CodeFragment child in fragment.ChildReferences) {
 								if (child == Break) {
-									fragment._replaceGotoWithBreak(Break);
+									fragment.Content.RepaceGotoWithBreak(Break);
 								}
 								else if (child == this) {
-									fragment._replaceGotoWithContinue(this);
+									// Continue isn't part of the language...
+									//fragment.Content._replaceGotoWithContinue(this);
+									throw new Exception("Attempting to continue a loop; should be handled.");
 								}
 							}
 						}
 					}
 				}
-
-				ChildReferences.ForEach(p => p.AnalyseLogicalExecutionLoops(processedFragments));
 			}
 			catch {
 				LubErrorHandler.Handle("Failed to analyse the logical execution of loops.", LubSourceError.CodeReconstructor);
 			}
 		}
 
-		private void _replaceGotoWithContinue(CodeFragment fragment) {
-			if (ChildReferences.Contains(fragment)) {
-				int lineIndex = _getGotoLineIndex(fragment);
-				Lines[lineIndex] = LineHelper.ReplaceAfterIndent(Lines[lineIndex], "continue");
-			}
+		public bool IsPureReturn() {
+			return IsReturn && LineHelper.NoIndent(Content.Lines[Content.Lines.Count - 1]) == "return";
 		}
 
-		private void _removeExecutionLine() {
-			try {
-				if (LineHelper.IsStart(Lines[Lines.Count - 1], "goto ")) {
-					Lines.RemoveAt(Lines.Count - 1);
-				}
-			}
-			catch {
-				LubErrorHandler.Handle("Failed to remove an execution line reference.", LubSourceError.CodeReconstructor);
-			}
-		}
-
-		private void _removeReturnLine() {
-			try {
-				if (LineHelper.IsStart(Lines[Lines.Count - 1], "return")) {
-					Lines.RemoveAt(Lines.Count - 1);
-				}
-			}
-			catch {
-				LubErrorHandler.Handle("Failed to remove a return line reference.", LubSourceError.CodeReconstructor);
-			}
-		}
-
-		public void RemoveLogicalReturnExecution(CodeFragment root) {
-			if (IsReturn && IsPure) {
+		public void RemoveLogicalReturnExecution() {
+			if (IsPureReturn()) {
 				CodeFragment fragment = _getLogicalExecutionReference(this);
 
 				if (fragment == null) {
-					_removeReturnLine();
-				}
-				else {
-					if (this != root && root._allLeadsToBreakLoop(this)) {
-						_removeReturnLine();
-					}
+					Content.RemoveReturnLine();
 				}
 			}
 		}
 
 		public void RemoveLogicalExecution() {
 			// Basically : anyone with an execution reference fragment can remove code based on their parents
-			if (ParentReferences.Count > 0 && (FragmentType != FragmentType.NotReferenced && FragmentType != FragmentType.None)) {
+			if (ParentReferences.Count > 0) {
 				CodeFragment executiongFragment = Execution;
 
 				if (executiongFragment == null)
@@ -1012,8 +631,7 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 					CodeFragment parent = ParentReferences[0];
 
 					if (parent._getLogicalExecutionReference(this) == executiongFragment) {
-						RemoveChildReference(executiongFragment);
-						_removeExecutionLine();
+						RemoveExecutionLine();
 					}
 				}
 				else if (ParentReferences.Count == 2) {
@@ -1027,8 +645,7 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 						return;
 
 					if (highParents[0]._getLogicalExecutionReference(this) == executiongFragment) {
-						RemoveChildReference(executiongFragment);
-						_removeExecutionLine();
+						RemoveExecutionLine();
 					}
 				}
 			}
@@ -1051,242 +668,7 @@ namespace GRF.FileFormats.LubFormat.Core.CodeReconstructor {
 			if (ParentReferences.Count > 1 || ParentReferences.Count == 0)
 				return null;
 
-			return ParentReferences[0]._getLogicalExecutionReference(toSkip, processedFragments);
-		}
-
-		public void SetWhileLoop(List<CodeFragment> processedFragments = null) {
-			if (processedFragments == null) {
-				processedFragments = new List<CodeFragment>();
-			}
-
-			if (processedFragments.Contains(this))
-				return;
-
-			processedFragments.Add(this);
-
-			if (_isWhileLoop()) {
-				_setWhileLoop();
-			}
-
-			ChildReferences.ForEach(p => p.SetWhileLoop(processedFragments));
-		}
-
-		private void _setWhileLoop() {
-			if (If == Break) {
-				// We reverse the loop condition
-				_ifCondition = CodeLogic.ReverseCondition(_ifCondition);
-
-				if (FragmentType == FragmentType.If) {
-					int indexGotoIf = _ifBranchIndex(0) + 1;
-					int indexGotoExecution = _executionBranchIndex();
-					LineHelper.Swap(Lines, indexGotoIf, indexGotoExecution);
-					Lines[indexGotoIf] = LineHelper.AddIndent(Lines[indexGotoIf], 1);
-					Lines[indexGotoExecution] = LineHelper.RemoveIndent(Lines[indexGotoExecution], 1);
-				}
-				else {
-					LineHelper.Swap(Lines, _ifBranchIndex(0) + 1, _elseBranchIndex(0) + 1);
-				}
-			}
-
-			Lines[_ifBranchIndex(0)] = CodeLogic.ChangeToWhile(_ifCondition);
-
-			if (FragmentType == FragmentType.IfElse) {
-				CodeFragment elseFragment = Else;
-				_removeElseBranch();
-				_appendGoto(elseFragment);
-			}
-
-			FragmentType = FragmentType.WhileLoop;
-			List<CodeFragment> fragments = new List<CodeFragment>();
-			_whileReference().GetAllFragments(fragments);
-			fragments.Remove(this);
-			fragments.ForEach(p => p._replaceGotoWithBreak(Else ?? Execution));
-
-			//AnalyseLogicalExecutionLoops();
-		}
-
-		private CodeFragment _whileReference() {
-			return ChildReferences.FirstOrDefault(p => p.Label == _getReferenceFromGoto(_whileBranchIndex(0) + 1));
-		}
-
-		private bool _isWhileLoop() {
-			// A while loop can also be an if node; this will be 
-			// caused by negative conditional loops.
-			if ((FragmentType == FragmentType.IfElse ||
-			     FragmentType == FragmentType.If) && ParentReferences.Count > 1
-			    && ChildReferences.Count > 1) {
-				CodeFragment breakFragment = null;
-				CodeFragment loopFragment = null;
-				bool result = false;
-
-				if (ParentReferences.Count == 2) {
-					CodeFragment parent1 = ParentReferences[0];
-					CodeFragment parent2 = ParentReferences[1];
-
-					if (parent1.ParentReferences.Count == 1) {
-						if (parent1.ParentReferences[0] == parent2)
-							return false;
-					}
-
-					if (parent2.ParentReferences.Count == 1) {
-						if (parent2.ParentReferences[0] == parent1)
-							return false;
-					}
-				}
-
-				if (FragmentType == FragmentType.IfElse) {
-					// We need to validate the parents first
-
-					CodeFragment ifFragment = If;
-					CodeFragment elseFragment = Else;
-
-					result = !ifFragment._anyLeadsToBreakLoop(this);
-
-					if (result) {
-						breakFragment = ifFragment;
-						loopFragment = elseFragment;
-					}
-					else {
-						result = !elseFragment._anyLeadsToBreakLoop(this);
-
-						if (result) {
-							breakFragment = elseFragment;
-							loopFragment = ifFragment;
-						}
-					}
-				}
-				else if (FragmentType == FragmentType.If) {
-					CodeFragment ifFragment = If;
-					CodeFragment executionFragment = Execution;
-
-					result = !ifFragment._anyLeadsToBreakLoop(this);
-
-					if (result) {
-						breakFragment = ifFragment;
-						loopFragment = executionFragment;
-					}
-					else {
-						result = !executionFragment._anyLeadsToBreakLoop(this);
-
-						if (result) {
-							breakFragment = executionFragment;
-							loopFragment = ifFragment;
-						}
-					}
-				}
-
-				// Either the if fragment or the else fragment is recursive
-				// We could be in an inner scope loop though, so we can't
-				// confirm much yet.
-
-				if (result && loopFragment != null) {
-					// Possible while loop
-
-					// At least one path must lead back to this fragment
-					if (!loopFragment._anyLeadsTo(this)) {
-						return false;
-					}
-
-					// We assume this is a while loop
-					// All the other paths must lead to the breakFragment
-					List<CodeFragment> fragments = new List<CodeFragment>();
-					loopFragment.GetAllFragments(fragments);
-					fragments.Remove(this);
-
-					foreach (CodeFragment parent in ParentReferences) {
-						fragments.Remove(parent);
-					}
-
-					// This is a while loop
-					Break = breakFragment;
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private bool _allLeadsTo(CodeFragment fragment) {
-			return _findFragment(this, fragment, 0, new List<CodeFragment>(), false);
-		}
-
-		private bool _anyLeadsTo(CodeFragment fragment) {
-			return _findFragment(this, fragment, 0, new List<CodeFragment>(), true);
-		}
-
-		private bool _anyLeadsToBreakLoop(CodeFragment fragment) {
-			return _findFragment(this, fragment, 0, new List<CodeFragment>(), true, true);
-		}
-
-		private bool _allLeadsToBreakLoop(CodeFragment fragment) {
-			return _findFragment(this, fragment, 0, new List<CodeFragment>(), false, true);
-		}
-
-		private bool _allLeadsToOrReturn(CodeFragment fragment) {
-			return _findFragment(this, fragment, 0, new List<CodeFragment>(), false, false, true);
-		}
-
-		private bool _findFragment(CodeFragment currentFragment, CodeFragment toFind, int level, ICollection<CodeFragment> processedFragments, bool any, bool breakLoop = false, bool orReturn = false) {
-			if (processedFragments.Contains(currentFragment))
-				return _leads != null && _leads.Value;
-
-			_leads = null;
-
-			processedFragments.Add(currentFragment);
-
-			if (level > 20) {
-				_leads = false;
-				return false;
-			}
-
-			if (currentFragment == toFind) {
-				_leads = true;
-				return true;
-			}
-
-			if (currentFragment.ChildReferences.Count == 0) {
-				if (toFind == null || orReturn) {
-					_leads = true;
-					return true;
-				}
-
-				_leads = false;
-				return false;
-			}
-
-			bool result;
-
-			if (currentFragment.IsLoop()) {
-				if (breakLoop) {
-					result = Break._findFragment(Break, toFind, level + 1, processedFragments, any, true);
-					_leads = result;
-					return result;
-				}
-
-				if (!any) {
-					if (currentFragment.FragmentType == FragmentType.ForLoop) {
-						bool? back = _leads;
-						bool allLead = currentFragment.ChildReferences[0]._findFragment(currentFragment.ChildReferences[0], currentFragment, level + 1, new List<CodeFragment>(), false);
-						_leads = back;
-
-						if (allLead) {
-							result = Break._findFragment(Break, toFind, level + 1, processedFragments, false, true);
-							_leads = result;
-							return result;
-						}
-					}
-				}
-			}
-
-			if (any) {
-				result = currentFragment.ChildReferences.Any(p => p._findFragment(p, toFind, level + 1, processedFragments, true, breakLoop));
-			}
-			else {
-				result = currentFragment.ChildReferences.All(p => p._findFragment(p, toFind, level + 1, processedFragments, false, breakLoop));
-			}
-
-			_leads = result;
-			return result;
+			return ParentReferences[0]._getLogicalExecutionReference(this, processedFragments);
 		}
 
 		#endregion

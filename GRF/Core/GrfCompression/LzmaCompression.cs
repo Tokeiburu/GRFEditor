@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
 
 namespace GRF.Core.GrfCompression {
@@ -38,7 +38,7 @@ namespace GRF.Core.GrfCompression {
 			}
 
 			if (cps == null)
-				throw GrfExceptions.__CompressionDllFailed.Create(ResourceName);
+				throw GrfExceptions.__ResourceNotFound.Create(ResourceName);
 
 			try {
 				File.WriteAllBytes(outputPath, cps);
@@ -50,10 +50,10 @@ namespace GRF.Core.GrfCompression {
 
 			if (_hModule == IntPtr.Zero) {
 				if (Wow.Is64BitProcess) {
-					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2022 (x64) | downloading the x86 version will not be compatible\r\n\r\nLink: https://aka.ms/vs/17/release/vc_redist.x64.exe"));
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual C++ 2022 (x64) | downloading the x86 version will not be compatible\r\n\r\nLink: https://aka.ms/vs/17/release/vc_redist.x64.exe"));
 				}
 				else {
-					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual Studio C++ 2005 (x86) | downloading the x64 version will not be compatible"));
+					ErrorHandler.HandleException(GrfExceptions.__CompressionDllFailed2.Display(ResourceName, "Microsoft Visual C++ 2005 (x86) | downloading the x64 version will not be compatible"));
 				}
 
 				Success = false;

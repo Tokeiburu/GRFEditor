@@ -8,7 +8,7 @@
                  xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
                  xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
                  xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
-                 MaxWidth="470" MinWidth="470" MinHeight="475" MaxHeight="475" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
+                 MaxWidth="470" MinWidth="470" MinHeight="498" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -88,7 +88,7 @@
                                     <CheckBox.ToolTip>
                                         <TextBlock>
                                             Instead of extracting files to the current location of the GRF,
-                                            <LineBreak />encr
+                                            <LineBreak />
                                             files will be extracted at the path below.
                                         </TextBlock>
                                     </CheckBox.ToolTip>
@@ -96,6 +96,7 @@
                                 <Styles:PathBrowser Name="_pbExtration" Margin="20 0 0 3" Grid.Row="8" Grid.ColumnSpan="2" BrowseMode="Folder" />
                                 <Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" />
                                 <ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" VerticalAlignment="Center" Margin="3" >
+                                    <ComboBoxItem Content="0x300" />
                                     <ComboBoxItem Content="0x200" />
                                     <ComboBoxItem Content="0x103" />
                                     <ComboBoxItem Content="0x102" />
@@ -243,10 +244,18 @@
                                     </Label.ToolTip>
                                 </Label>
                                 <Label Content="Encryption method" Grid.Row="6" />
-                                <TextBox Name="_tbConfig" Grid.Row="1" Grid.Column="1" Margin="3" IsReadOnly="True" />
-                                <TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" />
-                                <TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" />
-                                <TextBox Name="_tbRenderingMode" Grid.Row="4" Grid.Column="1" Margin="3" IsReadOnly="True" />
+                                <Grid Grid.Row="1" Grid.Column="1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition />
+                                        <ColumnDefinition Width="auto" />
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <Button Name="_configSelect" Grid.Column="1" Height="24" Width="24" Margin="0 0 3 0" />
+                                    <TextBox Name="_tbConfig" Grid.Column="0" Height="24" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+                                </Grid>
+                                <TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+                                <TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+                                <TextBox Name="_tbRenderingMode" Grid.Row="4" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
                                 <ComboBox Grid.Row="5" Grid.Column="1" Name="_comboBoxWarningLevel" SelectedIndex="0" VerticalAlignment="Center" Margin="3" >
                                     <ComboBoxItem Content="Low" />
                                     <ComboBoxItem Content="Warning" />

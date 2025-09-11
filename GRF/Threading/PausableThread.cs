@@ -8,6 +8,8 @@ namespace GRF.Threading {
 		private readonly AutoResetEvent _are = new AutoResetEvent(false);
 		private bool _isPaused;
 
+		public bool IsTerminated { get; set; }
+
 		public bool IsPaused {
 			get { return _isPaused; }
 			set {

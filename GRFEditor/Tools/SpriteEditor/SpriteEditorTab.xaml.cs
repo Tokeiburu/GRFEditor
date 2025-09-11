@@ -17,7 +17,7 @@ using GRF.FileFormats.SprFormat.Builder;
 using GRF.FileFormats.SprFormat.Commands;
 using GRF.Image;
 using GRF.Image.Decoders;
-using GRF.System;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;
@@ -246,13 +246,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 				if (OpenedSprite != "") {
 					_sprBuilder.Open(OpenedSprite);
 					_imSprClear();
-
-					try {
-						_cbVersions.SelectedItem = _cbVersions.Items.Cast<ISprConverter>().First(p => p.DisplayName == _sprBuilder.Converter.DisplayName);
-					}
-					catch {
-						_sprBuilder.Converter = _cbVersions.SelectedItem as ISprConverter;
-					}
 				}
 			}
 			catch (Exception err) {
@@ -563,16 +556,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 			_imagesBgra32 = new ObservableCollection<SprBuilderImageView>(_sprBuilder.ImagesBgra32);
 			_imSprList1.ItemsSource = _imagesIndexed8;
 			_imSprList2.ItemsSource = _imagesBgra32;
-		}
-
-
-		private void _cbVersions_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			try {
-				_sprBuilder.Converter = _cbVersions.SelectedItem as ISprConverter;
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
 		}
 
 		private void _menuReplace1_Click(object sender, RoutedEventArgs e) {

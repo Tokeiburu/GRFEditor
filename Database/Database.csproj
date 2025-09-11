@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -10,9 +10,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Database</RootNamespace>
     <AssemblyName>Database</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -29,15 +30,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>bin\x86\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
@@ -47,6 +39,10 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -105,10 +101,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  
+  
   <PropertyGroup>
-    <PostBuildEvent>echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)\Libraries\$(TargetFileName)"
-echo f | xcopy /f /y "$(TargetPath)" "$(SolutionDir)..\Libraries\$(TargetFileName)"</PostBuildEvent>
+    <ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
+    <GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
   </PropertyGroup>
+  <Target Name="CopyBuildDll" BeforeTargets="AfterBuild">
+    <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+	<Message Text="$(ProjectName) -> $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+	<Message Text="$(ProjectName) -> $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

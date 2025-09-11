@@ -13,10 +13,11 @@ namespace GRF.FileFormats.SprFormat {
 	/// <summary>
 	/// If the Spr file is loaded from an Act file, it 
 	/// </summary>
-	public class Spr : IImageable, IEnumerable<GrfImage> {
+	public partial class Spr : IImageable, IEnumerable<GrfImage> {
 		private static bool _enableImageSizeCheck = true;
 		private GrfImage _image;
 		private Pal _pal;
+		public bool RleSaveError { get; internal set; }
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Spr" /> class.
@@ -25,7 +26,6 @@ namespace GRF.FileFormats.SprFormat {
 			Header = new SprHeader();
 			RleImages = new List<Rle>();
 			Images = new List<GrfImage>();
-			Converter = SprConverterProvider.GetConverter(Header);
 		}
 
 		/// <summary>
@@ -45,7 +45,6 @@ namespace GRF.FileFormats.SprFormat {
 			Header = new SprHeader(spr.Header);
 			NumberOfIndexed8Images = spr.NumberOfIndexed8Images;
 			NumberOfBgra32Images = spr.NumberOfBgra32Images;
-			Converter = spr.Converter;
 			Images = new List<GrfImage>();
 
 			if (spr.Palette != null)
@@ -67,9 +66,7 @@ namespace GRF.FileFormats.SprFormat {
 			RleImages = new List<Rle>();
 			NumberOfIndexed8Images = reader.UInt16();
 			NumberOfBgra32Images = reader.UInt16();
-			Converter = SprConverterProvider.GetConverter(Header);
-			List<GrfImage> imageSources = Converter.GetImages(this, reader, loadFirstImageOnly);
-			Images = imageSources;
+			Images = GetImages(reader, loadFirstImageOnly);
 		}
 
 		public static bool EnableImageSizeCheck {
@@ -98,7 +95,6 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		public SprHeader Header { get; private set; }
-		public ISprConverter Converter { get; set; }
 
 		public int NumberOfImagesLoaded {
 			get { return Images.Count; }
@@ -271,26 +267,45 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		public HashSet<byte> GetUnusedPaletteIndexes() {
-			HashSet<byte> used = GetUsedPaletteIndexes();
 			HashSet<byte> unused = new HashSet<byte>();
+			bool[] usedArray = new bool[256];
 
-			for (int i = 0; i < 256; i++) {
-				if (!used.Contains((byte) i))
-					unused.Add((byte) i);
+			unsafe {
+				for (int i = 0; i < NumberOfIndexed8Images; i++) {
+					GrfImage im = Images[i];
+
+					fixed (byte* pPixels = im.Pixels) {
+						for (int k = 0; k < im.Pixels.Length; k++)
+							usedArray[pPixels[k]] = true;
+					}
+				}
 			}
+
+			for (int i = 0; i < 256; i++)
+				if (!usedArray[i])
+					unused.Add((byte)i);
+
 			return unused;
 		}
 
 		public HashSet<byte> GetUsedPaletteIndexes() {
 			HashSet<byte> used = new HashSet<byte>();
+			bool[] usedArray = new bool[256];
 
-			for (int i = 0; i < NumberOfIndexed8Images; i++) {
-				GrfImage im = Images[i];
+			unsafe {
+				for (int i = 0; i < NumberOfIndexed8Images; i++) {
+					GrfImage im = Images[i];
 
-				for (int p = 0; p < im.Pixels.Length; p++) {
-					used.Add(im.Pixels[p]);
+					fixed (byte* pPixels = im.Pixels) {
+						for (int k = 0; k < im.Pixels.Length; k++)
+							usedArray[pPixels[k]] = true;
+					}
 				}
 			}
+
+			for (int i = 0; i < 256; i++)
+				if (usedArray[i])
+					used.Add((byte)i);
 
 			return used;
 		}
@@ -598,16 +613,20 @@ namespace GRF.FileFormats.SprFormat {
 			return type == GrfImageType.Indexed8 ? absoluteIndex : absoluteIndex - NumberOfIndexed8Images;
 		}
 
+		public void Save(Stream stream, byte major, byte minor) {
+			Save(new SprWriterConfig(major, minor) { OutputStream = stream, CloseStream = false });
+		}
+
 		public void Save(Stream stream) {
-			(Converter ?? new SprConverterV2M1(Header)).Save(this, stream, false);
+			Save(new SprWriterConfig(2, 1) { OutputStream = stream, CloseStream = false });
 		}
 
 		public void Save(string path) {
-			(Converter ?? new SprConverterV2M1(Header)).Save(this, path);
+			Save(new SprWriterConfig(2, 1) { OutputStream = File.Create(path), CloseStream = true });
 		}
 
 		public void Save() {
-			(Converter ?? new SprConverterV2M1(Header)).Save(this, LoadedPath);
+			Save(LoadedPath);
 		}
 
 		public void RemoveUnusedImages(Act act) {

@@ -3,6 +3,7 @@ using System.Threading;
 using System.Windows.Controls;
 using ErrorManager;
 using GRF.Core;
+using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	public class FilePreviewTab : UserControl, IPreviewTab {
@@ -35,10 +36,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 				return;
 
 			if (_isInvisibleResult != null) {
-				Dispatcher.Invoke(new Action(delegate {
+				this.Dispatch(delegate {
 					if (!IsVisible && _isInvisibleResult != null)
 						_isInvisibleResult();
-				}));
+				});
 			}
 
 			Thread thread = new Thread(() => _baseLoad(_entry)) { Name = "GrfEditor - IPreview base loading thread" };

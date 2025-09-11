@@ -7,7 +7,7 @@ using GRF.ContainerFormat;
 using GRF.FileFormats;
 using GRF.FileFormats.ThorFormat;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
@@ -26,7 +26,7 @@ namespace GRF.Core {
 			State = ContainerState.Normal;
 		}
 
-		internal Container(string fileName) {
+		internal Container(string fileName, GrfLoadData loadData = null) {
 			try {
 				GrfExceptions.IfNullThrow(fileName, "fileName");
 
@@ -37,7 +37,7 @@ namespace GRF.Core {
 				//	throw new Exception();
 				//}
 
-				_load(fileName);
+				_load(fileName, loadData);
 				CancelReload = false;
 			}
 			catch (Exception err) {
@@ -157,7 +157,7 @@ namespace GRF.Core {
 			throw new InvalidOperationException();
 		}
 
-		private void _load(string fileName) {
+		private void _load(string fileName, GrfLoadData loadData = null) {
 			try {
 				if (fileName == null)
 					return;
@@ -168,7 +168,13 @@ namespace GRF.Core {
 				Reader = new ByteReaderStream(FileName);
 
 				InternalHeader = new GrfHeader(Reader, this);
-				Reader.PositionUInt = InternalHeader.FileTableOffset + GrfHeader.StructSize;
+				Reader.PositionLong = InternalHeader.FileTableOffset + GrfHeader.DataByteSize;
+
+				if (loadData != null && loadData.DecryptFileTable && loadData.EncryptionKey != null) {
+					InternalHeader.DecryptFileTable = true;
+					InternalHeader.EncryptionKey = loadData.EncryptionKey;
+				}
+
 				_table = new FileTable(InternalHeader, Reader);
 
 				if (Table.Contains(GrfStrings.EncryptionFilename))
@@ -324,7 +330,12 @@ namespace GRF.Core {
 						case SavingMode.RepackSource:
 							try {
 								using (FileStream output = new FileStream(fileName, FileMode.Create)) {
-									uint fileLength = GrfHeader.StructSize + InternalHeader.FileTableOffset;
+									long fileLength = GrfHeader.DataByteSize + InternalHeader.FileTableOffset;
+
+									if (Header.IsNotCompatibleWith(3, 0) && fileLength > uint.MaxValue) {
+										throw GrfExceptions.__GrfSizeLimitReached.Create();
+									}
+
 									output.SetLength(fileLength);
 
 									switch(mode) {
@@ -340,19 +351,19 @@ namespace GRF.Core {
 											break;
 									}
 
-									long fileTableOffset = output.Position - GrfHeader.StructSize;
-
-									if (fileTableOffset > uint.MaxValue) {
+									long fileTableOffset = output.Position - GrfHeader.DataByteSize;
+									
+									if (Header.IsNotCompatibleWith(3, 0) && fileTableOffset > uint.MaxValue) {
 										throw GrfExceptions.__GrfSizeLimitReached.Create();
 									}
 
 									int tableSize = _table.WriteMetadata(InternalHeader, output);
-									InternalHeader.FileTableOffset = (uint)fileTableOffset;
+									InternalHeader.FileTableOffset = fileTableOffset;
 									InternalHeader.RealFilesCount = Table.Entries.Count;
 
 									output.Seek(0, SeekOrigin.Begin);
 									InternalHeader.Write(output);
-									output.SetLength(InternalHeader.FileTableOffset + GrfHeader.StructSize + tableSize);
+									output.SetLength(InternalHeader.FileTableOffset + GrfHeader.DataByteSize + tableSize);
 								}
 
 								_writeEncryptionIndex();
@@ -383,20 +394,20 @@ namespace GRF.Core {
 										}
 									}
 
-									long fileTableOffset = offset - GrfHeader.StructSize;
+									long fileTableOffset = offset - GrfHeader.DataByteSize;
 
-									if (fileTableOffset > uint.MaxValue) {
+									if (Header.IsNotCompatibleWith(3, 0) && fileTableOffset > uint.MaxValue) {
 										throw GrfExceptions.__GrfSizeLimitReached.Create();
 									}
 
-									InternalHeader.FileTableOffset = (uint)fileTableOffset;
+									InternalHeader.FileTableOffset = fileTableOffset;
 									InternalHeader.RealFilesCount = Table.Entries.Count;
 
 									output.Seek(offset, SeekOrigin.Begin);
 									int tableSize = _table.WriteMetadata(InternalHeader, output);
 									output.Seek(0, SeekOrigin.Begin);
 									InternalHeader.Write(output);
-									output.SetLength(InternalHeader.FileTableOffset + GrfHeader.StructSize + tableSize);
+									output.SetLength(InternalHeader.FileTableOffset + GrfHeader.DataByteSize + tableSize);
 								}
 
 								_writeEncryptionIndex();
@@ -665,7 +676,7 @@ namespace GRF.Core {
 			byte[] data;
 
 			lock (Reader.SharedLock) {
-				Reader.PositionUInt = entry.FileExactOffset;
+				Reader.PositionLong = entry.FileExactOffset;
 				data = Reader.Bytes(entry.SizeCompressedAlignment);
 			}
 

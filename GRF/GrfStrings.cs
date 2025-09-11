@@ -12,6 +12,7 @@ namespace GRF {
 		public const string AddFiles = "Add files in '{0}'...";
 		public const string AddFolder = "Folder added '{0}'";
 		public const string ChangeVersion = "Change format from '{0}' to '{1}'";
+		public const string ChangeHeader = "Change header from '{0}' to '{1}'";
 		public const string DecryptFiles = "Decrypt files...";
 		public const string DeleteFile = "Delete file '{0}'";
 		public const string DeleteFiles = "Delete files...";
@@ -30,6 +31,8 @@ namespace GRF {
 		public const string UnrecognizedFileFormat = "Unrecognized file format.";
 		public const string TgaBitsExpected = "Expected 24 or 32 bits per pixel, found {0} instead.";
 		public const string TgaImageTypeExpected = " Image type = {0}";
+		public const string MasterOfMagic = "Master of Magic\0";
+		public const string EventHorizon = "Event Horizon\0RL";
 		#endregion
 
 		#region Compression DLL
@@ -53,6 +56,7 @@ namespace GRF {
 		public const string FailedReadContainer = "Failed to read the container: {0}";
 		public const string FailedEncodingString = "File name is wrongly encoded: {0}.";
 		public const string FailedGrfHeader = "File header is invalid, expected 'Master of Magic', found '{0}'.";
+		public const string FailedData = "{0}";
 		public const string GrfContainsErrors = "There were errors detected while loading or while modifying the GRF. It's strongly advised to save the GRF with another name and check if the content has been correctly updated.\n\nWould you like to save it anyway?";
 		public const string CouldNotSaveContainer = "Couldn't save the container file.";
 		public const string CouldNotSaveContainerForceReload = "Couldn't save the container file. The size limit has been reached and the GRF must be forcibly reloaded.";

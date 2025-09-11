@@ -110,13 +110,24 @@ namespace GRF.Core.GrfCompression {
 		/// The uncompressed data.
 		/// </returns>
 		public virtual byte[] Decompress(byte[] compressed, long uncompressedLength) {
-			if (uncompressedLength == 0)
-				return new byte[] {};
+			return Decompress(compressed, compressed.Length, uncompressedLength);
+		}
 
-			int ptrLength = (int) uncompressedLength;
+		/// <summary>
+		/// Decompresses the specified data, using a known length.
+		/// </summary>
+		/// <param name="compressed">The compressed data.</param>
+		/// <param name="compressedLength">Length of the compressed data (not aligned).</param>
+		/// <param name="uncompressedLength">Length of the uncompressed data.</param>
+		/// <returns>The uncompressed data.</returns>
+		public virtual byte[] Decompress(byte[] compressed, long compressedLength, long uncompressedLength) {
+			if (uncompressedLength == 0)
+				return new byte[] { };
+
+			int ptrLength = (int)uncompressedLength;
 			byte[] decompressed = new byte[ptrLength];
 
-			int result = _decompress(decompressed, ref ptrLength, compressed, compressed.Length);
+			int result = _decompress(decompressed, ref ptrLength, compressed, (int)compressedLength);
 
 			if (result != 0) {
 				// Fix : 2015-07-21
@@ -169,16 +180,23 @@ namespace GRF.Core.GrfCompression {
 
 				if (_hModule == IntPtr.Zero) {
 					Success = false;
-					throw GrfExceptions.__CompressionDllFailed.Create(_path);
+					throw GrfExceptions.__LoadLibraryFailed.Create(_path, NativeMethods.GetLastError(), NativeMethods.GetLastError());
 				}
 
 				IntPtr intPtr = NativeMethods.GetProcAddress(_hModule, "uncompress");
+
+				if (intPtr == IntPtr.Zero)
+					throw GrfExceptions.__CompressionDllFailed3.Create(_path, "uncompress", "uncompress(unsigned char* output_data, int* output_len, unsigned char* compressed_data, int compressed_len)");
+
 				_decompress = (DecompressMethod) Marshal.GetDelegateForFunctionPointer(intPtr, typeof (DecompressMethod));
 
 				intPtr = NativeMethods.GetProcAddress(_hModule, "compress2");
 
 				if (intPtr == IntPtr.Zero)
 					intPtr = NativeMethods.GetProcAddress(_hModule, "compress");
+
+				if (intPtr == IntPtr.Zero)
+					throw GrfExceptions.__CompressionDllFailed3.Create(_path, "compress (and compress2)", "compress(unsigned char* output_data, int* output_len, unsigned char* uncompressed_data, int uncompressed_len)");
 
 				_compress = (CompressMethod) Marshal.GetDelegateForFunctionPointer(intPtr, typeof (CompressMethod));
 

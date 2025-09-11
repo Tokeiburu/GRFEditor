@@ -281,7 +281,9 @@ namespace GRF.Image.Decoders {
 		}
 
 		public static void Save(GrfImage image, string path) {
-			Save(image, new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write));
+			using (FileStream stream = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.Write)) {
+				Save(image, stream);
+			}
 		}
 	}
 }

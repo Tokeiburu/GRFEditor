@@ -18,6 +18,11 @@ namespace GRF.FileFormats.LubFormat {
 			return IsStart(line, "if ");
 		}
 
+		public static bool IsControl(string line) {
+			var l = NoIndent(line);
+			return l.StartsWith("if ") || l.StartsWith("for ") || l.StartsWith("while ");
+		}
+
 		/// <summary>
 		/// Removes the indent on the line.
 		/// </summary>
@@ -58,8 +63,34 @@ namespace GRF.FileFormats.LubFormat {
 
 		public static int GetLineIndexContains(List<string> lines, string toFind, int startIndex) {
 			for (int i = startIndex; i < lines.Count; i++) {
-				if (lines[i].Contains(toFind))
-					return i;
+				if (lines[i].Contains(" function(")) {
+					int end = 1;
+					i++;
+
+					for (; i < lines.Count; i++) {
+						if (lines[i].Contains("\tend") || lines[i] == "end")
+							end--;
+						else if (
+							lines[i].Contains("\tfor ") ||
+							lines[i].Contains("\tif ") ||
+							lines[i].Contains("\twhile "))
+							end++;
+
+						if (end <= 0)
+							break;
+					}
+				}
+
+				for (int j = 0, k = 0; j < lines[i].Length && k < toFind.Length; j++) {
+					if (lines[i][j] == '\t')
+						continue;
+					if (lines[i][j] == toFind[k++]) {
+						if (k == toFind.Length)
+							return i;
+						continue;
+					}
+					break;
+				}
 			}
 
 			return -1;
@@ -69,45 +100,6 @@ namespace GRF.FileFormats.LubFormat {
 			for (int i = startIndex; i < lines.Count; i++) {
 				if (lines[i].EndsWith(toFind))
 					return i;
-			}
-
-			return -1;
-		}
-
-		public static List<string> FixIndent(List<string> replacedLines, int codeIndent) {
-			int gotoIndent = GetIndent(replacedLines[0]);
-			string toReplaceFrom = "";
-			string toReplaceTo = "";
-
-			int toAdd = codeIndent - gotoIndent;
-
-			if (toAdd != 0) {
-				if (toAdd > 0) {
-					for (int i = 0; i < toAdd; i++)
-						toReplaceTo += "\t";
-				}
-				else {
-					toAdd = -1 * toAdd;
-
-					for (int i = 0; i < toAdd; i++)
-						toReplaceFrom += "\t";
-				}
-
-				for (int i = 0; i < replacedLines.Count; i++) {
-					replacedLines[i] = replacedLines[i].ReplaceOnce(toReplaceFrom, toReplaceTo);
-				}
-			}
-
-			return replacedLines;
-		}
-
-		public static int FindNextEndsWith(List<string> lines, int indexStart, int ifIndent, string toFind) {
-			for (int i = indexStart; i < lines.Count; i++) {
-				if (lines[i].EndsWith(toFind)) {
-					int indent = GetIndent(lines[i]);
-					if (indent == ifIndent)
-						return i;
-				}
 			}
 
 			return -1;
@@ -137,18 +129,6 @@ namespace GRF.FileFormats.LubFormat {
 		}
 
 		/// <summary>
-		/// Determines whether the specified line ends with the specified value.
-		/// </summary>
-		/// <param name="line">The line.</param>
-		/// <param name="value">The value.</param>
-		/// <returns>
-		///   <c>true</c> if the specified line ends with the value; otherwise, <c>false</c>.
-		/// </returns>
-		public static bool IsEnd(string line, string value) {
-			return line.EndsWith(value);
-		}
-
-		/// <summary>
 		/// Swaps the specified lines.
 		/// </summary>
 		/// <param name="lines">The lines.</param>
@@ -160,94 +140,51 @@ namespace GRF.FileFormats.LubFormat {
 			lines[to] = old;
 		}
 
-		/// <summary>
-		/// Removes a specified amount of indentation.
-		/// </summary>
-		/// <param name="line">The line.</param>
-		/// <param name="toRemove">The amount of indent to remove per line.</param>
-		/// <returns></returns>
-		public static string RemoveIndent(string line, int toRemove) {
-			int indent = GetIndent(line);
+		public static List<string> FixIndent(List<string> replacedLines, int codeIndent) {
+			int gotoIndent = GetIndent(replacedLines[0]);
+			string toReplaceFrom = "";
+			string toReplaceTo = "";
 
-			if (indent == 0)
-				return line;
+			int toAdd = codeIndent - gotoIndent;
 
-			return line.Replace(GenerateIndent(indent), GenerateIndent(indent - toRemove));
+			if (toAdd != 0) {
+				if (toAdd > 0) {
+					for (int i = 0; i < toAdd; i++)
+						toReplaceTo += "\t";
+				}
+				else {
+					toAdd = -1 * toAdd;
+
+					for (int i = 0; i < toAdd; i++)
+						toReplaceFrom += "\t";
+				}
+
+				for (int i = 0; i < replacedLines.Count; i++) {
+					replacedLines[i] = replacedLines[i].ReplaceOnce(toReplaceFrom, toReplaceTo);
+				}
+			}
+
+			return replacedLines;
 		}
 
-		public static string AddIndent(string line, int toAdd) {
-			int indent = GetIndent(line);
-			return line.Replace(GenerateIndent(indent), GenerateIndent(indent + toAdd));
-		}
+		private static readonly Dictionary<int, string> _indents = new Dictionary<int, string>();
 
 		public static string GenerateIndent(int indent) {
 			if (indent > 0) {
 				string toRet = "";
 
+				if (_indents.TryGetValue(indent, out toRet)) {
+					return toRet;
+				}
+
 				for (int i = 0; i < indent; i++)
 					toRet += "\t";
 
+				_indents[indent] = toRet;
 				return toRet;
 			}
 
 			return "";
-		}
-
-		public static void CleanUpLines(List<string> lines) {
-			for (int i = 0; i < lines.Count; i++) {
-				if (IsEmpty(lines[i])) {
-					lines.RemoveAt(i);
-					i--;
-				}
-				else if (lines[i].Contains(" == true")) {
-					lines[i] = lines[i].Replace(" == true", "");
-				}
-				//else if (i + 1 < lines.Count && 
-				//    lines[i].EndsWith("{") &&
-				//    lines[i + 1].StartsWith("}")) {
-				//    lines[i] = lines[i] + "}";
-				//    lines.RemoveAt(i + 1);
-				//    i--;
-				//}
-				//else if (i + 1 < lines.Count &&
-				//    lines[i].EndsWith("\telse") &&
-				//    lines[i + 1].EndsWith("\tend")) {
-				//    lines.RemoveAt(i);
-				//    i--;
-				//}
-			}
-
-			//for (int i = 0; i < lines.Count; i++) {
-			//    if (lines[i].Contains(" == true")) {
-			//        lines[i] = lines[i].Replace(" == true", "");
-			//    }
-			//}
-
-			if (lines.Count > 1) {
-				if (GetIndent(lines[lines.Count - 2]) == 0 &&
-				    lines[lines.Count - 1] == "return") {
-					lines.RemoveAt(lines.Count - 1);
-				}
-			}
-
-			// Removes useless else statements
-			if (lines.Count > 4) {
-				if (lines[lines.Count - 4] == "\telse" &&
-				    lines[lines.Count - 3].StartsWith("\t\treturn") &&
-				    lines[lines.Count - 2] == "\tend" &&
-				    lines[lines.Count - 1] == "end") {
-					lines[lines.Count - 4] = "\tend";
-					lines[lines.Count - 3] = lines[lines.Count - 3].ReplaceOnce("\t\t", "\t");
-					lines.RemoveAt(lines.Count - 2);
-				}
-			}
-
-			if (lines.Count > 2) {
-				if (GetIndent(lines[lines.Count - 3]) == 1 &&
-				    lines[lines.Count - 2] == "\treturn") {
-					lines.RemoveAt(lines.Count - 2);
-				}
-			}
 		}
 
 		public static string GetLabelFromGoto(string line) {

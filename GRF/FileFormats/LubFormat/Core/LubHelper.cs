@@ -13,7 +13,7 @@ namespace GRF.FileFormats.LubFormat.Core {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 							builder.Append(@"\t");
 							break;
@@ -52,7 +52,7 @@ namespace GRF.FileFormats.LubFormat.Core {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 							builder.Append(@"\t");
 							break;
@@ -85,7 +85,7 @@ namespace GRF.FileFormats.LubFormat.Core {
 				c = str[i];
 
 				if (c <= 124) {
-					switch (c) {
+					switch(c) {
 						case '\t':
 						case '\f':
 						case '\\':

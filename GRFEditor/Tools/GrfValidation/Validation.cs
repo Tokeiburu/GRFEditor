@@ -56,7 +56,7 @@ namespace GRFEditor.Tools.GrfValidation {
 					List<FileEntry> entriesList = entries.Select(p => p.Value).OrderBy(p => p.FileExactOffset).ToList();
 
 					if (entries.Count > 0) {
-						size = entriesList[0].FileExactOffset - GrfHeader.StructSize;
+						size = entriesList[0].FileExactOffset - GrfHeader.DataByteSize;
 					}
 
 					for (int i = 0; i < entries.Count - 1; i++) {

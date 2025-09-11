@@ -148,7 +148,7 @@ namespace ActImaging {
 			for (int index = 0; index < extra.Length; index++) {
 				string param = extra[index];
 				if (extra[index + 1] != null) {
-					if (param == "	") {
+					if (param == "indexFrom") {
 						indexFrom = Int32.Parse(extra[index + 1]);
 					}
 					else if (param == "indexTo") {

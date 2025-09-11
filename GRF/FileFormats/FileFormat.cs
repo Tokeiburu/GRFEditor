@@ -36,6 +36,9 @@ namespace GRF.FileFormats {
 		public static FileFormat Str = new FileFormat(".str", "Animation", Format.Str);
 		public static FileFormat Json = new FileFormat(".json", "Json", Format.Json);
 		public static FileFormat Bson = new FileFormat(".bson", "Bson", Format.Bson);
+		public static FileFormat Rsm = new FileFormat(".rsm", "Rsm", Format.Rsm);
+		public static FileFormat Rsm2 = new FileFormat(".rsm2", "Rsm2", Format.Rsm2);
+		public static FileFormat Csv = new FileFormat(".csv", "Csv", Format.Csv);
 
 		private FileFormat(string extension, string name, Format flag) {
 			Extension = extension;
@@ -75,7 +78,7 @@ namespace GRF.FileFormats {
 	}
 
 	[Flags]
-	public enum Format : uint {
+	public enum Format : long {
 		Ebm = 1 << 1,
 		Pal = 1 << 2,
 		AllContainers = 1 << 3,
@@ -104,5 +107,8 @@ namespace GRF.FileFormats {
 		Str = 1 << 27,
 		Json = 1 << 28,
 		Bson = 1 << 29,
+		Rsm = 1 << 30,
+		Rsm2 = 1 << 31,
+		Csv = 1 << 32,
 	}
 }

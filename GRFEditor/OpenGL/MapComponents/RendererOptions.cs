@@ -4,6 +4,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 	public class MapRendererOptions {
 		public bool Water { get; set; }
 		public bool Ground { get; set; }
+		public bool Gat { get; set; }
 		public bool Objects { get; set; }
 		public bool AnimateMap { get; set; }
 		public bool Lightmap { get; set; }
@@ -22,6 +23,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public bool MinimapMode { get; set; }
 		public bool MinimapWaterOverride { get; set; }
 		public int ForceShader { get; set; }
+		public double RotateSpeed { get; set; }
+		public float GatAlpha { get; set; }
+		public float GatZBias { get; set; }
+		public bool ShowWireframeView { get; set; }
+		public bool ShowPointView { get; set; }
 
 		public Vector4 SkymapBackgroundColor = new Vector4(102, 152, 204, 255) / 255f;	// rbga
 		public Vector4 MinimapWaterColor = new Vector4(0, 0, 128, 144) / 255f;	// rgba
@@ -31,6 +37,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public MapRendererOptions() {
 			Water = true;
 			Ground = true;
+			Gat = true;
 			Objects = true;
 			AnimateMap = true;
 			Lightmap = true;
@@ -47,6 +54,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 			EnableFaceCulling = false;
 			MinimapMode = false;
 			MinimapWaterOverride = false;
+			ShowWireframeView = false;
+			ShowPointView = false;
+			RotateSpeed = 6;
+			GatAlpha = 0.4f;
+			GatZBias = 0f;
 		}
 	}
 }

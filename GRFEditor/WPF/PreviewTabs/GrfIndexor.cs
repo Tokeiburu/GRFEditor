@@ -10,7 +10,8 @@ using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.StrFormat;
-using GRF.System;
+using GRF.IO;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using Utilities;
 using Utilities.Extension;
@@ -59,8 +60,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 			string name = String.Format("db_{0}_{1}.tdb", path.FilePath.GetHashCode(), new FileInfo(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, "")).LastWriteTimeUtc.Ticks);
 			string fileName = Path.Combine(GrfEditorConfiguration.ProgramDataPath, name);
 
-			if (File.Exists(fileName)) {
-				_load(fileName);
+			if (File.Exists(fileName) && _load(fileName, path.FileName)) {
+
+			}
+			else if (path.IsFolder) {
+				// Do not scan folders for indexing
+				return;
 			}
 			else {
 				GrfHolder grf = metaGrf.GetGrf(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, ""));
@@ -181,7 +186,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _load(string fileName) {
+		private bool _load(string fileName, string sourceGrfFileName) {
 			string file = TemporaryFilesManager.GetTemporaryFilePath("db_{0:0000}.db");
 			File.WriteAllBytes(file, Compression.DecompressDotNet(File.ReadAllBytes(fileName)));
 
@@ -207,7 +212,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 							map.Children.Add(_data[children[j]]);
 						}
 						catch (Exception err) {
-							ErrorHandler.HandleException(err);
+							ErrorHandler.HandleException("Database indexing for '" + sourceGrfFileName + "' is corrupted and will be reset.", err);
+							GrfPath.Delete(fileName);
+							return false;
 						}
 					}
 
@@ -218,14 +225,20 @@ namespace GRFEditor.WPF.PreviewTabs {
 							map.Parents.Add(_data[parents[j]]);
 						}
 						catch (Exception err) {
-							ErrorHandler.HandleException(err);
+							ErrorHandler.HandleException("Database indexing for '" + sourceGrfFileName + "' is corrupted and will be reset.", err);
+							GrfPath.Delete(fileName);
+							return false;
 						}
 					}
 				}
 				catch (Exception err) {
-					ErrorHandler.HandleException(err);
+					ErrorHandler.HandleException("Database indexing for '" + sourceGrfFileName + "' is corrupted and will be reset.", err);
+					GrfPath.Delete(fileName);
+					return false;
 				}
 			}
+
+			return true;
 		}
 
 		public void DeleteIndexes() {

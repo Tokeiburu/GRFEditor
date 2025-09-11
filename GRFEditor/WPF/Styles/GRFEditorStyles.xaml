@@ -1,8 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
-                    xmlns:TreeViewManager="clr-namespace:GrfToWpfBridge.TreeViewManager;assembly=GrfToWpfBridge"
-                    xmlns:mapExtractor="clr-namespace:GRFEditor.Tools.MapExtractor">
+                    xmlns:TreeViewManager="clr-namespace:GrfToWpfBridge.TreeViewManager;assembly=GrfToWpfBridge">
     <Style TargetType="{x:Type ComboBox}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
     </Style>
@@ -67,7 +66,7 @@
     <SolidColorBrush x:Key="FocusBrush" Color="#06CCFE"/>
 
     <SolidColorBrush x:Key="CellBrushDefault" Color="Black"/>
-    <SolidColorBrush x:Key="CellBrushLzma" Color="#FF9A0096"/>
+    <SolidColorBrush x:Key="CellBrushCustomCompression" Color="#FF9A0096"/>
     <SolidColorBrush x:Key="CellBrushEncrypted" Color="#FFE08000"/>
     <SolidColorBrush x:Key="CellBrushRemoved" Color="Red"/>
     <SolidColorBrush x:Key="CellBrushAdded" Color="Blue"/>
@@ -272,7 +271,8 @@
                         </Border>
                         <Canvas Name="Canva" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0 0 10.5 0">
                             <Path Stroke="{DynamicResource TabControlBorder}" StrokeThickness="1" Data="M 0,0 12,12 12,-12 0,0 12,12" Fill="{DynamicResource TabItemBackground}" />
-                            <Path Stroke="{DynamicResource TabItemBackground}" StrokeThickness="1" Data="M 12,16 12,-16" Fill="{DynamicResource TabItemBackground}" />
+							<Path Stroke="{DynamicResource TabItemBackground}" StrokeThickness="1" Data="M 12,16 12,-16" Fill="{DynamicResource TabItemBackground}" RenderOptions.EdgeMode="Aliased" />
+							<Path Stroke="{DynamicResource TabItemBackground}" StrokeThickness="1" Data="M 13,16 13,-16" Fill="{DynamicResource TabItemBackground}" RenderOptions.EdgeMode="Aliased" />
                         </Canvas>
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -495,7 +495,7 @@
                     <Border Name="_tviHeader" Background="Transparent" Margin="-2 0 0 0">
                         <Border Name="_tviHeaderBorder" CornerRadius="2" BorderThickness="1">
                             <StackPanel Orientation="Horizontal" Margin="3 0 1 0">
-                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="../../Resources/folderClosed.png" />
+                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="../../Resources/folderClosed.png" RenderOptions.BitmapScalingMode="HighQuality" />
                                 <Grid>
                                     <StackPanel Orientation="Horizontal" Margin="0">
                                         <TextBlock Text="{Binding Path=HeaderText, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Name="_tbDisplay" Margin="4 0 0 0" VerticalAlignment="Center" Foreground="{DynamicResource UITreeViewDefaultForegroundBrush}" />
@@ -568,7 +568,7 @@
                     <Border Name="_tviHeader" Background="Transparent" Margin="-2 0 0 0">
                         <Border Name="_tviHeaderBorder" CornerRadius="2" BorderThickness="1" ToolTip="{Binding Path=TooltipText, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:ProjectTreeViewItem}}}">
                             <StackPanel Orientation="Horizontal" Margin="3 0 1 0">
-                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="{Binding Path=ImagePath, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:ProjectTreeViewItem}}}" />
+                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="{Binding Path=ImagePath, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:ProjectTreeViewItem}}}" RenderOptions.BitmapScalingMode="HighQuality" />
                                 <TextBlock Text="{Binding Path=HeaderText, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:ProjectTreeViewItem}}}" Name="_tbDisplay" Margin="4 0 0 0" VerticalAlignment="Center" Foreground="{DynamicResource UITreeViewDefaultForegroundBrush}" />
                                 <TextBlock Text="{Binding Path=TranslatedText, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:ProjectTreeViewItem}}}" Name="_tbDisplayVirtual" FontStyle="Italic" Foreground="Gray" Margin="0 0 4 0" VerticalAlignment="Center" />
                             </StackPanel>
@@ -610,7 +610,7 @@
                     <Border Name="_tviHeader" Background="Transparent" Margin="-2 0 0 0">
                         <Border Name="_tviHeaderBorder" CornerRadius="2" BorderThickness="1">
                             <StackPanel Orientation="Horizontal" Margin="3 0 1 0">
-                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="../../Resources/treeClass.png" />
+                                <Image Name="_image" Height="16" Width="16" Stretch="Uniform" Source="../../Resources/treeClass.png" RenderOptions.BitmapScalingMode="HighQuality" />
                                 <TextBlock Text="{Binding Path=HeaderText, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:TypeTreeViewItem}}}" Name="_tbDisplay" Margin="4 0 0 0" VerticalAlignment="Center" Foreground="{DynamicResource UITreeViewDefaultForegroundBrush}" />
                                 <TextBlock Text="{Binding Path=TranslatedText, RelativeSource={RelativeSource AncestorType={x:Type TreeViewManager:TypeTreeViewItem}}}" Name="_tbDisplayVirtual" FontStyle="Italic" Foreground="Gray" Margin="0 0 4 0" VerticalAlignment="Center" />
                             </StackPanel>
@@ -654,7 +654,7 @@
 
     <Thickness x:Key="CheckBoxMarginOffset" Left="4" Top="0" Right="0" Bottom="0" />
 
-    <Style x:Key="MapExtractorTreeViewItemStyle" TargetType="{x:Type mapExtractor:MapExtractorTreeViewItem}">
+	<Style x:Key="MapExtractorTreeViewItemStyle" TargetType="{x:Type TreeViewManager:MapExtractorTreeViewItem}">
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HeaderTemplate">
@@ -702,4 +702,11 @@
             </Setter.Value>
         </Setter>
     </Style>
+
+    <Color x:Key="UIThemeTextBoxBackgroundColor">#FFFFFF</Color>
+	<SolidColorBrush x:Key="UIThemeTextBoxBackgroundBrush" Color="{StaticResource UIThemeTextBoxBackgroundColor}" />
+
+	<Style TargetType="{x:Type Image}">
+		<Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+	</Style>
 </ResourceDictionary>

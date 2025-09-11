@@ -111,7 +111,7 @@
                         </Grid>
                     </StackPanel>
                 </TabItem>
-                <TabItem Header="Meta Grf" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
+                <TabItem Header="Resources" Style="{DynamicResource TabItemStyled}" Foreground="{StaticResource TextForeground}">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto" />
@@ -120,7 +120,7 @@
                         </Grid.RowDefinitions>
                         <StackPanel>
                             <StackPanel>
-                                <Label Content="Meta Grf" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+                                <Label Content="Resources" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
                                 <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
                             </StackPanel>
                             <WrapPanel>

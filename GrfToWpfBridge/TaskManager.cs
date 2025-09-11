@@ -29,5 +29,11 @@ namespace GrfToWpfBridge {
 			dialog.Start(task, progress);
 			dialog.ShowDialog();
 		}
+
+		public static void DisplayTaskC(string title, string description, Func<float> progress, Action<TaskDialog, Func<bool>> task) {
+			TaskDialog dialog = new TaskDialog(title, "document.ico", description);
+			dialog.Start(f => task(dialog, f), progress);
+			dialog.ShowDialog();
+		}
 	}
 }

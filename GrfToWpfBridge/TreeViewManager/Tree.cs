@@ -47,20 +47,20 @@ namespace GrfToWpfBridge.TreeViewManager {
 			nodes.ForEach(p => p.UpdateDisplayEncoding());
 		}
 
-		public void AddPath(TkPath path) {
-			_addPath(Path.GetFileName(path.FilePath) + (String.IsNullOrEmpty(path.RelativePath) ? "" : "\\" + path.RelativePath), path);
+		public void AddPath(TkPath path, bool ignoreCase, int insertLocation = -1) {
+			_addPath(Path.GetFileName(path.FilePath) + (String.IsNullOrEmpty(path.RelativePath) ? "" : "\\" + path.RelativePath), path, ignoreCase, insertLocation);
 		}
 
-		private void _addPath(string path, TkPath tkPath) {
+		private void _addPath(string path, TkPath tkPath, bool ignoreCase, int insertLocation = -1) {
 			string[] folders = path.Split('\\');
 
 			if (folders.Length == 1 && folders[0] == "")
 				return;
 
 			if (TreeNode == null)
-				TreeNode = new TreeNode(this, folders[0], tkPath, null);
+				TreeNode = new TreeNode(this, folders[0], tkPath, null, ignoreCase, insertLocation);
 
-			TreeNode.AddPath(folders, tkPath, 1);
+			TreeNode.AddPath(folders, tkPath, 1, insertLocation);
 		}
 
 		private List<TreeNode> _getAllNodes() {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using GRF.Graphics;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities.Extension;
 using Utilities.Services;
 
@@ -15,20 +15,13 @@ namespace GRF.IO {
 		internal object SharedLock = new object();
 		private byte[] _data = new byte[4];
 
-		//public static TkDictionary<string, int> Streams = new TkDictionary<string, int>();
 		private DisposableScope<FileStream> _scope;
 
 		public ByteReaderStream(FileStream stream) {
 			Stream = stream;
 
-			//if (Stream != null) {
-			//	//CLHelper.WriteLine = "Stream opened : " + Stream.Name;
-			//	Streams[Stream.Name]++;
-			//
-			//	if (Streams[Stream.Name] > 1) {
-			//		Z.F();
-			//	}
-			//}
+			if (Stream != null)
+				FileName = Stream.Name;
 		}
 
 		public ByteReaderStream() {
@@ -113,8 +106,7 @@ namespace GRF.IO {
 
 		public byte[] Bytes(int count) {
 			byte[] data = new byte[count];
-			int r = Stream.Read(data, 0, count);
-			if (r != count)
+			if (Stream.Read(data, 0, count) != count)
 				throw new EndOfStreamException();
 			return data;
 		}
@@ -182,7 +174,8 @@ namespace GRF.IO {
 		}
 
 		public int Int32() {
-			Stream.Read(_data4, 0, 4);
+			if (Stream.Read(_data4, 0, 4) != 4)
+				throw new EndOfStreamException();
 			return BitConverter.ToInt32(_data4, 0);
 		}
 
@@ -329,6 +322,10 @@ namespace GRF.IO {
 
 		public void Delete() {
 			Stream = null;
+		}
+
+		public string GetSource() {
+			return FileName;
 		}
 	}
 }

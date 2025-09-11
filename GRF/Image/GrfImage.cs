@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using GRF.ContainerFormat;
 using GRF.FileFormats.SprFormat;
 using GRF.FileFormats.TgaFormat;
@@ -140,7 +141,7 @@ namespace GRF.Image {
 		public int Height { get; private set; }
 
 		/// <summary>
-		/// Gets the pixels of the image.
+		/// Gets the pixels of the image, either indexed or Bgr(a).
 		/// </summary>
 		public byte[] Pixels { get; private set; }
 
@@ -908,8 +909,14 @@ namespace GRF.Image {
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
 
 			if (GrfImageType == GrfImageType.Indexed8) {
+				if (pixelIndex == -1)
+					return new GrfColor(Palette, 4 * Pixels[Pixels.Length - 1], GrfImageType);
+
 				return new GrfColor(Palette, 4 * Pixels[pixelIndex], GrfImageType);
 			}
+
+			if (pixelIndex == -1)
+				return new GrfColor(Pixels, Pixels.Length - bpp, GrfImageType);
 
 			return new GrfColor(Pixels, bpp * pixelIndex, GrfImageType);
 		}
@@ -1102,29 +1109,41 @@ namespace GRF.Image {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
-			byte[] colorByte = new byte[] { color.R, color.G, color.B, 255 };
-
+			// Palette uses Rgba format
 			if (GrfImageType == GrfImageType.Indexed8) {
-				for (int i = 0; i < 1024; i += 4) {
-					if (Palette[i] == color.R &&
-						Palette[i + 1] == color.G &&
-						Palette[i + 2] == color.B) {
-						Palette[i + 3] = 0;
+				unsafe {
+					fixed (byte* pBase = Palette) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Palette.Length;
+
+						while (p < pEnd) {
+							if (p[0] == color.R && p[1] == color.G && p[2] == color.B)
+								p[3] = 0;
+							p += 4;
+						}
 					}
 				}
 			}
+			// Pixels uses Bgra format
 			else if (GrfImageType == GrfImageType.Bgr24) {
 				int bpp = _getBpp();
 				TransparentPixels = new bool[Width * Height];
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] == colorByte[0] &&
-						Pixels[i + 1] == colorByte[1] &&
-						Pixels[i + 2] == colorByte[2]) {
-						TransparentPixels[i / bpp] = true;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+						int i = 0;
 
-						for (int p = 0; p < bpp; p++) {
-							Pixels[p + i] = 0;
+						while (p < pEnd) {
+							if (p[0] == color.B && p[1] == color.G && p[2] == color.R) {
+								p[3] = 0;
+								TransparentPixels[i / bpp] = true;
+								p[0] = p[1] = p[2] = 0;
+							}
+
+							p += bpp;
+							i += bpp;
 						}
 					}
 				}
@@ -1132,12 +1151,20 @@ namespace GRF.Image {
 			else {
 				int bpp = _getBpp();
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] == colorByte[0] &&
-						Pixels[i + 1] == colorByte[1] &&
-						Pixels[i + 2] == colorByte[2]) {
-						for (int p = 0; p < bpp; p++) {
-							Pixels[p + i] = 0;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+
+						while (p < pEnd) {
+							if (p[0] == color.B && p[1] == color.G && p[2] == color.R) {
+								p[0] = p[1] = p[2] = 0;
+
+								if (bpp > 3)
+									p[3] = 0;
+							}
+
+							p += bpp;
 						}
 					}
 				}
@@ -1158,9 +1185,9 @@ namespace GRF.Image {
 					if (Palette[i] > 250 &&
 						Palette[i + 1] < 5 && 
 						Palette[i + 2] > 250) {
-						Palette[i + 0] = 0;
+						Palette[i + 0] = 255;
 						Palette[i + 1] = 0;
-						Palette[i + 2] = 0;
+						Palette[i + 2] = 255;
 						Palette[i + 3] = 0;
 					}
 				}
@@ -1309,13 +1336,10 @@ namespace GRF.Image {
 
 			GrfImageType = image.GrfImageType;
 
-			byte[] pixels = image.Pixels;
-			byte[] palette = image.Palette;
-
+			Pixels = image.Pixels;
+			Palette = image.Palette;
 			Width = image.Width;
 			Height = image.Height;
-			SetPalette(ref palette);
-			SetPixels(ref pixels);
 		}
 
 		/// <summary>
@@ -1675,58 +1699,6 @@ namespace GRF.Image {
 			return toRemove;
 		}
 
-		public GrfImage UVMap(float[] u, float[] v) {
-			// Detect rotation
-			if (u[0] == u[1]) {
-				// rotated, only care about this one
-				Pixels = new byte[Width * Height * _getBpp()];
-			}
-			else {
-				float uMax = u.Max(p => p);
-				float uMin = u.Min(p => p);
-
-				float difU = uMax - uMin;
-				int newWidth = (int)Math.Ceiling(difU * Width);
-
-				float vMax = v.Max(p => p);
-				float vMin = v.Min(p => p);
-
-				float difV = vMax - vMin;
-				int newHeight = (int)Math.Ceiling(difV * Height);
-
-				int bpp = _getBpp();
-				byte[] pixels = new byte[newWidth * newHeight * bpp];
-
-				float minX = u.Select(Math.Abs).Min();
-				float minY = v.Select(Math.Abs).Min();
-
-				for (int y = 0; y < newHeight; y++) {
-					for (int x = 0; x < newWidth; x++) {
-						float offsetX = ((float)x / newWidth) * difU + minX;
-						float offsetY = ((float)y / newHeight) * difV + minY;
-
-						for (int i = 0; i < bpp; i++) {
-							pixels[bpp * (y * newWidth + x) + i] = Pixels[bpp * ((int)(offsetY * Height) * newWidth + (int)(offsetX * Width)) + i];
-						}
-					}
-				}
-
-				byte[] palette = Palette == null ? new byte[1024] : Methods.Copy(Palette);
-				GrfImage image = new GrfImage(ref pixels, newWidth, newHeight, GrfImageType, ref palette);
-
-				if (u[0] < u[1]) {
-					image.Flip(FlipDirection.Vertical);
-				}
-
-				if (v[2] <= v[0]) {
-					image.Flip(FlipDirection.Horizontal);
-				}
-
-				return image;
-			}
-			return Copy();
-		}
-
 		public static GrfImage Empty(GrfImageType type) {
 			int bpp = -1;
 
@@ -1755,7 +1727,209 @@ namespace GRF.Image {
 			return new GrfImage(ref data, 1, 1, type);
 		}
 
+		public enum SprTransparencyMode {
+			Normal,
+			PixelIndexZero,
+			PixelIndexPink,
+			FirstPixel,
+			LastPixel,
+		}
+
+		public enum SprConvertMode {
+			Original,
+			BestMatch,
+			MergeRgb,
+			MergeLab,
+			MergeOld,
+			Bgra32,
+		}
+
+		public static GrfImage SprConvert(Spr spr, GrfImage imageSource, bool useDithering, SprTransparencyMode transparency, SprConvertMode mode) {
+			// ?? What if palette is not set...?
+			var _originalPalette = spr.Palette.BytePalette;
+
+			if (mode == SprConvertMode.Original) {
+				if (imageSource.GrfImageType != GrfImageType.Indexed8)
+					return null;
+
+				var imageCopy = imageSource.Copy();
+				imageCopy.SetPalette(_originalPalette);
+				imageCopy.MakeFirstPixelTransparent();
+				return imageCopy;
+			}
+
+			var _unusedIndexes = spr.GetUnusedPaletteIndexes();
+			_unusedIndexes.Remove(0);
+
+			GrfColor transparencyColor = null;
+
+			// Apply transparency mode
+			switch (transparency) {
+				case SprTransparencyMode.Normal:
+					break;
+				case SprTransparencyMode.PixelIndexZero:
+					byte r = imageSource.GrfImageType == GrfImageType.Indexed8 ? imageSource.Palette[0] : _originalPalette[0];
+					byte g = imageSource.GrfImageType == GrfImageType.Indexed8 ? imageSource.Palette[1] : _originalPalette[1];
+					byte b = imageSource.GrfImageType == GrfImageType.Indexed8 ? imageSource.Palette[2] : _originalPalette[2];
+					byte a = imageSource.GrfImageType == GrfImageType.Indexed8 ? imageSource.Palette[3] : _originalPalette[3];
+
+					transparencyColor = new GrfColor(a, r, g, b);
+					break;
+				case SprTransparencyMode.PixelIndexPink:
+					transparencyColor = new GrfColor(255, 255, 0, 255);
+					break;
+				case SprTransparencyMode.FirstPixel:
+					transparencyColor = imageSource.GetColor(0);
+					break;
+				case SprTransparencyMode.LastPixel:
+					transparencyColor = imageSource.GetColor(-1);
+					break;
+			}
+
+			switch (mode) {
+				case SprConvertMode.Bgra32:
+					GrfImage bgra32 = imageSource.Copy();
+					bgra32.Convert(new Bgra32FormatConverter());
+
+					if (transparencyColor != null)
+						_sprMakeTransparent(bgra32, transparencyColor.B, transparencyColor.G, transparencyColor.R, transparencyColor.A);
+
+					return bgra32;
+				case SprConvertMode.BestMatch:
+					GrfImage match = imageSource.Copy();
+					Indexed8FormatConverter conv = new Indexed8FormatConverter();
+
+					// PixelIndexZero is done automatically
+					if (transparencyColor != null && transparency != SprTransparencyMode.PixelIndexZero) {
+						match.MakeColorTransparent(transparencyColor);
+					}
+
+					if (useDithering) {
+						conv.Options |= Indexed8FormatConverter.PaletteOptions.UseDithering | Indexed8FormatConverter.PaletteOptions.UseExistingPalette;
+					}
+
+					conv.ExistingPalette = _originalPalette;
+					conv.BackgroundColor = GrfColor.White;
+
+					match.Convert(conv);
+
+					switch (transparency) {
+						case SprTransparencyMode.PixelIndexZero:
+							match = _sprGetImageUsingPixelZero(_originalPalette, imageSource, match);
+							break;
+						case SprTransparencyMode.PixelIndexPink:
+						case SprTransparencyMode.FirstPixel:
+						case SprTransparencyMode.LastPixel:
+							match = _sprGetImageUsingPixel(_originalPalette, match, transparencyColor);
+							break;
+					}
+					
+					match.MakeFirstPixelTransparent();
+					return match;
+				case SprConvertMode.MergeOld:
+				case SprConvertMode.MergeRgb:
+				case SprConvertMode.MergeLab:
+					GrfImage merge = imageSource.Copy();
+
+					if (transparencyColor != null && transparency != SprTransparencyMode.PixelIndexZero) {
+						merge.MakeColorTransparent(transparencyColor);
+					}
+
+					merge = SpriteImageToIndexed8(spr, merge, useDithering, mode);
+
+					switch (transparency) {
+						case SprTransparencyMode.PixelIndexZero:
+							merge = _sprGetImageUsingPixelZero(_originalPalette, imageSource, merge);
+							break;
+						case SprTransparencyMode.PixelIndexPink:
+						case SprTransparencyMode.FirstPixel:
+						case SprTransparencyMode.LastPixel:
+							merge = _sprGetImageUsingPixel(_originalPalette, merge, transparencyColor);
+							break;
+					}
+
+					merge.MakeFirstPixelTransparent();
+					return merge;
+			}
+
+			return null;
+		}
+
+		private static GrfImage _sprGetImageUsingPixelZero(byte[] originalPalette, GrfImage imageSource, GrfImage image) {
+			if (image != null && image.GrfImageType == GrfImageType.Indexed8) {
+				GrfImage im = image.Copy();
+
+				byte[] palette = im.Palette;
+				Buffer.BlockCopy(originalPalette, 0, palette, 0, 4);
+
+				if (imageSource.GrfImageType == GrfImageType.Indexed8) {
+					if (imageSource.Pixels.Any(p => p == 0)) {
+						for (int i = 0; i < im.Pixels.Length; i++) {
+							if (imageSource.Pixels[i] == 0) {
+								im.Pixels[i] = 0;
+							}
+						}
+					}
+				}
+
+				return im;
+			}
+
+			return null;
+		}
+
+		private static GrfImage _sprGetImageUsingPixel(byte[] originalPalette, GrfImage image, GrfColor color) {
+			if (image != null && image.GrfImageType == GrfImageType.Indexed8) {
+				GrfImage im = image.Copy();
+
+				List<byte> toChange = new List<byte>();
+
+				for (int i = 0; i < 256; i++) {
+					if (image.Palette[4 * i + 0] == color.R &&
+						image.Palette[4 * i + 1] == color.G &&
+						image.Palette[4 * i + 2] == color.B) {
+						toChange.Add((byte)i);
+					}
+				}
+
+				byte[] palette = im.Palette;
+				Buffer.BlockCopy(originalPalette, 0, palette, 0, 4);
+
+				for (int i = 0; i < im.Pixels.Length; i++) {
+					if (toChange.Contains(im.Pixels[i])) {
+						im.Pixels[i] = 0;
+					}
+				}
+
+				return im;
+			}
+
+			return null;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static void _sprMakeTransparent(GrfImage image, byte b, byte g, byte r, byte a) {
+			unsafe {
+				fixed (byte* pBase = image.Pixels) {
+					byte* p = pBase;
+					byte* pEnd = pBase + image.Pixels.Length;
+
+					while (p < pEnd) {
+						if (b == p[0] && g == p[1] && r == p[2] && a == p[3]) {
+							p[3] = 0;
+						}
+
+						p += 4;
+					}
+				}
+			}
+		}
+
 		public static GrfImage SpriteImageToIndexed8(Spr spr, GrfImage imageSource, bool useDithering) {
+			return SpriteImageToIndexed8(spr, imageSource, useDithering, SprConvertMode.MergeOld);
+		}
+
+		public static GrfImage SpriteImageToIndexed8(Spr spr, GrfImage imageSource, bool useDithering, SprConvertMode mode) {
 			GrfImage im = imageSource.Copy();
 			byte[] originalPalette = spr.Palette.BytePalette;
 			HashSet<byte> unusedIndexesHS = spr.GetUnusedPaletteIndexes();
@@ -1796,7 +1970,7 @@ namespace GRF.Image {
 					}
 				}
 				else {
-					List<Tuple<int, byte>> colors = newImageUsedIndexes.Select(t => new Tuple<int, byte>((im.Palette[4 * t + 0]) << 16 | (im.Palette[4 * t + 1]) << 8 | (im.Palette[4 * t + 2]), t)).ToList();
+					var colors = newImageUsedIndexes.Select(t => new Utilities.Extension.Tuple<int, byte>((im.Palette[4 * t + 0]) << 16 | (im.Palette[4 * t + 1]) << 8 | (im.Palette[4 * t + 2]), t)).ToList();
 					colors = colors.OrderBy(p => p.Item1).ToList();
 
 					List<byte> newImageTempUsedIndexes = new List<byte>();
@@ -1824,22 +1998,38 @@ namespace GRF.Image {
 					unusedIndexes.RemoveAt(0);
 				}
 			}
-			else {
-				GrfImage imTemp = im.Copy();
-				Bgr32FormatConverter tconv = new Bgr32FormatConverter();
-				tconv.BackgroundColor = GrfColor.White;
-				imTemp.Convert(tconv, null);
+			else if (mode == SprConvertMode.MergeOld) {
+				HashSet<int> colors = new HashSet<int>();
 
-				List<int> colors = new List<int>(imTemp.Pixels.Length / 4);
+				// Set white background at the same time
+				unsafe {
+					fixed (byte* pBase = im.Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + im.Pixels.Length;
 
-				int index;
-				for (int i = 0; i < imTemp.Pixels.Length / 4; i++) {
-					index = 4 * i;
-					if (imTemp.Pixels[index + 3] != 0)
-						colors.Add(imTemp.Pixels[index + 2] << 16 | imTemp.Pixels[index + 1] << 8 | imTemp.Pixels[index + 0]);
+						while (p < pEnd) {
+							byte a = p[3];
+							int key = 0;
+
+							if (a == 0) {
+								p += 4;
+								continue;
+							}
+
+							if (a != 255) {
+								int m = (255 - a) * 255;
+								p[0] = (byte)((m + a * p[0]) / 255);
+								p[1] = (byte)((m + a * p[1]) / 255);
+								p[2] = (byte)((m + a * p[2]) / 255);
+								p[3] = 255;
+							}
+
+							key = (p[2] << 16) | (p[1] << 8) | p[0];
+							colors.Add(key);
+							p += 4;
+						}
+					}
 				}
-
-				colors = colors.Distinct().OrderBy(p => p).ToList();
 
 				int color;
 				for (int i = 0; i < 256; i++) {
@@ -1849,23 +2039,69 @@ namespace GRF.Image {
 					}
 				}
 
-				int numberOfColorsToAdd = numberOfAvailableColors - 1;
+				int numberOfColorsToAdd = numberOfAvailableColors;
 				numberOfColorsToAdd = colors.Count < numberOfColorsToAdd ? colors.Count : numberOfColorsToAdd;
+
+				List<int> colorsList = colors.ToList();
+				colorsList.Sort();
 
 				for (int i = 0; i < numberOfColorsToAdd - 1; i++) {
 					byte unused = unusedIndexes[0];
-					newPalette[4 * unused + 0] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0xFF0000) >> 16);
-					newPalette[4 * unused + 1] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0x00FF00) >> 8);
-					newPalette[4 * unused + 2] = (byte)((colors[(int)(i / (float)numberOfColorsToAdd * colors.Count)] & 0x0000FF));
+					newPalette[4 * unused + 0] = (byte)((colorsList[(int)(i / (float)numberOfColorsToAdd * colorsList.Count)] & 0xFF0000) >> 16);
+					newPalette[4 * unused + 1] = (byte)((colorsList[(int)(i / (float)numberOfColorsToAdd * colorsList.Count)] & 0x00FF00) >> 8);
+					newPalette[4 * unused + 2] = (byte)((colorsList[(int)(i / (float)numberOfColorsToAdd * colorsList.Count)] & 0x0000FF));
 					newPalette[4 * unused + 3] = 255;
 					unusedIndexes.RemoveAt(0);
 				}
 
 				if (numberOfColorsToAdd > 0) {
 					byte unused = unusedIndexes[0];
-					newPalette[4 * unused + 0] = (byte)((colors[colors.Count - 1] & 0xFF0000) >> 16);
-					newPalette[4 * unused + 1] = (byte)((colors[colors.Count - 1] & 0x00FF00) >> 8);
-					newPalette[4 * unused + 2] = (byte)((colors[colors.Count - 1] & 0x0000FF));
+					newPalette[4 * unused + 0] = (byte)((colorsList[colorsList.Count - 1] & 0xFF0000) >> 16);
+					newPalette[4 * unused + 1] = (byte)((colorsList[colorsList.Count - 1] & 0x00FF00) >> 8);
+					newPalette[4 * unused + 2] = (byte)((colorsList[colorsList.Count - 1] & 0x0000FF));
+					newPalette[4 * unused + 3] = 255;
+					unusedIndexes.RemoveAt(0);
+				}
+			}
+			else {
+				int numberOfColorsToAdd = numberOfAvailableColors;
+
+				var usedPaletteIndexes = spr.GetUsedPaletteIndexes();
+				usedPaletteIndexes.Remove(0);
+
+				// Do not include the transparent palette index (0)
+				OctreeQuantizer quantizer = new OctreeQuantizer();
+				quantizer.ColorMode = mode == SprConvertMode.MergeLab ? GrfColorMode.Lab : GrfColorMode.Rgb;
+				quantizer.AddImage(im);
+
+				// The quantizer doesn't know we already have colors, so add them to its blacklist
+				HashSet<int> usedColors = new HashSet<int>();
+				foreach (var idx in usedPaletteIndexes) {
+					usedColors.Add(originalPalette[4 * idx + 0] << 16 | originalPalette[4 * idx + 1] << 8 | originalPalette[4 * idx + 2]);
+				}
+				quantizer.SetReservedColors(usedColors);
+
+				var colors = quantizer.GeneratePaletteRgbInt(255);
+				//colors.RemoveAt(0);	// Remove transparent (pink) color from generated palette
+				//
+				//// Use 255 instead of 256 because the transparent color needs space
+				//colors = quantizer.RefinePalette(255, colors, usedColors);
+				
+				var colorsHash = new HashSet<int>(colors);
+				
+				// Remove duplicates
+				foreach (var idx in usedPaletteIndexes) {
+					colorsHash.Remove(originalPalette[4 * idx + 0] << 16 | originalPalette[4 * idx + 1] << 8 | originalPalette[4 * idx + 2]);
+				}
+				
+				colors = colorsHash.ToList();
+				numberOfColorsToAdd = colors.Count < numberOfColorsToAdd ? colors.Count : numberOfColorsToAdd;
+
+				for (int i = 0; i < numberOfColorsToAdd; i++) {
+					byte unused = unusedIndexes[0];
+					newPalette[4 * unused + 0] = (byte)((colors[i] & 0xFF0000) >> 16);
+					newPalette[4 * unused + 1] = (byte)((colors[i] & 0x00FF00) >> 8);
+					newPalette[4 * unused + 2] = (byte)(colors[i] & 0x0000FF);
 					newPalette[4 * unused + 3] = 255;
 					unusedIndexes.RemoveAt(0);
 				}
@@ -1874,9 +2110,11 @@ namespace GRF.Image {
 			Indexed8FormatConverter conv = new Indexed8FormatConverter();
 			conv.BackgroundColor = new GrfColor(255, 255, 0, 255);
 
-			if (useDithering) {
+			if (useDithering)
 				conv.Options |= Indexed8FormatConverter.PaletteOptions.UseDithering;
-			}
+
+			if (mode == SprConvertMode.MergeLab)
+				conv.Options |= Indexed8FormatConverter.PaletteOptions.UseLabDistance;
 
 			conv.ExistingPalette = newPalette;
 			im.Convert(conv, null);

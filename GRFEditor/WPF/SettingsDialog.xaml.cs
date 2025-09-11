@@ -15,8 +15,9 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using ErrorManager;
+using GRF;
 using GRF.Core;
-using GRF.System;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using Microsoft.Win32;
 using TokeiLibrary;
@@ -67,14 +68,17 @@ namespace GRFEditor.WPF {
 			}
 
 			if (grfData.IsOpened) {
-				if (grfData.Header.Is(2, 0)) {
+				if (grfData.Header.Is(3, 0)) {
 					_comboBoxFormat.SelectedIndex = 0;
 				}
-				else if (grfData.Header.Is(1, 3)) {
+				else if (grfData.Header.Is(2, 0)) {
 					_comboBoxFormat.SelectedIndex = 1;
 				}
-				else if (grfData.Header.Is(1, 2)) {
+				else if (grfData.Header.Is(1, 3)) {
 					_comboBoxFormat.SelectedIndex = 2;
+				}
+				else if (grfData.Header.Is(1, 2)) {
+					_comboBoxFormat.SelectedIndex = 3;
 				}
 			}
 			else {
@@ -117,6 +121,8 @@ namespace GRFEditor.WPF {
 			_add(_gridGeneral, ++row, "Enable windows ownership", "Makes the windows linked together, resulting in only being able to focus on one at a time. Disabling this features enables you to open multiple windows (as in tools).", () => Configuration.EnableWindowsOwnership);
 			_add(_gridGeneral, ++row, "Lock added files", "If enabled, files added to a GRF will be locked (other processes won't be able to move, delete or modify them).", () => GrfEditorConfiguration.LockFiles);
 			_add(_gridGeneral, ++row, "Add hash data to Thor files", "If enabled, a hash file will be added to Thor patches.", () => GrfEditorConfiguration.AddHashFileForThor);
+			_add(_gridGeneral, ++row, "Save GRF Editor window position", "If enabled, the window position and width will be saved upon re-opening the program.", () => GrfEditorConfiguration.SaveEditorPosition);
+			//_add(_gridGeneral, ++row, "Remove duplicate GRF entries", "If enabled, this will hide duplicated entries caused by lowercase and uppercase path names.", () => GrfEditorConfiguration.GrfFileTableIgnoreCase);
 
 			Binder.Bind(_cbOverrideExtractionPath, () => GrfEditorConfiguration.OverrideExtractionPath, delegate {
 				_pbExtration.IsEnabled = GrfEditorConfiguration.OverrideExtractionPath;
@@ -158,6 +164,16 @@ namespace GRFEditor.WPF {
 			GrfEditorConfiguration.Resources.Modified += () => _mViewer.LoadResourcesInfo();
 			_mViewer.LoadResourcesInfo();
 			_mViewer.CanDeleteMainGrf = false;
+
+			_configSelect.Content = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png"), Stretch = Stretch.None };
+			_configSelect.Click += delegate {
+				try {
+					Utilities.Services.OpeningService.FileOrFolder(GrfEditorConfiguration.ConfigAsker.ConfigFile);
+				}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
+				}
+			};
 		}
 
 		private void _assoc(CheckBox box, string ext, FileAssociation assoc) {
@@ -368,16 +384,42 @@ namespace GRFEditor.WPF {
 		protected void _comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 			if (_comboBoxFormat != null) {
 				if (_grfData.IsOpened) {
-					switch (_comboBoxFormat.SelectedIndex) {
-						case 0:
-							_grfData.Commands.ChangeVersion(2, 0);
-							break;
-						case 1:
-							_grfData.Commands.ChangeVersion(1, 3);
-							break;
-						case 2:
-							_grfData.Commands.ChangeVersion(1, 2);
-							break;
+
+					try {
+						_grfData.Commands.Begin();
+						switch(_comboBoxFormat.SelectedIndex) {
+							case 0:
+								_grfData.Commands.ChangeVersion(3, 0);
+
+								if (_grfData.Header.Magic == GrfStrings.MasterOfMagic) {
+									_grfData.Commands.ChangeHeader(GrfStrings.EventHorizon);
+								}
+								break;
+							case 1:
+								_grfData.Commands.ChangeVersion(2, 0);
+
+								if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+									_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic);
+								}
+								break;
+							case 2:
+								_grfData.Commands.ChangeVersion(1, 3);
+
+								if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+									_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic);
+								}
+								break;
+							case 3:
+								_grfData.Commands.ChangeVersion(1, 2);
+
+								if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+									_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic);
+								}
+								break;
+						}
+					}
+					finally {
+						_grfData.Commands.End();
 					}
 				}
 				else {

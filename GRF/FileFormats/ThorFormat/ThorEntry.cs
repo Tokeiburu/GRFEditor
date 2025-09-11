@@ -74,13 +74,16 @@ namespace GRF.FileFormats.ThorFormat {
 		}
 
 		protected override byte[] _getDecompressedData() {
-			Stream.PositionUInt = Offset;
+			Stream.PositionLong = Offset;
 
 			byte[] data = Stream.Bytes(SizeCompressed);
 
-			if (Compression.IsNormalCompression || Compression.IsLzma) {
+			if (Compression.IsNormalCompression || Compression.IsLzma || Compression.IsCustom) {
 				if (data.Length > 1 && data[0] == 0) {
-					Flags |= EntryType.LzmaCompressed;
+					Flags |= EntryType.CustomCompressed;
+
+					if (Compression.IsCustom)
+						return Compression.Decompress(data, SizeDecompressed);
 
 					return Compression.DecompressLzma(data, SizeDecompressed);
 				}
@@ -94,7 +97,7 @@ namespace GRF.FileFormats.ThorFormat {
 		}
 
 		protected override byte[] _getCompressedData() {
-			Stream.PositionUInt = Offset;
+			Stream.PositionLong = Offset;
 			return Stream.Bytes(SizeCompressed);
 		}
 

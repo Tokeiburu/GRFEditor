@@ -3,7 +3,6 @@
                     xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
                     xmlns:TreeViewManager="clr-namespace:GrfToWpfBridge.TreeViewManager;assembly=GrfToWpfBridge"
                     xmlns:styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-                    xmlns:mapExtractor="clr-namespace:GRFEditor.Tools.MapExtractor"
                     xmlns:application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge">
     <!-- Dark theme colors and brushes -->
     <Color x:Key="UIThemeDefaultTextColor">#D6D4D8</Color>
@@ -73,13 +72,13 @@
 
     <!-- GRF Editor style overrides - ListView property colors -->
     <Color x:Key="UIThemePropertyDefaultColor">Black</Color>
-    <Color x:Key="UIThemePropertyLzmaColor">#CE6ACB</Color>
+    <Color x:Key="UIThemePropertyCustomCompressedColor">#CE6ACB</Color>
     <Color x:Key="UIThemePropertyEncryptedColor">#F68D00</Color>
     <Color x:Key="UIThemePropertyRemovedColor">#FF5858</Color>
     <Color x:Key="UIThemePropertyAddedColor">#A2A2FF</Color>
 
     <SolidColorBrush x:Key="CellBrushDefault" Color="{StaticResource UIThemePropertyDefaultColor}"/>
-    <SolidColorBrush x:Key="CellBrushLzma" Color="{StaticResource UIThemePropertyLzmaColor}"/>
+    <SolidColorBrush x:Key="CellBrushCustomCompression" Color="{StaticResource UIThemePropertyCustomCompressedColor}"/>
     <SolidColorBrush x:Key="CellBrushEncrypted" Color="{StaticResource UIThemePropertyEncryptedColor}"/>
     <SolidColorBrush x:Key="CellBrushRemoved" Color="{StaticResource UIThemePropertyRemovedColor}"/>
     <SolidColorBrush x:Key="CellBrushAdded" Color="{StaticResource UIThemePropertyAddedColor}"/>
@@ -1079,5 +1078,9 @@
     <LinearGradientBrush x:Key="SearchDialogSubmenuBackgroundBrush" StartPoint="0,0" EndPoint="0,1">
         <GradientStop Offset="0" Color="{DynamicResource UIThemePopupBackgroundColor}" />
         <GradientStop Offset="0.5" Color="{DynamicResource UIThemePopupBackgroundColor}" />
-    </LinearGradientBrush>
+	</LinearGradientBrush>
+
+	<Style TargetType="{x:Type Image}">
+		<Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+	</Style>
 </ResourceDictionary>

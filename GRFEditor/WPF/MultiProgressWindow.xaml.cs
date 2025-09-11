@@ -11,7 +11,7 @@ using ErrorManager;
 using GRF.Core;
 using GRF.Image;
 using GRF.Image.Decoders;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;

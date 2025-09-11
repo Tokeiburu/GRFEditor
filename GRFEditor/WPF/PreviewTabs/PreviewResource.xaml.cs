@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using System.Windows;
 using System.Windows.Media;
@@ -22,6 +23,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			try {
 				var color = ((SolidColorBrush)Application.Current.Resources["TabItemBackground"]).Color;
 				_hexEditor.BackColor = Color.FromArgb(color.A, color.R, color.G, color.B);
+				_hexEditor.Font = new Font("Consolas", 10f, System.Drawing.FontStyle.Regular, GraphicsUnit.Point, 0);
 			}
 			catch {
 			}

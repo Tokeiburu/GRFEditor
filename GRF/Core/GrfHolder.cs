@@ -8,7 +8,7 @@ using GRF.ContainerFormat;
 using GRF.ContainerFormat.Commands;
 using GRF.FileFormats.RgzFormat;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
@@ -267,19 +267,20 @@ namespace GRF.Core {
 					using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
 						if (grf.FileTable.ContainsFile(file)) {
 							var encryptedFiles = Encoding.Default.GetString(grf.FileTable[file].GetDecompressedData());
-
+					
 							foreach (var line in encryptedFiles.Split(new char[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries)) {
 								if (!string.IsNullOrEmpty(line)) {
 									var entry = _grf.Table.TryGet(line);
 									if (entry != null) {
 										entry.Flags |= EntryType.GrfEditorCrypted;
+										entry.OnPropertyChanged("Encrypted");
 									}
 								}
 							}
-
+					
 							if (IsOpened)
 								Header.EncryptionCheckFlag = false;
-
+					
 							return;
 						}
 					}
@@ -316,12 +317,12 @@ namespace GRF.Core {
 		/// <summary>
 		/// Detects the encrypted files and sets the flag.
 		/// </summary>
-		public void SetLzmaFlag() {
+		public void SetCustomCompressionFlag() {
 			GrfThread.Start(delegate {
 				try {
 					AProgress.Init(_grf);
 					GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
-					pool.Initialize<ThreadSetLzma>(_grf, FileTable.Entries, 3);
+					pool.Initialize<ThreadSetCustomCompression>(_grf, FileTable.Entries, 3);
 					pool.Start(v => _grf.Progress = v, () => _grf.IsCancelling);
 				}
 				catch (Exception) {
@@ -348,7 +349,8 @@ namespace GRF.Core {
 			if (_internalGrf == null)
 				return;
 
-			_internalGrf.InternalHeader.EncryptionCheckFlag = false;
+			if (_internalGrf.InternalHeader != null)
+				_internalGrf.InternalHeader.EncryptionCheckFlag = false;
 			_internalGrf.Dispose();
 
 			if (FileTable != null)
@@ -486,6 +488,10 @@ namespace GRF.Core {
 		}
 
 		public void Open(string fileName, GrfLoadOptions options) {
+			Open(fileName, options, null);
+		}
+
+		public void Open(string fileName, GrfLoadOptions options, GrfLoadData loadData) {
 			_validateOperation(Condition.Closed);
 
 			try {
@@ -497,7 +503,7 @@ namespace GRF.Core {
 				else if (options.HasFlags(GrfLoadOptions.OpenOrNew)) {
 					_grfClosed = false;
 					if (File.Exists(fileName)) {
-						_grf = GrfContainerProvider.Get(fileName);
+						_grf = GrfContainerProvider.Get(fileName, loadData);
 					}
 					else {
 						_grf = new Container();
@@ -511,7 +517,7 @@ namespace GRF.Core {
 				}
 				else {
 					_grfClosed = false;
-					_grf = GrfContainerProvider.Get(fileName);
+					_grf = GrfContainerProvider.Get(fileName, loadData);
 				}
 
 				OnContainerOpened();
@@ -603,7 +609,7 @@ namespace GRF.Core {
 		/// Gets the size of all files in the GRF.
 		/// </summary>
 		/// <returns></returns>
-		public List<Tuple<string, string>> GetSizes() {
+		public List<Utilities.Extension.Tuple<string, string>> GetSizes() {
 			return _grf.GetFileCompressedSizes();
 		}
 
@@ -771,13 +777,13 @@ namespace GRF.Core {
 
 				// Load the entries
 				if (entries == null) {
-					entries = _grf.Table.EntriesInDirectory(grfPath, searchOption);
+					entries = _grf.Table.EntriesInDirectory(grfPath, searchOption, options.HasFlags(ExtractOptions.IgnoreCase));
 
 					if (entries.Count == 0)
 						return;
 
 					foreach (var entry in entries) {
-						entry.ExtractionFilePath = GrfPath.Combine(destinationPath, _noRoot(nodeName), _noRoot(entry.RelativePath.ReplaceFirst(grfPathSlash, "")));
+						entry.ExtractionFilePath = GrfPath.Combine(destinationPath, _noRoot(nodeName), _noRoot(entry.RelativePath.ReplaceFirst(grfPathSlash, "", StringComparison.OrdinalIgnoreCase)));
 					}
 
 					if (searchOption == SearchOption.TopDirectoryOnly) {
@@ -786,11 +792,11 @@ namespace GRF.Core {
 					}
 				}
 				else {
-					if (entries.All(p => GrfPath.GetDirectoryName(p.RelativePath) == grfPath)) {
+					if (entries.All(p => GrfPath.GetDirectoryName(p.RelativePath).Equals(grfPath, options.HasFlags(ExtractOptions.IgnoreCase) ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))) {
 						pathToOpen = destinationPath;
 
 						foreach (var entry in entries) {
-							entry.ExtractionFilePath = GrfPath.Combine(destinationPath, _noRoot(entry.RelativePath.ReplaceFirst(grfPathSlash, "")));
+							entry.ExtractionFilePath = GrfPath.Combine(destinationPath, _noRoot(entry.RelativePath.ReplaceFirst(grfPathSlash, "", StringComparison.OrdinalIgnoreCase)));
 						}
 
 						openingMode = OpeningMode.MultipleFiles;
@@ -1060,17 +1066,17 @@ namespace GRF.Core {
 			}
 
 			using (FileStream output = new FileStream(fileName, FileMode.Create)) {
-				output.SetLength(GrfHeader.StructSize);
-				output.Seek(GrfHeader.StructSize, SeekOrigin.Begin);
+				output.SetLength(GrfHeader.DataByteSize);
+				output.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
 
-				uint baseOffset;
+				long baseOffset;
 
 				foreach (var list in subEntries) {
 					var stream = streams[list.Key];
 
 					const int BufferCopyLength = 2097152;
 					byte[] buffer = new byte[BufferCopyLength];
-					baseOffset = (uint) output.Position;
+					baseOffset = output.Position;
 
 					using (FileStream file = stream) {
 						int len;
@@ -1085,14 +1091,14 @@ namespace GRF.Core {
 					}
 				}
 
-				header.FileTableOffset = (uint)output.Position - GrfHeader.StructSize;
+				header.FileTableOffset = (uint)output.Position - GrfHeader.DataByteSize;
 				header.RealFilesCount = container.Table.Entries.Count;
 
 				int tableSize = container.InternalTable.WriteMetadata(header, output);
 
 				output.Seek(0, SeekOrigin.Begin);
 				header.Write(output);
-				output.SetLength(header.FileTableOffset + GrfHeader.StructSize + tableSize);
+				output.SetLength(header.FileTableOffset + GrfHeader.DataByteSize + tableSize);
 			}
 		}
 	}

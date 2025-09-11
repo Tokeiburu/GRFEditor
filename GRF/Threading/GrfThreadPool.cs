@@ -6,7 +6,8 @@ using System.Threading;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.Core;
-using GRF.System;
+using GRF.FileFormats;
+using GRF.GrfSystem;
 
 namespace GRF.Threading {
 	public class GrfThreadPool<TEntry> where TEntry : ContainerEntry {
@@ -134,36 +135,49 @@ namespace GRF.Threading {
 				progressUpdate(_threads.Sum(p => p.NumberOfFilesProcessed) / (float)_numberOfFiles * 100.0f);
 		}
 
-		public uint Dump(Stream grfStream, long offset = GrfHeader.StructSize, long grfAddTotalSize = 0) {
-			const int BufferCopyLength = 2097152;
-			byte[] buffer = new byte[BufferCopyLength];
-			long totalLength = offset;
+		public long Dump(FileHeader header, Stream grfStream, long offset = GrfHeader.DataByteSize, long grfAddTotalSize = 0) {
+			try {
+				const int BufferCopyLength = 2097152;
+				byte[] buffer = new byte[BufferCopyLength];
+				long totalLength = offset;
 
-			// Validate total length
-			foreach (GrfWriterThread<TEntry> t in Threads) {
-				totalLength += new FileInfo(t.FileName).Length;
+				// Validate total length
+				foreach (GrfWriterThread<TEntry> t in Threads) {
+					totalLength += new FileInfo(t.FileName).Length;
+				}
+
+				if (header.IsNotCompatibleWith(3, 0) && totalLength + grfAddTotalSize > uint.MaxValue) {
+					throw GrfExceptions.__GrfSizeLimitReached.Create();
+				}
+
+				foreach (GrfWriterThread<TEntry> t in Threads) {
+					if (t.OutputFileStream != null) {
+						t.OutputFileStream.Close();
+					}
+
+					using (FileStream file = new FileStream(t.FileName, FileMode.Open)) {
+						int len;
+						while ((len = file.Read(buffer, 0, BufferCopyLength)) > 0) {
+							grfStream.Write(buffer, 0, len);
+						}
+					}
+					File.Delete(t.FileName);
+				}
+
+				foreach (TEntry grfentry in Entries) {
+					grfentry.TemporaryOffset = offset;
+					offset += grfentry.TemporarySizeCompressedAlignment;
+				}
+
+				return offset;
 			}
-
-			if (totalLength + grfAddTotalSize > uint.MaxValue) {
-				throw GrfExceptions.__GrfSizeLimitReached.Create();
-			}
-
-			foreach (GrfWriterThread<TEntry> t in Threads) {
-				using (FileStream file = new FileStream(t.FileName, FileMode.Open)) {
-					int len;
-					while ((len = file.Read(buffer, 0, BufferCopyLength)) > 0) {
-						grfStream.Write(buffer, 0, len);
+			finally {
+				foreach (GrfWriterThread<TEntry> t in Threads) {
+					if (t.OutputFileStream != null) {
+						t.OutputFileStream.Close();
 					}
 				}
-				File.Delete(t.FileName);
 			}
-
-			foreach (TEntry grfentry in Entries) {
-				grfentry.TemporaryOffset = (uint)offset;
-				offset += (uint) grfentry.TemporarySizeCompressedAlignment;
-			}
-
-			return (uint)offset;
 		}
 	}
 

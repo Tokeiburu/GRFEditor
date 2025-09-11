@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GRF.ContainerFormat;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
@@ -27,7 +27,7 @@ namespace GRF.Core {
 			_grf = grf;
 			Progress = -1;
 
-			grfStream.Seek(GrfHeader.StructSize, SeekOrigin.Begin);
+			grfStream.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
 
 			List<FileEntry> sortedEntries = grf.Table.Entries.OrderBy(p => p.FileExactOffset).ToList();
 
@@ -35,7 +35,7 @@ namespace GRF.Core {
 				GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
 				pool.Initialize<ThreadRepack>(grf, sortedEntries);
 				pool.Start(v => Progress = v, () => grf.IsCancelling);
-				pool.Dump(grfStream);
+				pool.Dump(grf.Header, grfStream);
 			}
 		}
 
@@ -68,7 +68,7 @@ namespace GRF.Core {
 			grf.Table.InvalidateInternalSets();
 
 			int numberOfFilesToCopy = grf.Table.Entries.Count;
-			long offset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.StructSize);
+			long offset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.DataByteSize);
 			_newFilesCopy(grf, numberOfFilesToCopy, grfStream, offset);
 
 			foreach (var entry in deletedEntries) {
@@ -124,12 +124,12 @@ namespace GRF.Core {
 
 			List<FileEntry> sortedEntries = table.Entries.OrderBy(p => p.FileExactOffset).ToList();
 			QuickMergeHelper helper = new QuickMergeHelper(grf);
-			long endStreamOffset = sortedEntries.Count > 0 ? sortedEntries.Last().FileExactOffset + (uint) sortedEntries.Last().TemporarySizeCompressedAlignment : GrfHeader.StructSize;
+			long endStreamOffset = sortedEntries.Count > 0 ? sortedEntries.Last().FileExactOffset + (uint) sortedEntries.Last().TemporarySizeCompressedAlignment : GrfHeader.DataByteSize;
 			byte[] data;
 
-			if (endStreamOffset < GrfHeader.StructSize) {
+			if (endStreamOffset < GrfHeader.DataByteSize) {
 				// This will happen for new GRFs
-				endStreamOffset = GrfHeader.StructSize;
+				endStreamOffset = GrfHeader.DataByteSize;
 
 				if (originalStream.Length < endStreamOffset) {
 					originalStream.SetLength(endStreamOffset);
@@ -162,7 +162,7 @@ namespace GRF.Core {
 				}
 			}
 
-			if (shouldRepack || helper.ShouldRepackInstead(entriesGrfAdd, entriesAdded) || grfAddTotalSize + grf.InternalHeader.FileTableOffset > uint.MaxValue) {
+			if (shouldRepack || helper.ShouldRepackInstead(entriesGrfAdd, entriesAdded) || (grf.Header.IsNotCompatibleWith(3, 0) && grfAddTotalSize + grf.InternalHeader.FileTableOffset > uint.MaxValue)) {
 				grf.IsBusy = false;
 				originalStream.Close();
 				grf.Reader.SetStream(grf.GetSharedStream());
@@ -259,7 +259,7 @@ namespace GRF.Core {
 			long currentOffset;
 
 			_encryption(grf);
-			currentOffset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.StructSize);
+			currentOffset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.DataByteSize);
 			currentOffset = _newFilesCopy(grf, numberOfFilesToCopy, grfStream, currentOffset);
 			_mergeGrf(grf, numberOfFilesToCopy, grfAdd, grfStream, currentOffset);
 		}
@@ -295,7 +295,7 @@ namespace GRF.Core {
 							else if (grf.Header.IsMajorVersion(1) && grfAdd.Header.IsCompatibleWith(2, 0))
 								entry.DesEncryptPrealigned(data, (int) entry.TemporaryOffset, false);
 
-							entry.TemporaryOffset = (uint)currentOffset;
+							entry.TemporaryOffset = currentOffset;
 							currentOffset += (uint) entry.TemporarySizeCompressedAlignment;
 						}
 
@@ -328,7 +328,7 @@ namespace GRF.Core {
 				pool.Initialize<ThreadCompressFiles>(grf, sortedEntries);
 				pool.Initialize<ThreadCompressSmallFiles>(grf, smallEntries, smallEntries.Count == 0 ? 0 : (smallEntries.Count / 50000) + 1);
 				pool.Start(v => Progress = (v * numberOfFilesToAdd) / (float) numberOfFilesToCopy + currentProgress, () => grf.IsCancelling);
-				currentOffset = pool.Dump(grfStream, currentOffset, grfAddTotalSize);
+				currentOffset = pool.Dump(grf.Header, grfStream, currentOffset, grfAddTotalSize);
 			}
 
 			return currentOffset;
@@ -336,7 +336,7 @@ namespace GRF.Core {
 
 		private static long _continousCopy(Container grf, int numberOfFilesToCopy, Stream originalStream, Stream grfStream, long currentOffset) {
 			List<FileEntry> sortedEntries = grf.Table.Entries.Where(p => !p.Modification.HasFlags(Modification.Added) && !p.Modification.HasFlags(Modification.GrfMerge)).OrderBy(p => p.FileExactOffset).ToList();
-			grfStream.Seek(GrfHeader.StructSize, SeekOrigin.Begin);
+			grfStream.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
 
 			byte[] data;
 			int toIndex = 0;
@@ -368,7 +368,7 @@ namespace GRF.Core {
 					entry.GrfEditorEncrypt(data, (int) entry.TemporaryOffset);
 					entry.GrfEditorDecrypt(data, (int) entry.TemporaryOffset);
 
-					entry.TemporaryOffset = (uint) currentOffset;
+					entry.TemporaryOffset = currentOffset;
 					currentOffset += entry.TemporarySizeCompressedAlignment;
 				}
 

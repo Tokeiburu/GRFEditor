@@ -5,6 +5,7 @@ using GRF.Image;
 using GRF.Image.Decoders;
 using GRF.Threading;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRFEditor.OpenGL.MapComponents {
@@ -408,6 +409,18 @@ namespace GRFEditor.OpenGL.MapComponents {
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 					break;
 				case TextureRenderMode.RsmTexture:
+					if (EnableMipmap) {
+						GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+						GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+					}
+					else {
+						GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+					}
+
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+					break;
 				default:
 					if (EnableMipmap) {
 						GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -431,8 +444,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 					}
 
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.MirroredRepeat);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.MirroredRepeat);
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 					break;
 			}
 		}

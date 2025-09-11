@@ -61,9 +61,11 @@ namespace TokeiLibrary {
 		}
 
 		public static WriteableBitmap FixDPI(BitmapSource bitImage) {
-			if (bitImage == null) return null;
+			return FixDPI(bitImage, 96, 96);
+		}
 
-			const double DPI = 96;
+		public static WriteableBitmap FixDPI(BitmapSource bitImage, double dpiX, double dpiY) {
+			if (bitImage == null) return null;
 
 			if (Methods.CanUseIndexed8 || bitImage.Format != PixelFormats.Indexed8) {
 				int width = bitImage.PixelWidth;
@@ -73,7 +75,7 @@ namespace TokeiLibrary {
 				byte[] pixelData = new byte[stride * height];
 				bitImage.CopyPixels(pixelData, stride, 0);
 
-				WriteableBitmap bitmap = new WriteableBitmap(BitmapSource.Create(width, height, DPI, DPI, bitImage.Format, bitImage.Palette, pixelData, stride));
+				WriteableBitmap bitmap = new WriteableBitmap(BitmapSource.Create(width, height, dpiX, dpiY, bitImage.Format, bitImage.Palette, pixelData, stride));
 				bitmap.Freeze();
 				return bitmap;
 			}

@@ -57,23 +57,25 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_asyncOperation = asyncOperation;
 			InitializeComponent();
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
+			_grid.UseLayoutRounding = false;
 
 			_imagePreview.Dispatch(p => p.SetValue(RenderOptions.BitmapScalingModeProperty, Configuration.BestAvailableScaleMode));
 			_imagePreview.Dispatch(p => p.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased));
+			//_imagePreview.Dispatch(p => p.UseLayoutRounding = false);
 
 			Binder.Bind(_buttonScale, () => GrfEditorConfiguration.PreviewActScaleType, v => GrfEditorConfiguration.PreviewActScaleType = v, delegate {
 				_buttonScale.IsPressed = GrfEditorConfiguration.PreviewActScaleType;
 			}, true);
 
 			_fancyButtons = new FancyButton[] { _fancyButton0, _fancyButton1, _fancyButton2, _fancyButton3, _fancyButton4, _fancyButton5, _fancyButton6, _fancyButton7 }.ToList();
-			BitmapSource image = ApplicationManager.GetResourceImage("arrow.png");
-			BitmapSource image2 = ApplicationManager.GetResourceImage("arrowoblique.png");
+			BitmapSource image = ApplicationManager.PreloadResourceImage("arrow.png");
+			BitmapSource image2 = ApplicationManager.PreloadResourceImage("arrowoblique.png");
 
 			for (int index = 0; index < _fancyButtons.Count; ++index) {
 				_fancyButtons[index].ImageIcon.Source = index % 2 == 0 ? image : image2;
 				_fancyButtons[index].ImageIcon.Height = 16;
 				_fancyButtons[index].ImageIcon.Width = 16;
-				_fancyButtons[index].ImageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+				_fancyButtons[index].ImageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 				//_fancyButtons[index].ImageIcon.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Unspecified);
 				_fancyButtons[index].ImageIcon.RenderTransformOrigin = new Point(0.5, 0.5);
 				_fancyButtons[index].ImageIcon.RenderTransform = new RotateTransform { Angle = index / 2 * 90 + 90 };
@@ -207,7 +209,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_stopAnimation = false;
 			}
 
-			int oldActionIndex = (int) _comboBoxActionIndex.Dispatcher.Invoke(new Func<int>(() => _comboBoxActionIndex.SelectedIndex));
+			int oldActionIndex = (int) _comboBoxActionIndex.Dispatch(() => _comboBoxActionIndex.SelectedIndex);
 
 			if (oldActionIndex < 0)
 				oldActionIndex = 0;
@@ -215,8 +217,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			if (oldActionIndex >= act.NumberOfActions)
 				oldActionIndex = 0;
 
-			_comboBoxActionIndex.Dispatcher.Invoke((Action) (() => _comboBoxActionIndex.ItemsSource = actions));
-			_comboBoxAnimationIndex.Dispatcher.Invoke((Action) (() => _comboBoxAnimationIndex.ItemsSource = act.GetAnimationStrings()));
+			_comboBoxActionIndex.Dispatch(() => _comboBoxActionIndex.ItemsSource = actions);
+			_comboBoxAnimationIndex.Dispatch(() => _comboBoxAnimationIndex.ItemsSource = act.GetAnimationStrings());
 			_setDisabledButtons();
 
 			if (_isCancelRequired()) return;
@@ -229,7 +231,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
 			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 
-			int actionIndex = (int) _comboBoxActionIndex.Dispatcher.Invoke(new Func<int>(() => _comboBoxActionIndex.SelectedIndex));
+			int actionIndex = (int) _comboBoxActionIndex.Dispatch(() => _comboBoxActionIndex.SelectedIndex);
 
 			if (actionIndex < 0)
 				return;
@@ -294,9 +296,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 					return;
 				}
 
-				bool isValid = (bool) _imagePreview.Dispatcher.Invoke(new Func<bool>(delegate {
+				bool isValid = (bool) _imagePreview.Dispatch(delegate {
 					try {
-						Dispatcher.Invoke(new Action(delegate {
+						this.Dispatch(delegate {
 							try {
 								if (_changedAnimationIndex) {
 									_frameIndex = 0;
@@ -307,8 +309,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 								ImageSource source = Imaging.GenerateImage(act, actionIndex, _frameIndex, mode);
 
 								_imagePreview.Margin = new Thickness(
-									(int) (10 + _scrollViewer.ActualWidth / 2 - (double) source.Dispatcher.Invoke(new Func<double>(() => source.Width)) / 2),
-									(int) (10 + _scrollViewer.ActualHeight / 2 - (double) source.Dispatcher.Invoke(new Func<double>(() => source.Height)) / 2),
+									(int) (10 + _scrollViewer.ActualWidth / 2 - (double) source.Dispatch(() => source.Width) / 2),
+									(int) (10 + _scrollViewer.ActualHeight / 2 - (double) source.Dispatch(() => source.Height) / 2),
 									0, 0);
 								_imagePreview.Source = source;
 							}
@@ -316,14 +318,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 								_enableActThread = false;
 								ErrorHandler.HandleException("Unable to load the animation.");
 							}
-						}));
+						});
 
 						return true;
 					}
 					catch {
 						return false;
 					}
-				}));
+				});
 
 				if (!isValid)
 					throw new Exception("Unable to load the animation.");
@@ -421,7 +423,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _setDisabledButtons() {
-			Dispatcher.Invoke(new Action(delegate {
+			this.Dispatch(delegate {
 				int animationIndex = _comboBoxActionIndex.SelectedIndex / 8;
 
 				_fancyButtons.ForEach(p => p.IsButtonEnabled = true);
@@ -434,7 +436,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 						_fancyButtons.First(p => Int32.Parse(p.Tag.ToString()) == disabledIndex).IsButtonEnabled = false;
 					}
 				}
-			}));
+			});
 		}
 
 		#region IDisposable members

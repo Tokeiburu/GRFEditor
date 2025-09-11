@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using GRF.Core;
 using GRFEditor.WPF.PreviewTabs;
+using TokeiLibrary;
 using Utilities;
 
 namespace GRFEditor.Core.Services {
@@ -15,7 +16,7 @@ namespace GRFEditor.Core.Services {
 		private readonly List<int> _tabTools = new List<int>();
 		private TabItem _tabSpritesPreview;
 		private TabItem _tabContainerPreview;
-		private TabItem _tabFolderPreview;
+		//private TabItem _tabFolderPreview;
 		private TabItem _tabFolderStructurePreview;
 		private TabItem _tabItemActPreview;
 		private TabItem _tabItemDbPreview;
@@ -33,32 +34,58 @@ namespace GRFEditor.Core.Services {
 		private TabItem _tabItemTextPreview;
 		private TabItem _tabItemWavPreview;
 
-		private void _readAsFolder(string path) {
-			_tabFolderPreview.Dispatcher.BeginInvoke(new Action(delegate {
-				if (_tabFolderPreview.Content == null) _tabFolderPreview.Content = new PreviewFolderItems(_treeView, _items, _previewItems);
-				((IFolderPreviewTab) _tabFolderPreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
-			}));
-		}
+		//private void _readAsFolder(string path) {
+		//	_tabFolderPreview.Dispatcher.BeginInvoke(new Action(delegate {
+		//		if (_tabFolderPreview.Content == null) _tabFolderPreview.Content = new PreviewFolderItems(_treeView, _items, _previewItems);
+		//		((IFolderPreviewTab) _tabFolderPreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
+		//	}));
+		//}
+
+		private Dictionary<TabItem, IFolderPreviewTab> _tab2IPreviewTab = new Dictionary<TabItem, IFolderPreviewTab>();
 
 		private void _readAsContainer(string path) {
-			_tabContainerPreview.Dispatcher.BeginInvoke(new Action(delegate {
-				if (_tabContainerPreview.Content == null) _tabContainerPreview.Content = new PreviewContainer(_previewItems, _editor);
-				((IFolderPreviewTab) _tabContainerPreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
-			}));
+			IFolderPreviewTab previewTab;
+			var tabItem = _tabContainerPreview;
+
+			if (!_tab2IPreviewTab.TryGetValue(tabItem, out previewTab)) {
+				tabItem.Dispatch(delegate {
+					previewTab = new PreviewContainer(_previewItems, _editor);
+					tabItem.Content = previewTab;
+					_tab2IPreviewTab[tabItem] = previewTab;
+				});
+			}
+
+			previewTab.Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
 		}
 
 		private void _readAsPreviewSprites(string path) {
-			_tabSpritesPreview.Dispatcher.BeginInvoke(new Action(delegate {
-				if (_tabSpritesPreview.Content == null) _tabSpritesPreview.Content = new PreviewSprites(_previewItems, _editor);
-				((IFolderPreviewTab)_tabSpritesPreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
-			}));
+			IFolderPreviewTab previewTab;
+			var tabItem = _tabSpritesPreview;
+
+			if (!_tab2IPreviewTab.TryGetValue(tabItem, out previewTab)) {
+				tabItem.Dispatch(delegate {
+					previewTab = new PreviewSprites(_editor);
+					tabItem.Content = previewTab;
+					_tab2IPreviewTab[tabItem] = previewTab;
+				});
+			}
+
+			previewTab.Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
 		}
 		
 		private void _readAsFolderStructure(string path) {
-			_tabFolderStructurePreview.Dispatcher.BeginInvoke(new Action(delegate {
-				if (_tabFolderStructurePreview.Content == null) _tabFolderStructurePreview.Content = new PreviewFolderStructure(_previewItems);
-				((IFolderPreviewTab) _tabFolderStructurePreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
-			}));
+			IFolderPreviewTab previewTab;
+			var tabItem = _tabFolderStructurePreview;
+
+			if (!_tab2IPreviewTab.TryGetValue(tabItem, out previewTab)) {
+				tabItem.Dispatch(delegate {
+					previewTab = new PreviewFolderStructure(_previewItems);
+					tabItem.Content = previewTab;
+					_tab2IPreviewTab[tabItem] = previewTab;
+				});
+			}
+
+			previewTab.Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
 		}
 
 		private void _readAsDecompilationSettings(FileEntry node) {
@@ -150,9 +177,9 @@ namespace GRFEditor.Core.Services {
 			_tabItemDbPreview = new TabItem { Header = "Thumbnail preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemEditSpritePreview = new TabItem { Header = "Sprite editor", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabContainerPreview = new TabItem { Header = "Container options", Style = tabStyle, Visibility = Visibility.Collapsed };
-			_tabSpritesPreview = new TabItem { Header = "Sprites preview", Style = tabStyle, Visibility = Visibility.Collapsed };
-			_tabFolderPreview = new TabItem { Header = "Directory info", Style = tabStyle, Visibility = Visibility.Collapsed };
-			_tabFolderStructurePreview = new TabItem { Header = "Directory view", Style = tabStyle, Visibility = Visibility.Collapsed };
+			_tabSpritesPreview = new TabItem { Header = "Folder preview", Style = tabStyle, Visibility = Visibility.Collapsed };
+			//_tabFolderPreview = new TabItem { Header = "Directory info", Style = tabStyle, Visibility = Visibility.Collapsed };
+			_tabFolderStructurePreview = new TabItem { Header = "Folder stucture", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemRsmPreview = new TabItem { Header = "Model preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemStrPreview = new TabItem { Header = "Str preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemWavPreview = new TabItem { Header = "Sound preview", Style = tabStyle, Visibility = Visibility.Collapsed };
@@ -163,8 +190,7 @@ namespace GRFEditor.Core.Services {
 			_tabControlPreview.Items.Add(_tabFolderStructurePreview);
 			_tabControlPreview.Items.Add(_tabContainerPreview);
 			_tabControlPreview.Items.Add(_tabSpritesPreview);
-			_tabControlPreview.Items.Add(_tabFolderPreview);
-
+			//_tabControlPreview.Items.Add(_tabFolderPreview);
 
 			_tabControlPreview.Items.Add(_tabItemStrPreview);
 			_tabControlPreview.Items.Add(_tabItemActPreview);

@@ -342,6 +342,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					                          //new XAttribute("Width", imWidth),
 					                          //new XAttribute("MaxHeight", imHeight),
 					                          new XAttribute("Stretch", "None"),
+											  new XAttribute("RenderOptions.BitmapScalingMode", "HighQuality"),
 											  new XAttribute("HorizontalAlignment", "Left"),
 					                          new XAttribute("Margin", "-4 0 -4 0")));
 				//new XAttribute("VerticalAlignment", alignment == TextAlignment.Center ? VerticalAlignment.Center : alignment == TextAlignment.Left ? VerticalAlignment.Top : VerticalAlignment.Bottom),
@@ -355,6 +356,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					//new XAttribute("Width", imWidth),
 										  new XAttribute("MaxHeight", imHeight),
 										  new XAttribute("Stretch", "None"),
+										  new XAttribute("RenderOptions.BitmapScalingMode", "HighQuality"),
 										  new XAttribute("Margin", "-4 0 -4 0"),
 										  new XAttribute("VerticalAlignment", alignment == TextAlignment.Center ? VerticalAlignment.Center : alignment == TextAlignment.Left ? VerticalAlignment.Top : VerticalAlignment.Bottom),
 										  new XAttribute("HorizontalAlignment", alignment == TextAlignment.Center ? HorizontalAlignment.Center : alignment == TextAlignment.Left ? HorizontalAlignment.Left : HorizontalAlignment.Right)));

@@ -23,6 +23,19 @@ namespace TokeiLibrary {
 		private static readonly Dictionary<string, byte[]> _resources = new Dictionary<string, byte[]>();
 		private static readonly Dictionary<string, BitmapSource> _preloadedResources = new Dictionary<string, BitmapSource>();
 
+		static ApplicationManager() {
+			DpiX = 96;
+			DpiY = 96;
+
+			//try {
+			//	var dpiProperty = typeof(SystemParameters).GetProperty("DpiX", BindingFlags.NonPublic | BindingFlags.Static);
+			//	DpiX = (int)dpiProperty.GetValue(null, null);
+			//	DpiY = DpiX;
+			//}
+			//catch {
+			//}
+		}
+
 		public static bool CrashReportEnabled {
 			get {
 				return _crashReportEnabled;
@@ -139,7 +152,7 @@ namespace TokeiLibrary {
 			}
 			catch { }
 
-			throw new Exception("Resourse not found.\r\n\r\n" + resource);
+			return null;
 		}
 		private static List<byte[]> _findResources(string pattern, Assembly assembly = null) {
 			List<byte[]> resources = new List<byte[]>();
@@ -187,6 +200,9 @@ namespace TokeiLibrary {
 				}
 
 				byte[] imageData = _findResource(resource);
+
+				if (imageData == null)
+					return null;
 
 				using (MemoryStream file = new MemoryStream(imageData)) {
 					try {
@@ -392,18 +408,21 @@ namespace TokeiLibrary {
 		}
 
 		public static BitmapSource PreloadResourceImage(string image) {
-			if (_preloadedResources.Count > 20)
+			if (_preloadedResources.Count > 30)
 				_preloadedResources.Clear();
 
 			if (!_preloadedResources.ContainsKey(image)) {
 				var frame = GetResourceImage(image);
-				_preloadedResources[image] = WpfImaging.FixDPI(frame);
+				_preloadedResources[image] = WpfImaging.FixDPI(frame, DpiX, DpiY);
 			}
 
 			return _preloadedResources[image];
 		}
 
 		#region File association
+
+		public static double DpiX { get; set; }
+		public static double DpiY { get; set; }
 
 		/// <summary>
 		/// Flags that indicate the meaning of the <i>dwItem1</i> and <i>dwItem2</i> parameters. 
@@ -464,6 +483,10 @@ namespace TokeiLibrary {
 		                                  IntPtr dwItem2);
 
 		public static void AddExtension(string application, string fileName, string extension, bool openWithGrfEditor, string iconPath = null) {
+			//if (Methods.IsWin10OrHigher()) {
+			//	
+			//}
+			//else 
 			if (Methods.IsWinVistaOrHigher()) {
 				// ReSharper disable PossibleNullReferenceException
 				string program = Path.GetFileName(application);

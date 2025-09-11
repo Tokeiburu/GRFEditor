@@ -1,13 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Text;
 using GRF.FileFormats.LubFormat.Types;
-using GRF.System;
+using GRF.GrfSystem;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.LubFormat.VM {
 	public static partial class OpCodes {
 		#region Nested type: GetGlobal
-
 		public class GetGlobal : AbstractInstruction {
 			public GetGlobal() {
 				Mode = EncodedMode.ABx;
@@ -24,11 +24,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 				}
 			}
 		}
-
 		#endregion
 
 		#region Nested type: GetTable
-
 		public class GetTable : AbstractInstruction {
 			public GetTable() {
 				Mode = EncodedMode.ABC;
@@ -54,29 +52,19 @@ namespace GRF.FileFormats.LubFormat.VM {
 				string table = GetKey(function.Stack[Registers[1]]).ToString();
 
 				// Cases 3 and 4 are handled by GetKey
-				ILubObject acces = GetKey(RegOrK(Registers[2], function));
+				//ILubObject acces = GetKey(RegOrK(Registers[2], function));
+				//
+				//LubValueType accessor = (LubValueType) acces;
 
-				LubValueType accessor = (LubValueType) acces;
+				string indexerToAdd = GetAccessor(Registers[2], function);
 
-				if (RegOrK(Registers[2], function) is LubValueType &&
-				    accessor.Source == LubSourceType.Constant &&
-				    accessor is LubString) {
-					// Case 1 handled
-					table = table + "." + accessor;
-				}
-				else {
-					// Case 2 (and maybe others) handled
-					table = table + "[" + accessor + "]";
-				}
-
-				function.Stack[Registers[0]] = new LubOutput(table);
+				table = table + indexerToAdd;
+				function.Stack[Registers[0]] = new LubOutput(table, true);
 			}
 		}
-
 		#endregion
 
 		#region Nested type: GetUpVal
-
 		public class GetUpVal : AbstractInstruction {
 			public GetUpVal() {
 				Mode = EncodedMode.ABC;
@@ -86,11 +74,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 				function.Stack[Registers[0]] = function.UpValues[Registers[1]];
 			}
 		}
-
 		#endregion
 
 		#region Nested type: NewTable
-
 		public class NewTable : AbstractInstruction {
 			public NewTable() {
 				Mode = EncodedMode.ABC;
@@ -113,18 +99,14 @@ namespace GRF.FileFormats.LubFormat.VM {
 				//	LuaCode = builder.ToString();
 				//}
 				//else {
-					function.Stack[Registers[0]] = new LubDictionary(Registers[1], Registers[2]);
+				function.Stack[Registers[0]] = new LubDictionary(Registers[1], Registers[2]);
 				//}
 			}
 		}
-
 		#endregion
 
-		//public class SetGlobal : AbstractInstruction, IAssigning {
-
 		#region Nested type: SetGlobal
-
-		public class SetGlobal : AbstractInstruction, IAssigning {
+		public class SetGlobal : AbstractInstruction {
 			public SetGlobal() {
 				Mode = EncodedMode.ABx;
 			}
@@ -133,10 +115,10 @@ namespace GRF.FileFormats.LubFormat.VM {
 				Append = true;
 				StringBuilder builder = new StringBuilder();
 
-				function.Decompiler.GlobalVariables.SetKeyValue((LubString) function.Constants[Registers[1]], RegOutput(Registers[0], function));
-				LubKeyValue globalVariable = function.Decompiler.GlobalVariables.GetKeyValue((LubString) function.Constants[Registers[1]]);
+				function.Decompiler.GlobalVariables.SetKeyValue((LubString)function.Constants[Registers[1]], RegOutput(Registers[0], function));
+				LubKeyValue globalVariable = function.Decompiler.GlobalVariables.GetKeyValue((LubString)function.Constants[Registers[1]]);
 
-				if (globalVariable.Value is LubFunction) {
+				if (globalVariable.Value is LubFunction && function.FunctionLevel == 0) {
 					builder.AppendLine();
 
 					if (Settings.LubDecompilerSettings.AppendFunctionId) {
@@ -144,16 +126,14 @@ namespace GRF.FileFormats.LubFormat.VM {
 					}
 				}
 
-				globalVariable.Print(builder, function.FunctionLevel);
+				globalVariable.Print(builder, function.BaseIndent);
 				builder.AppendLine();
 				LuaCode = builder.ToString();
 			}
 		}
-
 		#endregion
 
 		#region Nested type: SetList50
-
 		public class SetList50 : AbstractInstruction {
 			public SetList50() {
 				Mode = EncodedMode.ABx;
@@ -165,7 +145,7 @@ namespace GRF.FileFormats.LubFormat.VM {
 				int stackFrom = Registers[0] + 1;
 				int stackTo = Registers[1] % fPf + 1;
 
-				LubDictionary dictionary = (LubDictionary) GetVal(function.Stack[Registers[0]]);
+				LubDictionary dictionary = (LubDictionary)GetVal(function.Stack[Registers[0]]);
 
 				List<ILubObject> items = new List<ILubObject>(stackTo);
 
@@ -176,11 +156,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 				dictionary.AddList(items);
 			}
 		}
-
 		#endregion
 
 		#region Nested type: SetList51
-
 		public class SetList51 : AbstractInstruction {
 			public SetList51() {
 				Mode = EncodedMode.ABC;
@@ -198,7 +176,7 @@ namespace GRF.FileFormats.LubFormat.VM {
 				if (Registers[2] == 0)
 					LubErrorHandler.Handle("Non defined behavior for SetList51.", LubSourceError.CodeDecompiler);
 
-				LubDictionary dictionary = (LubDictionary) GetVal(function.Stack[Registers[0]]);
+				LubDictionary dictionary = (LubDictionary)GetVal(function.Stack[Registers[0]]);
 
 				List<ILubObject> items = new List<ILubObject>(count);
 
@@ -209,11 +187,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 				dictionary.AddList(items);
 			}
 		}
-
 		#endregion
 
 		#region Nested type: SetListTo
-
 		public class SetListTo : AbstractInstruction {
 			public SetListTo() {
 				Mode = EncodedMode.ABx;
@@ -223,11 +199,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 				LubErrorHandler.Handle("SetListTo opcode hasn't been implemented yet.", LubSourceError.CodeDecompiler);
 			}
 		}
-
 		#endregion
 
 		#region Nested type: SetTable
-
 		public class SetTable : AbstractInstruction {
 			public SetTable() {
 				Mode = EncodedMode.ABC;
@@ -244,8 +218,8 @@ namespace GRF.FileFormats.LubFormat.VM {
 
 				if (tableName is LubString) {
 					// There is no need to instantiate non-global tables
-					if (function.Decompiler.GlobalVariables.ContainsKey((LubString) tableName)) {
-						array = function.Decompiler.GlobalVariables.GetValue((LubString) tableName) as LubDictionary;
+					if (function.Decompiler.GlobalVariables.ContainsKey((LubString)tableName)) {
+						array = function.Decompiler.GlobalVariables.GetValue((LubString)tableName) as LubDictionary;
 					}
 				}
 				else {
@@ -260,22 +234,9 @@ namespace GRF.FileFormats.LubFormat.VM {
 					// There is also a... trick to decide wheter or not
 					// brackets should be added : if the table is hashed,
 					// then all the variables are globals.
-					ILubObject indexer = RegOrK(Registers[1], function);
-					string indexerToAd;
+					string keyS = _getKey(function);
 
-					LubValueType indexerAsVt = indexer as LubValueType;
-
-					if (indexerAsVt != null &&
-					    ((indexerAsVt.Source == LubSourceType.Global) ||
-					     indexerAsVt is LubString && array.Hash > 0) &&
-					    !indexer.ToString().StartsWith("/")) {
-						indexerToAd = indexer.ToString();
-					}
-					else {
-						indexerToAd = "[" + GetKey(RegOrKOutput(Registers[1], function)) + "]";
-					}
-
-					LubString key = new LubString(indexerToAd);
+					LubString key = new LubString(keyS);
 					array.SetKeyValue(key, RegOrKOutput(Registers[2], function));
 
 					if (array.IsAssigned) {
@@ -284,6 +245,10 @@ namespace GRF.FileFormats.LubFormat.VM {
 						StringBuilder builder = new StringBuilder();
 
 						builder.Append(GetKey(tableName));
+
+						if (key.Value[0] != '[')
+							builder.Append(".");
+
 						array.PrintKey(key, builder, function.FunctionLevel);
 						builder.AppendLine();
 
@@ -291,38 +256,90 @@ namespace GRF.FileFormats.LubFormat.VM {
 					}
 				}
 				else {
+					if (array != null && !array.IsAssigned) {
+						string key = _getKey(function);
+
+						array.SetKeyValue(new LubString(key), GetKey(RegOrKOutput(Registers[2], function)));
+						return;
+					}
+
 					// We print the output
 					Append = true;
 
 					StringBuilder builder = new StringBuilder();
-					builder.AppendIndent(function.FunctionLevel);
 
-					ILubObject indexer = RegOrK(Registers[1], function);
-					string indexerToAd;
+					var assign = GetKey(RegOrKOutput(Registers[2], function));
 
-					if (indexer is LubValueType &&
-					    //((LubValueType)indexer).Source == LubSourceType.Global &&
-					    indexer is LubString) {
-						indexerToAd = "." + indexer;
+					if (assign is LubFunction && function.FunctionLevel == 0) {
+						builder.AppendLine();
+
+						if (Settings.LubDecompilerSettings.AppendFunctionId) {
+							builder.AppendLine("-- Function #" + ++function.Decompiler.FunctionDecompiledCount);
+						}
 					}
-					else {
-						indexerToAd = "[" + GetKey(RegOrKOutput(Registers[1], function)) + "]";
-					}
+
+					builder.AppendIndent(function.BaseIndent);
+
+					string indexerToAdd = GetAccessor(Registers[1], function);
 
 					builder.Append(GetKey(tableName));
-					builder.Append(indexerToAd);
+					builder.Append(indexerToAdd);
 					builder.Append(" = ");
-					builder.AppendLine(GetKey(RegOrKOutput(Registers[2], function)).ToString());
+
+					if (assign is LubFunction) {
+						assign.Print(builder, function.BaseIndent);
+						builder.AppendLine();
+					}
+					else {
+						builder.AppendLine(assign.ToString());
+					}
 
 					LuaCode = builder.ToString();
 				}
 			}
-		}
 
+			private string _getKey(LubFunction function) {
+				var lubKey = GetKey(RegOrK(Registers[1], function));
+				string key = lubKey.ToString();
+
+				if (lubKey is LubNumber)
+					return key = "[" + lubKey + "]";
+				if (lubKey is LubString) {
+					var lubString = (LubString)lubKey;
+
+					if (lubString.Value.Length == 0)
+						return "[\"\"]";
+
+					if (lubString.IsValid())
+						return lubString.ToString();
+
+					return "[\"" + lubString + "\"]";
+				}
+
+				if (lubKey is LubOutput) {
+					var lubOutput = (LubOutput)lubKey;
+
+					if (lubOutput.ValidKey) {
+						return "[" + lubOutput + "]";
+					}
+
+					var lubString = lubOutput.ToString();
+
+					if (lubString.Length == 0)
+						return "[\"\"]";
+					if (lubString[0] == '\"')
+						return "[" + lubString + "]";
+
+					return "[\"" + lubString + "\"]";
+				}
+
+				Z.F();
+				return key;
+			}
+		}
 		#endregion
 
 		#region Nested type: SetUpVal
-
 		public class SetUpVal : AbstractInstruction {
 			public SetUpVal() {
 				Mode = EncodedMode.ABC;
@@ -334,14 +351,13 @@ namespace GRF.FileFormats.LubFormat.VM {
 				Append = true;
 
 				StringBuilder builder = new StringBuilder();
-				builder.AppendIndent(function.FunctionLevel);
+				builder.AppendIndent(function.BaseIndent);
 				builder.Append(function.UpValues[Registers[1]].Key + " = " + function.UpValues[Registers[1]].Value);
 				builder.AppendLine();
 
 				LuaCode = builder.ToString();
 			}
 		}
-
 		#endregion
 	}
 }

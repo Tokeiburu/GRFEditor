@@ -11,11 +11,14 @@ namespace GRF.IO {
 		private readonly byte[] _data;
 		private int _byteRead;
 		private int _offset;
+		private string _source;
 
 		public ByteReader(string file) : this(File.ReadAllBytes(file)) {
+			_source = file;
 		}
 
 		public ByteReader(string file, int offset) : this(File.ReadAllBytes(file), offset) {
+			_source = file;
 		}
 
 		public ByteReader(byte[] data, int offset = 0) {
@@ -273,6 +276,10 @@ namespace GRF.IO {
 
 		public override string ToString() {
 			return string.Format("Position = {0}; Length = {1}; CanRead = {2}", PositionLong, LengthLong, CanRead.ToString());
+		}
+
+		public string GetSource() {
+			return _source;
 		}
 	}
 }

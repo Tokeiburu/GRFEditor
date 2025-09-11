@@ -119,7 +119,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			_rsw = rsw;
 			_request = request;
 
-			if (lubData != null) {
+			if (lubData != null && rsw.LubEffects.Count > 0) {
 				if (Methods.ByteArrayCompare(lubData, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
 					Lub lub = new Lub(lubData);
 					var text = lub.Decompile();
@@ -219,6 +219,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || !viewport.RenderOptions.LubEffect || viewport.RenderOptions.MinimapMode)
 				return;
 
+			if (viewport.RenderPass != 3)
+				return;
+
 			if (!_verticesLoaded) {
 				Load(viewport);
 			}
@@ -230,8 +233,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			_skipRender = !_skipRender;
 
 			Shader.Use();
-			Shader.SetMatrix4("cameraMatrix", viewport.View);
-			Shader.SetMatrix4("projectionMatrix", viewport.Projection);
+			Shader.SetMatrix4("cameraMatrix", ref viewport.View);
+			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
 
 			GL.Enable(EnableCap.Blend);
 			GL.DepthMask(false);
@@ -505,7 +508,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					prevBillboard = effect.Billboard_off;
 				}
 
-				Shader.SetMatrix4("m", effect.ModelMatrix);
+				Shader.SetMatrix4("m", ref effect.ModelMatrix);
 
 				if (prevBlend == null || prevBlend != (effect.Srcmode << 16 | effect.Destmode)) {
 					GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
@@ -641,7 +644,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.DynamicDraw, LubEffectVertexSize);
 
 			foreach (var effect in rie.Effects) {
-				Shader.SetMatrix4("m", effect.ModelMatrix);
+				Shader.SetMatrix4("m", ref effect.ModelMatrix);
 				Shader.SetVector4("color", effect.Color);
 				Shader.SetFloat("billboard_off", effect.Billboard_off);
 				GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));

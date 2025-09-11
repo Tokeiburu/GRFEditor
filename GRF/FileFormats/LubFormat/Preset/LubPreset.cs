@@ -67,7 +67,7 @@ namespace GRF.FileFormats.LubFormat.Preset {
 			private List<int> _spAmount = new List<int>();
 			private List<int> _apAmount = new List<int>();
 			private List<int> _attackRange = new List<int>();
-			private Dictionary<int, Tuple<int, int>> _skillScale = new Dictionary<int, Tuple<int, int>>();
+			private Dictionary<int, Utilities.Extension.Tuple<int, int>> _skillScale = new Dictionary<int, Utilities.Extension.Tuple<int, int>>();
 
 			public string SkillName { get; set; }
 			public string ConstantName { get; set; }
@@ -90,7 +90,7 @@ namespace GRF.FileFormats.LubFormat.Preset {
 				set { _attackRange = value; }
 			}
 
-			public Dictionary<int, Tuple<int, int>> SkillScale {
+			public Dictionary<int, Utilities.Extension.Tuple<int, int>> SkillScale {
 				get { return _skillScale; }
 				set { _skillScale = value; }
 			}
@@ -158,8 +158,8 @@ namespace GRF.FileFormats.LubFormat.Preset {
 							break;
 						case "SkillScale":
 							foreach (var skillScale in ((LuaList)skillProperty.Value).Variables.OfType<LuaKeyValue>()) {
-								skillinfoList_b.SkillScale[Int32.Parse(skillScale.Key.Trim('[', ']'))] = new Tuple<int, int>(
-									Int32.Parse(((LuaKeyValue)((LuaList)skillScale.Value).Variables[0]).Value.ToString()), 
+								skillinfoList_b.SkillScale[Int32.Parse(skillScale.Key.Trim('[', ']'))] = new Utilities.Extension.Tuple<int, int>(
+									Int32.Parse(((LuaKeyValue)((LuaList)skillScale.Value).Variables[0]).Value.ToString()),
 									Int32.Parse(((LuaKeyValue)((LuaList)skillScale.Value).Variables[1]).Value.ToString()));
 							}
 

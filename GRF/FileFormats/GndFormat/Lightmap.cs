@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using GRF.Image;
+using Utilities;
 
 namespace GRF.FileFormats.GndFormat {
 	/// <summary>
@@ -64,6 +66,36 @@ namespace GRF.FileFormats.GndFormat {
 				_colors[i].G = Data[offset++];
 				_colors[i].B = Data[offset++];
 			}
+		}
+
+		public int Hash(Gnd gnd) {
+			const uint poly = 0x82f63b78;
+
+			long crc = ~0;
+			int size = gnd.LightmapWidth * gnd.LightmapHeight * 4;
+			if (size < 4)
+				return 0;
+			for (int i = 0; i < size; i++) {
+				crc ^= Data[i];
+				crc = (crc & 1) == 1 ? (crc >> 1) ^ poly : crc >> 1;
+			}
+			return (int)~crc;
+		}
+
+		public static bool operator ==(Lightmap a, Lightmap b) {
+			return NativeMethods.memcmp(a.Data, b.Data, Math.Max(a.Data.Length, b.Data.Length)) == 0;
+		}
+
+		public static bool operator !=(Lightmap a, Lightmap b) {
+			return !(a == b);
+		}
+
+		public override bool Equals(object obj) {
+			return base.Equals(obj);
+		}
+
+		public override int GetHashCode() {
+			return -301143667 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
 		}
 	}
 }

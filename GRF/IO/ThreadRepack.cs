@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using GRF.Core;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 
@@ -29,7 +29,8 @@ namespace GRF.IO {
 				// applications or mass savings. A single instance of GRFE won't cause any issues though.
 				FileName = Path.Combine(Settings.TempPath, "~rtmp" + StartIndex + "_" + _grfData.UniqueString);
 
-				using (FileStream outPutFile = new FileStream(FileName, FileMode.Create))
+				OutputFileStream = new FileStream(FileName, FileMode.Create);
+
 				using (var originalStream = _grfData.GetSourceStream()) {
 					byte[] data;
 					int toIndex = 0;
@@ -90,7 +91,7 @@ namespace GRF.IO {
 
 								entry.DesEncrypt(_dataTmp);
 								entry.GrfEditorEncrypt(_dataTmp);
-								outPutFile.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
+								OutputFileStream.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
 							}
 							catch {
 								entry.NewSizeCompressed = entry.SizeCompressed;
@@ -142,7 +143,7 @@ namespace GRF.IO {
 								}
 
 								entry.GrfEditorEncrypt(_dataTmp);
-								outPutFile.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
+								OutputFileStream.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
 							}
 							finally {
 								entry.Flags &= ~EntryType.RawDataFile;

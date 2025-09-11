@@ -8,7 +8,6 @@
         xmlns:styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
         SizeToContent="WidthAndHeight"
         ResizeMode="NoResize"
-        SnapsToDevicePixels="True"
         Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}"
         >
     <Grid>
@@ -27,8 +26,7 @@
         </Grid.ColumnDefinitions>
 
         <DockPanel Grid.Row="0" Grid.Column="0">
-            <CheckBox Name="_cbEnableWater" VerticalAlignment="Center" Margin="3 3 0 3" />
-            <TextBlock Text="Water" Grid.Row="0" Grid.Column="0" Margin="0 3 3 3" VerticalAlignment="Center" ToolTip="The color of the water on minimaps is usually a darker blue than what it actually is." />
+            <CheckBox Name="_cbEnableWater" VerticalAlignment="Center" Margin="3 3 0 3" Content="Water" />
         </DockPanel>
         <wpf:QuickColorSelector Grid.Row="0" Grid.Column="1" Margin="3 0 0 0" Height="20" x:Name="_tbWater_Color" />
 

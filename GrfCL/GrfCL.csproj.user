@@ -10,14 +10,4 @@
     <FallbackCulture>en-US</FallbackCulture>
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <StartArguments>
-    </StartArguments>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
-    <StartArguments>-breakOnExceptions true true -open rdata.grf -extractFiles "data\sprite\ÀÎ°£Á·\¸öÅë\³²\" "" -break</StartArguments>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
-    <StartArguments>-breakOnExceptions true true -open rdata.grf -extractFiles "data\sprite\ÀÎ°£Á·\¸öÅë\³²\" "" -break</StartArguments>
-  </PropertyGroup>
 </Project>

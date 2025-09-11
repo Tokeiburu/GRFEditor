@@ -6,8 +6,8 @@ namespace GRF.FileFormats.GndFormat {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
 
-			int w = gnd.GridSizeX - 2;
-			int h = gnd.GridSizeY - 2;
+			int w = gnd.LightmapWidth - 2;
+			int h = gnd.LightmapHeight - 2;
 
 			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
@@ -20,14 +20,14 @@ namespace GRF.FileFormats.GndFormat {
 					if (cell.TileUp > -1) {
 						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 
-								byte a = (byte)(255 - lightData[j * gnd.GridSizeX + i]);
-								byte r = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 0];
-								byte g = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 1];
-								byte b = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 2];
+								byte a = (byte)(255 - lightData[j * gnd.LightmapWidth + i]);
+								byte r = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 0];
+								byte g = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 1];
+								byte b = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 2];
 
 								data[idx + 0] = (byte) (((255 - a) * b + a * 0) / 255f);
 								data[idx + 1] = (byte) (((255 - a) * g + a * 0) / 255f);
@@ -37,8 +37,8 @@ namespace GRF.FileFormats.GndFormat {
 						}
 					}
 					else {
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 255;
 							}
@@ -54,8 +54,8 @@ namespace GRF.FileFormats.GndFormat {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
 
-			int w = gnd.GridSizeX - 2;
-			int h = gnd.GridSizeY - 2;
+			int w = gnd.LightmapWidth - 2;
+			int h = gnd.LightmapHeight - 2;
 
 			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
@@ -68,13 +68,13 @@ namespace GRF.FileFormats.GndFormat {
 					if (cell.TileUp > -1) {
 						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 
-								byte r = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 0];
-								byte g = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 1];
-								byte b = lightData[gnd.PerCell + 3 * (j * gnd.GridSizeX + i) + 2];
+								byte r = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 0];
+								byte g = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 1];
+								byte b = lightData[gnd.PerCell + 3 * (j * gnd.LightmapWidth + i) + 2];
 
 								data[idx + 0] = b;
 								data[idx + 1] = g;
@@ -84,8 +84,8 @@ namespace GRF.FileFormats.GndFormat {
 						}
 					}
 					else {
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 255;
 							}
@@ -101,8 +101,8 @@ namespace GRF.FileFormats.GndFormat {
 			int width = gnd.Header.Width;
 			int height = gnd.Header.Height;
 
-			int w = gnd.GridSizeX - 2;
-			int h = gnd.GridSizeY - 2;
+			int w = gnd.LightmapWidth - 2;
+			int h = gnd.LightmapHeight - 2;
 
 			byte[] data = new byte[(width * w) * (height * h) * 4];
 			int x, y, i, j;
@@ -115,16 +115,16 @@ namespace GRF.FileFormats.GndFormat {
 					if (cell.TileUp > -1) {
 						var lightData = gnd.LightmapContainer.GetRawLightmap(gnd.Tiles[cell.TileUp].LightmapIndex);
 
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
-								data[idx + 3] = (byte)(255 - lightData[j * gnd.GridSizeX + i]);
+								data[idx + 3] = (byte)(255 - lightData[j * gnd.LightmapWidth + i]);
 							}
 						}
 					}
 					else {
-						for (i = 1; i < gnd.GridSizeX - 1; i++) {
-							for (j = 1; j < gnd.GridSizeY - 1; j++) {
+						for (i = 1; i < gnd.LightmapWidth - 1; i++) {
+							for (j = 1; j < gnd.LightmapHeight - 1; j++) {
 								int idx = 4 * ((x * h + i - 1) + (y * w + j - 1) * (width * w));
 								data[idx + 3] = 0;
 							}

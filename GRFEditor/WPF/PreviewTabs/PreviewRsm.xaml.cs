@@ -141,6 +141,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_buttonMinimap.Click += delegate {
 				CreateMinimap();
 			};
+
+			_checkBoxRotateCamera.MouseRightButtonUp += delegate {
+				var dialog = new RotateOptions();
+				dialog.Load(_currentRequest);
+				_openDialog(dialog, _checkBoxRotateCamera);
+			};
 		}
 
 		public void CreateMinimap() {
@@ -171,6 +177,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 				nViewport.Camera.Distance = Math.Max(gnd.Header.Height - removeEdge, gnd.Header.Width - removeEdge) * 10f;
 				float ratio = gnd.Height < gnd.Width ? (float)gnd.Height / gnd.Width : 1f;
 				nViewport.Camera.Distance *= ratio;
+
+				var maxDistance = Math.Max(gnd.Header.Height, gnd.Header.Width) * 10f * ratio;
+				nViewport.Camera.MaxDistance = (float)Math.Max(nViewport.Camera.MaxDistance, maxDistance);
 				_viewport.RenderOptions.MinimapMode = true;
 
 				nViewport.Camera.AngleX_Degree = 0;
@@ -180,7 +189,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_viewport._request.Gat = new Gat(ResourceManager.GetData(_viewport._request.Resource + ".gat"));
 				}
 
-				var gatRenderer = new GatRenderer(_viewport._request, nViewport.Shader_simple, _viewport._request.Gat, _viewport._request.Gnd);
+				var gatRenderer = new GatMinimapRenderer(_viewport._request, nViewport.Shader_simple, _viewport._request.Gat, _viewport._request.Gnd);
 				nViewport.Renderers.Add(gatRenderer);
 
 				MinimapDialog diag = new MinimapDialog();
@@ -236,7 +245,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 		}
 
-		private void _openDialog(Window dialog, Button button) {
+		private void _openDialog(Window dialog, FrameworkElement button) {
 			dialog.WindowStyle = WindowStyle.None;
 			var content = dialog.Content;
 

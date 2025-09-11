@@ -11,11 +11,11 @@ using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.Core;
 using GRF.Image;
+using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Extension;
@@ -26,319 +26,404 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// </summary>
 	public partial class PreviewSprites : UserControl, IFolderPreviewTab {
 		private readonly EditorMainWindow _editor;
-		private readonly Dictionary<string, Grid> _grids = new Dictionary<string, Grid>();
-		private readonly object _lock = new object();
-		private readonly Queue<PreviewItem> _previewItems;
-		private readonly RangeObservableCollection<SpritePreviewView> _previews = new RangeObservableCollection<SpritePreviewView>();
-		private readonly RangeObservableCollection<LargeSpritePreviewView> _previews2 = new RangeObservableCollection<LargeSpritePreviewView>();
+		private int _previewElementWidth;
+		private int _previewElementHeight;
+		private int _elementPerLine;
+		public bool ThreadEnabled { get; set; }
+		private Panel _panel;
+
 		private TkPath _currentPath;
 		private GrfHolder _grfData;
-		private string[] _previewFiles = new string[] { ".spr", ".bmp", ".png", ".gat" };
+		private string[] _previewFileExtensions = new string[] { ".spr", ".bmp", ".png", ".gat" };
 
-		public PreviewSprites(Queue<PreviewItem> previewItems, EditorMainWindow editor) {
-			_previewItems = previewItems;
+		public PreviewSprites(EditorMainWindow editor) {
 			_editor = editor;
+
+			_previewElementWidth = 100;
+			_previewElementHeight = 100 + (GrfEditorConfiguration.PreviewSpritesShowNames ? 20 : 0);
 
 			InitializeComponent();
 
-			_items.ItemsSource = _previews;
-
-			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_items, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "RelativePath", MaxHeight = 50, TextAlignment = TextAlignment.Left, NoResize = true, ToolTipBinding = "RelativePath", FixedWidth = -1, IsFill = true },
-			}, null, new string[] { "Default", "Black" }, "generateHeader", "false");
-
-			_itemsLarge.ItemsSource = _previews2;
-
-			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_itemsLarge, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", MaxHeight = 50, TextAlignment = TextAlignment.Left, NoResize = true, FixedWidth = -1, IsFill = true },
-			}, null, new string[] { "Default", "Black" }, "generateHeader", "false");
-
 			Binder.Bind(_cbWrapImages, () => GrfEditorConfiguration.PreviewSpritesWrap, delegate {
-				_itemsLarge.Dispatch(p => p.Visibility = GrfEditorConfiguration.PreviewSpritesWrap ? Visibility.Visible : Visibility.Hidden);
-
 				if (_currentPath != null)
-					_load(_currentPath);
+					Update(true);
 			}, true);
 
-			Binder.Bind(_cbAuto, () => GrfEditorConfiguration.PreviewSpritesAuto, delegate {
-				_cbWrapImages.IsEnabled = _cbAuto.IsChecked == false;
-				_tbPerLine.IsEnabled = _cbAuto.IsChecked == false;
+			if (GrfEditorConfiguration.PreviewSpritesWrap) {
+				_stackPanel.Visibility = Visibility.Collapsed;
+				_wrapPanel.Visibility = Visibility.Visible;
+			}
+			else {
+				_stackPanel.Visibility = Visibility.Visible;
+				_wrapPanel.Visibility = Visibility.Collapsed;
+			}
 
-				if (_currentPath != null)
-					_load(_currentPath);
+			Binder.Bind(_cbShowNames, () => GrfEditorConfiguration.PreviewSpritesShowNames, delegate {
+				if (_currentPath != null) {
+					var prev = _sv.ContentVerticalOffset / _sv.ScrollableHeight;
+					Update(false);
+
+					if (double.IsNaN(prev))
+						return;
+
+					_sv.ScrollToVerticalOffset(prev * (_gridBackground.Height - _sv.ActualHeight));
+				}
 			}, true);
 
-			_primaryGrid.SizeChanged += new SizeChangedEventHandler(_primaryGrid_SizeChanged);
-			WpfUtilities.AddFocus(_tbPerLine);
+			WpfUtils.AddMouseInOutEffectsBox(_cbWrapImages, _cbShowNames);
 
-			Binder.Bind(_tbPerLine, () => GrfEditorConfiguration.PreviewSpritesPerLine, _refreshList);
+			_gpEase.SetPosition(0.2d, false);
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbWrapImages, _cbAuto);
+			_gpEase.ValueChanged += delegate {
+				var value = Math.Round(_gpEase.Position * 10);
+				_gpEase.SetPosition(value / 10d, true);
+
+				int size = (int)value * 20 + 60;
+
+				if (_previewElementWidth == size)
+					return;
+
+				var prev = _sv.ContentVerticalOffset / _sv.ScrollableHeight;
+				Update(false);
+
+				if (double.IsNaN(prev))
+					return;
+
+				_sv.ScrollToVerticalOffset(prev * (_gridBackground.Height - _sv.ActualHeight));
+			};
+
+			_sv.ScrollChanged += new ScrollChangedEventHandler(_sv_ScrollChanged);
+			_sv.SizeChanged += new SizeChangedEventHandler(_sv_SizeChanged);
+			GrfThread.Start(_loadPreviewImages, "GRF - Preview images");
+
+			this.Dispatcher.ShutdownStarted += delegate {
+				ThreadEnabled = false;
+			};
 		}
 
-		private void _primaryGrid_SizeChanged(object sender, SizeChangedEventArgs e) {
-			_refreshList();
-		}
+		private void _refreshPanelFrames() {
+			var start = (int)((_wrapPanel.Margin.Top / _previewElementHeight) * _elementPerLine);
 
-		public class LargeSpritePreviewView {
-			public bool Default {
-				get { return true; }
+			for (int i = 0; i < _items.Count; i++) {
+				int nI = start + i;
+
+				_setImage(_items[i], nI);
 			}
-
-			public List<SpritePreviewView> Previews = new List<SpritePreviewView>();
-
-			public int SuggestedSize { get; set; }
-
-			public object DataImage {
-				get {
-					DrawingGroup dGroup = new DrawingGroup();
-					List<GrfImage> images = new List<GrfImage>();
-					List<int> heights = new List<int>();
-
-					foreach (var item in Previews) {
-						GrfImage image = ImageProvider.GetFirstImage(item.Entry);
-
-						if (image.Width > SuggestedSize) {
-							heights.Add((int)(image.Height * (float)SuggestedSize / image.Width));
-						}
-						else {
-							heights.Add(image.Height);
-						}
-
-						images.Add(image);
-					}
-
-					int maxHeight = heights.Max(p => p);
-
-					double left;
-					double top;
-
-					using (DrawingContext dc = dGroup.Open()) {
-						for (int i = 0; i < Previews.Count; i++) {
-							GrfImage image = images[i];
-
-							double width = image.Width;
-							double resize = 1;
-
-							if (width > SuggestedSize) {
-								resize = (double) SuggestedSize / image.Width;
-							}
-
-							left = i * SuggestedSize + SuggestedSize / 2;
-							top = maxHeight / 2d;
-
-							if (i == 0) {
-								byte[] data = new byte[1 * (int) left * 4];
-								GrfImage edge = new GrfImage(data, (int) left, 1, GrfImageType.Bgra32);
-								dc.DrawImage(edge.Cast<BitmapSource>(), new Rect(0, 0, edge.Width, edge.Height));
-							}
-
-							TransformGroup group = new TransformGroup();
-							TranslateTransform translate2 = new TranslateTransform(image.Width / -2d, image.Height / -2d);
-							ScaleTransform scale = new ScaleTransform(resize, resize);
-							TranslateTransform translate = new TranslateTransform(left, top);
-
-							group.Children.Add(translate2);
-							group.Children.Add(scale);
-							group.Children.Add(translate);
-
-							dc.PushTransform(group);
-							
-							dc.DrawImage(image.Cast<BitmapSource>(), new Rect(0, 0, image.Width, image.Height));
-							dc.Pop();
-						}
-					}
-
-					DrawingImage dImage = new DrawingImage(dGroup);
-					dImage.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.Linear);
-					return dImage;
-
-					//return img.Cast<BitmapSource>();
-				}
-			}
-		}
-
-		public class SpritePreviewView {
-			public bool Default {
-				get { return true; }
-			}
-
-			public FileEntry Entry { get; set; }
-
-			public string RelativePath {
-				get { return Entry == null ? "" : Entry.RelativePath; }
-			}
-
-			public object DataImage {
-				get {
-					if (Entry != null) {
-						GrfImage image = ImageProvider.GetImage(Entry);
-						return image.Cast<BitmapSource>();
-					}
-
-					return null;
-				}
-			}
-		}
-
-		private void _refreshList() {
-			if (!GrfEditorConfiguration.PreviewSpritesWrap)
-				return;
-
-			List<LargeSpritePreviewView> previews2 = new List<LargeSpritePreviewView>();
-
-			int perLine = GrfEditorConfiguration.PreviewSpritesPerLine;
-
-			if (GrfEditorConfiguration.PreviewSpritesAuto) {
-				bool imageFolder = _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly).Any(entry => entry.RelativePath.IsExtension(".jpg", ".bmp", ".png"));
-
-				if (imageFolder) {
-					perLine = 3;
-				}
-				else {
-					perLine = GrfEditorConfiguration.PreviewSpritesPerLine;
-				}
-			}
-
-			int suggestedSize = (int)(_primaryGrid.Dispatch(p => p.ActualWidth - 15) / perLine);
-			int current = 0;
-
-			if (suggestedSize < 32) {
-				suggestedSize = 32;
-			}
-
-			foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly)) {
-				if (entry.RelativePath.IsExtension(_previewFiles)) {
-					if (current % perLine == 0) {
-						previews2.Add(new LargeSpritePreviewView { SuggestedSize = suggestedSize });
-					}
-
-					previews2[current / perLine].Previews.Add(new SpritePreviewView { Entry = entry });
-					current++;
-				}
-			}
-
-			_editor.Dispatch(p => {
-				_previews2.Clear();
-				_previews2.Disable();
-				_previews2.AddRange(previews2);
-				_previews2.UpdateAndEnable();
-			});
 		}
 
 		#region IFolderPreviewTab Members
 
 		public void Update() {
-			Thread thread = new Thread(() => _load(_currentPath)) { Name = "GrfEditor - Preview container thread" };
-			thread.SetApartmentState(ApartmentState.STA);
-			thread.Start();
+			Update(false);
+		}
+
+		public void Update(bool clearImages) {
+			int size = (int)(_gpEase.Position * 10) * 20 + 60;
+			_previewElementWidth = size;
+			_previewElementHeight = size + (GrfEditorConfiguration.PreviewSpritesShowNames ? 20 : 0);
+
+			if (!clearImages && _pendingVisible) {
+				clearImages = true;
+			}
+
+			_pendingVisible = false;
+
+			if (clearImages) {
+				this.Dispatch(delegate {
+					for (int i = 0; i < _items.Count; i++) {
+						_items[i]._tbName.Text = "";
+						_items[i]._image.Source = null;
+						_stretchCheck(_items[i]);
+					}
+				});
+
+				List<FileEntry> previews = new List<FileEntry>();
+
+				foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly, GrfEditorConfiguration.GrfFileTableIgnoreCase)) {
+					if (entry.RelativePath.IsExtension(_previewFileExtensions)) {
+						previews.Add(entry);
+					}
+				}
+
+				_images.Clear();
+				_previewFiles.Clear();
+				_previewFiles.AddRange(previews);
+			}
+
+			if (GrfEditorConfiguration.PreviewSpritesWrap) {
+				_imageProvider = ImageProvider.GetFirstImage;
+			}
+			else {
+				_imageProvider = ImageProvider.GetImage;
+			}
+
+			this.Dispatch(delegate {
+				if (GrfEditorConfiguration.PreviewSpritesWrap) {
+					_stackPanel.Visibility = Visibility.Hidden;
+					_wrapPanel.Visibility = Visibility.Visible;
+					_panel = _wrapPanel;
+				}
+				else {
+					_stackPanel.Visibility = Visibility.Visible;
+					_wrapPanel.Visibility = Visibility.Hidden;
+					_panel = _stackPanel;
+				}
+
+				_sv_SizeChanged(null, null);
+				_refreshPanelFrames();
+			});
+
+			Resume();
+
+			_sv.MouseDoubleClick += new MouseButtonEventHandler(_previewSprites_MouseDoubleClick);
 		}
 
 		public void Load(GrfHolder grfData, TkPath currentPath) {
-			_currentPath = currentPath;
 			_grfData = grfData;
 
+			if (_currentPath != null && currentPath != null && _currentPath.GetFullPath() == currentPath.GetFullPath())
+				return;
+
+			_currentPath = currentPath;
+			_pendingVisible = true;
+
 			if (IsVisible) {
-				Update();
+				Update(true);
 			}
 		}
 
 		#endregion
 
-		private void _load(TkPath currentSearch) {
-			try {
-				lock (_lock) {
-					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
+		private HashSet<PreviewImageItem> _previewImagesToLoad = new HashSet<PreviewImageItem>();
+		private object _loadPreviewLock = new object();
+		private readonly AutoResetEvent _are = new AutoResetEvent(false);
+		private Dictionary<int, BitmapSource> _images = new Dictionary<int, BitmapSource>();
+		private List<PreviewImageItem> _items = new List<PreviewImageItem>();
+		private List<FileEntry> _previewFiles = new List<FileEntry>();
+		private Func<FileEntry, GrfImage> _imageProvider;
+		private bool _pendingVisible;
 
-					if (!GrfEditorConfiguration.PreviewSpritesWrap) {
-						List<SpritePreviewView> previews = new List<SpritePreviewView>();
+		public void Resume() {
+			_are.Set();
+		}
 
-						foreach (var entry in _grfData.FileTable.EntriesInDirectory(_currentPath.RelativePath, SearchOption.TopDirectoryOnly)) {
-							if (entry.RelativePath.IsExtension(_previewFiles)) {
-								previews.Add(new SpritePreviewView { Entry = entry });
-							}
-						}
+		private void _pushPreview(PreviewImageItem item) {
+			item._image.Source = ApplicationManager.PreloadResourceImage("mapEditor.png");
 
-						_editor.Dispatch(p => {
-							_previews.Clear();
-							_previews.Disable();
-							_previews.AddRange(previews);
-							_previews.UpdateAndEnable();
-						});
+			lock (_loadPreviewLock) {
+				_previewImagesToLoad.Add(item);
+			}
+
+			_are.Set();
+		}
+
+		private void _loadPreviewImages() {
+			ThreadEnabled = true;
+			TkPath previousHash = null;
+
+			while (ThreadEnabled) {
+				try {
+					int count;
+
+					lock (_loadPreviewLock) {
+						count = _previewImagesToLoad.Count;
 					}
 
-					_refreshList();
-					_setVisible();
+					if (count == 0)
+						_are.WaitOne();
+
+					List<PreviewImageItem> previewItemsToLoad;
+					List<int> previewItemIndexes;
+
+					lock (_loadPreviewLock) {
+						if (previousHash != null && previousHash.GetFullPath() != _currentPath.GetFullPath()) {
+							//_images.Clear();
+						}
+
+						previousHash = _currentPath;
+						previewItemsToLoad = _previewImagesToLoad.ToList();
+						previewItemIndexes = previewItemsToLoad.Select(p => p.PreviewIndex).ToList();
+						_previewImagesToLoad.Clear();
+					}
+
+					if (previousHash == null)
+						continue;
+
+					for (int i = 0; i < previewItemsToLoad.Count; i++) {
+						var previewItem = previewItemsToLoad[i];
+						var previewItemIndex = previewItemIndexes[i];
+
+						if (_currentPath.GetFullPath() != previousHash.GetFullPath())
+							break;
+
+						if (previewItem.PreviewIndex >= _previewFiles.Count) {
+							this.Dispatch(delegate {
+								try {
+									previewItem._image.Source = null;
+								}
+								catch {
+								}
+							});
+						}
+
+						if (previewItem.PreviewIndex >= _previewFiles.Count)
+							continue;
+
+						if (_currentPath.GetFullPath() != previousHash.GetFullPath())
+							continue;
+
+						if (previewItem.PreviewIndex != previewItemIndex)
+							continue;
+
+						if (previewItem.Parent == null)
+							continue;
+
+						BitmapSource bitmap = null;
+
+						if (_images.ContainsKey(previewItem.PreviewIndex)) {
+							bitmap = _images[previewItem.PreviewIndex];
+						}
+						else {
+							var entry = _previewFiles[previewItemIndex];
+							GrfImage image = _imageProvider(entry);
+
+							if (image != null)
+								bitmap = image.Cast<BitmapSource>();
+
+							_images[previewItemIndex] = bitmap;
+						}
+
+						if (_currentPath.GetFullPath() != previousHash.GetFullPath())
+							continue;
+
+						this.Dispatch(delegate {
+							try {
+								if (previewItem.PreviewIndex != previewItemIndex)
+									return;
+
+								previewItem._image.Source = bitmap;
+							}
+							catch {
+								Z.F();
+							}
+						});
+					}
+				}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
 				}
 			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
 		}
 
-		private void _setVisible() {
-			this.Dispatch(delegate {
-			});
-		}
+		private void _sv_SizeChanged(object sender, SizeChangedEventArgs e) {
+			var minimumHeight = _sv.ActualHeight;
+			var targetWidth = _wrapPanel.ActualWidth;
 
-		private void _select(SpritePreviewView preview) {
-			try {
-				PreviewService.Select(_editor._treeView, _editor._items, preview.Entry.RelativePath);
+			double width = _previewElementWidth;
+
+			if (GrfEditorConfiguration.PreviewSpritesWrap) {
+				_elementPerLine = Math.Max(1, (int)(targetWidth / _previewElementWidth));
 			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
+			else {
+				width = _gridBackground.ActualWidth;
+				_elementPerLine = 1;
 			}
-		}
 
-		private void _miSelect_Click(object sender, RoutedEventArgs e) {
-			try {
-				var spv = _items.SelectedItem as SpritePreviewView;
+			var lineCount = Math.Ceiling((double)_previewFiles.Count / _elementPerLine);
 
-				if (spv != null)
-					PreviewService.Select(_editor._treeView, _editor._items, spv.Entry.RelativePath);
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
+			var targetHeight = lineCount * _previewElementHeight;
+			targetHeight = Math.Max(minimumHeight, targetHeight);
 
-		private void _items_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			_miSelect_Click(null, null);
-		}
+			_gridBackground.Height = targetHeight;
+			_wrapPanel.Height = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _previewElementHeight;
+			_stackPanel.Height = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _previewElementHeight;
+			
+			int elementCount = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _elementPerLine;
 
-		private void _miSelect2_Click(object sender, RoutedEventArgs e) {
-			try {
-				var lspv = _itemsLarge.SelectedItem as LargeSpritePreviewView;
+			if (_items.Count != elementCount) {
+				_wrapPanel.Children.Clear();
+				_stackPanel.Children.Clear();
+				_items.Clear();
 
-				if (lspv == null)
-					return;
-
-				var pos =  Mouse.GetPosition(_primaryGrid);
-
-				int index = (int)(pos.X / lspv.SuggestedSize);
-				if (index >= lspv.Previews.Count)
-					index = lspv.Previews.Count - 1;
-				_select(lspv.Previews[index]);
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _items2_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
-			try {
-				var lspv = _itemsLarge.SelectedItem as LargeSpritePreviewView;
-
-				if (lspv == null)
-					return;
-
-				var pos = e.GetPosition(_primaryGrid);
-
-				int index = (int) (pos.X / lspv.SuggestedSize);
-				if (index >= lspv.Previews.Count) {
-					return;
+				for (int i = 0; i < elementCount; i++) {
+					var previewItem = new PreviewImageItem();
+					previewItem.Width = width;
+					previewItem.Height = _previewElementHeight;
+					_items.Add(previewItem);
+					_stretchCheck(_items[i]);
+					_panel.Children.Add(previewItem);
 				}
-				_select(lspv.Previews[index]);
+
+				_refreshPanelFrames();
+			}
+
+			for (int i = 0; i < _items.Count; i++) {
+				_items[i].Width = width;
+				_items[i].Height = _previewElementHeight;
+				_stretchCheck(_items[i]);
+			}
+		}
+
+		private void _stretchCheck(PreviewImageItem item) {
+			if (GrfEditorConfiguration.PreviewSpritesWrap) {
+				item._image.VerticalAlignment = VerticalAlignment.Stretch;
+				item._image.HorizontalAlignment = HorizontalAlignment.Stretch;
+				item._image.Stretch = Stretch.Uniform;
+			}
+			else {
+				item._image.VerticalAlignment = VerticalAlignment.Top;
+				item._image.HorizontalAlignment = HorizontalAlignment.Left;
+				item._image.Stretch = Stretch.None;
+			}
+
+			item._tbName.Visibility = GrfEditorConfiguration.PreviewSpritesShowNames ? Visibility.Visible : Visibility.Collapsed;
+		}
+
+		private void _sv_ScrollChanged(object sender, ScrollChangedEventArgs e) {
+			var point = _wrapPanel.TranslatePoint(new Point(0, 0), _gridBackground);
+
+			if ((point.Y + _previewElementHeight < _sv.ContentVerticalOffset) ||
+				(point.Y > _sv.ContentVerticalOffset)) {
+				_wrapPanel.Margin = new Thickness(0, (int)(_sv.ContentVerticalOffset / _previewElementHeight) * _previewElementHeight, 0, 0);
+				_stackPanel.Margin = new Thickness(0, (int)(_sv.ContentVerticalOffset / _previewElementHeight) * _previewElementHeight, 0, 0);
+
+				// Get new display index range
+				_refreshPanelFrames();
+			}
+		}
+
+		private void _setImage(PreviewImageItem previewItem, int nI) {
+			previewItem.PreviewIndex = nI;
+
+			if (nI >= _previewFiles.Count) {
+				previewItem._image.Source = null;
+				previewItem._tbName.Text = "";
+			}
+			else if (_images.ContainsKey(nI)) {
+				previewItem._image.Source = _images[nI];
+				previewItem._tbName.Text = Path.GetFileName(_previewFiles[nI].RelativePath);
+			}
+			else {
+				_pushPreview(previewItem);
+				previewItem._tbName.Text = Path.GetFileName(_previewFiles[nI].RelativePath);
+			}
+		}
+
+		private void _select(FileEntry entry) {
+			try {
+				PreviewService.Select(_editor._treeView, _editor._items, entry.RelativePath);
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
+		private void _previewSprites_MouseDoubleClick(object sender, MouseButtonEventArgs e) {
+			try {
+				var item = _panel.GetObjectAtPoint<PreviewImageItem>(e.GetPosition(_panel));
+
+				if (item != null && item.PreviewIndex < this._previewFiles.Count)
+					_select(this._previewFiles[item.PreviewIndex]);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);

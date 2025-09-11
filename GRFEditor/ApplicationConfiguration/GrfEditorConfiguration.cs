@@ -13,7 +13,7 @@ using GRF.Core;
 using GRF.Core.GroupedGrf;
 using GRF.IO;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GrfToWpfBridge;
 using OpenTK;
@@ -149,6 +149,7 @@ namespace GRFEditor.ApplicationConfiguration {
 			private List<MultiGrfPath> _resources = new List<MultiGrfPath>();
 			private bool _threadLoad = false;
 			private bool _firstLoad;
+			private object _lock = new object();
 
 			public delegate void LoadedEventHandler();
 			public delegate void ModifiedEventHandler();
@@ -175,8 +176,10 @@ namespace GRFEditor.ApplicationConfiguration {
 						Thread.Sleep(100);
 					}
 
-					if (Dirty) {
-						Reload();
+					lock (_lock) {
+						if (Dirty) {
+							Reload();
+						}
 					}
 
 					return _multiGrf;
@@ -210,18 +213,20 @@ namespace GRFEditor.ApplicationConfiguration {
 					}
 				}
 
-				bool loadedGrf = false;
+				if (_grf != null) {
+					bool loadedGrf = false;
 
-				// Mark the currently opened GRF
-				for (int i = 0; i < items.Count; i++) {
-					if (items[i].Path == _grf.FileName) {
-						items[i].IsCurrentlyLoadedGrf = true;
-						loadedGrf = true;
+					// Mark the currently opened GRF
+					for (int i = 0; i < items.Count; i++) {
+						if (items[i].Path == _grf.FileName) {
+							items[i].IsCurrentlyLoadedGrf = true;
+							loadedGrf = true;
+						}
 					}
-				}
 
-				if (!loadedGrf)
-					items.Insert(0, new MultiGrfPath(_grf.FileName) { FromConfiguration = false, IsCurrentlyLoadedGrf = true });
+					if (!loadedGrf)
+						items.Insert(0, new MultiGrfPath(_grf.FileName) { FromConfiguration = false, IsCurrentlyLoadedGrf = true });
+				}
 
 				_resources = items.ToList();
 				return items;
@@ -252,27 +257,29 @@ namespace GRFEditor.ApplicationConfiguration {
 				}
 			}
 
-			public GrfResources(GrfHolder grf) {
+			public GrfResources(GrfHolder grf = null) {
 				_multiGrf.CurrentGrfAlwaysFirst = true;
 				_grf = grf;
 				_firstLoad = false;
 
-				_grf.ContainerOpened += delegate {
-					if (!_firstLoad) {
-						_firstLoad = true;
-						return;
-					}
+				if (_grf != null) {
+					_grf.ContainerOpened += delegate {
+						if (!_firstLoad) {
+							_firstLoad = true;
+							return;
+						}
 
-					if (_threadLoad)
-						return;
+						if (_threadLoad)
+							return;
 
-					_loaded = false;
-					_modified = true;
+						_loaded = false;
+						_modified = true;
 
-					// Deferred load!
-					_threadLoad = true;
-					GrfThread.Start(Reload);
-				};
+						// Deferred load!
+						_threadLoad = true;
+						GrfThread.Start(Reload);
+					};
+				}
 			}
 		}
 
@@ -308,7 +315,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.7.4"; }
+			get { return "1.8.9.9"; }
 		}
 
 		public static string Author {
@@ -316,7 +323,13 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static string ProgramName {
-			get { return "GRF Editor"; }
+			get {
+				if (!Wow.Is64BitProcess) {
+					return "WIN32 DEBUG VERSION";
+				}
+
+				return "GRF Editor";
+			}
 		}
 
 		public static string RealVersion {
@@ -368,6 +381,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			}
 		}
 
+		public static bool GrfFileTableIgnoreCase {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]"] = value.ToString(); }
+		}
+
 		public static bool AttemptingCustomDllLoad {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Loading custom DLL state]", false.ToString()]); }
 			set { ConfigAsker["[GRFEditor - Loading custom DLL state]"] = value.ToString(); }
@@ -388,9 +406,9 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - Preview sprites wrapping]"] = value.ToString(); }
 		}
 
-		public static bool PreviewSpritesAuto {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Preview sprites auto adjust]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Preview sprites auto adjust]"] = value.ToString(); }
+		public static bool PreviewSpritesShowNames {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewSpritesShowNames]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - PreviewSpritesShowNames]"] = value.ToString(); }
 		}
 
 		public static int PreviewSpritesPerLine {
@@ -408,6 +426,16 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static string EncodingIndex {
 			get { return ConfigAsker["[GRFEditor - Encoding index]", "0"]; }
 			set { ConfigAsker["[GRFEditor - Encoding index]"] = value; }
+		}
+
+		public static bool SaveEditorPosition {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - SaveEditorPosition]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - SaveEditorPosition]"] = value.ToString(); }
+		}
+
+		public static string EditorSavedPositions {
+			get { return ConfigAsker["[GRFEditor - EditorSavedPositions]", ""]; }
+			set { ConfigAsker["[GRFEditor - EditorSavedPositions]"] = value; }
 		}
 
 		public static float PreviewImageZoom {
@@ -600,6 +628,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - MapRenderEnableFSAA]"] = value.ToString(); }
 		}
 
+		public static bool MapRenderRenderGat {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderRenderGat]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - MapRenderRenderGat]"] = value.ToString(); }
+		}
+
 		public static int MaximumNumberOfThreads {
 			get {
 				int tmp = Int32.Parse(ConfigAsker["[GRFEditor - Maximum number of threads]", "10"]);
@@ -671,6 +704,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[Encryptor - Wrapper name]"] = value; }
 		}
 
+		public static bool RenameCps {
+			get { return Boolean.Parse(ConfigAsker["[Encryptor - RenameCps]", "true"]); }
+			set { ConfigAsker["[Encryptor - RenameCps]"] = value.ToString(); }
+		}
+
 		public static byte[] EncryptorPassword { get; set; }
 
 		#endregion
@@ -707,9 +745,19 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[FlatMapsMaker - Show gutter lines]"] = value.ToString(); }
 		}
 
-		public static bool RemoveAllLighting {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Remove light map]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Remove light map]"] = value.ToString(); }
+		public static bool RemoveLight {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveLight]", true.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - RemoveLight]"] = value.ToString(); }
+		}
+
+		public static bool RemoveShadow {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveShadow]", true.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - RemoveShadow]"] = value.ToString(); }
+		}
+
+		public static bool RemoveColor {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveColor]", true.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - RemoveColor]"] = value.ToString(); }
 		}
 
 		public static bool RemoveAllObjects {
@@ -752,6 +800,16 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[FlatMapsMaker - Texture wall original]"] = value.ToString(); }
 		}
 
+		public static bool MatchShadowsWithGatCells {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]", false.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]"] = value.ToString(); }
+		}
+
+		public static bool UseShadowsForQuadrants {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]", false.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]"] = value.ToString(); }
+		}
+
 		public static bool ResetGlobalLighting {
 			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Reset global lighting]", true.ToString()]); }
 			set { ConfigAsker["[FlatMapsMaker - Reset global lighting]"] = value.ToString(); }
@@ -768,7 +826,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static Color FlatMapsMakerC2 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 2]", GrfColor.ToHex(33, 33, 33)])).ToColor(); }
+			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 2]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
 			set { ConfigAsker["[FlatMapsMaker - Cell color 2]"] = GrfColor.ToHex(value.R, value.G, value.B); }
 		}
 
@@ -830,6 +888,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static string FlatMapsCellWidth {
 			get { return ConfigAsker["[FlatMapsMaker - Cell border width]", "2"]; }
 			set { ConfigAsker["[FlatMapsMaker - Cell border width]"] = value; }
+		}
+
+		public static string FlatMapsPreviewMapName {
+			get { return ConfigAsker["[FlatMapsMaker - Preview map name]", ""]; }
+			set { ConfigAsker["[FlatMapsMaker - Preview map name]"] = value; }
 		}
 
 		public static int FlatMapsCellWidth2 {
@@ -1009,8 +1072,8 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool GroupIfAllKeyValues {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all key values]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Group if all key values]"] = value.ToString(); }
+			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all key values_]", true.ToString()]); }
+			set { ConfigAsker["[Lub decompiler - Group if all key values_]"] = value.ToString(); }
 		}
 
 		public static int TextLengthLimit {

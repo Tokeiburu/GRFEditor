@@ -7,25 +7,6 @@
     <StackPanel>
         <StackPanel>
             <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto" />
-                        <ColumnDefinition />
-                        <ColumnDefinition Width="auto" />
-                    </Grid.ColumnDefinitions>
-                    <Label Grid.Row="0" Grid.Column="0" Content="Encryption password" />
-                    <TextBox Name="_tbEncryptionPassword" TextChanged="_tbEncryptionPassword_TextChanged" Grid.Row="0" Grid.Column="1" Margin="3" MaxLength="250" />
-                    <Styles:ButtonMenu Content="Key..." Margin="3" Grid.Column="2" Width="40">
-                        <Styles:ButtonMenu.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Clear" Click="_miClear_Click" />
-                                <MenuItem Header="Save..." Click="_miSave_Click" />
-                                <MenuItem Header="Load..."  Click="_miLoad_Click" />
-                                <MenuItem x:Name="_miLoadRecent" Header="Load recent" IsEnabled="False" />
-                            </ContextMenu>
-                        </Styles:ButtonMenu.ContextMenu>
-                    </Styles:ButtonMenu>
-                </Grid>
                 <Border BorderBrush="{StaticResource EncryptionDialogBorderBrush}" CornerRadius="3" BorderThickness="2" Margin="3">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -41,9 +22,30 @@
                             <RowDefinition />
                             <RowDefinition />
                         </Grid.RowDefinitions>
-
+                        <Label Grid.Row="0" Grid.Column="0" Content="Encryption password" VerticalAlignment="Center" />
                         <Label VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" Content="Client path" />
-                        <Label VerticalAlignment="Top" Grid.Row="2" Grid.Column="0" Content="DLL name" />
+                        <Label VerticalAlignment="Center" Grid.Row="2" Grid.Column="0" Content="Rename cps.dll" />
+                        <Label VerticalAlignment="Center" Grid.Row="3" Grid.Column="0" Content="Decompress function" />
+                        
+                        <Grid Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="_tbEncryptionPassword" TextChanged="_tbEncryptionPassword_TextChanged" Grid.Row="0" Grid.Column="0" Margin="3" Height="24" VerticalContentAlignment="Center" />
+                            <Styles:ButtonMenu Content="Key..." Margin="3" Grid.Column="1" Width="75" Height="24">
+                                <Styles:ButtonMenu.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Clear" Click="_miClear_Click" />
+                                        <MenuItem Header="Save..." Click="_miSave_Click" />
+                                        <MenuItem Header="Load..."  Click="_miLoad_Click" />
+                                        <MenuItem x:Name="_miLoadRecent" Header="Load recent" IsEnabled="False" />
+                                    </ContextMenu>
+                                </Styles:ButtonMenu.ContextMenu>
+                            </Styles:ButtonMenu>
+                        </Grid>
+
+                        
                         <Grid Grid.Row="1" Grid.Column="1">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition />
@@ -51,54 +53,40 @@
                             </Grid.ColumnDefinitions>
                             <Styles:PathBrowser BrowseMode="File" UseSavePath="True" SavePathUniqueName="GRFEditor - Client path"  TextBox.TextChanged="_tbClientPath_TextChanged" Name="_tbClientPath" Text="" />
                         </Grid>
-                        <StackPanel Grid.Row="2" Grid.Column="1">
-                            <TextBox Name="_tbWrapperName" TextChanged="_tbWrapperName_TextChanged" Margin="3" MaxLength="7" />
-                            <TextBlock Text="By using cps.dll for the name of the DLL, no modification on the client will be necessary. The name of the client cannot be modified after the DLL is generated." TextWrapping="Wrap" Margin="3" />
-                        </StackPanel>
-                        <Button Name="_buttonGenerateClientConf" Click="_buttonGenerateClientConf_Click" Grid.Row="6" Grid.Column="1" Content="Generate file(s)" Margin="3" Width="120" Height="24" HorizontalAlignment="Right" />
+                        <CheckBox Name="_cbRenameCps" Margin="3" Grid.Row="2" Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Left" />
+
+                        <Grid Grid.Row="3" Grid.Column="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition />
+                                <ColumnDefinition Width="auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Name="_tbUncompressName" Margin="3" IsReadOnly="True" Height="24" VerticalContentAlignment="Center" />
+                            <Button Name="_tbCopyUncompress" Click="_tbCopyUncompress_Click" Grid.Column="1" Width="75" Height="24" Margin="3" Content="Copy" />
+                        </Grid>
                     </Grid>
                 </Border>
-                <Border BorderBrush="{StaticResource EncryptionDialogBorderBrush}" CornerRadius="3" BorderThickness="2" Margin="3">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="auto" />
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-                        <Label Grid.Row="0" Grid.Column="0" Content="Encryption progress" />
-                        <Styles:TkProgressBar Name="_progressEncrypt" Grid.Row="0" Grid.Column="1" Margin="3" />
-                        <DockPanel Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right">
-                            <Button Name="_buttonDecryptGrf" Click="_buttonDecryptGrf_Click" Content="Decrypt GRF" Margin="3" Width="120" Height="24" HorizontalAlignment="Right" />
-                            <Button 
-									    Name="_buttonEncryptGrf" Content="Encrypt GRF" Margin="3" Width="120" Height="24" HorizontalAlignment="Right" Click="_buttonEncryptGrf_Click" />
-                        </DockPanel>
-                    </Grid>
-                </Border>
-                <!--<Border BorderBrush="#CDD5E2" CornerRadius="3" BorderThickness="2" Margin="3">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                        </Grid.ColumnDefinitions>
-                        <Grid.RowDefinitions>
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                            <RowDefinition />
-                        </Grid.RowDefinitions>
-                        <CheckBox Name="_cbEncryptTable" Content="Encrypt file table" Margin="3" />
-                        <WPF:TkInfoBlock x:Name="_tkInfo" Margin="3 0 3 6" Visibility="Collapsed" Grid.Row="1" Text="This will prevent any software (even GRF Editor) and patchers from modifying the content." ImagePath="warning16.png" Grid.Column="0" Grid.ColumnSpan="2" />
-                        <CheckBox Content="Encrypt file table" Margin="3" Grid.Row="2" />
-                    </Grid>
-                </Border>-->
+                <TextBlock Margin="3 0 3 3" TextWrapping="Wrap">
+                    Renaming cps.dll is slightly more secure. However, make sure the previous version of cps.dll isn't present in your RO folder.
+                    <LineBreak />
+                    <LineBreak />
+                    This encryption version requires the player to have Microsoft Visual C++ 2022 (x86) installed.
+                    <LineBreak />
+                    <LineBreak />
+                    Once you are done generating your client files, you can encrypt and decrypt content in your GRF by right-clicking a folder and selecting the Encryption option.
+                    <LineBreak />
+                    <LineBreak />
+                    If you are using the 'Restore loading cps.dll' patch from 4144, you'll need to copy the 'Decompress function' value in the NEMO's input box.
+                </TextBlock>
+                <!--  Alternatively, you can encrypt your entire GRF by using the Encrypt GRF button below. -->
+                <!--  <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                    <Button Name="_buttonDecryptGrf" Click="_buttonDecryptGrf_Click" Content="Decrypt GRF" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" />
+                    <Button Name="_buttonEncryptGrf" Content="Encrypt GRF" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" Click="_buttonEncryptGrf_Click" />
+                </DockPanel>-->
             </StackPanel>
         </StackPanel>
         <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
+                <Button Name="_buttonGenerateClientConf" Click="_buttonGenerateClientConf_Click" Grid.Row="6" Grid.Column="1" Content="Generate files" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" />
                 <Button Name="_buttonCancel" Content="Close" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />
             </DockPanel>
         </Grid>

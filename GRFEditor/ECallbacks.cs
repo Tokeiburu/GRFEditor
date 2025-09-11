@@ -26,7 +26,7 @@ namespace GRFEditor {
 		}
 
 		private void _grfHolder_ModifiedStateChanged(object sender, IContainerCommand<FileEntry> command) {
-			Dispatcher.Invoke(new Action(() => _setupTitle(_grfHolder.IsNewGrf || _grfHolder.IsModified)));
+			this.Dispatch(() => _setupTitle(_grfHolder.IsNewGrf || _grfHolder.IsModified));
 			_buttonUndo.Dispatch(p => p.IsEnabled = _grfHolder.Commands.CanUndo);
 			_buttonRedo.Dispatch(p => p.IsEnabled = _grfHolder.Commands.CanRedo);
 		}

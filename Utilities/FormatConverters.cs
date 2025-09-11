@@ -29,6 +29,16 @@ namespace Utilities {
 			return double.Parse(arg.Replace(",", "."), CultureInfo.InvariantCulture);
 		}
 
+		public static double DoubleConverterNoThrow(string arg) {
+			double value;
+
+			if (double.TryParse(arg.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out value)) {
+				return value;
+			}
+
+			return 0;
+		}
+
 		public static int IntOrHexConverter(string text) {
 			int value;
 

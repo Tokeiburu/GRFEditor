@@ -7,6 +7,7 @@ using ErrorManager;
 using GRF.Core;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF;
+using TokeiLibrary;
 
 namespace GRFEditor.Core.Services {
 	internal class EncryptionService {
@@ -80,7 +81,7 @@ namespace GRFEditor.Core.Services {
 
 		public static bool RequestDecryptionKey(GrfHolder grfHolder) {
 			if (grfHolder.Header.EncryptionKey == null) {
-				return (bool) Application.Current.Dispatcher.Invoke((Func<bool>) (() => {
+				return (bool) Application.Current.Dispatch(() => {
 					try {
 						_askAndSetEncryptionKey(grfHolder);
 						return grfHolder.Header.EncryptionKey != null;
@@ -89,7 +90,7 @@ namespace GRFEditor.Core.Services {
 						ErrorHandler.HandleException(err);
 						return false;
 					}
-				}));
+				});
 			}
 
 			return false;

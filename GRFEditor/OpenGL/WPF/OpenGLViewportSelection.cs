@@ -47,6 +47,26 @@ namespace GRFEditor.OpenGL.WPF {
 			else if (Keyboard.IsKeyDown(Key.P)) {
 				_camera.Mode = _camera.Mode == CameraMode.PerspectiveOpenGL ? CameraMode.PerspectiveDirectX : CameraMode.PerspectiveOpenGL;
 			}
+			else if (Keyboard.IsKeyDown(Key.R)) {
+				if (!CameraEditDialog.Opened) {
+					var dialog = new CameraEditDialog();
+					dialog.Init(this);
+					dialog.Show();
+					dialog.Owner = EditorMainWindow.Instance;
+					dialog.ShowInTaskbar = false;
+				}
+				else {
+					
+				}
+			}
+			else if (Keyboard.IsKeyDown(Key.F8)) {
+				RenderOptions.ShowWireframeView = !RenderOptions.ShowWireframeView;
+				RenderOptions.ShowPointView = false;
+			}
+			else if (Keyboard.IsKeyDown(Key.F7)) {
+				RenderOptions.ShowWireframeView = false;
+				RenderOptions.ShowPointView = !RenderOptions.ShowPointView;
+			}
 		}
 
 		private void _selectionRenderSub() {
@@ -55,8 +75,8 @@ namespace GRFEditor.OpenGL.WPF {
 
 			_selectionRi.BindVao();
 			Shader_simple.Use();
-			Shader_simple.SetMatrix4("projectionMatrix", Projection);
-			Shader_simple.SetMatrix4("viewMatrix", View);
+			Shader_simple.SetMatrix4("projectionMatrix", ref Projection);
+			Shader_simple.SetMatrix4("viewMatrix", ref View);
 			Shader_simple.SetVector4("color", new Vector4(1, 0, 0, 1.0f));
 			GL.LineWidth(1.0f);
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
@@ -183,8 +203,8 @@ namespace GRFEditor.OpenGL.WPF {
 					_selectionRi.BindVao();
 					Shader_simple.Use();
 					Shader_simple.SetVector4("color", new Vector4(1, 0, 0, 0.5f));
-					Shader_simple.SetMatrix4("projectionMatrix", Projection);
-					Shader_simple.SetMatrix4("viewMatrix", View);
+					Shader_simple.SetMatrix4("projectionMatrix", ref Projection);
+					Shader_simple.SetMatrix4("viewMatrix", ref View);
 					_selectionRi.Vbo.SetData(verts, BufferUsageHint.StaticDraw);
 					GL.DrawArrays(PrimitiveType.Triangles, 0, _selectionRi.Vbo.Length);
 				}

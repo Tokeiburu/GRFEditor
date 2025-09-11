@@ -6,7 +6,7 @@ namespace GRF.FileFormats {
 		/// <summary>
 		/// Gets or sets the magic (the file unique identifier).
 		/// </summary>
-		public string Magic { get; protected set; }
+		public string Magic { get; internal set; }
 
 		/// <summary>
 		/// Gets or sets the major version.
@@ -43,7 +43,7 @@ namespace GRF.FileFormats {
 		private byte _minorVersion;
 		private byte _majorVersion;
 		private double? _version = null;
-		public int BuildNumber { get; protected set; }
+		public int BuildNumber { get; set; }
 		public byte UnknownData { get; protected set; }
 
 		/// <summary>

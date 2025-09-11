@@ -11,12 +11,12 @@ uniform float lightIntensity;
 uniform int shadeType;
 uniform float discardValue = 0.8;
 
-uniform vec2 texTranslate = vec2(0);
-uniform vec2 texMult = vec2(1);
 uniform mat4 texRot;
 uniform float textureAnimToggle;
 uniform float billboard_off;
 uniform float enableCullFace = 0.0;
+uniform float opacity = 1.0;
+uniform bool fixedColor = false;
 
 in vec2 texCoord;
 in vec3 normal;
@@ -25,7 +25,7 @@ in float cull;
 
 void main()
 {
-	if (enableCullFace > 0 && cull <= 0) {
+	if (!fixedColor && enableCullFace > 0 && cull <= 0) {
 		if (cull >= 0 && !gl_FrontFacing)
 			discard;
 		if (cull < 0 && gl_FrontFacing)
@@ -35,16 +35,15 @@ void main()
 	vec2 texCoord2 = texCoord;
 	
 	if (textureAnimToggle == 1) {
-		texCoord2 = (texCoord + texTranslate) * texMult;
-		texCoord2 = texCoord2 - vec2(0.5f, 0.5f);
-		texCoord2 = vec2(texRot * vec4(texCoord2.x, texCoord2.y, 0, 1));
-		texCoord2 = texCoord2 + vec2(0.5f, 0.5f);
+		texCoord2 = vec2(vec4(texCoord2.x, texCoord2.y, 0, 1) * texRot);
 	}
 	
 	vec4 color = texture2D(s_texture, texCoord2);
 	
 	if(color.a < discardValue)
 		discard;
+		
+	color.a *= opacity;
 		
 	if (shadeType == 4) {	// for editor
 		vec3 lightDir = normalize(lightPosition - FragPos);
@@ -69,6 +68,10 @@ void main()
 		vec3 mult1 = min(NL * diffuse + ambient, 1.0);
 		vec3 mult2 = min(max(lightDiffuse, lightAmbient) + (1.0 - max(lightDiffuse, lightAmbient)) * min(lightDiffuse, lightAmbient), 1.0);
 		color.rgb *= min(mult1, mult2);
+	}
+	
+	if (fixedColor) {
+		color = vec4(0, 0, 0, 1);
 	}
 	
 	gl_FragData[0] = color;

@@ -1,186 +1,161 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using ErrorManager;
 using GRF.FileFormats.LubFormat.Core.CodeReconstructor;
+using Utilities;
 
 namespace GRF.FileFormats.LubFormat.Core {
 	public static class CodeLogic {
-		public static List<CodeFragment> Analyse(List<string> lines, int level) {
-			RemoveConsecutiveGotos(lines);
+		public static List<CodeFragment> Analyse(List<string> lines, int level, LubFunction function) {
+			_removeConsecutiveGotos(lines);
 
 			List<CodeFragment> fragments = new List<CodeFragment>();
-			CodeReconstructorCommon common = new CodeReconstructorCommon();
+			var common = new TkDictionary<string, CodeFragment>();
+			int splitCounter = 0;
 
 			// The first iteration creates the fragments, the references
 			// aren't set up yet.
 			for (int i = 0; i < lines.Count; i++) {
-				if (lines[i].StartsWith("::") || i == 0) {
-					int fragmentEnd = lines.Count - 2;
-					int fragmentStart = i;
+				try {
+					if (lines[i].StartsWith("::") || i == 0) {
+						int fragmentEnd = lines.Count - 2;
+						int fragmentStart = i;
 
-					for (i = i + 1; i < lines.Count; i++) {
-						if (lines[i].StartsWith("::")) {
-							fragmentEnd = i - 1;
-							i--;
-							break;
+						for (i = i + 1; i < lines.Count; i++) {
+							if (lines[i].StartsWith("::")) {
+								fragmentEnd = i - 1;
+								i--;
+								break;
+							}
 						}
+
+						for (int j = fragmentStart + 1; j < fragmentEnd; j++) {
+							// Not pure!
+							if (lines[j].Contains(" function(")) {
+								int end = 1;
+								j++;
+
+								for (; j < lines.Count; j++) {
+									if (lines[j].Contains("\tend") || lines[j] == "end")
+										end--;
+									else if (
+										lines[j].Contains("\tfor ") ||
+										lines[j].Contains("\tif ") ||
+										lines[j].Contains("\twhile "))
+										end++;
+
+									if (end <= 0)
+										break;
+								}
+
+								j--;
+								continue;
+							}
+
+							if ((j >= fragmentStart + 2 && LineHelper.IsIf(lines[j])) || (j > fragmentStart + 2 && LineHelper.IsControl(lines[j]))) {
+								string newLabel = "e_[" + String.Format("9{0:0000}", splitCounter++) + "]";
+
+								if (lines[fragmentStart].StartsWith("::")) {
+									newLabel = "e_" + lines[fragmentStart].Replace("::", "").Split('_')[1];
+								}
+
+								lines.Insert(j, LineHelper.GenerateIndent(function.BaseIndent) + "goto " + newLabel);
+								lines.Insert(j + 1, "::" + newLabel + "::");
+								fragmentEnd = i = j;
+								break;
+							}
+						}
+
+						CodeFragment fragment = new CodeFragment(fragmentStart, fragmentEnd, lines, common);
+						fragments.Add(fragment);
 					}
-
-					CodeFragment fragment = new CodeFragment(fragmentStart, fragmentEnd, lines, common);
-
-					if (level == 0)
-						fragment.FragmentType = FragmentType.NormalExecution;
-
-					fragments.Add(fragment);
+				}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
 				}
 			}
 
 			fragments.ForEach(p => p.SetReferences(fragments));
-
+			_rearrangeWhileLoops(fragments, function);
 			return fragments;
 		}
 
-		//public static List<CodeFragment> Analyse2(List<string> lines, int level) {
-		//	RemoveConsecutiveGotos(lines);
-		//
-		//	CodeReconstructorCommon common = new CodeReconstructorCommon();
-		//	var fragments = new List<CodeFragment>();
-		//
-		//	// The first iteration creates the fragments, the references
-		//	// aren't set up yet.
-		//	for (int i = 0; i < lines.Count; i++) {
-		//		if (lines[i].StartsWith("::") || i == 0) {
-		//			int fragmentEnd = lines.Count - 2;
-		//			int fragmentStart = i;
-		//
-		//			for (i = i + 1; i < lines.Count; i++) {
-		//				if (lines[i].StartsWith("::")) {
-		//					fragmentEnd = i - 1;
-		//					i--;
-		//					break;
-		//				}
-		//			}
-		//
-		//			CodeFragment fragment = new CodeFragment(fragmentStart, fragmentEnd, lines, common);
-		//
-		//			if (level == 0)
-		//				fragment.FragmentType = AdvFragmentType.NormalExecution;
-		//
-		//			fragments.Add(fragment);
-		//		}
-		//	}
-		//
-		//	fragments.ForEach(p => p.SetReferences(fragments));
-		//
-		//	return fragments;
-		//}
+		private static void _rearrangeWhileLoops(List<CodeFragment> fragments, LubFunction function) {
+			HashSet<CodeFragment> processed = new HashSet<CodeFragment>();
 
-		public static int NumberOfConditions(string line) {
-			return
-				_count(line, " == true") +
-				_count(line, " >= ") +
-				_count(line, " <= ") +
-				_count(line, " == ") +
-				_count(line, " ~= ") +
-				_count(line, " < ") +
-				_count(line, " > ") +
-				_count(line, " and ") +
-				_count(line, " or ") +
-				_count(line, " == false");
+			// Fix while loops
+			for (int i = 0; i < fragments.Count; i++) {
+				var fragment = fragments[i];
+
+				if (processed.Add(fragment) && fragment.IsLoop) {
+					int whileIndex = fragment.Content.IndexOf(LuaToken.While);
+
+					if (whileIndex < 0)
+						continue;
+
+					var oldLabel = fragment.Content.Label;
+					var newLabel = function.Label + "_[" + fragment.Loop_PC_End + "]";
+
+					fragment.Content.Lines[0] = "::" + newLabel + "::";
+					fragment.Content.Label = newLabel;
+					fragment.PC_Index = fragment.Loop_PC_End;
+
+					foreach (var frag in fragment.ParentReferences) {
+						int location = frag.Content.GetGotoLineIndex(oldLabel);
+
+						if (location > -1)
+							frag.Content.Lines[location] = LineHelper.ReplaceAfterIndent(frag.Content.Lines[location], "goto " + newLabel);
+					}
+
+					if (function._decompiler.Header.Version >= 5.1)
+						fragment.Loop_PC_Start = fragments[i + 1].PC_Index;
+
+					fragments.Remove(fragment);
+
+					int j;
+
+					for (j = 0; j < fragments.Count; j++) {
+						if (fragments[j].PC_Index >= 90000)
+							continue;
+						if (fragments[j].PC_Index > fragment.PC_Index) {
+							fragments.Insert(j, fragment);
+							break;
+						}
+					}
+
+					if (j == fragments.Count)
+						fragments.Add(fragment);
+
+					for (j = 0; j < fragments.Count; j++) {
+						fragments[j].NewUid();
+					}
+
+					i--;
+				}
+			}
+
+			// Set fragments associated with loops
+			for (int i = 0; i < fragments.Count; i++) {
+				var fragmentLoop = fragments[i];
+
+				if (fragmentLoop.IsLoop) {
+					for (int j = i - 1; j >= 0; j--) {
+						if (fragments[j].LoopScope != null)
+							continue;
+
+						if (CodeFragment.IsWithinLoop(fragmentLoop, fragments[j])) {
+							fragments[j].LoopScope = fragmentLoop;
+							continue;
+						}
+
+						break;
+					}
+				}
+			}
 		}
 
-		private static int _count(string line, string value) {
-			return (line.Length - line.Replace(value, "").Length) / value.Length;
-		}
-
-		public static string MergeOr(string line1, string line2) {
-			string first;
-			string second;
-
-			if (NumberOfConditions(line1) == 1) {
-				first = LineHelper.NoIndent(line1).Replace("if ", "").Replace(" then", "");
-			}
-			else {
-				first = "(" + LineHelper.NoIndent(line1).Replace("if ", "").Replace(" then", "") + ")";
-			}
-
-			if (NumberOfConditions(line2) == 1) {
-				second = LineHelper.NoIndent(line2).Replace("if ", "").Replace(" then", "");
-			}
-			else {
-				second = "(" + LineHelper.NoIndent(line2).Replace("if ", "").Replace(" then", "") + ")";
-			}
-
-			return LineHelper.GenerateIndent(LineHelper.GetIndent(line1)) + "if " + first + " or " + second + " then";
-		}
-
-		public static string MergeAnd(string line1, string line2) {
-			string first;
-			string second;
-
-			if (NumberOfConditions(line1) == 1) {
-				first = LineHelper.NoIndent(line1).Replace("if ", "").Replace(" then", "");
-			}
-			else {
-				first = "(" + LineHelper.NoIndent(line1).Replace("if ", "").Replace(" then", "") + ")";
-			}
-
-			if (NumberOfConditions(line2) == 1) {
-				second = LineHelper.NoIndent(line2).Replace("if ", "").Replace(" then", "");
-			}
-			else {
-				second = "(" + LineHelper.NoIndent(line2).Replace("if ", "").Replace(" then", "") + ")";
-			}
-
-			return LineHelper.GenerateIndent(LineHelper.GetIndent(line1)) + "if " + first + " and " + second + " then";
-		}
-
-		public static string ChangeToWhile(string ifCondition) {
-			return ifCondition.Replace("if ", "while ").Replace(" then", " do");
-		}
-
-		public static string ToElseIf(string elseCondition, string ifCondition) {
-			return LineHelper.ReplaceAfterIndent(elseCondition, LineHelper.NoIndent(ifCondition).Replace("if ", "elseif "));
-		}
-
-		public static string ReverseCondition(string line) {
-			if (NumberOfConditions(line) == 1) {
-				if (line.Contains(" == false")) {
-					return line.Replace(" == false", "");
-				}
-
-				if (line.Contains(" == true")) {
-					return line.Replace(" == true", ")").Replace("if ", "if not (");
-				}
-
-				if (line.Contains(" == ")) {
-					return line.Replace(" == ", " ~= ");
-				}
-
-				if (line.Contains(" ~= ")) {
-					return line.Replace(" ~= ", " == ");
-				}
-
-				if (line.Contains(" <= ")) {
-					return line.Replace(" <= ", " > ");
-				}
-
-				if (line.Contains(" >= ")) {
-					return line.Replace(" >= ", " < ");
-				}
-
-				if (line.Contains(" < ")) {
-					return line.Replace(" < ", " >= ");
-				}
-
-				if (line.Contains(" > ")) {
-					return line.Replace(" > ", " <= ");
-				}
-			}
-
-			return line.Replace("if ", "if not(").Replace(" then", ") then");
-		}
-
-		public static void RemoveConsecutiveGotos(List<string> lines) {
+		private static void _removeConsecutiveGotos(List<string> lines) {
 			for (int i = 0; i < lines.Count; i++) {
 				if (i + 1 < lines.Count &&
 				    LineHelper.IsStart(lines[i], "goto ") &&
@@ -193,54 +168,9 @@ namespace GRF.FileFormats.LubFormat.Core {
 		}
 
 		#region Utility methods
-
 		public static CodeFragment GetFragment(IEnumerable<CodeFragment> fragments, int line) {
-			return fragments.FirstOrDefault(p => p.ContainsLine(line));
+			return fragments.FirstOrDefault(p => p.Content.ContainsLineIndex(line));
 		}
-
-		public static CodeFragment GetFragment(IEnumerable<CodeFragment> fragments, string label) {
-			return fragments.FirstOrDefault(p => p.Label == label);
-		}
-
-		public static bool IsIfElseBranch(CodeFragment fragment) {
-			int indexIf = _ifBranchIndex(fragment, 0);
-			if (indexIf < 0) return false;
-			int indexElse = _elseBranchIndex(fragment, indexIf + 1);
-			if (indexElse < 0) return false;
-			int indexEnd = _endBranchIndex(fragment, indexElse + 1);
-			if (indexEnd < 0) return false;
-			if (indexEnd != fragment.Lines.Count - 1) return false;
-			return true;
-		}
-
-		public static bool IsIfBranch(CodeFragment fragment) {
-			int indexIf = _ifBranchIndex(fragment, 0);
-			if (indexIf < 0) return false;
-			int indexEnd = _endBranchIndex(fragment, indexIf + 1);
-			if (indexEnd < 0) return false;
-			return true;
-		}
-
-		private static int _ifBranchIndex(CodeFragment fragment, int startIndex) {
-			return LineHelper.GetLineIndexContains(fragment.Lines, "if ", startIndex);
-		}
-
-		private static int _whileBranchIndex(CodeFragment fragment, int startIndex) {
-			return LineHelper.GetLineIndexContains(fragment.Lines, "while ", startIndex);
-		}
-
-		private static int _elseBranchIndex(CodeFragment fragment, int startIndex) {
-			return LineHelper.GetLineIndexEndsWith(fragment.Lines, "\telse", startIndex);
-		}
-
-		private static int _endBranchIndex(CodeFragment fragment, int startIndex) {
-			return LineHelper.GetLineIndexContains(fragment.Lines, "end", startIndex);
-		}
-
-		public static bool IsForLoopBranch(CodeFragment fragment) {
-			return fragment.Lines.Count > 2 && LineHelper.IsStart(fragment.Lines[1], "for ");
-		}
-
 		#endregion
 	}
 }

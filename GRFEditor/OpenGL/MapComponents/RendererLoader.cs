@@ -7,6 +7,7 @@ using GRFEditor.OpenGL.MapRenderers;
 namespace GRFEditor.OpenGL.MapComponents {
 	public class RendererLoadRequest {
 		public bool IsMap { get; set; }
+		public bool Preloaded { get; set; }
 		public string Resource { get; set; }
 		public Rsm Rsm { get; set; }
 		public Func<bool> CancelRequired { get; set; }
@@ -16,6 +17,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public GndRenderer GndRenderer { get; set; }
 		public MapRenderer MapRenderer { get; set; }
 		public object Context { get; set; }
+		public bool ClearOnly { get; set; }
 	}
 
 	public class RendererLoader {
@@ -59,7 +61,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 				try {
 					ClearFunction();
-					LoadFunction(request);
+
+					if (!request.ClearOnly) {
+						LoadFunction(request);
+					}
 				}
 				catch {
 				}

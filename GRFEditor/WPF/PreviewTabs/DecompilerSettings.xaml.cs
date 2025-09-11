@@ -2,7 +2,7 @@
 using System.Globalization;
 using ErrorManager;
 using GRF.FileFormats.LubFormat;
-using GRF.System;
+using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge;
@@ -45,17 +45,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 		#region IErrorListener Members
 
 		public void Handle(string exception) {
-			_tbConsole.Dispatcher.Invoke(new Action(delegate {
+			_tbConsole.Dispatch(delegate {
 				_tbConsole.AppendText("> " + exception + "\r\n");
 				_tbConsole.ScrollToEnd();
-			}));
+			});
 		}
 
 		public void Handle(string exception, ErrorLevel level) {
-			_tbConsole.Dispatcher.Invoke(new Action(delegate {
+			_tbConsole.Dispatch(delegate {
 				_tbConsole.AppendText("> " + exception + "\r\n");
 				_tbConsole.ScrollToEnd();
-			}));
+			});
 		}
 
 		#endregion

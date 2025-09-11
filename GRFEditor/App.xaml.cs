@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
+using GRF.FileFormats.GatFormat;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Tools.SpriteEditor;
@@ -28,6 +29,7 @@ namespace GRFEditor {
 		protected override void OnStartup(StartupEventArgs e) {
 			ApplicationManager.CrashReportEnabled = true;
 			ImageConverterManager.AddConverter(new DefaultImageConverter());
+			Gat.AutomaticallyFixNegativeGatTypes = true;
 
 			Configuration.SetImageRendering(Resources);
 

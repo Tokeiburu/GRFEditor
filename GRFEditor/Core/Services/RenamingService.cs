@@ -14,7 +14,7 @@ using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.Graphics;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL;
@@ -149,7 +149,7 @@ namespace GRFEditor.Core.Services {
 			}
 		}
 
-		public bool DowngradeMap(FileEntry entry, GrfHolder grfData, Window owner) {
+		public bool DowngradeMap(FileEntry entry, GrfHolder grfData, Window owner, string outputPath = null) {
 			try {
 				if (entry == null) {
 					ErrorHandler.HandleException("Please select a file.", ErrorLevel.Low);
@@ -169,7 +169,10 @@ namespace GRFEditor.Core.Services {
 				}
 
 				try {
-					grfData.Commands.Begin();
+					if (outputPath == null) {
+						grfData.Commands.Begin();
+					}
+
 					Rsw rsw = new Rsw(grfData.FileTable[entry.RelativePath.ReplaceExtension(".rsw")].GetDecompressedData());
 					Gnd gnd = new Gnd(grfData.FileTable[entry.RelativePath.ReplaceExtension(".gnd")].GetDecompressedData());
 
@@ -220,7 +223,13 @@ namespace GRFEditor.Core.Services {
 									rsm2[model.ModelName] = rsm_2;
 									OpenGL.MapComponents.Rsm rsm_1 = new OpenGL.MapComponents.Rsm(rsmTempFile);
 									rsm1[model.ModelName] = rsm_1;
-									grfData.Commands.AddFile(Rsm.RsmModelPath + "\\" + model.ModelName.ReplaceExtension(".rsm"), rsmTempFile);
+
+									if (outputPath == null) {
+										grfData.Commands.AddFile(Rsm.RsmModelPath + "\\" + model.ModelName.ReplaceExtension(".rsm"), rsmTempFile);
+									}
+									else {
+										GrfPath.Copy(rsmTempFile, GrfPath.Combine(outputPath, Rsm.RsmModelPath + "\\" + model.ModelName.ReplaceExtension(".rsm")));
+									}
 								}
 
 								{
@@ -266,16 +275,27 @@ namespace GRFEditor.Core.Services {
 					gnd.Save(gndTempFile);
 					File.WriteAllBytes(gatTempFile, grfData.FileTable[entry.RelativePath.ReplaceExtension(".gat")].GetDecompressedData());
 
-					grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".rsw"), rswTempFile);
-					grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".gnd"), gndTempFile);
-					grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".gat"), gatTempFile);
+					if (outputPath == null) {
+						grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".rsw"), rswTempFile);
+						grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".gnd"), gndTempFile);
+						grfData.Commands.AddFile(String.Format(@"data\{0}{1}", newFileMapName, ".gat"), gatTempFile);
+					}
+					else {
+						GrfPath.Copy(rswTempFile, GrfPath.Combine(outputPath, Path.GetFileNameWithoutExtension(entry.RelativePath) + ".rsw"));
+						GrfPath.Copy(gndTempFile, GrfPath.Combine(outputPath, Path.GetFileNameWithoutExtension(entry.RelativePath) + ".gnd"));
+						GrfPath.Copy(gatTempFile, GrfPath.Combine(outputPath, Path.GetFileNameWithoutExtension(entry.RelativePath) + ".gat"));
+					}
 				}
 				catch {
-					grfData.Commands.CancelEdit();
+					if (outputPath == null) {
+						grfData.Commands.CancelEdit();
+					}
 					throw;
 				}
 				finally {
-					grfData.Commands.End();
+					if (outputPath == null) {
+						grfData.Commands.End();
+					}
 				}
 
 				return true;

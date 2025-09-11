@@ -15,7 +15,6 @@ using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using GrfToWpfBridge.Application;
-using TheCodeKing.Net.Messaging;
 using TokeiLibrary;
 using TokeiLibrary.Paths;
 using TokeiLibrary.WPF;
@@ -29,7 +28,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 	/// Interaction logic for SpriteConverter.xaml
 	/// </summary>
 	public partial class SpriteConverter : TkWindow {
-		private readonly XDListener _listener = new XDListener();
 		private readonly WpfRecentFiles _recentFiles;
 		private readonly Style _tabStyle;
 		private TkWindow _spriteEditorPalette;
@@ -69,9 +67,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 			_cbAssocSpr.Checked -= new RoutedEventHandler(_cbAssocSpr_Checked);
 			_cbAssocSpr.IsChecked = (Configuration.FileShellAssociated & FileAssociation.Spr) == FileAssociation.Spr;
 			_cbAssocSpr.Checked += new RoutedEventHandler(_cbAssocSpr_Checked);
-
-			_listener.RegisterChannel("openSprite");
-			_listener.MessageReceived += new XDListener.XDMessageHandler(_listener_MessageReceived);
 
 			PreviewKeyDown += new KeyEventHandler(_spriteConverter_PreviewKeyDown);
 		}
@@ -391,27 +386,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
-		}
-
-		#endregion
-
-		#region XDMessagin
-
-		private void _listener_MessageReceived(object sender, XDMessageEventArgs e) {
-			if (e.DataGram.Channel == "openSprite") {
-				Activate();
-				//NativeMethods.SetForegroundWindow(this.HandlesScrolling);
-				XDBroadcast.SendToChannel("openSpriteResponse", "grabbed");
-				_openSprite(e.DataGram.Message);
-			}
-		}
-
-		protected override void OnClosing(CancelEventArgs e) {
-			if (_spriteEditorPalette != null) {
-				_spriteEditorPalette.Close();
-			}
-			_listener.UnRegisterChannel("openSprite");
-			base.OnClosing(e);
 		}
 
 		#endregion

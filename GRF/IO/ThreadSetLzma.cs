@@ -10,17 +10,17 @@ namespace GRF.IO {
 	/// This class extracts and copy the files from the GRF from a given range
 	/// It's used to optimize the data transfer.
 	/// </summary>
-	public class ThreadSetLzma : GrfWriterThread<FileEntry> {
+	public class ThreadSetCustomCompression : GrfWriterThread<FileEntry> {
 		private const int _bufferSize = 8388608;
 		private readonly StreamReadBlockInfo _srb = new StreamReadBlockInfo(_bufferSize);
 
 		public override void Start() {
-			new Thread(_start) {Name = "GRF - Set lzma flag thread " + StartIndex}.Start();
+			new Thread(_start) {Name = "GRF - Set custom compression flag thread " + StartIndex}.Start();
 		}
 
 		private void _start() {
 			try {
-				uint offset;
+				long offset;
 
 				using (var originalStream = _grfData.GetSourceStream()) {
 					byte[] data;
@@ -53,8 +53,8 @@ namespace GRF.IO {
 
 							if (entry.SizeCompressed >= 2) {
 								if (data[offset - 1] == 0) {
-									entry.Flags |= EntryType.LzmaCompressed;
-									entry.OnPropertyChanged("Lzma");
+									entry.Flags |= EntryType.CustomCompressed;
+									entry.OnPropertyChanged("CustomCompressed");
 								}
 							}
 

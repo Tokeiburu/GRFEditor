@@ -7,8 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
+        <ProgressBar MaxWidth="10" MaxHeight="10" Value="1" Opacity="0" />
         <Grid Name="_host2">
-            
         </Grid>
         <WindowsFormsHost Name="_host">
         </WindowsFormsHost>

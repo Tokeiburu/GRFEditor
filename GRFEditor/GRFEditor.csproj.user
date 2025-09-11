@@ -11,16 +11,7 @@
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
     <ProjectView>ProjectFiles</ProjectView>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <StartArguments>-REM ".spr"</StartArguments>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
-    <StartArguments>"C:\Users\Sylvain\Desktop\Grfs\rdata.grf"</StartArguments>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <StartArguments>-REM ".spr"</StartArguments>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
-    <StartArguments>"C:\Users\Sylvain\Desktop\Grfs\rdata.grf"</StartArguments>
   </PropertyGroup>
 </Project>

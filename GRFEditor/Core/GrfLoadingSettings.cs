@@ -12,6 +12,7 @@
 			ReloadKey = grfLoadingSettings.ReloadKey;
 		}
 
+		public bool DecryptFileTable { get; set; }
 		public bool ReloadKey { get; set; }
 		public string FileName { get; set; }
 		public bool SkipReloadOnce { get; set; }

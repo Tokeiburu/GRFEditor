@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using GRF.Core;
 using GRF.IO;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
 using Utilities.Commands;
 using Utilities.Extension;
@@ -23,6 +23,10 @@ namespace GRF.ContainerFormat.Commands {
 	public class CommandsHolder<TEntry> : AbstractCommand<IContainerCommand<TEntry>> where TEntry : ContainerEntry {
 		protected ContainerAbstract<TEntry> _container;
 
+		/// <summary>
+		/// Initializes a new instance of the <see cref="CommandsHolder{TEntry}"/> class.
+		/// </summary>
+		/// <param name="container">The container.</param>
 		public CommandsHolder(ContainerAbstract<TEntry> container) {
 			_container = container;
 		}
@@ -720,6 +724,26 @@ namespace GRF.ContainerFormat.Commands {
 		}
 
 		/// <summary>
+		/// Changes the magic header of the GRF.
+		/// </summary>
+		/// <param name="header">The file signature header.</param>>
+		/// <param name="callback">The callback.</param>>
+		public void ChangeHeader(string header, CCallbacks.ChangeHeaderCallback callback) {
+			GrfExceptions.IfSavingThrow(_container);
+
+			if (header == _container.Header.Magic) return;
+			StoreAndExecute(new ChangeHeader<TEntry>(header, callback));
+		}
+
+		/// <summary>
+		/// Changes the magic header of the GRF.
+		/// </summary>
+		/// <param name="header">The file signature header.</param>>
+		public void ChangeHeader(string header) {
+			ChangeHeader(header, null);
+		}
+
+		/// <summary>
 		/// Encrypts GRF files.
 		/// </summary>
 		/// <param name="grfFiles">The GRF files.</param>
@@ -809,16 +833,28 @@ namespace GRF.ContainerFormat.Commands {
 			ThorAddFilesToRemove(new string[] {grfFile}, callback);
 		}
 
+		/// <summary>
+		/// Executes the specified command.
+		/// </summary>
+		/// <param name="command">The command.</param>
 		protected override void _execute(IContainerCommand<TEntry> command) {
 			command.Execute(_container);
 			_container.Table.InvalidateInternalSets();
 		}
 
+		/// <summary>
+		/// Undoes the specified command.
+		/// </summary>
+		/// <param name="command">The command.</param>
 		protected override void _undo(IContainerCommand<TEntry> command) {
 			command.Undo(_container);
 			_container.Table.InvalidateInternalSets();
 		}
 
+		/// <summary>
+		/// Redoes the specified command.
+		/// </summary>
+		/// <param name="command">The command.</param>
 		protected override void _redo(IContainerCommand<TEntry> command) {
 			command.Execute(_container);
 			_container.Table.InvalidateInternalSets();

@@ -14,7 +14,7 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		private void _exampleProjectRecentFiles_RecentFilesChanged(List<string> cutNames, List<string> fullFileNames) {
-			_menuItem.Dispatcher.Invoke(new Action(delegate {
+			_menuItem.Dispatch(delegate {
 				_menuItem.Items.Clear();
 				_menuItem.IsEnabled = cutNames.Count != 0;
 
@@ -26,7 +26,7 @@ namespace TokeiLibrary.WPF.Styles {
 					item.Click += (s, e) => OnFileClicked(fullFileNames[fileIndex]);
 					_menuItem.Items.Add(item);
 				}
-			}));
+			});
 		}
 	}
 }

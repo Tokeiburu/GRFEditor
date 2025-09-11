@@ -2,6 +2,7 @@
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
+using OpenTK.Graphics.OpenGL;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class ModelRenderer : Renderer {
@@ -87,7 +88,27 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				return;
 			if (!IsLoaded)
 				Load(viewport);
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
+
+			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
+				Shader.SetBool("fixedColor", true);
+			}
+			else {
+				Shader.SetBool("fixedColor", false);
+			}
+
 			Renderer.Render(viewport, ref MatrixCache);
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 		}
 
 		public override void Unload() {

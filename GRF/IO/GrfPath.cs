@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using GRF.ContainerFormat;
 using GRF.Core;
@@ -50,6 +51,26 @@ namespace GRF.IO {
 			}
 
 			return path.Substring(0, index);
+		}
+
+		/// <summary>
+		/// Gets the name of the directory (without cutting away extra slashes).
+		/// </summary>
+		/// <param name="path">The path.</param>
+		/// <param name="directory">The name of the directory.</param>
+		/// <param name="fileName">The file name.</param>
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		internal static void GetGrfEntryDirectoryNameAndFileName(string path, out string directory, out string fileName) {
+			int index = path.LastIndexOf(DirectorySeparatorChar);
+
+			if (index < 0) {
+				directory = "";
+				fileName = path;
+			}
+			else {
+				directory = path.Substring(0, index);
+				fileName = path.Substring(index + 1, path.Length - index - 1);
+			}
 		}
 
 		/// <summary>
@@ -424,6 +445,7 @@ namespace GRF.IO {
 
 		public static void Copy(string from, string to) {
 			Delete(to);
+			CreateDirectoryFromFile(to);
 			File.Copy(from, to);
 		}
 	}

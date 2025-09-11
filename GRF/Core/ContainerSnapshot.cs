@@ -71,7 +71,7 @@ namespace GRF.Core {
 
 		public bool Equals(ContainerSnapshot<TEntry> snapshot, out List<string> errors) {
 			HashSet<string> source = _hashes.Keys.ToList().ToHashSet();
-			HashSet<string> dest = snapshot._hashes.Keys.ToHashSet();
+			HashSet<string> dest = snapshot._hashes.Keys.ToList().ToHashSet();
 			errors = new List<string>();
 
 			foreach (var s in source) {

@@ -94,11 +94,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 				text = "\"" + entry.RelativePath + "\" is a special GRF entry used for removing files with Thor patches.";
 
 				_showTextEditor(text);
+				_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 			}
 			else if (entry.IsEmpty()) {
 				text = "\"" + entry.RelativePath + "\" is empty (0 byte).";
 
 				_showTextEditor(text);
+				_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 			}
 			else {
 				try {
@@ -112,6 +114,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(gat);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".gnd":
 							Gnd gnd = new Gnd(entry.GetDecompressedData());
@@ -122,6 +125,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(gnd);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".rsm":
 						case ".rsm2":
@@ -133,6 +137,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(rsm);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".rsw":
 							Rsw rsw = new Rsw(entry.GetDecompressedData());
@@ -143,6 +148,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(rsw);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".str":
 							Str str = new Str(entry.GetDecompressedData());
@@ -153,28 +159,31 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(str);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".fna":
 							Fna fna = new Fna(entry.GetDecompressedData());
 
-							if (GrfEditorConfiguration.PreviewRawFileStructure) {
+							//if (GrfEditorConfiguration.PreviewRawFileStructure) {
 								_showTextEditor(fna.GetInformation());
-							}
-							else {
-								_showTypeExplorer(fna);
-							}
+							//}
+							//else {
+							//	_showTypeExplorer(fna);
+							//}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							break;
 						case ".imf":
 							Imf imf = new Imf(entry.GetDecompressedData());
 
-							if (GrfEditorConfiguration.PreviewRawFileStructure) {
+							//if (GrfEditorConfiguration.PreviewRawFileStructure) {
 								AvalonHelper.Select("Imf", _highlightingComboBox);
 								_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Imf"));
 								_showTextEditor(imf.GetInformation());
-							}
-							else {
-								_showTypeExplorer(imf);
-							}
+							//}
+							//else {
+							//	_showTypeExplorer(imf);
+							//}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							break;
 						case ".act":
 							string sprName = GrfPath.Combine(Path.GetDirectoryName(entry.RelativePath), Path.GetFileNameWithoutExtension(entry.RelativePath) + ".spr");
@@ -196,6 +205,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(act);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".spr":
 							Spr spr = new Spr(entry.GetDecompressedData());
@@ -206,6 +216,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							else {
 								_showTypeExplorer(spr);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".lub":
 							try {
@@ -218,19 +229,20 @@ namespace GRFEditor.WPF.PreviewTabs {
 								if (Methods.ByteArrayCompare(data, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
 									Lub lub = new Lub(entry.GetDecompressedData());
 
-									if (GrfEditorConfiguration.PreviewRawFileStructure) {
+									//if (GrfEditorConfiguration.PreviewRawFileStructure) {
 										text = lub.Decompile();
-										text = "-- Using GRF Editor Decompiler (beta 1.0.4)\r\n\r\n" + text;
+										text = "-- Using GRF Editor Decompiler (beta 1.1.0)\r\n\r\n" + text;
 										_showTextEditor(text);
-									}
-									else {
-										_showTypeExplorer(new Lub(data));
-									}
+									//}
+									//else {
+									//	_showTypeExplorer(new Lub(data));
+									//}
 								}
 								else {
 									text = EncodingService.DisplayEncoding.GetString(data);
 									_showTextEditor(text);
 								}
+								_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							}
 							catch (Exception err) {
 								text = "-- An unhandled exception has been caught : " + err.Message;
@@ -248,7 +260,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 								AvalonHelper.Select("Json", _highlightingComboBox);
 								_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Json"));
 
-								if (GrfEditorConfiguration.PreviewRawFileStructure) {
+								//if (GrfEditorConfiguration.PreviewRawFileStructure) {
 									_textEditor.Encoding = EncodingService.Utf8;
 									text = Bson.Bson2Json(entry.GetDecompressedData());
 									_showTextEditor(text);
@@ -256,14 +268,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 									_buttonSave.Dispatch(delegate {
 										_textEditor.IsReadOnly = false;
 									});
-								}
-								else {
-									_showTypeExplorer(bson);
-								}
+								//}
+								//else {
+								//	_showTypeExplorer(bson);
+								//}
 							}
 							catch (Exception err) {
 								text = "-- An unhandled exception has been caught : " + err.Message;
 								_showTextEditor(text);
+							}
+							finally {
+								_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							}
 							break;
 					}

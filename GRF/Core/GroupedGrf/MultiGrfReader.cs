@@ -24,6 +24,7 @@ namespace GRF.Core.GroupedGrf {
 		private readonly MultiFileTable _multiFileTable;
 		private readonly List<MultiGrfPath> _paths = new List<MultiGrfPath>();
 		private bool _disposed;
+		private object _lock = new object();
 		public bool CurrentGrfAlwaysFirst { get; set; }
 
 		public MultiGrfReader() {

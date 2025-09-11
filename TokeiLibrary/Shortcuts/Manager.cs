@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using ErrorManager;
+using Utilities;
 using Utilities.Extension;
 
 namespace TokeiLibrary.Shortcuts {
 	public class AdvKeyBinding {
-		public InputBinding InputBinding { get; set; }
-		public CommandBinding CommandBinding { get; set; }
 		public Shortcut KeyGesture { get; set; }
 		public UIElement Holder { get; set; }
 		public Action Action { get; set; }
@@ -25,8 +25,6 @@ namespace TokeiLibrary.Shortcuts {
 		}
 
 		internal AdvKeyBinding(AdvKeyBinding keyBinding) {
-			InputBinding = keyBinding.InputBinding;
-			CommandBinding = keyBinding.CommandBinding;
 			KeyGesture = keyBinding.KeyGesture;
 			Holder = keyBinding.Holder;
 			Action = keyBinding.Action;
@@ -37,42 +35,21 @@ namespace TokeiLibrary.Shortcuts {
 			if (OriginalBinding == null)
 				OriginalBinding = new AdvKeyBinding(this);
 
-			Holder.InputBindings.Remove(InputBinding);
-			Holder.CommandBindings.Remove(CommandBinding);
-
+			// Ensure the command is the same
+			gesture.Command = KeyGesture.Command;
+			ApplicationShortcut.RemoveRawGesture(Holder, KeyGesture);
+			ApplicationShortcut.SetRawGesture(Holder, gesture);
 			KeyGesture = gesture;
-
-			ICommand iCommand = new CustomCommand(Action);
-			InputBinding ib = new InputBinding(iCommand, gesture.Gesture);
-
-			Holder.InputBindings.Add(ib);
-			CommandBinding cb = new CommandBinding(iCommand);
-
-			CommandBinding = cb;
-			InputBinding = ib;
-
-			Holder.CommandBindings.Add(cb);
 		}
 
 		public void Reset() {
 			if (OriginalBinding != null) {
-				Holder.InputBindings.Remove(InputBinding);
-				Holder.CommandBindings.Remove(CommandBinding);
-
-				InputBinding = OriginalBinding.InputBinding;
-				CommandBinding = OriginalBinding.CommandBinding;
+				ApplicationShortcut.RemoveRawGesture(Holder, KeyGesture);
+				ApplicationShortcut.SetRawGesture(Holder, OriginalBinding.KeyGesture);
+				Action = OriginalBinding.Action;
 				KeyGesture = OriginalBinding.KeyGesture;
 				Holder = OriginalBinding.Holder;
-				Action = OriginalBinding.Action;
 				Next = OriginalBinding.Next;
-
-				ICommand iCommand = new CustomCommand(Action);
-				InputBinding ib = new InputBinding(iCommand, KeyGesture.Gesture);
-
-				Holder.InputBindings.Add(ib);
-				CommandBinding cb = new CommandBinding(iCommand);
-				Holder.CommandBindings.Add(cb);
-
 				OriginalBinding = null;
 			}
 		}
@@ -94,13 +71,12 @@ namespace TokeiLibrary.Shortcuts {
 		public string CommandName { get; set; }
 		public string DisplayString { get; set; }
 
-		public KeyGesture KeyGesture { get; private set; }
-		public System.Windows.Input.KeyBinding KeyBinding { get; private set; }
+		public KeyBinding KeyBinding { get; private set; }
 
 		public Shortcut(string cmdName) {
 			CommandName = cmdName;
 			DisplayString = "Not assigned";
-			KeyGesture = new KeyGesture(Key.SelectMedia, ModifierKeys.Windows | ModifierKeys.Shift | ModifierKeys.Control | ModifierKeys.Alt, "Not assigned");
+			KeyBinding = new KeyBinding { Key = Key.SelectMedia, Modifiers = ModifierKeys.Windows | ModifierKeys.Shift | ModifierKeys.Control | ModifierKeys.Alt };
 		}
 
 		public bool IsAssigned {
@@ -110,54 +86,41 @@ namespace TokeiLibrary.Shortcuts {
 		public Shortcut(Shortcut shortcut, string cmdName) {
 			CommandName = cmdName;
 			DisplayString = shortcut.DisplayString;
-
-			if (shortcut.KeyGesture != null) {
-				KeyGesture = new KeyGesture(shortcut.KeyGesture.Key, shortcut.KeyGesture.Modifiers, shortcut.KeyGesture.DisplayString);
-			}
-			else {
-				KeyBinding = new KeyBinding { Key = shortcut.KeyBinding.Key };
-			}
+			KeyBinding = new KeyBinding { Key = shortcut.KeyBinding.Key, Modifiers = shortcut.KeyBinding.Modifiers };
 		}
 
 		public Shortcut(Key key, ModifierKeys modifiers, string displayString, string cmdName) {
 			CommandName = cmdName;
 			DisplayString = displayString;
-
-			try {
-				KeyGesture = new KeyGesture(key, modifiers, displayString);
-			}
-			catch {
-				KeyBinding = new System.Windows.Input.KeyBinding { Key = key };
-			}
+			KeyBinding = new KeyBinding { Key = key, Modifiers = modifiers };
 		}
 
 		public override InputGesture Gesture {
 			get {
-				return KeyGesture ?? KeyBinding.Gesture;
+				return KeyBinding.Gesture;
 			}
 			set {
 				base.Gesture = value;
 			}
 		}
-	}
 
-	//public class AdvKeyGesture : KeyGesture {
-	//	public AdvKeyGesture(Key key) : base(key) {
-	//	}
-	//
-	//	public AdvKeyGesture(Key key, ModifierKeys modifiers) : base(key, modifiers) {
-	//	}
-	//
-	//	public AdvKeyGesture(Key key, ModifierKeys modifiers, string displayString) : base(key, modifiers, displayString) {
-	//	}
-	//
-	//	public AdvKeyGesture(Key key, ModifierKeys modifiers, string displayString, string cmdName)
-	//		: base(key, modifiers, displayString) {
-	//			CommandName = cmdName;
-	//	}
-	//
-	//	public string CommandName { get; set; }
-	//}
+		public Key Key {
+			get { return KeyBinding.Key; }
+		}
+
+		public ModifierKeys Modifiers {
+			get { return KeyBinding.Modifiers; }
+		}
+
+		public bool IsMatch(KeyEventArgs args) {
+			if (KeyBinding != null) {
+				var key = ApplicationShortcut.RealKey(args);
+				return Keyboard.Modifiers == KeyBinding.Modifiers && (Keyboard.IsKeyDown(KeyBinding.Key) || KeyBinding.Key == key);
+			}
+
+			return false;
+		}
+	}
 
 	public sealed class ApplicationShortcut {
 		private static Shortcut _make(string cmdName, Key key, ModifierKeys modifiers = ModifierKeys.None) {
@@ -268,29 +231,53 @@ namespace TokeiLibrary.Shortcuts {
 			Link(new Shortcut(shortcut, cmdName), command, holder.Name, holder);
 		}
 
-		//ApplicationShortcut.Link(ApplicationShortcut.Delete, "MultiGrf.Delete", () => _menuItemsDelete_Click(null, null), _itemsResources);
+		public delegate bool PreKeyDownEventFunc(UIElement source, KeyEventArgs args, Shortcut shortcut);
 
-		//public static void Link(KeyGesture keyGesture, Action command, FrameworkElement holder) {
-		//	Link(new Shortcut(keyGesture.Key, keyGesture.Modifiers, keyGesture.DisplayString, ""), command, holder.Name, holder);
-		//}
+		public static PreKeyDownEventFunc PreKeyDownEvent = null;
+
+		private static void KeyDownEvent(UIElement source, KeyEventArgs args) {
+			try {
+				var bindings = UIBindings[source];
+
+				bool modifiersOnly = Keyboard.FocusedElement is TextBoxBase;
+
+				foreach (var binding in bindings) {
+					if (modifiersOnly && binding.Modifiers == ModifierKeys.None)
+						continue;
+					if (modifiersOnly && binding.Modifiers == ModifierKeys.Shift)
+						continue;
+
+					if (binding.IsMatch(args)) {
+						if (PreKeyDownEvent != null && PreKeyDownEvent(source, args, binding)) {
+							continue;
+						}
+
+						binding.Command.Execute(source);
+						args.Handled = true;
+						// Don't allow more than 1 shortcut execution at once
+						return;
+					}
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
+		public static Dictionary<UIElement, List<Shortcut>> UIBindings = new Dictionary<UIElement, List<Shortcut>>();
 
 		public static void Link(Shortcut gesture, Action command, string group, UIElement holder) {
-			var advGesture = gesture as Shortcut;
-
+			var advGesture = gesture;
 			var cmdName = gesture.DisplayString;
 
 			if (advGesture != null && advGesture.CommandName != null) {
 				cmdName = advGesture.CommandName;
 			}
 
-			ICommand iCommand = new CustomCommand(command);
-			InputBinding ib = new InputBinding(iCommand, gesture.Gesture);
+			gesture.Command = new CustomCommand(command);
+			SetRawGesture(holder, gesture);
 
-			holder.InputBindings.Add(ib);
-			CommandBinding cb = new CommandBinding(iCommand);
-			holder.CommandBindings.Add(cb);
-
-			AdvKeyBinding binding = new AdvKeyBinding { Action = command, Holder = holder, InputBinding = ib, KeyGesture = gesture, CommandBinding = cb };
+			AdvKeyBinding binding = new AdvKeyBinding { Holder = holder, KeyGesture = gesture, Action = command };
 			_keyBindings[group, gesture.DisplayString] = binding;
 
 			if (_keyBindings2.ContainsKey(cmdName)) {
@@ -313,14 +300,10 @@ namespace TokeiLibrary.Shortcuts {
 		}
 
 		public static void Link(Shortcut gesture, Action command, UIElement holder, string commandName) {
-			ICommand iCommand = new CustomCommand(command);
-			InputBinding ib = new InputBinding(iCommand, gesture.Gesture);
+			gesture.Command = new CustomCommand(command);
+			SetRawGesture(holder, gesture);
 
-			holder.InputBindings.Add(ib);
-			CommandBinding cb = new CommandBinding(iCommand);
-			holder.CommandBindings.Add(cb);
-
-			AdvKeyBinding binding = new AdvKeyBinding { Action = command, Holder = holder, InputBinding = ib, KeyGesture = gesture, CommandBinding = cb };
+			AdvKeyBinding binding = new AdvKeyBinding { Holder = holder, KeyGesture = gesture, Action = command };
 
 			if (_keyBindings2.ContainsKey(commandName)) {
 				var t = _keyBindings2[commandName];
@@ -386,13 +369,13 @@ namespace TokeiLibrary.Shortcuts {
 		}
 
 		public static bool Is(Shortcut shortcut) {
-			if (shortcut.KeyGesture != null) {
-				return (Keyboard.Modifiers & shortcut.KeyGesture.Modifiers) == shortcut.KeyGesture.Modifiers && Keyboard.IsKeyDown(shortcut.KeyGesture.Key);
+			if (shortcut.KeyBinding != null) {
+				return (Keyboard.Modifiers & shortcut.KeyBinding.Modifiers) == shortcut.KeyBinding.Modifiers && Keyboard.IsKeyDown(shortcut.KeyBinding.Key);
 			}
 
-			if (shortcut.KeyBinding != null) {
-				return Keyboard.IsKeyDown(shortcut.KeyBinding.Key);
-			}
+			//if (shortcut.KeyBinding != null) {
+			//	return Keyboard.IsKeyDown(shortcut.KeyBinding.Key);
+			//}
 
 			return false;
 		}
@@ -437,7 +420,7 @@ namespace TokeiLibrary.Shortcuts {
 						if (keyObj == null)
 							continue;
 
-						key = (Key) keyObj;
+						key = (Key)keyObj;
 					}
 					catch (Exception err) {
 						ErrorHandler.HandleException(err);
@@ -446,6 +429,37 @@ namespace TokeiLibrary.Shortcuts {
 			}
 
 			return new Shortcut(key, keys, keyGesture, cmdName);
+		}
+
+		public static void RemoveRawGesture(UIElement holder, Shortcut shortcut) {
+			if (!UIBindings.ContainsKey(holder)) {
+				UIBindings[holder] = new List<Shortcut>();
+				holder.KeyDown += (s, e) => KeyDownEvent(holder, e);
+			}
+
+			UIBindings[holder].Remove(shortcut);
+		}
+
+		public static void SetRawGesture(UIElement holder, Shortcut shortcut) {
+			if (!UIBindings.ContainsKey(holder)) {
+				UIBindings[holder] = new List<Shortcut>();
+				holder.KeyDown += (s, e) => KeyDownEvent(holder, e);
+			}
+
+			UIBindings[holder].Add(shortcut);
+		}
+
+		public static Key RealKey(KeyEventArgs e) {
+			switch (e.Key) {
+				case Key.System:
+					return e.SystemKey;
+				case Key.ImeProcessed:
+					return e.ImeProcessedKey;
+				//case Key.DeadCharProcessed:
+				//	return e.DeadCharProcessedKey;
+				default:
+					return e.Key;
+			}
 		}
 	}
 

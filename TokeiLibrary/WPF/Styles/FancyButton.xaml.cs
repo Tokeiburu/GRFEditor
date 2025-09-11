@@ -157,7 +157,8 @@ namespace TokeiLibrary.WPF.Styles {
 
 			if (fb != null) {
 				var img = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
-				fb.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+				//fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
+				fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 				fb._imageIcon.Source = img;
 			}
 		}
@@ -173,6 +174,9 @@ namespace TokeiLibrary.WPF.Styles {
 			RoutedEventHandler handler = Click;
 			if (handler != null) handler(this, e);
 		}
+
+		public TextBlock TbDescription { get { return _tbDescription; } }
+		public TextBlock TbSubDescription { get { return _tbSubDescription; } }
 
 		private void _fancyButton_Loaded(object sender, RoutedEventArgs e) {
 			//_tbIdentifier.Text = TextHeader;

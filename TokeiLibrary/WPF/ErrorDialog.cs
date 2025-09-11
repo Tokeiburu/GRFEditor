@@ -74,19 +74,19 @@ namespace TokeiLibrary.WPF {
 			scroll.Content = textBoxError;
 
 			Image imageInformation = new Image { Width = 64, Height = 64, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Hidden, Margin = new Thickness(5, 3, 0, 3) };
-			imageInformation.Source = ApplicationManager.GetResourceImage("information.png");
+			imageInformation.Source = ApplicationManager.PreloadResourceImage("information.png");
 			_imageInformation = imageInformation;
 
 			Image imageError = new Image { Width = 64, Height = 64, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Hidden, Margin = new Thickness(5, 3, 0, 3) };
-			imageError.Source = ApplicationManager.GetResourceImage("error.png");
+			imageError.Source = ApplicationManager.PreloadResourceImage("error.png");
 			_imageError = imageError;
 
 			Image imageWarning = new Image { Width = 64, Height = 64, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Hidden, Margin = new Thickness(5, 3, 0, 3) };
-			imageWarning.Source = ApplicationManager.GetResourceImage("warning.png");
+			imageWarning.Source = ApplicationManager.PreloadResourceImage("warning.png");
 			_imageWarning = imageWarning;
 
 			Image imageUnspecified = new Image { Width = 64, Height = 64, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Left, Visibility = Visibility.Hidden, Margin = new Thickness(5, 3, 0, 3) };
-			imageUnspecified.Source = ApplicationManager.GetResourceImage("unknown.png");
+			imageUnspecified.Source = ApplicationManager.PreloadResourceImage("unknown.png");
 			_imageUnspecified = imageUnspecified;
 
 			Grid footer = new Grid { Height = 40, Background = Application.Current.Resources["UIDialogBackground"] as Brush };

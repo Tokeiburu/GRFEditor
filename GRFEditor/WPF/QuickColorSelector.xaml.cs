@@ -6,12 +6,15 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using ColorPicker;
 using ColorPicker.Sliders;
+using ErrorManager;
 using GRF.Graphics;
 using GRF.Image;
 using GrfToWpfBridge;
 using TokeiLibrary;
+using Utilities;
 using Point = System.Windows.Point;
 
 namespace GRFEditor.WPF {
@@ -23,6 +26,46 @@ namespace GRFEditor.WPF {
 		public static DependencyProperty ColorBrushProperty = DependencyProperty.Register("ColorBrush", typeof (Brush), typeof (QuickColorSelector), new PropertyMetadata(new PropertyChangedCallback(OnColorBrushChanged)));
 		private Point _oldPosition;
 		private static readonly HashSet<char> _allowed = new HashSet<char> { 'a', 'b', 'c', 'd', 'e', 'f' };
+		private Func<string> _defaultColor;
+		private readonly List<Color> _timerColors = new List<Color>();
+		private DispatcherTimer _timer;
+		private int _previewUpdateInterval;
+
+		public int PreviewUpdateInterval {
+			get { return _previewUpdateInterval; }
+			set {
+				_previewUpdateInterval = value;
+
+				if (_previewUpdateInterval == 0) {
+					_timer_Tick(null, null);
+				}
+				else {
+					if (_timer == null)
+						_timer = new DispatcherTimer();
+
+					_timer.Interval = new TimeSpan(0, 0, 0, 0, value);
+					_timer.Tick += new EventHandler(_timer_Tick);
+				}
+			}
+		}
+
+		private void _timer_Tick(object sender, EventArgs e) {
+			if (_timerColors.Count > 0) {
+				var lastColor = _timerColors.Last();
+				_timerColors.Clear();
+
+				if (_defaultColor != null) {
+					_reset.Visibility = _defaultColor().Replace("0x", "#") == lastColor.ToGrfColor().ToHexString().Replace("0x", "#") ? Visibility.Collapsed : Visibility.Visible;
+				}
+
+				_previewPanelBg.Fill = new SolidColorBrush(lastColor);
+				SliderGradient.GradientPickerColorEventHandler handler = PreviewColorChanged;
+				if (handler != null) handler(this, lastColor);
+			}
+
+			if (_timer != null)
+				_timer.Stop();
+		}
 
 		public Thickness InnerMargin {
 			get { return (Thickness)GetValue(InnerMarginProperty); }
@@ -66,15 +109,15 @@ namespace GRFEditor.WPF {
 		public QuickColorSelector() {
 			InitializeComponent();
 
-			MouseEnter += new MouseEventHandler(_quickColorSelector_MouseEnter);
-			MouseLeave += new MouseEventHandler(_quickColorSelector_MouseLeave);
+			_border.MouseEnter += new MouseEventHandler(_quickColorSelector_MouseEnter);
+			_border.MouseLeave += new MouseEventHandler(_quickColorSelector_MouseLeave);
 			_previewPanelBg.Fill = new SolidColorBrush(Colors.White);
-			MouseDown += new MouseButtonEventHandler(_quickColorSelector_MouseDown);
-			MouseMove += new MouseEventHandler(_quickColorSelector_MouseMove);
-			DragEnter += new DragEventHandler(_quickColorSelector_DragEnter);
-			DragOver += _quickColorSelector_DragEnter;
-			DragLeave += _quickColorSelector_DragLeave;
-			Drop += new DragEventHandler(_quickColorSelector_Drop);
+			_border.MouseDown += new MouseButtonEventHandler(_quickColorSelector_MouseDown);
+			_border.MouseMove += new MouseEventHandler(_quickColorSelector_MouseMove);
+			_border.DragEnter += new DragEventHandler(_quickColorSelector_DragEnter);
+			_border.DragOver += _quickColorSelector_DragEnter;
+			_border.DragLeave += new DragEventHandler(_quickColorSelector_DragLeave);
+			_border.Drop += new DragEventHandler(_quickColorSelector_Drop);
 
 			AllowDrop = true;
 		}
@@ -85,6 +128,11 @@ namespace GRFEditor.WPF {
 			get { return ((SolidColorBrush) _previewPanelBg.Fill).Color; }
 			set {
 				_previewPanelBg.Fill = new SolidColorBrush(value);
+
+				if (_defaultColor != null) {
+					_reset.Visibility = _defaultColor().Replace("0x", "#") == value.ToGrfColor().ToHexString().Replace("0x", "#") ? Visibility.Collapsed : Visibility.Visible;
+				}
+
 				OnColorChanged(value);
 			}
 		}
@@ -117,8 +165,23 @@ namespace GRFEditor.WPF {
 		public event SliderGradient.GradientPickerColorEventHandler PreviewColorChanged;
 
 		public void OnPreviewColorChanged(Color value) {
-			SliderGradient.GradientPickerColorEventHandler handler = PreviewColorChanged;
-			if (handler != null) handler(this, value);
+			if (PreviewUpdateInterval > 0) {
+				_timerColors.Add(value);
+
+				if (!_timer.IsEnabled) {
+					_timer_Tick(null, null);
+					_timer.Start();
+				}
+			}
+			else {
+				if (_defaultColor != null) {
+					_reset.Visibility = _defaultColor().Replace("0x", "#") == value.ToGrfColor().ToHexString().Replace("0x", "#") ? Visibility.Collapsed : Visibility.Visible;
+				}
+
+				_previewPanelBg.Fill = new SolidColorBrush(value);
+				SliderGradient.GradientPickerColorEventHandler handler = PreviewColorChanged;
+				if (handler != null) handler(this, value);
+			}
 		}
 
 		public void OnColorChanged(Color value) {
@@ -132,7 +195,6 @@ namespace GRFEditor.WPF {
 
 				if (color != null) {
 					InitialColor = Color.ToGrfColor();
-					_previewPanelBg.Fill = new SolidColorBrush(color.ToColor());
 					OnPreviewColorChanged(color.ToColor());
 					OnColorChanged(color.ToColor());
 				}
@@ -144,7 +206,6 @@ namespace GRFEditor.WPF {
 					GrfColor color = new GrfColor(txt);
 
 					InitialColor = Color.ToGrfColor();
-					_previewPanelBg.Fill = new SolidColorBrush(color.ToColor());
 					OnPreviewColorChanged(color.ToColor());
 					OnColorChanged(color.ToColor());
 				}
@@ -166,6 +227,19 @@ namespace GRFEditor.WPF {
 				else {
 					e.Effects = DragDropEffects.None;
 					_border.BorderBrush = Brushes.Red;
+				}
+			}
+		}
+
+		private void _quickColorSelector_MouseMove(object sender, MouseEventArgs e) {
+			if (e.LeftButton == MouseButtonState.Pressed) {
+				TkVector2 dist = e.GetPosition(this).ToTkVector2() - _oldPosition.ToTkVector2();
+
+				if (dist.Length > 4) {
+					DataObject data = new DataObject();
+					data.SetData("GrfColor", Color.ToGrfColor());
+					data.SetText(Color.ToGrfColor().ToHexString());
+					DragDrop.DoDragDrop(this, data, DragDropEffects.All);
 				}
 			}
 		}
@@ -195,25 +269,16 @@ namespace GRFEditor.WPF {
 			_border.BorderBrush = Brushes.Black;
 		}
 
-		private void _quickColorSelector_MouseMove(object sender, MouseEventArgs e) {
-			if (e.LeftButton == MouseButtonState.Pressed) {
-				TkVector2 dist = e.GetPosition(this).ToTkVector2() - _oldPosition.ToTkVector2();
-
-				if (dist.Length > 4) {
-					DataObject data = new DataObject();
-					data.SetData("GrfColor", Color.ToGrfColor());
-					data.SetText(Color.ToGrfColor().ToHexString());
-					DragDrop.DoDragDrop(this, data, DragDropEffects.All);
-				}
-			}
-		}
-
 		private void _quickColorSelector_MouseDown(object sender, MouseButtonEventArgs e) {
 			_oldPosition = e.GetPosition(this);
 		}
 
 		public void SetColor(Color color) {
 			_previewPanelBg.Fill = new SolidColorBrush(color);
+		}
+
+		public void SetColor(GrfColor color) {
+			_previewPanelBg.Fill = new SolidColorBrush(color.ToColor());
 		}
 
 		private void _quickColorSelector_MouseLeave(object sender, MouseEventArgs e) {
@@ -227,10 +292,10 @@ namespace GRFEditor.WPF {
 		}
 
 		private void _previewPanelBg_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
-			_previewBackground(_previewPanelBg);
+			_previewBackground();
 		}
 
-		private void _previewBackground(Rectangle previewPanel) {
+		private void _previewBackground() {
 			if (_isShown)
 				return;
 
@@ -240,10 +305,7 @@ namespace GRFEditor.WPF {
 			dialog.Owner = WpfUtilities.TopWindow;
 			InitialColor = Color.ToGrfColor();
 
-			Rectangle previewPanelClosure = previewPanel;
-
 			dialog.PickerControl.ColorChanged += delegate(object s, Color newColor) {
-				previewPanelClosure.Fill = new SolidColorBrush(newColor);
 				OnPreviewColorChanged(newColor);
 			};
 
@@ -251,7 +313,7 @@ namespace GRFEditor.WPF {
 				_isShown = false;
 
 				if (dialog.DialogResult == false) {
-					previewPanel.Fill = new SolidColorBrush(dialog.PickerControl.InitialColor);
+					PreviewUpdateInterval = 0;
 					OnPreviewColorChanged(dialog.PickerControl.InitialColor);
 				}
 				else if (dialog.DialogResult) {
@@ -262,6 +324,80 @@ namespace GRFEditor.WPF {
 			};
 
 			dialog.Show();
+		}
+
+		public new bool IsEnabled {
+			get { return base.IsEnabled; }
+			set {
+				if (value) {
+					_borderEnabled.BorderBrush = Brushes.Transparent;
+					_borderEnabled.Background = Brushes.Transparent;
+				}
+				else {
+					var systemBrush = SystemColors.ControlBrush;
+					var brush1 = new SolidColorBrush(Color.FromArgb(150, systemBrush.Color.R, systemBrush.Color.G, systemBrush.Color.B));
+					var brush2 = new SolidColorBrush(Color.FromArgb(230, systemBrush.Color.R, systemBrush.Color.G, systemBrush.Color.B));
+
+					_borderEnabled.BorderBrush = brush1;
+					_borderEnabled.Background = brush2;
+				}
+
+				base.IsEnabled = value;
+			}
+		}
+
+		public void SetResetColor(ConfigAskerSetting setting) {
+			_defaultColor = () => setting.Default;
+
+			if (_defaultColor != null) {
+				_reset.Visibility = _defaultColor().Replace("0x", "#") == Color.ToGrfColor().ToHexString().Replace("0x", "#") ? Visibility.Collapsed : Visibility.Visible;
+			}
+		}
+
+		public void SetResetColor(Func<string> setting) {
+			_defaultColor = setting;
+
+			if (_defaultColor != null) {
+				_reset.Visibility = _defaultColor().Replace("0x", "#") == Color.ToGrfColor().ToHexString().Replace("0x", "#") ? Visibility.Collapsed : Visibility.Visible;
+			}
+		}
+
+		private void _reset_Click(object sender, RoutedEventArgs e) {
+			if (_defaultColor != null) {
+				Color = new GrfColor(_defaultColor()).ToColor();
+			}
+		}
+
+		public GrfColor ResetColor {
+			get {
+				return new GrfColor(_defaultColor());
+			}
+		}
+
+		private void _meCopy_Click(object sender, RoutedEventArgs e) {
+			try {
+				Clipboard.SetDataObject(Color.ToGrfColor().ToHexString());
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
+		private void _mePaste_Click(object sender, RoutedEventArgs e) {
+			try {
+				var txt = Clipboard.GetText();
+
+				if (_isColorFormat(txt)) {
+					GrfColor color = new GrfColor(txt);
+
+					InitialColor = Color.ToGrfColor();
+					OnPreviewColorChanged(color.ToColor());
+					OnColorChanged(color.ToColor());
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
 		}
 	}
 }

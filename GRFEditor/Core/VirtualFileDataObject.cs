@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.Core;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GrfToWpfBridge;
 using TokeiLibrary;

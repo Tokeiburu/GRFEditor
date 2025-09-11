@@ -22,7 +22,7 @@ using GRF.FileFormats.ThorFormat;
 using GRF.Hash;
 using GRF.IO;
 using GRF.Image;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GrfToWpfBridge;
 using Utilities;
@@ -206,7 +206,15 @@ namespace GrfCL {
 			}
 
 			else if (clOption == CommandLineOptions.ExtractFiles) {
-				List<string> filesToCopy = _grf.FileTable.Files.Where(p => p.IndexOf(clOption.Args[0], StringComparison.InvariantCulture) == 0).ToList();
+				List<string> filesToCopy;
+				
+				if (clOption.Args[0].Contains("*") || clOption.Args[0].Contains("?")) {
+					Regex regex = new Regex(Methods.WildcardToRegex(clOption.Args[0]), RegexOptions.IgnoreCase);
+					filesToCopy = _grf.FileTable.Files.Where(p => regex.IsMatch(p)).ToList();
+				}
+				else {
+					filesToCopy = _grf.FileTable.Files.Where(p => p.IndexOf(clOption.Args[0], StringComparison.InvariantCulture) == 0).ToList();
+				}
 
 				// See ExampleProject to see how you can extract the files normally.
 				// The GRF library simply offers quicker ways of extracting files and

@@ -9,8 +9,16 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
+using GRF.ContainerFormat;
 using GRF.Core;
-using GRF.System;
+using GRF.FileFormats.GatFormat;
+using GRF.FileFormats.GndFormat;
+using GRF.FileFormats.LubFormat;
+using GRF.FileFormats.RswFormat;
+using GRF.FileFormats.RswFormat.RswObjects;
+using GRF.Graphics;
+using GRF.Image;
+using GRF.GrfSystem;
 using GRF.Threading;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
@@ -19,7 +27,6 @@ using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.Application;
 using GrfToWpfBridge.TreeViewManager;
-using TheCodeKing.Net.Messaging;
 using TokeiLibrary;
 using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF;
@@ -27,11 +34,13 @@ using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.CommandLine;
 using Utilities.Extension;
+using Utilities.Parsers.Yaml;
 using Utilities.Services;
 using Action = System.Action;
 using AsyncOperation = GrfToWpfBridge.Application.AsyncOperation;
 using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 using OpeningService = GRFEditor.Core.Services.OpeningService;
+using GRFEditor.ApplicationConfiguration;
 
 namespace GRFEditor {
 	/// <summary>
@@ -39,7 +48,7 @@ namespace GRFEditor {
 	/// </summary>
 	public partial class EditorMainWindow : Window {
 		internal readonly GrfHolder _grfHolder = new GrfHolder();
-		private AsyncOperation _asyncOperation;
+		internal AsyncOperation _asyncOperation;
 		private ExtractingService _extractingService;
 		internal GrfLoadingSettings _grfLoadingSettings = new GrfLoadingSettings();
 		private double _oldGridWidth;
@@ -48,11 +57,13 @@ namespace GRFEditor {
 		private PreviewService _previewService;
 		private RenamingService _renamingService;
 		internal TreeViewPathManager _treeViewPathManager;
+		private EditorPosition _editorPosition = new EditorPosition();
 		public static EditorMainWindow Instance;
 
 		public EditorMainWindow() {
 			Instance = this;
 			InitializeComponent();
+			Title = Configuration.ProgramName;
 			_parseCommandLineArguments();
 			_loadEditorUI();
 			_loadServices();
@@ -71,6 +82,7 @@ namespace GRFEditor {
 			Settings.LockFiles = Configuration.LockFiles;
 			Settings.AddHashFileForThor = Configuration.AddHashFileForThor;
 			TemporaryFilesManager.ClearTemporaryFiles();
+			Settings.OnSavingFailed = _onSavingFailed;
 			return encoding;
 		}
 
@@ -115,7 +127,7 @@ namespace GRFEditor {
 			_listBoxResults.PreviewMouseLeftButtonDown += new MouseButtonEventHandler(_listBoxResults_PreviewMouseLeftButtonDown);
 			_progressBarComponent.ShowErrors += delegate {
 				if (_grfHolder.IsOpened) {
-					WindowProvider.ShowDialog("Minimalist debug log : \r\n" + Methods.Aggregate(_grfHolder.Header.Errors, "\r\n"), "Errors were detected", MessageBoxButton.OK);
+					WindowProvider.ShowDialog("Minimalist debug log: \r\n" + Methods.Aggregate(_grfHolder.Header.Errors, "\r\n"), "Errors were detected", MessageBoxButton.OK);
 				}
 			};
 			_loadMenus();
@@ -127,18 +139,18 @@ namespace GRFEditor {
 			}
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_listBoxResults, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 24 },
+				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "RelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "Lzma", "{DynamicResource CellBrushLzma}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "CustomCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}" });
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_items, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 24 },
+				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "DisplayRelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "Lzma", "{DynamicResource CellBrushLzma}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "CustomCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}" });
 
 			WpfUtils.AddDragDropEffects(_items);
 			WpfUtils.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf"));
@@ -194,6 +206,10 @@ namespace GRFEditor {
 				_listBoxResults.Visibility = Visibility.Collapsed;
 				_listBoxResults.SetValue(Grid.RowProperty, 0);
 			};
+
+			_editorPosition.Load(this);
+			this.Loaded += delegate {
+			};
 		}
 
 		private void _loadServices() {
@@ -227,51 +243,7 @@ namespace GRFEditor {
 					if (option.Args.Count <= 0)
 						continue;
 
-					if (option.Args.All(p => p.GetExtension() == ".spr")) {
-						int encoding = _loadBasicSettings();
-						EncodingService.SetDisplayEncoding(encoding);
-
-						string execFileName = Configuration.ProgramName;
-						int curId = Process.GetCurrentProcess().Id;
-
-						foreach (Process proc in Process.GetProcessesByName(execFileName)) {
-							try {
-								if (proc.Id != curId) {
-									XDListener listener = new XDListener();
-									bool response = false;
-
-									listener.RegisterChannel("openSpriteResponse");
-									listener.MessageReceived += (s, e) => {
-										if (e.DataGram.Channel == "openSpriteResponse") {
-											response = true;
-										}
-									};
-
-									XDBroadcast.SendToChannel("openSprite", options[0].Args[0]);
-									Thread.Sleep(500);
-									listener.UnRegisterChannel("openSpriteResponse");
-
-									if (!response) {
-										break;
-									}
-
-									ApplicationManager.Shutdown();
-									return;
-								}
-							}
-							catch {
-								//ErrorHandler.HandleException(err);
-							}
-						}
-
-						Window window = new SpriteConverter(options[0].Args);
-						Application.Current.MainWindow = window;
-						window.ShowDialog();
-						ApplicationManager.Shutdown();
-					}
-					else {
-						_grfLoadingSettings.FileName = option.Args[0];
-					}
+					_grfLoadingSettings.FileName = option.Args[0];
 				}
 			}
 		}
@@ -391,6 +363,10 @@ namespace GRFEditor {
 			}
 		}
 
+		private void _onSavingFailed() {
+			
+		}
+
 		#region Window events
 
 		protected override void OnClosing(CancelEventArgs e) {
@@ -410,7 +386,7 @@ namespace GRFEditor {
 					}
 				}
 
-				//GrfEditorConfiguration.
+				_editorPosition.Save(this);
 				_saveTreeExpansion();
 				_asyncOperation.Cancel();
 				ApplicationManager.Shutdown();
@@ -444,11 +420,10 @@ namespace GRFEditor {
 
 		public void Undo() {
 			try {
+				Console.WriteLine("Undo");
 				if (_grfHolder.Commands.Undo()) {
-					_update();
+					_update(false);
 				}
-
-				_setupTitle(_grfHolder.IsModified || _grfHolder.IsNewGrf);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -457,19 +432,18 @@ namespace GRFEditor {
 
 		public void Redo() {
 			try {
+				Console.WriteLine("Redo");
 				if (_grfHolder.Commands.Redo()) {
-					_update();
+					_update(false);
 				}
-
-				_setupTitle(_grfHolder.IsModified || _grfHolder.IsNewGrf);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 		}
 
-		private void _update() {
-			_search(false);
+		private void _update(bool async = false) {
+			_search(async);
 			_loadListItems();
 			_previewService.ShowPreview(_grfHolder, _treeViewPathManager.GetCurrentRelativePath(), null);
 		}
@@ -518,7 +492,7 @@ namespace GRFEditor {
 			new Thread(new ThreadStart(delegate {
 				if ((fromLoading && _grfHolder.Header.IsEncrypted) ||
 				    (!fromLoading && _grfHolder.Header.EncryptionKey == null)) {
-					Dispatcher.Invoke(new Action(delegate {
+					this.Dispatch(delegate {
 						try {
 							EncryptorInputKeyDialog dialog = new EncryptorInputKeyDialog((fromLoading ? "The file has been encrypted by using GRF Editor. " : "") + "Enter the encryption key to automatically decrypt the content or click cancel to ignore.");
 							dialog.Owner = this;
@@ -538,7 +512,7 @@ namespace GRFEditor {
 						catch (Exception err) {
 							ErrorHandler.HandleException(err);
 						}
-					}));
+					});
 				}
 			})) { Name = "GrfEditor - Encryption validation thread" }.Start();
 		}

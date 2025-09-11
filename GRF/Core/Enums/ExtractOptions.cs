@@ -10,5 +10,6 @@ namespace GRF.Core {
 		UseAppDataPathToExtract = 1 << 3,
 		SingleThreaded = 1 << 4,
 		ExtractAllInSameFolder = 1 << 5,
+		IgnoreCase = 1 << 6,
 	}
 }

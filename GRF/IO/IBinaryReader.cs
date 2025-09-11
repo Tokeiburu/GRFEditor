@@ -55,5 +55,7 @@ namespace GRF.IO {
 		GrfColor GrfColor();
 		TkVector3 Vector3();
 		TkVector2 Vector2();
+
+		string GetSource();
 	}
 }

@@ -58,7 +58,8 @@ namespace GRFEditor.Core.Services {
 		private ExtractOptions _getOptions() {
 			return 
 				(GrfEditorConfiguration.AlwaysOpenAfterExtraction ? ExtractOptions.OpenAfterExtraction : ExtractOptions.Normal) |
-				(GrfEditorConfiguration.OverrideExtractionPath ? ExtractOptions.UseAppDataPathToExtract : ExtractOptions.Normal);
+				(GrfEditorConfiguration.OverrideExtractionPath ? ExtractOptions.UseAppDataPathToExtract : ExtractOptions.Normal) |
+				(GrfEditorConfiguration.GrfFileTableIgnoreCase ? ExtractOptions.IgnoreCase : ExtractOptions.Normal);
 		}
 
 		// TreeView - Extract folder
@@ -207,7 +208,7 @@ namespace GRFEditor.Core.Services {
 			try {
 				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(extractionPath, "", SearchOption.AllDirectories, grfData.FileTable.Entries,
  					null,
-					ExtractOptions.Normal | ExtractOptions.OverrideCpuPerf, SyncMode.Synchronous), grfData, 200, null, true));
+					ExtractOptions.Normal | ExtractOptions.OverrideCpuPerf | (GrfEditorConfiguration.GrfFileTableIgnoreCase ? ExtractOptions.IgnoreCase : 0), SyncMode.Synchronous), grfData, 200, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err, ErrorLevel.NotSpecified);

@@ -10,23 +10,29 @@ using Utilities.Services;
 
 namespace GrfToWpfBridge.TreeViewManager {
 	public class TreeNode {
-		//private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
-		private readonly Dictionary<string, TreeNode> _children = new Dictionary<string, TreeNode>(StringComparer.OrdinalIgnoreCase);
+		private readonly Dictionary<string, TreeNode> _children;
 		private readonly bool _enableDrop = true;
 		private readonly TkPath _path;
 		private readonly Tree _root;
 		private TreeNode _parent;
 		private bool _set = false;
+		private bool _ignoreCase;
 
-		public TreeNode(Tree root) {
+		public TreeNode(Tree root, bool ignoreCase) {
 			_root = root;
+			_ignoreCase = ignoreCase;
+			_children = new Dictionary<string, TreeNode>(ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+			InsertLocation = -1;
 		}
 
-		public TreeNode(Tree root, string header, TkPath path, TreeNode parent) {
+		public TreeNode(Tree root, string header, TkPath path, TreeNode parent, bool ignoreCase, int insertLocation = -1) {
 			_path = path;
 			Header = header;
 			_parent = parent;
 			_root = root;
+			_ignoreCase = ignoreCase;
+			_children = new Dictionary<string, TreeNode>(ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+			InsertLocation = insertLocation;
 
 			if (parent == null && header != null && header.IsExtension(".thor", ".rgz")) {
 				_enableDrop = false;
@@ -36,6 +42,8 @@ namespace GrfToWpfBridge.TreeViewManager {
 				Set();
 			}
 		}
+
+		public int InsertLocation { get; set; }
 
 		public TkPath TkPath {
 			get { return _path; }
@@ -74,13 +82,19 @@ namespace GrfToWpfBridge.TreeViewManager {
 			if (_parent == null) {
 				_root.TreeView.Dispatch(delegate {
 					_setTvi();
-					_root.TreeView.Items.Add(Tvi);
+					if (InsertLocation < 0 || InsertLocation > _root.TreeView.Items.Count)
+						_root.TreeView.Items.Add(Tvi);
+					else
+						_root.TreeView.Items.Insert(InsertLocation, Tvi);
 				});
 			}
 			else {
 				_parent.Tvi.Dispatch(delegate {
 					_setTvi();
-					_parent.Tvi.Items.Add(Tvi);
+					if (InsertLocation < 0 || InsertLocation > _parent.Tvi.Items.Count)
+						_parent.Tvi.Items.Add(Tvi);
+					else
+						_parent.Tvi.Items.Insert(InsertLocation, Tvi);
 				});
 			}
 
@@ -89,7 +103,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 		private void _setTvi() {
 			if (Header.GetExtension() == null) {
-				if (Header == "root") {
+				if (Header == "root" || Header == "__ROOT") {
 					Tvi = new ProjectTreeViewItem(new TkPath { FilePath = ".root" }, _root.TreeView as TkView) { HeaderText = Header };
 				}
 				else {
@@ -109,25 +123,31 @@ namespace GrfToWpfBridge.TreeViewManager {
 			children.ForEach(p => p.GetAllNodes(nodes));
 		}
 
-		public void AddPath(string[] folders, TkPath path, int index = 0) {
+		public void AddPath(string[] folders, TkPath path, int index = 0, int insertLocation = -1) {
 			if (index >= folders.Length)
 				return;
 
 			if (!_children.ContainsKey(folders[index])) {
-				_children[folders[index]] = new TreeNode(_root, folders[index], new TkPath { FilePath = path.FilePath, RelativePath = Methods.Aggregate(folders.Skip(1).Take(index).ToList(), "\\") }, this);
+				_children[folders[index]] = new TreeNode(_root, folders[index], new TkPath { FilePath = path.FilePath, RelativePath = Methods.Aggregate(folders.Skip(1).Take(index).ToList(), "\\") }, this, _ignoreCase, insertLocation);
 			}
 
-			_children[folders[index]].AddPath(folders, path, index + 1);
+			_children[folders[index]].AddPath(folders, path, index + 1, insertLocation);
 		}
 
 		public void SafeSet() {
 			if (_parent == null) {
 				_setTvi();
-				_root.TreeView.Items.Add(Tvi);
+				if (InsertLocation < 0 || InsertLocation > _root.TreeView.Items.Count)
+					_root.TreeView.Items.Add(Tvi);
+				else
+					_root.TreeView.Items.Insert(InsertLocation, Tvi);
 			}
 			else {
 				_setTvi();
-				_parent.Tvi.Items.Add(Tvi);
+				if (InsertLocation < 0 || InsertLocation > _parent.Tvi.Items.Count)
+					_parent.Tvi.Items.Add(Tvi);
+				else
+					_parent.Tvi.Items.Insert(InsertLocation, Tvi);
 			}
 		}
 
@@ -200,7 +220,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 		public void UpdateDisplayEncoding() {
 			Header = EncodingService.DisplayEncoding.GetString(EncodingService.GetOldDisplayEncoding().GetBytes(Header));
-			List<Tuple<string, TreeNode>> children = Children.ToList().Select(p => new Tuple<string, TreeNode>(p.Key, p.Value)).ToList();
+			List<Utilities.Extension.Tuple<string, TreeNode>> children = Children.ToList().Select(p => new Utilities.Extension.Tuple<string, TreeNode>(p.Key, p.Value)).ToList();
 
 			Children.Clear();
 
@@ -214,11 +234,17 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 			if (_parent == null) {
 				_setTvi();
-				_root.TreeView.Items.Add(Tvi);
+				if (InsertLocation < 0 || InsertLocation > _root.TreeView.Items.Count)
+					_root.TreeView.Items.Add(Tvi);
+				else
+					_root.TreeView.Items.Insert(InsertLocation, Tvi);
 			}
 			else {
 				_setTvi();
-				_parent.Tvi.Items.Add(Tvi);
+				if (InsertLocation < 0 || InsertLocation > _parent.Tvi.Items.Count)
+					_parent.Tvi.Items.Add(Tvi);
+				else
+					_parent.Tvi.Items.Insert(InsertLocation, Tvi);
 			}
 
 			_set = true;

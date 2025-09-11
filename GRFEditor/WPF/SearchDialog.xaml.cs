@@ -67,12 +67,12 @@ namespace GRFEditor.WPF {
 			_tbFilePattern_LostFocus(null, null);
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_listViewResults, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 24 },
+				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "FileName", SearchGetAccessor = "FileName", ToolTipBinding = "FullPath", TextAlignment = TextAlignment.Left, MinWidth = 160 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "Path", DisplayExpression = "Path", SearchGetAccessor = "Path", TextAlignment = TextAlignment.Left, MinWidth = 100, IsFill = true },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Matches", DisplayExpression = "NumberOfMatches", SearchGetAccessor = "NumberOfMatches", TextAlignment = TextAlignment.Right, FixedWidth = 60 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", SearchGetAccessor = "FileType", TextAlignment = TextAlignment.Right, FixedWidth = 40 },
-			}, new DefaultListViewComparer<ESearchResult>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "Lzma", "{DynamicResource CellBrushLzma}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "Normal", "{DynamicResource TextForeground}" });
+			}, new DefaultListViewComparer<ESearchResult>(), new string[] { "Normal", "{DynamicResource TextForeground}" });
 
 			_listViewResults.ItemsSource = _results;
 			_listViewResults.SelectionChanged += new SelectionChangedEventHandler(_listViewResults_SelectionChanged);
@@ -256,7 +256,7 @@ namespace GRFEditor.WPF {
 				
 				Regex filePattern = new Regex((@"^(" + Methods.WildcardToRegexLine(_fileFilter) + ")$").Replace(";", "|"), RegexOptions.IgnoreCase);
 
-				List<Utilities.Extension.Tuple<string, string, FileEntry>> result1 = _grf.FileTable.FastTupleAccessEntries.Where(p => filePattern.IsMatch(p.Item2)).ToList();
+				List<(string Directory, string Filename, FileEntry Entry)> result1 = _grf.FileTable.FastTupleAccessEntries.Where(p => filePattern.IsMatch(p.Item2)).ToList();
 
 				if (result1.Count == 0) {
 					ErrorHandler.HandleException("No file extension matches your file pattern.");

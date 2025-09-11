@@ -229,6 +229,7 @@ namespace GRF.FileFormats.RswFormat {
 		/// </summary>
 		public void RemoveObjects() {
 			Objects.Clear();
+			LubEffects.Clear();
 		}
 
 		/// <summary>
@@ -262,6 +263,7 @@ namespace GRF.FileFormats.RswFormat {
 			rsw.Objects = new List<RswObject>();
 			rsw.ModelResources = new List<string>();
 
+			rsw.LubEffects = new List<Effect>();
 			rsw.Water = new RswWater();
 			rsw.Light = new RswLight();
 			rsw.Header = new RswHeader(mapname);

@@ -20,13 +20,6 @@
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <DockPanel HorizontalAlignment="Left" Grid.Row="1">
-            <TextBlock Margin="3" Text="Version" VerticalAlignment="Center" />
-            <ComboBox Name="_cbVersions" Width="100" Margin="3"
-                                      DisplayMemberPath="DisplayName"
-                                        ItemsSource="{Binding Source={x:Static Builder:SprBuilderInterface.Instance}, Path=Converters}"
-                                        SelectionChanged="_cbVersions_SelectionChanged" SelectedIndex="0" />
-        </DockPanel>
         <Grid Name="_gridLists" Grid.Row="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="300" />

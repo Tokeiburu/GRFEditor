@@ -35,21 +35,21 @@ namespace GRF.FileFormats.RsmFormat {
 		private static void _setFlattenPositions(Mesh parent, Mesh child) {
 			var box = child.CalculateBoundingBox();
 			if (parent == null)
-				child.Position = new TkVector3();
+				child.GlobalPosition = new TkVector3();
 			else
-				child.Position = new TkVector3(box.PCenter.X, box.Min.Y, box.PCenter.Z);
+				child.GlobalPosition = new TkVector3(box.PCenter.X, box.Min.Y, box.PCenter.Z);
 
-			child.Position_ = new TkVector3(0, 0, 0);
+			child.LocalPosition = new TkVector3(0, 0, 0);
 
 			foreach (var node in child.Children) {
 				_setFlattenPositions(child, node);
 			}
 
 			if (parent != null) {
-				child.Position -= parent.Position;
+				child.GlobalPosition -= parent.GlobalPosition;
 			}
 
-			child.Position = new TkVector3(0, 0, 0);
+			child.GlobalPosition = new TkVector3(0, 0, 0);
 
 			child.RotationKeyFrames.Clear();
 			child.TransformationMatrix = TkMatrix3.Identity;
@@ -86,7 +86,7 @@ namespace GRF.FileFormats.RsmFormat {
 			var newRootMesh = new Mesh(rsm) { Name = "__RSM2RSM1" };
 			newRootMesh.Children.Add(oriRoot);
 			rsm.MainMesh.ParentName = "__RSM2RSM1";
-			newRootMesh.Scale = new TkVector3(-1, -1, 1);
+			newRootMesh.GlobalScale = new TkVector3(-1, -1, 1);
 			rsm.Meshes.Insert(0, newRootMesh);
 			rsm.MainMesh = newRootMesh;
 			rsm.MainMeshNames.Clear();
@@ -118,11 +118,11 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 			else {
 				if (parent != null) {
-					position = mesh.Position_ - parent.Position_;
+					position = mesh.LocalPosition - parent.LocalPosition;
 					position = new TkVector3(new TkVector4(position.X, position.Y, position.Z, 0) * parent.InvertTransformationMatrix);
 				}
 				else {
-					position = mesh.Position_;
+					position = mesh.LocalPosition;
 				}
 			}
 
@@ -149,21 +149,21 @@ namespace GRF.FileFormats.RsmFormat {
 		}
 
 		private static void _setPositions(Mesh parent, Mesh child) {
-			child.Position = new TkVector3(child.Matrix2.Row3);
-			child.Position_ = new TkVector3(0, 0, 0);
+			child.GlobalPosition = new TkVector3(child.Matrix2.Row3);
+			child.LocalPosition = new TkVector3(0, 0, 0);
 
 			foreach (var node in child.Children) {
 				_setPositions(child, node);
 			}
 
 			if (parent != null) {
-				child.Position -= parent.Position;
-				child.Position *= new TkVector3(child.Parent.InvertTransformationMatrix.Row0.Length, child.Parent.InvertTransformationMatrix.Row1.Length, child.Parent.InvertTransformationMatrix.Row2.Length);
+				child.GlobalPosition -= parent.GlobalPosition;
+				child.GlobalPosition *= new TkVector3(child.Parent.InvertTransformationMatrix.Row0.Length, child.Parent.InvertTransformationMatrix.Row1.Length, child.Parent.InvertTransformationMatrix.Row2.Length);
 			}
 		}
 
 		private static void _setScale(Mesh child) {
-			child.Scale = new TkVector3(child.Matrix1.Row0.Length, child.Matrix1.Row1.Length, child.Matrix1.Row2.Length);
+			child.GlobalScale = new TkVector3(child.Matrix1.Row0.Length, child.Matrix1.Row1.Length, child.Matrix1.Row2.Length);
 
 			foreach (var node in child.Children) {
 				_setScale(node);

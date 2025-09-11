@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
@@ -10,7 +10,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GRFEditor</RootNamespace>
     <AssemblyName>GRF Editor</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
@@ -32,26 +32,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x64</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-  </PropertyGroup>
   <PropertyGroup>
     <StartupObject>GRFEditor.GRFEditorMain</StartupObject>
   </PropertyGroup>
@@ -66,22 +46,6 @@
   <PropertyGroup>
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
-    <OutputPath>bin\x86\Release_x64\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisLogFile>bin\Release\GRF Editor.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-  </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
@@ -94,37 +58,25 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
-    <OutputPath>bin\Release_x64\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisLogFile>bin\Release\GRF Editor.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ApplicationConfiguration\EditorPosition.cs" />
     <Compile Include="ApplicationConfiguration\PathRequest.cs" />
     <Compile Include="ApplicationConfiguration\SelfPatcher.cs" />
     <Compile Include="Core\Avalon\AvalonDefaultLoading.cs" />
@@ -143,6 +95,7 @@
     <Compile Include="OpenGL\MapComponents\ResourceManager.cs" />
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />
     <Compile Include="OpenGL\MapRenderers\GatRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\GatMinimapRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\LubRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\RsmRenderer.cs" />
     <Compile Include="OpenGL\MapComponents\Texture.cs" />
@@ -150,6 +103,19 @@
     <Compile Include="OpenGL\MapComponents\RendererLoader.cs" />
     <Compile Include="OpenGL\MapRenderers\BackgroundRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\GndRenderer.cs" />
+    <Compile Include="OpenGL\WPF\AdvancedTextBox.xaml.cs">
+      <DependentUpon>AdvancedTextBox.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OpenGL\WPF\CameraEditDialog.xaml.cs">
+      <DependentUpon>CameraEditDialog.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OpenGL\WPF\GatOptions.xaml.cs">
+      <DependentUpon>GatOptions.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="OpenGL\WPF\FloatTextBoxEdit.cs" />
+    <Compile Include="OpenGL\WPF\RotateOptions.xaml.cs">
+      <DependentUpon>RotateOptions.xaml</DependentUpon>
+    </Compile>
     <Compile Include="OpenGL\WPF\MinimapDialog.xaml.cs">
       <DependentUpon>MinimapDialog.xaml</DependentUpon>
     </Compile>
@@ -172,11 +138,23 @@
     </Compile>
     <Compile Include="OpenGL\Shader.cs" />
     <Compile Include="OpenGL\MapRenderers\WaterRenderer.cs" />
+    <Compile Include="TempNameDebug.xaml.cs">
+      <DependentUpon>TempNameDebug.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TestControl.xaml.cs">
+      <DependentUpon>TestControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="TestWindow.xaml.cs">
+      <DependentUpon>TestWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\GrfValidation\Validation.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\GrfValidation\ValidationView.cs" />
+    <Compile Include="Tools\Map\CellEditControl.xaml.cs">
+      <DependentUpon>CellEditControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Tools\SpriteEditor\SpriteEditorHelper.cs" />
     <Compile Include="Core\Services\EncryptionService.cs" />
     <Compile Include="Core\Services\ExtractingService.cs" />
@@ -191,7 +169,6 @@
     <Compile Include="EditorMainWindow.xaml.cs">
       <DependentUpon>EditorMainWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\MapExtractor\MapExtractorTreeViewItem.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="ECallbacks.cs" />
     <Compile Include="EListViewInteraction.cs" />
@@ -217,8 +194,14 @@
     <Compile Include="OpenGL\WPF\CloudEditTab.xaml.cs">
       <DependentUpon>CloudEditTab.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\MagicEditDialog.xaml.cs">
+      <DependentUpon>MagicEditDialog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewImageItem.xaml.cs">
+      <DependentUpon>PreviewImageItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewStr.xaml.cs">
       <DependentUpon>PreviewStr.xaml</DependentUpon>
@@ -365,6 +348,22 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="OpenGL\WPF\AdvancedTextBox.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="OpenGL\WPF\CameraEditDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="OpenGL\WPF\GatOptions.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="OpenGL\WPF\RotateOptions.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="OpenGL\WPF\MinimapDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -385,7 +384,23 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="TempNameDebug.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TestControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="TestWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Tools\GrfValidation\ValidationDialog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Tools\Map\CellEditControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -405,7 +420,15 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="WPF\MagicEditDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="WPF\PreviewTabs\OpenGLViewport.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewImageItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -620,11 +643,12 @@
     <EmbeddedResource Include="Resources\Shaders\shader_empty.vert" />
     <EmbeddedResource Include="Resources\Shaders\shader_line.frag" />
     <EmbeddedResource Include="Resources\Shaders\shader_line.vert" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_gat.frag" />
+    <EmbeddedResource Include="Resources\Shaders\shader_map_gat.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
     <None Include="Files\ActImaging.dll" />
-    <EmbeddedResource Include="Files\cps.dll" />
     <None Include="Files\default.pal" />
     <EmbeddedResource Include="Files\Encryption.dll" />
     <None Include="Files\Gif.Components.dll" />
@@ -636,7 +660,6 @@
     <None Include="Files\rgz.ico" />
     <None Include="Files\TokeiLibrary.dll" />
     <None Include="Files\Utilities.dll" />
-    <None Include="Files\zlib.net.dll" />
     <EmbeddedResource Include="Resources\add.ico" />
     <Resource Include="Resources\add.png" />
     <Resource Include="Resources\app.ico" />
@@ -747,9 +770,6 @@
     <None Include="Files\spr.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\XDMessaging.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\scale.png" />
   </ItemGroup>
   <ItemGroup>
@@ -794,8 +814,6 @@
     <EmbeddedResource Include="Files\Compressed\Be.Windows.Forms.HexBox.dll" />
     <EmbeddedResource Include="Files\Compressed\Gif.Components.dll" />
     <EmbeddedResource Include="Files\Compressed\ICSharpCode.AvalonEdit.dll" />
-    <EmbeddedResource Include="Files\Compressed\XDMessaging.dll" />
-    <EmbeddedResource Include="Files\Compressed\zlib.net.dll" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Files\Be.Windows.Forms.HexBox.dll" />
@@ -950,31 +968,31 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ActImaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Libraries\ActImaging.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\ActImaging.dll</HintPath>
     </Reference>
     <Reference Include="Be.Windows.Forms.HexBox, Version=1.5.0.34411, Culture=neutral, PublicKeyToken=e0e5adf0ebc99863, processorArchitecture=MSIL" />
     <Reference Include="ColorPicker, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Libraries\ColorPicker.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\ColorPicker.dll</HintPath>
     </Reference>
     <Reference Include="Encryption">
-      <HintPath>..\Libraries\Encryption.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\Encryption.dll</HintPath>
     </Reference>
     <Reference Include="ErrorManager">
-      <HintPath>..\Libraries\ErrorManager.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\ErrorManager.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.AvalonEdit, Version=4.3.1.9429, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
-      <HintPath>..\Libraries\ICSharpCode.AvalonEdit.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
     <Reference Include="Lua, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Libraries\Lua.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\Lua.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Libraries\OpenTK\OpenTK.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\OpenTK\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Libraries\OpenTK\OpenTK.GLControl.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\OpenTK\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -985,15 +1003,8 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="Utilities, Version=1.2.8491.21318, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Libraries\Utilities.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-    <Reference Include="XDMessaging, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\Librairies\XDMessaging.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\ErrorManager.dll" />
@@ -1004,12 +1015,16 @@
       <Name>GrfToWpfBridge</Name>
     </ProjectReference>
     <ProjectReference Include="..\GRF\GRF.csproj">
-      <Project>{F21476B8-04E5-43EE-AD1B-CF7BD2ED3D4F}</Project>
+      <Project>{f21476b8-04e5-43ee-ad1b-cf7bd2ed3d4f}</Project>
       <Name>GRF</Name>
     </ProjectReference>
     <ProjectReference Include="..\TokeiLibrary\TokeiLibrary.csproj">
       <Project>{812355C7-A277-4E8C-B6A0-306310F8F183}</Project>
       <Name>TokeiLibrary</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{b57e7e46-f5d5-4352-979c-13809d4f292a}</Project>
+      <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -1022,6 +1037,12 @@
   <ItemGroup>
     <Resource Include="Resources\downgrade.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\paste.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\gat.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
@@ -1029,11 +1050,55 @@
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PreBuildEvent>cd "$(SolutionDir)..\Libraries\"
-xcopy "*.dll" "$(SolutionDir)GRFEditor\Files\" /E /Y
-cd "$(SolutionDir)GRFEditor\Files\"
-start _Compress.bat</PreBuildEvent>
+    <ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
+    <GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
+    <EmbeddedDllsPath>$(ProjectDir)Files\</EmbeddedDllsPath>
+    <DebugEncryptionPath>$(SolutionDir)Encryption\$(OutputPath)netstandard2.0\</DebugEncryptionPath>
   </PropertyGroup>
+  <ItemGroup Condition="Exists('$(DebugEncryptionPath)')">
+    <DebugEncryptionPathFiles Include="$(DebugEncryptionPath)Encryption.dll" Visible="false" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('$(ExternalDllsPath)')">
+    <ExternalDlls Include="$(ExternalDllsPath)ColorPicker.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)ErrorManager.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)Encryption.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)Lua.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)OpenTK.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)OpenTK.GLControl.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)Be.Windows.Forms.HexBox.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)Gif.Components.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)ICSharpCode.AvalonEdit.dll" Visible="false" />
+  </ItemGroup>
+  <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+  </Target>
+  <ItemGroup>
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)ActImaging.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)Be.Windows.Forms.HexBox.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)ColorPicker.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)Gif.Components.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)GRF.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)GrfToWpfBridge.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)ICSharpCode.AvalonEdit.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)Lua.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)OpenTK.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)OpenTK.GLControl.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)TokeiLibrary.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)Utilities.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)ErrorManager.dll" Visible="false" />
+  </ItemGroup>
+  <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />
+    <Copy SourceFiles="@(EmbeddedDlls)" DestinationFolder="$(EmbeddedDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+  </Target>
+  <Target Name="CopyDebugEncryption" BeforeTargets="AfterBuild">
+	<Message Text="Encryption -> @(DebugEncryptionPathFiles)" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+    <Copy SourceFiles="@(DebugEncryptionPathFiles)" DestinationFolder="$(TargetDir)" Condition="Exists('$(DebugEncryptionPath)')" />
+  </Target>
+	<Target Name="RunCompressBatch" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+	  <Exec Command="&quot;$(ProjectDir)Files\_Compress.bat&quot;" WorkingDirectory="$(ProjectDir)Files" />
+	</Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

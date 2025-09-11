@@ -29,6 +29,13 @@ namespace GRF.Image {
 		private HslColor _hsl;
 		private HsvColor _hsv;
 
+		public GrfColor(float a, float r, float g, float b) {
+			_raw[0] = (byte)(a * 255f);
+			_raw[1] = (byte)(r * 255f);
+			_raw[2] = (byte)(g * 255f);
+			_raw[3] = (byte)(b * 255f);
+		}
+
 		public GrfColor(byte a, byte r, byte g, byte b) {
 			_raw[0] = a;
 			_raw[1] = r;
@@ -375,6 +382,14 @@ namespace GRF.Image {
 		/// <returns></returns>
 		public int ToRgbInt24() {
 			return R << 16 | G << 8 | B;
+		}
+
+		/// <summary>
+		/// To an uint ARGB.
+		/// </summary>
+		/// <returns></returns>
+		public uint ToArgbInt32() {
+			return (uint)(A << 24 | R << 16 | G << 8 | B);
 		}
 
 		protected bool Equals(GrfColor other) {

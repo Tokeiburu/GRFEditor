@@ -97,14 +97,10 @@ namespace GRF.FileFormats.GndFormat {
 		/// Resets the texture uv.
 		/// </summary>
 		public void ResetTextureUv() {
-			TexCoords[0][0] = 1.0f;
-			TexCoords[0][1] = 0.0f;
-			TexCoords[1][0] = 1.0f;
-			TexCoords[1][1] = 0.0f;
-			TexCoords[2][0] = 0.0f;
-			TexCoords[2][1] = 0.0f;
-			TexCoords[3][0] = 1.0f;
-			TexCoords[3][1] = 1.0f;
+			TexCoords[0] = new TkVector2(1, 0);
+			TexCoords[1] = new TkVector2(0, 0);
+			TexCoords[2] = new TkVector2(1, 1);
+			TexCoords[3] = new TkVector2(0, 1);
 		}
 	}
 }

@@ -15,6 +15,8 @@ namespace GRF.FileFormats.GatFormat {
 	/// Gat object, contains information about the walkable cells type and position
 	/// </summary>
 	public class Gat : IImageable, IPrintable, IEnumerable<Cell>, IWriteableFile {
+		public static bool AutomaticallyFixNegativeGatTypes = false;
+
 		// Cells are reversed, they start from bottom to top
 		private Cell[] _cells;
 		private GrfImage _image;
@@ -326,9 +328,10 @@ namespace GRF.FileFormats.GatFormat {
 		}
 
 		private void _loadCells(IBinaryReader data) {
-			_cells = new Cell[Header.Width * Header.Height];
+			int count = Header.Width * Header.Height;
+			_cells = new Cell[count];
 
-			for (int i = 0; i < Header.Width * Header.Height; i++) {
+			for (int i = 0; i < count; i++) {
 				_cells[i] = new Cell(data);
 			}
 		}

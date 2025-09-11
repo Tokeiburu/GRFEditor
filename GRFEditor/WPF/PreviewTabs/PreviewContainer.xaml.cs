@@ -6,10 +6,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using ErrorManager;
+using GRF;
 using GRF.Core;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using TokeiLibrary;
+using TokeiLibrary.WPF;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -45,7 +47,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_comboBoxPatchMode.SelectionChanged += _comboBoxPatchMode_SelectionChanged;
 			_textBoxTargetGrf.TextChanged += _textBoxTargetGrf_TextChanged;
-
+			
 			_grids[".thor"] = _gridThor;
 			_grids[".grf"] = _gridGrf;
 		}
@@ -56,6 +58,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 			Thread thread = new Thread(() => _load(_currentPath)) { Name = "GrfEditor - Preview container thread" };
 			thread.SetApartmentState(ApartmentState.STA);
 			thread.Start();
+		}
+
+		public void Update(bool forceUpdate) {
+			Update();
 		}
 
 		public void Load(GrfHolder grfData, TkPath currentPath) {
@@ -80,6 +86,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 					if (_grfData.FileName.GetExtension() == ".thor") {
 						_setTargetGrf();
 						_selectPatchMode();
+					}
+					else {
+						_tbMagicHeader.Dispatch(p => _tbMagicHeader.Text = _grfData.Header.Magic);
+						_tbMagicHeader.Dispatch(p => _buttonMagicReset.IsEnabled = (_tbMagicHeader.Text != (_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic)));
 					}
 
 					_setVisible();
@@ -149,14 +159,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_comboBoxFormat.Dispatch(delegate {
 				_comboBoxFormat.SelectionChanged -= _comboBoxFormat_SelectionChanged;
 
-				if (_grfData.Header.Is(2, 0)) {
+				if (_grfData.Header.Is(3, 0)) {
 					_comboBoxFormat.SelectedIndex = 0;
 				}
-				else if (_grfData.Header.Is(1, 3)) {
+				else if (_grfData.Header.Is(2, 0)) {
 					_comboBoxFormat.SelectedIndex = 1;
 				}
-				else if (_grfData.Header.Is(1, 2)) {
+				else if (_grfData.Header.Is(1, 3)) {
 					_comboBoxFormat.SelectedIndex = 2;
+				}
+				else if (_grfData.Header.Is(1, 2)) {
+					_comboBoxFormat.SelectedIndex = 3;
 				}
 
 				_comboBoxFormat.SelectionChanged += _comboBoxFormat_SelectionChanged;
@@ -165,16 +178,42 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		protected void _comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 			if (_comboBoxFormat != null) {
-				switch (_comboBoxFormat.SelectedIndex) {
-					case 0:
-						_grfData.Commands.ChangeVersion(2, 0);
-						break;
-					case 1:
-						_grfData.Commands.ChangeVersion(1, 3);
-						break;
-					case 2:
-						_grfData.Commands.ChangeVersion(1, 2);
-						break;
+				try {
+					_grfData.Commands.Begin();
+
+					switch(_comboBoxFormat.SelectedIndex) {
+						case 0:
+							_grfData.Commands.ChangeVersion(3, 0);
+
+							if (_grfData.Header.Magic == GrfStrings.MasterOfMagic) {
+								_grfData.Commands.ChangeHeader(GrfStrings.EventHorizon, _changeHeaderCallback);
+							}
+							break;
+						case 1:
+							_grfData.Commands.ChangeVersion(2, 0);
+
+							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
+							}
+							break;
+						case 2:
+							_grfData.Commands.ChangeVersion(1, 3);
+
+							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
+							}
+							break;
+						case 3:
+							_grfData.Commands.ChangeVersion(1, 2);
+
+							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
+							}
+							break;
+					}
+				}
+				finally {
+					_grfData.Commands.End();
 				}
 			}
 		}
@@ -186,6 +225,23 @@ namespace GRFEditor.WPF.PreviewTabs {
 		private void _tbTarget_LostFocus(object sender, RoutedEventArgs e) {
 			//if (_textBoxTargetGrf.Text == "")
 			//    _labelFind.Visibility = Visibility.Visible;
+		}
+
+		private void _buttonMagicEdit_Click(object sender, RoutedEventArgs e) {
+			var input = WindowProvider.ShowWindow<MagicEditDialog>(new MagicEditDialog(_grfData.Header.Magic), WpfUtilities.TopWindow);
+
+			if (input.DialogResult == true) {
+				_grfData.Commands.ChangeHeader(input.OutputHeader, _changeHeaderCallback);
+			}
+		}
+
+		private void _buttonMagicReset_Click(object sender, RoutedEventArgs e) {
+			_grfData.Commands.ChangeHeader(_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic, _changeHeaderCallback);
+		}
+
+		private void _changeHeaderCallback(string header, bool execute) {
+			_tbMagicHeader.Text = header;
+			_buttonMagicReset.IsEnabled = _tbMagicHeader.Text != (_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic);
 		}
 	}
 }

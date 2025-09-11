@@ -23,24 +23,8 @@ namespace GrfToWpfBridge.Application {
 			public string Message { get; set; }
 		}
 
-		//private static DebuggerDialog _debugDialog;
 		private static readonly DebuggerParameters _recentDebugInfo = new DebuggerParameters();
 		private string _latestException;
-
-		//static DefaultErrorHandler() {
-		//    if (Configuration.EnableDebuggerTrace) {
-		//        if (_debugDialog == null)
-		//            _debugDialog = new DebuggerDialog();
-
-		//        if (!_debugDialog.IsLoaded)
-		//            _debugDialog.Show();
-
-		//        if (!_debugDialog.IsVisible) {
-		//            _debugDialog.Visibility = Visibility.Visible;
-		//        }
-		//    }
-		//}
-
 		public bool IgnoreNoMainWindow { get; set; }
 
 		#region IErrorHandler Members
@@ -58,7 +42,7 @@ namespace GrfToWpfBridge.Application {
 					WindowProvider.ShowWindow(_addDebugButton(new ErrorDialog("Information", _getHeader(errorLevel) + GetMessage(exception), errorLevel)));
 				}
 				else {
-					bool mainWindowVisible = (bool)System.Windows.Application.Current.Dispatcher.Invoke(new Func<bool>(() => System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded));
+					bool mainWindowVisible = (bool)System.Windows.Application.Current.Dispatch(() => System.Windows.Application.Current.MainWindow != null && System.Windows.Application.Current.MainWindow.IsLoaded);
 					
 					if (!mainWindowVisible) {
 						Clipboard.SetDataObject(ErrorHandler.GenerateOutput(_recentDebugInfo.Exception, _recentDebugInfo.StackTrace));
@@ -66,7 +50,7 @@ namespace GrfToWpfBridge.Application {
 						return;
 					}
 
-					System.Windows.Application.Current.Dispatcher.Invoke((Action) (() => WindowProvider.ShowWindow(_addDebugButton(new ErrorDialog("Information", _getHeader(errorLevel) + GetMessage(exception), errorLevel)), WpfUtilities.TopWindow ?? System.Windows.Application.Current.MainWindow)));
+					System.Windows.Application.Current.Dispatch(() => WindowProvider.ShowWindow(_addDebugButton(new ErrorDialog("Information", _getHeader(errorLevel) + GetMessage(exception), errorLevel)), WpfUtilities.TopWindow ?? System.Windows.Application.Current.MainWindow));
 				}
 			}
 		}
@@ -136,14 +120,14 @@ namespace GrfToWpfBridge.Application {
 				if (_latestException != null) {
 					if (exception == _latestException) {
 						if (System.Windows.Application.Current != null) {
-							bool res = (bool) System.Windows.Application.Current.Dispatcher.Invoke(new Func<bool>(delegate {
+							bool res = (bool) System.Windows.Application.Current.Dispatch(delegate {
 								try {
 									return System.Windows.Application.Current.Windows.OfType<ErrorDialog>().Any();
 								}
 								catch {
 									return false;
 								}
-							}));
+							});
 
 							if (!res) {
 								_latestException = exception;
@@ -163,7 +147,7 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		private static void _checkMainWindow() {
-			System.Windows.Application.Current.Dispatcher.Invoke(new Action(delegate {
+			System.Windows.Application.Current.Dispatch(delegate {
 				if (System.Windows.Application.Current.MainWindow == null || !System.Windows.Application.Current.MainWindow.IsLoaded) {
 					foreach (Window window in System.Windows.Application.Current.Windows) {
 						if (window.Visibility == Visibility.Visible && window.IsLoaded) {
@@ -171,7 +155,7 @@ namespace GrfToWpfBridge.Application {
 						}
 					}
 				}
-			}));
+			});
 		}
 
 		private void _reportAnyManagedExceptions(string message, Exception exception, ErrorLevel errorLevel) {

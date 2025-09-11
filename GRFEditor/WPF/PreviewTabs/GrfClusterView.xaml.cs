@@ -15,15 +15,15 @@ namespace GRFEditor.WPF.PreviewTabs {
 		private const int _numberOfLines = 20;
 		private readonly List<Color> _colorsList = new List<Color>();
 		private readonly List<int[]> _lengthsList = new List<int[]>();
-		private readonly List<uint[]> _offsetsList = new List<uint[]>();
-		private int _bpp;
+		private readonly List<long[]> _offsetsList = new List<long[]>();
 		private int[] _lengths;
-		private uint[] _offsets;
+		private long[] _offsets;
 
 		private int _physicalX;
 		private int _physicalY;
 		private byte[] _pixels;
-		private uint _totalSize;
+		private List<Color> _palette = new List<Color>();
+		private long _totalSize;
 
 		public GrfClusterView() {
 			InitializeComponent();
@@ -35,7 +35,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_offsets == null || _lengths == null)
 					return;
 
-				List<uint[]> offsets = new List<uint[]>(_offsetsList);
+				List<long[]> offsets = new List<long[]>(_offsetsList);
 				List<int[]> lengths = new List<int[]>(_lengthsList);
 				List<Color> colors = new List<Color>(_colorsList);
 
@@ -58,28 +58,24 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_lengthsList.Clear();
 				_colorsList.Clear();
 
-				_physicalX = (int) _canvas.ActualWidth;
-				_physicalY = _numberOfLines * 7;
+				_physicalX = (int) _canvas.Dispatch(p => p.ActualWidth);
+				_physicalY = _numberOfLines;
 
 				if (_physicalX <= 0)
 					return;
 
 				byte[] background = new byte[] { 229, 165, 155 };
 
-				_bpp = PixelFormats.Bgr24.BitsPerPixel / 8;
-
-				_pixels = new byte[_physicalX * _physicalY * _bpp];
-
-				for (int i = 0; i < _pixels.Length / _bpp; i++) {
-					Buffer.BlockCopy(background, 0, _pixels, i * _bpp, _bpp);
-				}
+				_pixels = new byte[_physicalX * _physicalY];
+				_palette.Clear();
+				_palette.Add(Color.FromArgb(255, 155, 165, 229));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 		}
 
-		public void Draw(uint totalSize, uint[] offsets, int[] lengths, Color colorToDrawOffsets) {
+		public void Draw(long totalSize, long[] offsets, int[] lengths, Color colorToDrawOffsets) {
 			try {
 				_offsetsList.Add(offsets);
 				_lengthsList.Add(lengths);
@@ -92,14 +88,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_physicalX <= 0 || totalSize == 0)
 					return;
 
-				byte[] color = new byte[] { colorToDrawOffsets.B, colorToDrawOffsets.G, colorToDrawOffsets.R };
-
-				int imageOffsetX;
+				byte paletteIdx = (byte)_palette.Count;
+				_palette.Add(colorToDrawOffsets);
 
 				int totalImageLength = _physicalX * _numberOfLines;
-
 				int positionX;
-				int lineOffset;
 
 				for (int i = 0; i < offsets.Length; i++) {
 					positionX = (int) ((float) offsets[i] / totalSize * totalImageLength);
@@ -107,12 +100,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					lengthToDraw = lengthToDraw == 0 ? 1 : lengthToDraw;
 
 					for (int x = positionX; x < positionX + lengthToDraw; x++) {
-						imageOffsetX = x % _physicalX;
-						lineOffset = x / _physicalX;
-
-						for (int y = 0; y < _physicalY / _numberOfLines; y++) {
-							Buffer.BlockCopy(color, 0, _pixels, (imageOffsetX + (y * _physicalX) + (lineOffset * (_physicalY / _numberOfLines) * _physicalX)) * _bpp, _bpp);
-						}
+						_pixels[x] = paletteIdx;
 					}
 				}
 			}
@@ -126,21 +114,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_physicalX <= 0)
 					return;
 
-				WriteableBitmap bitmap = new WriteableBitmap(_physicalX, _physicalY, 96, 96, PixelFormats.Bgr24, null);
-				bitmap.WritePixels(new Int32Rect(0, 0, _physicalX, _physicalY), _pixels, _physicalX * _bpp, 0);
+				BitmapPalette palette = new BitmapPalette(_palette);
+				WriteableBitmap bitmap = new WriteableBitmap(_physicalX, _physicalY, 96, 96, PixelFormats.Indexed8, palette);
+				bitmap.WritePixels(new Int32Rect(0, 0, _physicalX, _physicalY), _pixels, _physicalX, 0);
 				bitmap.Freeze();
-				Image image = new Image();
-				image.Source = bitmap;
-				_canvas.Children.Clear();
-				_canvas.Children.Add(image);
+				_drawImage.Source = bitmap;
+				_drawImage.Height = _numberOfLines * 7;
+				_drawImage.Width = _physicalX;
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
-		}
-
-		public void Clear() {
-			_canvas.Dispatch(p => p.Children.Clear());
 		}
 	}
 }

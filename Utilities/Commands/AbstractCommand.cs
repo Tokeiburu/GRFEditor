@@ -76,6 +76,7 @@ namespace Utilities.Commands {
 		public event AbstractCommandsEventHandler PreviewCommandRedo;
 		public event AbstractCommandsEventHandler CommandRedo;
 		public event AbstractCommandsEventHandler ModifiedStateChanged;
+		public event AbstractCommandsEventHandler SaveCommandChanged;
 
 		~AbstractCommand() {
 			Dispose(false);
@@ -121,6 +122,11 @@ namespace Utilities.Commands {
 			if (handler != null) handler(this, command);
 		}
 
+		protected virtual void _onSaveCommandChanged(T command) {
+			AbstractCommandsEventHandler handler = SaveCommandChanged;
+			if (handler != null) handler(this, command);
+		}
+
 		public delegate void AbstractCommandsEventHandler(object sender, T command);
 
 		/// <summary>
@@ -156,6 +162,7 @@ namespace Utilities.Commands {
 			_commandIndexModified = _commandIndexCurrent;
 			_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
 			_onModifiedStateChanged(default(T));
+			_onSaveCommandChanged(default(T));
 		}
 
 		/// <summary>
@@ -276,7 +283,7 @@ namespace Utilities.Commands {
 
 					var combinableCommand = lastCommand as ICombinableCommand;
 
-					if (combinableCommand != null) {
+					if (combinableCommand != null && _commandIndexNonModified != _commandIndexModified) {
 						var deleteCommandFrom = lastCommand as IAutoReverse;
 						var deleteCommandTo = command as IAutoReverse;
 

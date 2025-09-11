@@ -45,7 +45,7 @@ namespace GRF.FileFormats.TkPatchFormat {
 		}
 
 		public TkPath TkPath { get; set; }
-		public uint Offset { get; set; }
+		public long Offset { get; set; }
 		public int SizeCompressed { get; set; }
 		public int SizeDecompressed { get; set; }
 		public EntryType Flags { get; set; }

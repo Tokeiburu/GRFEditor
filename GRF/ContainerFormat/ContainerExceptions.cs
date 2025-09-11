@@ -29,6 +29,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __PatcherRequiresUpdate = "The patcher requires to be updated.";
 		public static readonly FormattedExceptionMessage __ContainerBusy = "The container is currently busy and operations are disabled.";
 		public static readonly FormattedExceptionMessage __ContainerSaving = "The GRF is already saving... wait or cancel the operation first.";
+		public static readonly FormattedExceptionMessage __ContainerClosed = "Attempted to read a container that has been closed.";
 		public static readonly FormattedExceptionMessage __UnsupportedFileFormat = "The file format '{0}' is unknown or not supported.";
 		public static readonly FormattedExceptionMessage __UnsupportedAction = "The method is not supported for this container.";
 		public static readonly FormattedExceptionMessage __UnsupportedCompression = "The compression method does not support compressing files. It is meant for extracting the GRF's file content from their offset directly.";
@@ -40,7 +41,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __NoFilesSelected = "At least one entry must be selected.";
 		public static readonly FormattedExceptionMessage __ChecksumFailed = "The zlib checksum for the compressed data has failed.";
 		public static readonly FormattedExceptionMessage __InvalidImagePosition = "The value '{0}' must be greater or equal to {1}.";
-		public static readonly FormattedExceptionMessage __NoImageConverter = "No appropriate converter was found for the image. An image converter needs to be registered at the beginning of the application. The GrfImageObject file shows an example on how to create such a class.";
+		public static readonly FormattedExceptionMessage __NoImageConverter = "No appropriate converter was found for the image. An image converter needs to be registered at the beginning of the application with ImageConverterManager.AddConverter(AbstractImageConverter). You can use DefaultImageConverter in GrfToWpfBridge.dll (WPF) or ImageConverter1 in ExampleProject (WinForms).";
 		public static readonly FormattedExceptionMessage __NoKeyFileSet = "No key file was set to decrypt this file.";
 		public static readonly FormattedExceptionMessage __WrongKeyFile = "The key or key file is invalid.";
 		public static readonly FormattedExceptionMessage __InvalidRepairArguments = "When opening a GRF in the repair mode, only the repair flag can be used.";
@@ -56,8 +57,10 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __UnsupportedPixelFormat = "Unsupported pixel format : {0}.";
 		public static readonly FormattedExceptionMessage __UnknownHashAlgorithm = "Unknown hash algorithm.";
 		public static readonly FormattedExceptionMessage __UnsupportedFileVersion = "Unsupported file version.";
-		public static readonly FormattedExceptionMessage __CompressionDllFailed = "Failed to load the decompression library ({0}).";
+		public static readonly FormattedExceptionMessage __ResourceNotFound = "Failed to load the decompression library ({0}). Resource not found.";
+		public static readonly FormattedExceptionMessage __LoadLibraryFailed = "Failed to load the decompression library ({0}).\r\nLast LoadLibrary error: {1} | 0x{2:X8}.";
 		public static readonly FormattedExceptionMessage __CompressionDllFailed2 = "Failed to load the decompression library ({0}).\r\n\r\nYou are most likely missing the following VC++ Redistributable: {1}.";
+		public static readonly FormattedExceptionMessage __CompressionDllFailed3 = "Failed to load the decompression library ({0}).\r\n\r\nThe function '{1}' couldn't be loaded. Expected function declaration '{2}'.";
 		public static readonly FormattedExceptionMessage __EncryptionDllFailed = "Last LoadLibrary error: {1}.";
 		public static readonly FormattedExceptionMessage __EncryptionDllFailed2 = "Last LoadLibrary error: {1}.\nInvalid compilation target, expected {2}-bit DLL, found {3}-bit DLL.";
 		public static readonly FormattedExceptionMessage __DllMissingFunction = "Failed to load the library, missing function ({0}).";
@@ -77,6 +80,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __InvalidImageFormat = "Unable to parse the image data. The content is either corrupted or not supported.";
 		public static readonly FormattedExceptionMessage __CorruptedOrEncryptedEntry = "Failed to decompress data. The following entry is either corrupted or encrypted: \r\n{0}";
 		public static readonly FormattedExceptionMessage __GrfSizeLimitReached = "Failed to save the GRF, size limit reached (4,294,967,295 bytes).";
+		public static readonly FormattedExceptionMessage __InvalidSprConvertMode = "Unexpected SprConvertMode for this function.";
 
 		internal static GrfException Create(FormattedExceptionMessage exception, params object[] items) {
 			return new GrfException(exception, String.Format(exception.Message, items));
@@ -172,6 +176,13 @@ namespace GRF.ContainerFormat {
 		}
 
 		internal static void IfSavingThrow<T>(ContainerAbstract<T> container) where T : ContainerEntry {
+			try {
+				var t = container.Commands;
+			}
+			catch {
+				throw Create(__ContainerClosed);
+			}
+
 			if (container.IsBusy || container.Commands.IsLocked)
 				throw Create(__ContainerBusy);
 		}
@@ -305,8 +316,8 @@ namespace GRF.ContainerFormat {
 			throw Create(__FailedToDecompressData);
 		}
 
-		internal static void ThrowCompressionDllFailed(string dllName) {
-			throw Create(__CompressionDllFailed, dllName ?? "NULL");
+		internal static void ThrowLoadLibraryFailed(string dllName, int lastError) {
+			throw Create(__LoadLibraryFailed, dllName ?? "NULL", lastError, lastError);
 		}
 
 		internal static void ThrowMergeVersionEncryptionException() {

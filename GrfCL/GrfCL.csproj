@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{526A0E8B-820D-421B-BB18-8F3B7A232E52}</ProjectGuid>
@@ -10,9 +10,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>GrfCL</RootNamespace>
     <AssemblyName>GrfCL</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -29,42 +30,6 @@
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
-    <PlatformTarget>x86</PlatformTarget>
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|x86'">
-    <OutputPath>bin\x86\Release_x64\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <CodeAnalysisLogFile>bin\Release\GrfCL.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
-    <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
-    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-  </PropertyGroup>
   <PropertyGroup>
     <StartupObject>GrfCL.Program</StartupObject>
   </PropertyGroup>
@@ -78,6 +43,7 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -89,46 +55,20 @@
     <CodeAnalysisIgnoreBuiltInRuleSets>false</CodeAnalysisIgnoreBuiltInRuleSets>
     <CodeAnalysisIgnoreBuiltInRules>false</CodeAnalysisIgnoreBuiltInRules>
     <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release_x64|AnyCPU'">
-    <OutputPath>bin\Release_x64\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <CodeAnalysisLogFile>bin\Release\GrfCL.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
-    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
-    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
-    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ActImaging">
-      <HintPath>..\Libraries\ActImaging.dll</HintPath>
-    </Reference>
     <Reference Include="Encryption">
-      <HintPath>..\Libraries\Encryption.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\Encryption.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="ErrorManager">
-      <HintPath>..\Libraries\ErrorManager.dll</HintPath>
-    </Reference>
-    <Reference Include="GRF">
-      <HintPath>..\Libraries\GRF.dll</HintPath>
-    </Reference>
-    <Reference Include="GrfToWpfBridge">
-      <HintPath>..\Libraries\GrfToWpfBridge.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\ErrorManager.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="TokeiLibrary">
-      <HintPath>..\Libraries\TokeiLibrary.dll</HintPath>
-    </Reference>
-    <Reference Include="Utilities">
-      <HintPath>..\Libraries\Utilities.dll</HintPath>
-    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
@@ -161,40 +101,73 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Files\zlib.net.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\ErrorManager.dll" />
     <EmbeddedResource Include="Files\GRF.dll" />
     <EmbeddedResource Include="Files\Utilities.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Encryption.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\ActImaging.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Gif.Components.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\TokeiLibrary.dll" />
+    <EmbeddedResource Include="Files\GrfToWpfBridge.dll" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Files\GrfToWpfBridge.dll" />
+    <ProjectReference Include="..\ActImaging\ActImaging.csproj">
+      <Project>{2d16af7f-fd66-4d3b-ab6d-22c1cf73daed}</Project>
+      <Name>ActImaging</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\GrfToWpfBridge\GrfToWpfBridge.csproj">
+      <Project>{ec4e062e-a9a8-4c70-a91a-59c64bafd38a}</Project>
+      <Name>GrfToWpfBridge</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\GRF\GRF.csproj">
+      <Project>{f21476b8-04e5-43ee-ad1b-cf7bd2ed3d4f}</Project>
+      <Name>GRF</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\TokeiLibrary\TokeiLibrary.csproj">
+      <Project>{812355c7-a277-4e8c-b6a0-306310f8f183}</Project>
+      <Name>TokeiLibrary</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{b57e7e46-f5d5-4352-979c-13809d4f292a}</Project>
+      <Name>Utilities</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>cd "$(SolutionDir)GrfCL\Files\"
-del *.dll
-cd "$(SolutionDir)\Libraries\"
-xcopy "*.dll" "$(SolutionDir)GrfCL\Files\" /E /Y
-cd "$(SolutionDir)GrfCL\Files\"
-REM start _Compress.bat</PreBuildEvent>
+    <ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
+    <GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
+    <EmbeddedDllsPath>$(ProjectDir)Files</EmbeddedDllsPath>
   </PropertyGroup>
+  <ItemGroup Condition="Exists('$(ExternalDllsPath)')">
+    <ExternalDlls Include="$(ExternalDllsPath)Encryption.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)ErrorManager.dll" Visible="false" />
+  </ItemGroup>
+  <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+  </Target>
+  <ItemGroup Condition="Exists('$(GrfEditorDllsPath)')">
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)ActImaging.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)Encryption.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)Gif.Components.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)GRF.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)GrfToWpfBridge.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)TokeiLibrary.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)Utilities.dll" Visible="false" />
+    <GrfEditorDlls Include="$(GrfEditorDllsPath)ErrorManager.dll" Visible="false" />
+  </ItemGroup>
+  <Target Name="CopyProjectDlls" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(EmbeddedDllsPath)" />
+    <Copy SourceFiles="@(GrfEditorDlls)" DestinationFolder="$(EmbeddedDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
+  </Target>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

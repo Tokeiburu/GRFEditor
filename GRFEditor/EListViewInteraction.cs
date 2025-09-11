@@ -11,6 +11,7 @@ using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
 using GRF.IO;
+using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GRFEditor.Tools.MapExtractor;
@@ -40,6 +41,14 @@ namespace GRFEditor {
 
 		private void _miConvertRsw_Anim_Click(object sender, RoutedEventArgs e) {
 			if (_renamingService.DowngradeMap(WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItem as FileEntry, _grfHolder, this))
+				_loadListItems();
+		}
+
+		private void _miConvertRsw_AnimTo_Click(object sender, RoutedEventArgs e) {
+			var entry = WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement).SelectedItem as FileEntry;
+			string outputPath = PathRequest.FolderExtract();
+
+			if (outputPath != null && _renamingService.DowngradeMap(entry, _grfHolder, this, outputPath))
 				_loadListItems();
 		}
 
@@ -362,13 +371,13 @@ namespace GRFEditor {
 		#endregion
 
 		private void _renameFileCallback(string oldFileName, string newFileName, bool isExecuted) {
-			_items.Dispatcher.Invoke(new Action(delegate {
+			_items.Dispatch(delegate {
 				CollectionViewSource.GetDefaultView(_itemEntries).Refresh();
 
 				if (_itemSearchEntries.Contains(_grfHolder.FileTable[isExecuted ? newFileName : oldFileName])) {
 					CollectionViewSource.GetDefaultView(_itemSearchEntries).Refresh();
 				}
-			}));
+			});
 		}
 
 		private int _getFirstSelected(IList listViewItems, IList items) {
@@ -395,7 +404,7 @@ namespace GRFEditor {
 
 		private void _deleteFilesCallback(List<string> files, bool isExecuted) {
 			if (isExecuted) {
-				_items.Dispatcher.Invoke(new Action(delegate {
+				_items.Dispatch(delegate {
 					int oldSearchItemsIndex = _getFirstSelected(_listBoxResults.Items, _listBoxResults.SelectedItems);
 					int oldItemsIndex = _getFirstSelected(_items.Items, _items.SelectedItems);
 					FileEntry oldItemsEntry = oldItemsIndex < 0 ? null : (FileEntry) _items.Items[oldItemsIndex];
@@ -436,7 +445,7 @@ namespace GRFEditor {
 					if (oldItemsEntry == null && oldSearchItemsEntry == null) {
 						_previewService.ShowPreview(_grfHolder, _treeViewPathManager.GetCurrentRelativePath(), null);
 					}
-				}));
+				});
 			}
 		}
 

@@ -16,13 +16,13 @@ namespace GRF.FileFormats.RsmFormat {
 		public BoundingBox BoundingBox = new BoundingBox();
 		public Mesh Parent;
 		public HashSet<Mesh> Children = new HashSet<Mesh>();
-		public TkVector3 Position;
-		public TkVector3 Position_;
+		public TkVector3 GlobalPosition;
+		public TkVector3 LocalPosition;
 		public object AttachedNormals;
 
-		public float RotationAngle;
-		public TkVector3 RotationAxis;
-		public TkVector3 Scale;
+		public float GlobalRotationAngle;
+		public TkVector3 GlobalRotationAxis;
+		public TkVector3 GlobalScale;
 
 		public List<string> Textures = new List<string>();
 		public TkMatrix4 Matrix2 = TkMatrix4.Identity;
@@ -113,11 +113,11 @@ namespace GRF.FileFormats.RsmFormat {
 		/// Initializes a new instance of the <see cref="Mesh"/> class.
 		/// </summary>
 		public Mesh(Rsm rsm) {
-			Position = new TkVector3();
-			Position_ = new TkVector3();
-			RotationAngle = 0;
-			RotationAxis = new TkVector3(0, 0, 0);
-			Scale = new TkVector3(1, 1, 1);
+			GlobalPosition = new TkVector3();
+			LocalPosition = new TkVector3();
+			GlobalRotationAngle = 0;
+			GlobalRotationAxis = new TkVector3(0, 0, 0);
+			GlobalScale = new TkVector3(1, 1, 1);
 			ParentName = "";
 			Name = "";
 			Model = rsm;
@@ -155,11 +155,11 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 
 			Parent = mesh.Parent;
-			Position = mesh.Position;
-			Position_ = mesh.Position_;
-			RotationAngle = mesh.RotationAngle;
-			RotationAxis = mesh.RotationAxis;
-			Scale = mesh.Scale;
+			GlobalPosition = mesh.GlobalPosition;
+			LocalPosition = mesh.LocalPosition;
+			GlobalRotationAngle = mesh.GlobalRotationAngle;
+			GlobalRotationAxis = mesh.GlobalRotationAxis;
+			GlobalScale = mesh.GlobalScale;
 
 			foreach (var f in mesh._faces) {
 				_faces.Add(new Face(f));
@@ -215,19 +215,19 @@ namespace GRF.FileFormats.RsmFormat {
 				TransformationMatrix[i] = reader.Float();
 			}
 
-			Position_ = new TkVector3(reader);
+			LocalPosition = new TkVector3(reader);
 
 			if (version >= 2.2) {
-				Position = new TkVector3(0, 0, 0);
-				RotationAngle = 0;
-				RotationAxis = new TkVector3(0, 0, 0);
-				Scale = new TkVector3(1, 1, 1);
+				GlobalPosition = new TkVector3(0, 0, 0);
+				GlobalRotationAngle = 0;
+				GlobalRotationAxis = new TkVector3(0, 0, 0);
+				GlobalScale = new TkVector3(1, 1, 1);
 			}
 			else {
-				Position = new TkVector3(reader);
-				RotationAngle = reader.Float();
-				RotationAxis = new TkVector3(reader);
-				Scale = new TkVector3(reader);
+				GlobalPosition = new TkVector3(reader);
+				GlobalRotationAngle = reader.Float();
+				GlobalRotationAxis = new TkVector3(reader);
+				GlobalScale = new TkVector3(reader);
 			}
 
 			_vertices.Capacity = count = reader.Int32();
@@ -260,7 +260,7 @@ namespace GRF.FileFormats.RsmFormat {
 				face.TextureVertexIds = reader.ArrayUInt16(3);
 				face.TextureId = reader.UInt16();
 				face.Padding = reader.UInt16();
-				face.TwoSide = reader.Int32();
+				face.TwoSide = reader.Int32() > 0 ? 1 : 0;
 
 				if (version >= 1.2) {
 					face.SmoothGroup[0] = face.SmoothGroup[1] = face.SmoothGroup[2] = reader.Int32();
@@ -324,7 +324,7 @@ namespace GRF.FileFormats.RsmFormat {
 						int amountFrames = reader.Int32();
 
 						for (int k = 0; k < amountFrames; k++) {
-							_textureKeyFrameGroup.AddTextureKeyFrame(textureId, type, new TextureKeyFrame {
+							_textureKeyFrameGroup.AddTextureKeyFrame(textureId, (TextureTransformTypes)type, new TextureKeyFrame {
 								Frame = reader.Int32(),
 								Offset = reader.Float()
 							});
@@ -459,13 +459,13 @@ namespace GRF.FileFormats.RsmFormat {
 				writer.Write(TransformationMatrix[i]);
 			}
 
-			Position_.Write(writer);
+			LocalPosition.Write(writer);
 
 			if (Model.Version < 2.2) {
-				Position.Write(writer);
-				writer.Write(RotationAngle);
-				RotationAxis.Write(writer);
-				Scale.Write(writer);
+				GlobalPosition.Write(writer);
+				writer.Write(GlobalRotationAngle);
+				GlobalRotationAxis.Write(writer);
+				GlobalScale.Write(writer);
 			}
 
 			writer.Write(_vertices.Count);
@@ -514,14 +514,7 @@ namespace GRF.FileFormats.RsmFormat {
 			}
 
 			if (Model.Version >= 2.3) {
-				//writer.Write(_textureKeyFrameGroup.Count);
-				writer.Write(0);
-
-				//foreach (var group in _textureKeyFrameGroup.Types) {
-				//	writer.Write(group);
-				//
-				//	var entry = _textureKeyFrameGroup.GetTextureKeyFrames(group);
-				//}
+				_textureKeyFrameGroup.Write(writer);
 			}
 		}
 
@@ -542,11 +535,11 @@ namespace GRF.FileFormats.RsmFormat {
 				writer.Write(TransformationMatrix[i]);
 			}
 
-			Position_.Write(writer);
-			Position.Write(writer);
-			writer.Write(RotationAngle);
-			RotationAxis.Write(writer);
-			Scale.Write(writer);
+			LocalPosition.Write(writer);
+			GlobalPosition.Write(writer);
+			writer.Write(GlobalRotationAngle);
+			GlobalRotationAxis.Write(writer);
+			GlobalScale.Write(writer);
 
 			writer.Write(_vertices.Count);
 

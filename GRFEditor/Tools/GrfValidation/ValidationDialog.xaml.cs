@@ -70,7 +70,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			_changeRawViewButton();
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_listViewResults, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
-				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "ValidationType", FixedWidth = 20, MaxHeight = 24 },
+				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "ValidationType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Error code", DisplayExpression = "ValidationType", FixedWidth = 150, ToolTipBinding = "ValidationType", TextAlignment = TextAlignment.Center },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "File name", DisplayExpression = "DisplayRelativePath", FixedWidth = 250, ToolTipBinding = "ToolTipRelativePath", TextAlignment = TextAlignment.Left },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Description", DisplayExpression = "Description", FixedWidth = 150, ToolTipBinding = "ToolTipDescription", TextAlignment = TextAlignment.Left, IsFill = true },

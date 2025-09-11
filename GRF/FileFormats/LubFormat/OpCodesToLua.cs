@@ -5,61 +5,49 @@ using System.Text;
 using GRF.FileFormats.LubFormat.Core;
 using GRF.FileFormats.LubFormat.Core.CodeReconstructor;
 using GRF.FileFormats.LubFormat.VM;
-using GRF.System;
+using GRF.GrfSystem;
 using Utilities;
-using Utilities.Extension;
 
 namespace GRF.FileFormats.LubFormat {
 	public static class OpCodesToLua {
-		private static int _debugBreakCount = 40;
-		private static int _debugBreakIndex = 20;
+		public static string WriteRawFragmentOutput(List<CodeFragment> fragments) {
+			StringBuilder b = new StringBuilder();
 
-		public static string Analyse(string code, Lub decompiler, int level) {
+			for (int i = 0; i < fragments.Count; i++) {
+				foreach (var line in fragments[i].Content.Lines) {
+					b.AppendLine(line);
+				}
+			}
+
+			return b.ToString();
+		}
+
+		public static string Analyse(LubFunction function, string code, Lub decompiler, int level) {
 			try {
-				//code = "function(msg)\r\n	local imagetag_front_startpos = string.find(msg, a)\r\n	if nil ~= imagetag_front_startpos then\r\n		goto 18_[7]\r\n	else\r\n		goto 18_[9]\r\n	end\r\n::18_[7]::\r\n	if nil == msg then\r\n		goto 18_[9]\r\n	else\r\n		goto 18_[10]\r\n	end\r\n::18_[9]::\r\n	return msg\r\n::18_[10]::\r\n	local imagetag_front = string.sub(msg, imagetag_front_startpos, msg)\r\n	local imagetag_rear_startpos = string.find(msg, b, msg + 1)\r\n	if nil ~= imagetag_rear_startpos then\r\n		goto 18_[24]\r\n	else\r\n		goto 18_[26]\r\n	end\r\n::18_[24]::\r\n	if nil == msg then\r\n		goto 18_[26]\r\n	else\r\n		goto 18_[27]\r\n	end\r\n::18_[26]::\r\n	return msg\r\n::18_[27]::\r\n	local imagetag_rear = string.sub(msg, imagetag_rear_startpos, msg)\r\n	local name = string.sub(msg, msg + 1, imagetag_rear_startpos - 1)\r\n	local num_startpos = string.find(imagetag_front, c)\r\n	local num_endpos = string.sub(msg, imagetag_front_startpos, msg)\r\n	if nil ~= num_startpos then\r\n		goto 18_[46]\r\n	else\r\n		goto 18_[48]\r\n	end\r\n::18_[46]::\r\n	if nil == num_endpos then\r\n		goto 18_[48]\r\n	else\r\n		goto 18_[49]\r\n	end\r\n::18_[48]::\r\n	return msg\r\n::18_[49]::\r\n	local itidstr = string.sub(imagetag_front, num_startpos + 1, num_endpos - 1)\r\n	local tagstr = string.format(<ITEM>%s<INFO>%s</INFO></ITEM>, name, itidstr)\r\n	local final = \"\"\r\n	if 1 < imagetag_front_startpos then\r\n		goto 18_[64]\r\n	else\r\n		goto 18_[72]\r\n	end\r\n::18_[64]::\r\n	final = final .. string.sub(msg, 1, imagetag_front_startpos - 1)\r\n::18_[72]::\r\n	final = final .. tagstr\r\n	if msg < #msg then\r\n		goto 18_[78]\r\n	else\r\n		goto 18_[85]\r\n	end\r\n::18_[78]::\r\n	final = final .. string.sub(msg, msg + 1)\r\n::18_[85]::\r\n	return QuestTable.func_quest_lower_exchange_imagetag(final)\r\nend";
 				List<string> lines = code.Split(new string[] { "\r\n" }, StringSplitOptions.None).ToList();
 
-				List<CodeFragment> fragments = CodeLogic.Analyse(lines, level);
+				List<CodeFragment> fragments = CodeLogic.Analyse(lines, function.FunctionLevel, function);
 
-				fragments.ForEach(p => p.RemoveEmpty());
+				_execute(fragments, p => p.RemoveEmpty());
+				_execute(fragments, p => p.MergeIfConditions2());
 				fragments.ForEach(p => p.RemoveElse());
-				fragments.ForEach(p => p.RemoveIf());
-				fragments.ForEach(p => p.MergeIfConditions());
 				fragments.ForEach(p => p.RemoveReturnElseBranches());
-				if (fragments.Count > 0) fragments[0].SetWhileLoop();
-				fragments.ForEach(p => p.RemoveElseAfterLoop());
-				
+
 				// Destructive beyond this point
-				fragments.ForEach(p => p.MergeElseIf());
-				if (fragments.Count > 0) fragments[0].AnalyseLogicalExecutionLoops();
+				fragments.OrderByDescending(p => p.Uid).ToList().ForEach(p => p.MergeElseIf());
+				_cleanup(fragments);
+				if (fragments.Count > 0) fragments[0].AnalyseLogicalExecutionLoops(fragments);
 				fragments.ForEach(p => p.RemoveLogicalExecution());
 				fragments.ForEach(p => p.ExtractExecution());
-				if (fragments.Count > 0) fragments.ForEach(p => p.RemoveLogicalReturnExecution(fragments[0]));
-
+				fragments.ForEach(p => p.RemoveLogicalReturnExecution());
 
 				StringBuilder builder = new StringBuilder();
-				fragments[0].Print(builder, 0);
+				fragments[0].Print(builder, function, null, level);
+				if (function.FunctionLevel > 0)
+					_appendEnd(builder);
 
-				if (level > 0) {
-					int indent = 0;
-					for (int i = builder.Length - 1; i >= 0; i--) {
-						if (builder[i] == '\t') {
-							indent++;
-							i--;
-
-							for (; i >= 0; i--) {
-								if (builder[i] == '\t')
-									indent++;
-								else
-									break;
-							}
-
-							break;
-						}
-					}
-
-					builder.Append(LineHelper.GenerateIndent(indent - 1) + "end");
-				}
+				if (function.Label == 0)
+					Z.F();
 
 				return builder.ToString();
 			}
@@ -69,86 +57,110 @@ namespace GRF.FileFormats.LubFormat {
 			}
 		}
 
-		public static string DecompileFunction(Lub decompiler, LubFunction function) {
+		private static void _execute(List<CodeFragment> fragments, Func<CodeFragment, bool> func) {
+			for (int i = 0; i < fragments.Count; i++) {
+				while (i > 0 && func(fragments[i])) {
+					fragments.RemoveAt(i);
+					i--;
+				}
+			}
+		}
+
+		private static void _appendEnd(StringBuilder builder) {
+			int indent = 0;
+			for (int i = builder.Length - 1; i >= 0; i--) {
+				if (builder[i] == '\t') {
+					indent++;
+					i--;
+
+					for (; i >= 0; i--) {
+						if (builder[i] == '\t')
+							indent++;
+						else
+							break;
+					}
+
+					break;
+				}
+			}
+
+			builder.Append(LineHelper.GenerateIndent(indent - 1) + "end");
+		}
+
+		private static void _cleanup(List<CodeFragment> fragments) {
+			for (int i = fragments.Count - 1; i >= 1; i--) {
+				if (fragments[i].ParentReferences.Count == 0)
+					fragments.RemoveAt(i);
+			}
+		}
+
+		public static string DecompileFunction(Lub decompiler, LubFunction function, int addIndent) {
 			StringBuilder builder = new StringBuilder();
 
 			if (function.FunctionLevel > 0) {
-				builder.AppendLine("function(" + Methods.Aggregate(function.LocalVariables.Take(function.NumberOfParameters).Select(p => p.Key).ToList(), ", ") + ")");
+				var parameters_ = function.Debug_LocalVariables.Take(function.NumberOfParameters).Select(p => p.Key).ToList();
+
+				if (parameters_.Count > 0 && parameters_[0].Value == "self")
+					parameters_ = parameters_.Skip(1).ToList();
+
+				string parameters = Methods.Aggregate(parameters_, ", ");
+
+				if ((function.IsVarArg & (VarArgType.VARARG_HASARG | VarArgType.VARARG_ISVARARG | VarArgType.VARARG_NEEDSARG)) == (VarArgType.VARARG_HASARG | VarArgType.VARARG_ISVARARG | VarArgType.VARARG_NEEDSARG)) {
+					parameters += parameters == "" ? "..." : ", ...";
+				}
+
+				builder.AppendLine("function(" + parameters + ")");
 			}
 
 			function.InitFunctionStack();
 
-			_writeBlock(builder, 0, function);
+			_decodeInstructions(builder, function);
 
 			if (function.FunctionLevel > 0) {
-				builder.AppendIndent(function.FunctionLevel - 1);
-				builder.Append("end");
+				_appendEnd(builder);
 			}
 
 			if (Settings.LubDecompilerSettings.UseCodeReconstructor)
-				return Analyse(builder.ToString(), decompiler, function.FunctionLevel);
+				return Analyse(function, builder.ToString(), decompiler, addIndent);
 
 			return builder.ToString();
 		}
 
-		private static void _writeBlock(StringBuilder builder, int codeIndex, LubFunction function) {
-			OpCodes.AbstractInstruction.DebugStack = function.Stack;
-			OpCodes.AbstractInstruction.DebugFunction = function;
-
+		private static void _decodeInstructions(StringBuilder builder, LubFunction function) {
 			bool isReturned = false;
-			function.BlockDelimiters = new Dictionary<int, BlockDelimiter>();
 
-			// We start by registering each jumps from the instructions
-			// This will simplify delayed labels
-			for (int index = codeIndex; index < function.Instructions.Count; index++) {
-				function.InstructionIndex = index;
-				OpCodes.AbstractInstruction ins = function.Instructions[index];
+			_generateBlocksAndWhileLoops(function);
 
-				if (ins is OpCodes.IJumpingInstruction) {
-					int gotoLocation = ((OpCodes.IJumpingInstruction) ins).GetJumpLocation(function);
-					BlockDelimiter block = new BlockDelimiter();
-					block.BlockStart = gotoLocation;
-					block.Label = function.Label + "_[" + gotoLocation + "]";
+			function.PC = 0;
+			for (; function.PC < function.Instructions.Count; function.PC++) {
+				int pc = function.PC;
 
-					if (!function.BlockDelimiters.ContainsKey(block.BlockStart)) {
-						function.BlockDelimiters[block.BlockStart] = block;
-					}
+				if (function.Label == 14 && pc == 81) {
+					Z.F();
 				}
-			}
-
-			//OpCodes.ForceInstantiation2(builder, function);
-
-			for (int index = codeIndex, count = function.Instructions.Count; index < count; index++) {
-				function.InstructionIndex = index;
-
-				if (index == _debugBreakIndex && count == _debugBreakCount) {
+				if (function.Label == 1 && pc == 24) {
 					Z.F();
 				}
 
-				OpCodes.AbstractInstruction ins = function.Instructions[index];
+				OpCodes.AbstractInstruction ins = function.Instructions[pc];
 
 				try {
-					if (function.BlockDelimiters.ContainsKey(index)) {
-						// We dump local variables before
-						// changing the scope
-						OpCodes.ForceAssigning(builder, function);
-						builder.AppendIndent(function.FunctionLevel - 1);
+					// Alawys attempt to instantiate local variables
+					OpCodes.LocalVarInstantiation(builder, function);
+					OpCodes.VarAssign(builder, function);
+
+					if (function.BlockDelimiters.ContainsKey(pc)) {
 						builder.Append("::");
-						builder.Append(function.BlockDelimiters[index].Label);
+						builder.Append(function.BlockDelimiters[pc].Label);
 						builder.AppendLine("::");
 						isReturned = false;
-					}
-
-					if (ins is OpCodes.IAssigning) {
-						OpCodes.ForceInstantiation(builder, function);
-						OpCodes.ForceAssigning(builder, function);
 					}
 
 					ins.Execute(function);
 
 					if (ins is OpCodes.ConditionalInstruction) {
 						builder.Append(ins.LuaCode);
-						index++;
+						function.PC++;
 						continue;
 					}
 
@@ -162,13 +174,65 @@ namespace GRF.FileFormats.LubFormat {
 					if (ins is OpCodes.IReturnInstruction) {
 						isReturned = true;
 					}
-
-					OpCodes.ForceInstantiation(builder, function);
-
-					index += ins.InstructionJump;
 				}
 				catch {
-					LubErrorHandler.Handle("Failed to decode the instruction {" + ins + "} for the function " + function.Label + ", at " + function.InstructionIndex + ".", LubSourceError.CodeDecompiler);
+					LubErrorHandler.Handle("Failed to decode the instruction {" + ins + "} for the function " + function.Label + ", at " + function.PC + ".", LubSourceError.CodeDecompiler);
+				}
+			}
+		}
+
+		private static void _generateBlocksAndWhileLoops(LubFunction function) {
+			function.BlockDelimiters = new Dictionary<int, LubFunction.BlockDelimiter>();
+
+			function.PC = 0;
+			// We start by registering each jumps from the instructions
+			// This will simplify labels
+			for (; function.PC < function.Instructions.Count; function.PC++) {
+				OpCodes.AbstractInstruction ins = function.Instructions[function.PC];
+
+				if (ins is OpCodes.IJumpingInstruction) {
+					int gotoLocation = ((OpCodes.IJumpingInstruction)ins).GetJumpLocation(function);
+					var block = new LubFunction.BlockDelimiter();
+					block.BlockStart = gotoLocation;
+					block.Label = function.Label + "_[" + gotoLocation + "]";
+
+					// Detect while loop from the jmp instruction, this is much easier...
+					if (gotoLocation < function.PC) {
+						if ((function.PC <= 0 || !(function.Instructions[function.PC - 1] is OpCodes.ILoopInstruction)) && ins is OpCodes.Jmp) {
+							if (function._decompiler.Header.Version >= 5.1) {
+								for (int pc2 = gotoLocation; pc2 < function.PC; pc2++) {
+									var ins_cond = function.Instructions[pc2] as OpCodes.ConditionalInstruction;
+
+									if (ins_cond != null) {
+										ins_cond.WhileLoop_PC_Start = gotoLocation;
+										ins_cond.WhileLoop_PC_End = function.PC + 1;
+										break;
+									}
+								}
+							}
+							else {
+								var ins_jmp2 = function.Instructions[gotoLocation - 1] as OpCodes.Jmp;
+
+								if (ins_jmp2 != null) {
+									var gotoLocation2 = ins_jmp2.Registers[0] + gotoLocation;
+
+									for (int pc2 = gotoLocation2; pc2 < function.PC; pc2++) {
+										var ins_cond = function.Instructions[pc2] as OpCodes.ConditionalInstruction;
+
+										if (ins_cond != null) {
+											ins_cond.WhileLoop_PC_Start = gotoLocation;
+											ins_cond.WhileLoop_PC_End = function.PC + 1;
+											break;
+										}
+									}
+								}
+							}
+						}
+					}
+
+					if (!function.BlockDelimiters.ContainsKey(block.BlockStart)) {
+						function.BlockDelimiters[block.BlockStart] = block;
+					}
 				}
 			}
 		}

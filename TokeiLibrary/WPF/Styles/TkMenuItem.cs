@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using TokeiLibrary.Shortcuts;
 using Utilities;
 
@@ -45,8 +46,8 @@ namespace TokeiLibrary.WPF.Styles {
 
 				string gestureCmd = String.IsNullOrEmpty(ShortcutCmd) ? (name ?? "") : ShortcutCmd;
 
-				if (!_assigned && !String.IsNullOrEmpty(Shortcut)) {
-					ApplicationShortcut.Link(ApplicationShortcut.FromString(String.IsNullOrEmpty(Shortcut) ? "NULL" : Shortcut, gestureCmd), () => {
+				if (!_assigned) {
+					ApplicationShortcut.Link(ApplicationShortcut.FromString(String.IsNullOrEmpty(Shortcut) ? "NULL" : Shortcut, gestureCmd), delegate {
 						RoutedEventArgs arg = new RoutedEventArgs(ClickEvent, this);
 						this.RaiseEvent(arg);
 					}, parent);
@@ -146,7 +147,8 @@ namespace TokeiLibrary.WPF.Styles {
 
 			if (menuItem != null) {
 				Image image = new Image();
-				image.Source = ApplicationManager.GetResourceImage(e.NewValue.ToString());
+				image.Source = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
+				image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 				image.Width = 16;
 				image.Height = 16;
 				menuItem.Icon = image;

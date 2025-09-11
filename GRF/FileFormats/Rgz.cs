@@ -6,7 +6,7 @@ using System.IO.Compression;
 using ErrorManager;
 using GRF.Core;
 using GRF.Core.GrfCompression;
-using GRF.System;
+using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
@@ -166,8 +166,8 @@ namespace GRF.FileFormats {
 			output.Write(buffer, 0, buffer.Length);
 		}
 
-		public static List<Tuple<string, string>> ConvertToSegments(IProgress container, string fileName) {
-			List<Tuple<string, string>> filesGrf = new List<Tuple<string, string>>();
+		public static List<Utilities.Extension.Tuple<string, string>> ConvertToSegments(IProgress container, string fileName) {
+			var filesGrf = new List<Utilities.Extension.Tuple<string, string>>();
 			string decompressedFileName = Path.Combine(Settings.TempPath, Path.GetRandomFileName());
 
 			try {
@@ -194,7 +194,7 @@ namespace GRF.FileFormats {
 						string path = TemporaryFilesManager.GetTemporaryFilePath("rgz_segment_{0:000000}.part");
 
 						File.WriteAllBytes(path, actualData);
-						filesGrf.Add(new Tuple<string, string>(name, path));
+						filesGrf.Add(new Utilities.Extension.Tuple<string, string>(name, path));
 					}
 					else if (entryType == 'd') {
 					}
