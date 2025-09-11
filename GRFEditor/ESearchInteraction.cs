@@ -183,41 +183,43 @@ namespace GRFEditor {
 
 					var res = search.Count == 0 ? entries : new List<FileEntry>();
 
+					Regex[] regexSearches = new Regex[search.Count];
+
 					for (int i = 0; i < search.Count; i++) {
 						var query = search[i];
 
 						if (query.IndexOf("*", StringComparison.OrdinalIgnoreCase) > -1 || query.IndexOf("?", StringComparison.OrdinalIgnoreCase) > -1) {
-							Regex regex = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
-
-							for (int k = 0; k < entries.Count; k++) {
-								if (regex.IsMatch(entries[k].FileName))
-									res.Add(entries[k]);
-
-								if (k % 100 == 0 && cancel())
-									return;
-							}
+							regexSearches[i] = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
 						}
-						else {
-							for (int k = 0; k < entries.Count; k++) {
-								if (entries[k].FileName.IndexOf(query, StringComparison.OrdinalIgnoreCase) != -1)
-									res.Add(entries[k]);
-
-								if (k % 100 == 0 && cancel())
-									return;
-							}
-						}
-
-						entries = res;
-						res.Clear();
 					}
 
-					var result = new FileEntry[entries.Count];
+					if (search.Count > 0) {
+						for (int k = 0; k < entries.Count; k++) {
+							int i;
 
-					for (int i = 0; i < entries.Count; i++) {
-						result[i] = entries[i];
+							for (i = 0; i < search.Count; i++) {
+								if (regexSearches[i] != null && !regexSearches[i].IsMatch(entries[k].FileName))
+									break;
+								else if (entries[k].FileName.IndexOf(search[i], StringComparison.OrdinalIgnoreCase) == -1)
+									break;
+							}
+
+							if (i == search.Count) {
+								res.Add(entries[k]);
+							}
+
+							if (k % 100 == 0 && cancel())
+								return;
+						}
+					}
+
+					var result = new FileEntry[res.Count];
+
+					for (int i = 0; i < res.Count; i++) {
+						result[i] = res[i];
 
 						if (result[i].DataImage == null) {
-							result[i].DataImage = IconProvider.GetSmallIcon(entries[i].RelativePath);
+							result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
 						}
 					}
 

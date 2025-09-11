@@ -623,28 +623,22 @@
     <EmbeddedResource Include="Resources\Imf.xshd" />
     <EmbeddedResource Include="Files\Compressed\default.pal" />
     <EmbeddedResource Include="Resources\Json.xshd" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_gnd.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_gnd.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_line.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_line.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_rsm.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_rsm.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_water.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_water.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_lub.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_lub.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_simple.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_simple.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_color.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_color.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_empty.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_empty.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_line.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_line.vert" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_gat.frag" />
-    <EmbeddedResource Include="Resources\Shaders\shader_map_gat.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\gnd.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\gnd.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\rsm.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\rsm.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\water.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\water.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\lub.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\lub.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\color.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\color.vert" />
+    <EmbeddedResource Include="Resources\Shaders\background.frag" />
+    <EmbeddedResource Include="Resources\Shaders\background.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\gat.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\gat.vert" />
+    <EmbeddedResource Include="Resources\Shaders\str\str.frag" />
+    <EmbeddedResource Include="Resources\Shaders\str\str.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
@@ -1046,7 +1040,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
@@ -1093,12 +1087,12 @@
     <Copy SourceFiles="@(EmbeddedDlls)" DestinationFolder="$(EmbeddedDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
   </Target>
   <Target Name="CopyDebugEncryption" BeforeTargets="AfterBuild">
-	<Message Text="Encryption -> @(DebugEncryptionPathFiles)" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+    <Message Text="Encryption -&gt; @(DebugEncryptionPathFiles)" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
     <Copy SourceFiles="@(DebugEncryptionPathFiles)" DestinationFolder="$(TargetDir)" Condition="Exists('$(DebugEncryptionPath)')" />
   </Target>
-	<Target Name="RunCompressBatch" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
-	  <Exec Command="&quot;$(ProjectDir)Files\_Compress.bat&quot;" WorkingDirectory="$(ProjectDir)Files" />
-	</Target>
+  <Target Name="RunCompressBatch" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Exec Command="&quot;$(ProjectDir)Files\_Compress.bat&quot;" WorkingDirectory="$(ProjectDir)Files" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

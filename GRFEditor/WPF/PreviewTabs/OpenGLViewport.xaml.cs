@@ -52,7 +52,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private void _primary_Load(object sender, EventArgs e) {
 			_primary.MakeCurrent();
-			_shaderPrimary = new Shader("shader.vert", "shader.frag");
+			_shaderPrimary = new Shader("str.str.vert", "str.str.frag");
 
 			var background = new GLBackground();
 			var infiniteLineV = new GLLine(Orientation.Vertical);

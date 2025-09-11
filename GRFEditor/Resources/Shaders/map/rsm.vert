@@ -13,6 +13,7 @@ uniform mat4 modelMatrix2;
 out vec2 texCoord;
 out vec3 normal;
 out vec3 FragPos;
+out cec3 mult;
 out float cull;
 
 void main(void)

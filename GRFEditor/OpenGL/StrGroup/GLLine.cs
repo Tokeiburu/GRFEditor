@@ -12,7 +12,7 @@ namespace GRFEditor.OpenGL.StrGroup {
 		private int _textId;
 
 		static GLLine() {
-			LineShader = new Shader("shader.vert", "shader.frag");
+			LineShader = new Shader("str.str.vert", "str.str.frag");
 		}
 
 		public static Shader LineShader { get; set; }

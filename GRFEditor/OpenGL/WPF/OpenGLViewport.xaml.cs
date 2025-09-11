@@ -132,12 +132,12 @@ namespace GRFEditor.OpenGL.WPF {
 				OpenGLMemoryManager.CreateInstance(this);
 				_primary.MakeCurrent();
 
-				Shader_rsm = new Shader("shader_map_rsm.vert", "shader_map_rsm.frag");
-				Shader_gnd = new Shader("shader_map_gnd.vert", "shader_map_gnd.frag");
-				Shader_water = new Shader("shader_map_water.vert", "shader_map_water.frag");
-				Shader_lub = new Shader("shader_map_lub.vert", "shader_map_lub.frag");
-				Shader_simple = new Shader("shader_map_simple.vert", "shader_map_simple.frag");
-				Shader_gat = new Shader("shader_map_gat.vert", "shader_map_gat.frag");
+				Shader_rsm = new Shader("map.rsm.vert", "map.rsm.frag");
+				Shader_gnd = new Shader("map.gnd.vert", "map.gnd.frag");
+				Shader_water = new Shader("map.water.vert", "map.water.frag");
+				Shader_lub = new Shader("map.lub.vert", "map.lub.frag");
+				Shader_simple = new Shader("map.color.vert", "map.color.frag");
+				Shader_gat = new Shader("map.gat.vert", "map.gat.frag");
 
 				_renderers.Add(new BackgroundRenderer { Permanent = true });
 

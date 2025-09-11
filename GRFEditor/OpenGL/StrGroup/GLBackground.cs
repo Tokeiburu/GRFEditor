@@ -18,7 +18,7 @@ namespace GRFEditor.OpenGL.StrGroup {
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
 			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
 
-			Shader = new Shader("shader_color.vert", "shader_color.frag");
+			Shader = new Shader("background.vert", "background.frag");
 			SetupShader();
 		}
 
