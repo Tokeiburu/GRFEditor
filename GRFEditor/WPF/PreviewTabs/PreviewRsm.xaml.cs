@@ -129,8 +129,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_buttonSkyMap.Click += delegate {
 				var dialog = new CloudEditDialog();
 				dialog.Init(_viewport);
-				dialog.Show();
 				dialog.Owner = EditorMainWindow.Instance;
+				dialog.Show();
 				dialog.ShowInTaskbar = false;
 				_buttonSkyMap.IsEnabled = false;
 				dialog.Closed += delegate {
@@ -153,7 +153,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			try {
 				OpenGL.WPF.OpenGLViewport nViewport = new OpenGL.WPF.OpenGLViewport(0);
 				nViewport.RenderOptions = _viewport.RenderOptions;
-				nViewport.Load(_viewport._request);
+				var request = _viewport._request.Copy();
+				nViewport.Load(request);
 
 				var current = _viewport._host.Child;
 				var newPrimary = nViewport._host.Child;
@@ -185,16 +186,16 @@ namespace GRFEditor.WPF.PreviewTabs {
 				nViewport.Camera.AngleX_Degree = 0;
 				nViewport.Camera.AngleY_Degree = 90;
 
-				if (_viewport._request.Gat == null) {
-					_viewport._request.Gat = new Gat(ResourceManager.GetData(_viewport._request.Resource + ".gat"));
+				if (request.Gat == null) {
+					request.Gat = new Gat(ResourceManager.GetData(request.Resource + ".gat"));
 				}
 
-				var gatRenderer = new GatMinimapRenderer(_viewport._request, nViewport.Shader_simple, _viewport._request.Gat, _viewport._request.Gnd);
+				var gatRenderer = new GatMinimapRenderer(request, nViewport.Shader_simple, request.Gat, request.Gnd);
 				nViewport.Renderers.Add(gatRenderer);
 
 				MinimapDialog diag = new MinimapDialog();
 				diag.Owner = WpfUtilities.TopWindow;
-				diag.Init(nViewport, Path.GetFileNameWithoutExtension(_viewport._request.Resource));
+				diag.Init(nViewport, Path.GetFileNameWithoutExtension(request.Resource));
 				diag.Closed += delegate {
 					nViewport.UnloadAndStopViewport();
 					nViewport = null;
@@ -466,7 +467,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 				string mapName = GrfPath.Combine(Path.GetDirectoryName(entry.RelativePath), Path.GetFileNameWithoutExtension(entry.RelativePath));
 
 				Rsm.ForceShadeType = -1;
-				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired, Context = _viewport });
+				
+				//if (_viewport._request == null || _viewport._request.Resource != mapName) {
+					_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired, Context = _viewport });
+				//}
 
 				this.Dispatch(delegate {
 					_labelHeader.Text = "Map preview : " + entry.DisplayRelativePath;

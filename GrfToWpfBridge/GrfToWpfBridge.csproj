@@ -155,23 +155,23 @@
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-	<PropertyGroup>
-		<ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
-		<GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
-	</PropertyGroup>
-	<ItemGroup Condition="Exists('$(ExternalDllsPath)')">
-		<ExternalDlls Include="$(ExternalDllsPath)\ErrorManager.dll" Visible="false" />
-		<ExternalDlls Include="$(ExternalDllsPath)\Gif.Components.dll" Visible="false" />
-	</ItemGroup>
-	<Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
-		<MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
-		<Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
-	</Target>
-	<Target Name="CopyBuildDll" BeforeTargets="AfterBuild">
-		<MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
-		<Message Text="$(ProjectName) -> $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
-		<Message Text="$(ProjectName) -> $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
-	</Target>
+  <PropertyGroup>
+    <ExternalDllsPath>$(SolutionDir)..\..\tktoolsuite\Libraries\</ExternalDllsPath>
+    <GrfEditorDllsPath>$(SolutionDir)Libraries\</GrfEditorDllsPath>
+  </PropertyGroup>
+  <ItemGroup Condition="Exists('$(ExternalDllsPath)')">
+    <ExternalDlls Include="$(ExternalDllsPath)\ErrorManager.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)\Gif.Components.dll" Visible="false" />
+  </ItemGroup>
+  <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
+    <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+  </Target>
+  <Target Name="CopyBuildDll" BeforeTargets="AfterBuild">
+    <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
+    <Message Text="$(ProjectName) -&gt; $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+    <Message Text="$(ProjectName) -&gt; $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
+  </Target>
 </Project>

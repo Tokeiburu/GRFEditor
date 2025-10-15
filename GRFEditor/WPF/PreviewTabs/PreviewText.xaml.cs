@@ -41,10 +41,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected override void _load(FileEntry entry) {
-			_labelHeader.Dispatch(p => p.Content = "Text file : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "Text file : " + Path.GetFileName(entry.RelativePath));
 			_textEditor.Encoding = null;
 
 			switch (entry.RelativePath.GetExtension()) {
+				case ".ase":
 				case ".csv":
 				case ".txt":
 				case ".xml":

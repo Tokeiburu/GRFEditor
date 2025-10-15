@@ -20,15 +20,19 @@ namespace GRFEditor.OpenGL.MapComponents {
 		/// The vertex buffer object.
 		/// </summary>
 		public Vbo Vbo;
+		public Vbo InstanceVbo;
 		public List<VboIndex> Indices = new List<VboIndex>();
-		public Matrix4 Matrix = Matrix4.Identity;
-		public Matrix4 MatrixSub = Matrix4.Identity;
 		public List<Vertex> Vertices;
 		public float[] RawVertices;
+		public Ebo Ebo;
 
 		public void Unload() {
 			if (Vbo != null)
 				Vbo.Unload();
+			if (Ebo != null)
+				Ebo.Unload();
+			if (InstanceVbo != null)
+				InstanceVbo.Unload();
 			if (Vao > 0) {
 				GL.DeleteVertexArray(Vao);
 				OpenGLMemoryManager.DelVao(Vao);
@@ -52,6 +56,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 	public struct VboIndex {
 		public int Texture;
+		public int MeshTextureIndice;
 		public int Begin;
 		public int Count;
 	}
@@ -59,7 +64,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 	public struct Vertex {
 		public float[] data;
 
-		public Vertex(Vector3 pos, Vector2 tex, Vector3 n) {
+		public Vertex(int size) {
+			data = new float[size];
+		}
+
+		public Vertex(in Vector3 pos, in Vector2 tex, in Vector3 n) {
 			data = new float[8];
 			data[0] = pos.X;
 			data[1] = pos.Y;
@@ -73,7 +82,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[7] = n.Z;
 		}
 
-		public Vertex(Vector3 pos, Vector2 tex, Vector3 n, float twoSide) {
+		public Vertex(in Vector3 pos, in Vector2 tex, in Vector3 n, float twoSide) {
 			data = new float[9];
 			data[0] = pos.X;
 			data[1] = pos.Y;
@@ -89,7 +98,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[8] = twoSide;
 		}
 
-		public Vertex(Vector3 pos, Vector2 tex) {
+		public Vertex(in Vector3 pos, in Vector2 tex) {
 			data = new float[5];
 			data[0] = pos.X;
 			data[1] = pos.Y;
@@ -99,7 +108,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			data[4] = tex.Y;
 		}
 
-		public Vertex(Vector3 pos, Vector2 t1, Vector2 t2, TkVector4 c1, Vector3 n) {
+		public Vertex(in Vector3 pos, in Vector2 t1, in Vector2 t2, in Vector4 c1, in Vector3 n) {
 			data = new float[14];
 			data[0] = pos.X;
 			data[1] = pos.Y;
@@ -128,6 +137,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 	public sealed class OpenGLMemoryManager {
 		public Dictionary<int, int> VertexArrayObjects = new Dictionary<int, int>();
+		public Dictionary<int, int> ElementBufferObjects = new Dictionary<int, int>();
 		public Dictionary<int, int> VertexBufferObjects = new Dictionary<int, int>();
 		public Dictionary<int, int> TextureIds = new Dictionary<int, int>();
 		private static OpenGLMemoryManager _manager;
@@ -187,6 +197,29 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 			else {
 				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing VBO: " + id);
+			}
+		}
+
+		public static int AddEbo(int id) {
+			if (_manager.ElementBufferObjects.ContainsKey(id)) {
+				_manager.ElementBufferObjects[id]++;
+			}
+			else {
+				_manager.ElementBufferObjects[id] = 1;
+			}
+
+			return id;
+		}
+
+		public static void DelEbo(int id) {
+			if (_manager.ElementBufferObjects.ContainsKey(id)) {
+				_manager.ElementBufferObjects[id]--;
+
+				if (_manager.ElementBufferObjects[id] == 0)
+					_manager.ElementBufferObjects.Remove(id);
+			}
+			else {
+				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing EBO: " + id);
 			}
 		}
 

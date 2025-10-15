@@ -200,7 +200,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				Progress = -1;
 
 				List<Utilities.Extension.Tuple<TkPath, string>> selectedNodes = _getSelectedNodes(null).GroupBy(p => p.Item1.GetFullPath()).Select(p => p.First()).ToList();
-				List<string> pathsToCreate = selectedNodes.Select(p => Path.Combine(_destinationPath, Path.GetDirectoryName(p.Item2))).Distinct().ToList();
+				List<string> pathsToCreate = selectedNodes.Select(p => Path.Combine(_destinationPath, Path.GetDirectoryName(p.Item2.ReplaceFirst("data\\", "")))).Distinct().ToList();
 
 				foreach (string pathToCreate in pathsToCreate) {
 					if (!Directory.Exists(pathToCreate))
@@ -210,7 +210,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				for (int index = 0; index < selectedNodes.Count; index++) {
 					string relativePath = selectedNodes[index].Item2;
 
-					string outputPath = Path.Combine(_destinationPath, relativePath);
+					string outputPath = Path.Combine(_destinationPath, relativePath.ReplaceFirst("data\\", ""));
 
 					File.WriteAllBytes(outputPath, GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
 
@@ -244,10 +244,12 @@ namespace GRFEditor.Tools.MapExtractor {
 					if (cancelMethod != null && cancelMethod()) return;
 
 					string mapFile = Path.GetFileNameWithoutExtension(fileName);
+					string expandExt = fileName.GetExtension();
 					Progress = -1;
 
 					_treeViewMapExtractor.Dispatch(p => p.Items.Clear());
 					_quickPreview.ClearPreview();
+					bool isMapFile = fileName.IsExtension(".rsw", ".gat", ".gnd");
 
 					if (fileName.IsExtension(".rsm")) {
 						if (cancelMethod != null && cancelMethod()) return;
@@ -263,30 +265,24 @@ namespace GRFEditor.Tools.MapExtractor {
 					}
 					else {
 						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".gnd", @"data\", null, fileName.IsExtension(".gnd"));
-
+						_addNode(cancelMethod, mapFile + ".gnd", @"data\", null, isMapFile);
 						if (cancelMethod != null && cancelMethod()) return;
-						_treeViewMapExtractor.Dispatch(delegate {
-							foreach (MapExtractorTreeViewItem node in _treeViewMapExtractor.Items) {
-								if (node.IsChecked == true) {
-									node.IsExpanded = true;
-								}
-							}
-						});
-
-						_addNode(cancelMethod, mapFile + ".rsw", @"data\", null, fileName.IsExtension(".rsw"));
-						_addNode(cancelMethod, mapFile + ".gat", @"data\", null, fileName.IsExtension(".gat"));
+						_addNode(cancelMethod, mapFile + ".rsw", @"data\", null, isMapFile);
+						if (cancelMethod != null && cancelMethod()) return;
+						_addNode(cancelMethod, mapFile + ".gat", @"data\", null, isMapFile);
 
 						if (GrfEditorConfiguration.Resources.MultiGrf.Exists(@"data\luafiles514\lua files\effecttool\" + mapFile + ".lub")) {
-							_addNode(cancelMethod, mapFile + ".lub", @"data\luafiles514\lua files\effecttool\", null, fileName.IsExtension(".gat"));
+							_addNode(cancelMethod, mapFile + ".lub", @"data\luafiles514\lua files\effecttool\", null, isMapFile);
 						}
 					}
 
 					if (cancelMethod != null && cancelMethod()) return;
 					_treeViewMapExtractor.Dispatch(delegate {
 						foreach (MapExtractorTreeViewItem node in _treeViewMapExtractor.Items) {
-							if (node.IsChecked == true) {
-								node.IsExpanded = true;
+							if (node.HeaderText.IsExtension(expandExt)) {
+								if (node.IsChecked == true) {
+									node.IsExpanded = true;
+								}
 							}
 						}
 					});
@@ -370,7 +366,7 @@ namespace GRFEditor.Tools.MapExtractor {
 							}
 							break;
 						case ".gnd":
-							var dataEntry = ((MultiType)GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath)).GetBinaryReader();
+							var dataEntry = ((MultiType)GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath)).GetByteReader();
 							GndHeader gndHeader = new GndHeader(dataEntry);
 							
 							for (int i = 0; i < gndHeader.TextureCount; i++) {

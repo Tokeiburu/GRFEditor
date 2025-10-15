@@ -233,7 +233,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 				var root = processed.First().Value;
 				nodes.Remove(root);
 				nodes.Insert(0, root);
-				Z.F();
 
 				for (int i = 1; i < nodes.Count; i++) {
 					while (i > 0 && nodes[i].Analyse()) {

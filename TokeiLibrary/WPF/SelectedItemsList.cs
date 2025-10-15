@@ -55,7 +55,7 @@ namespace TokeiLibrary.WPF {
 						_selectedItems.Insert(0, item);
 						return;
 					}
-					else if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift) {
+					else if ((Keyboard.Modifiers & ModifierKeys.Shift) == ModifierKeys.Shift && _selectedItems.Count > 0) {
 						//if (_selectedItems.Count > 0) {
 							_selectedItems.Skip(1).OfType<TkTreeViewItem>().ToList().ForEach(p => p.IsSelected = false);
 

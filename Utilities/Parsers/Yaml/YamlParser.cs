@@ -32,9 +32,7 @@ namespace Utilities.Parsers.Yaml {
 			_parser_main(new YamlFileData(file, _encoding));
 
 			if (mode == ParserMode.Write) {
-				var list = Output as ParserArrayBase;
-				
-				if (list != null) {
+				if (Output is ParserArrayBase list) {
 					if (Output["Body"] == null) {
 						_allLines.Add("");
 						_allLines.Add("Body:");
@@ -51,7 +49,7 @@ namespace Utilities.Parsers.Yaml {
 						_writeKeyValues = (entries[0]).Value.OfType<ParserKeyValue>().ToList();
 						_writeArrays = (entries[0]).Value.OfType<ParserArray>().ToList();
 					}
-					else if (entries.Count == 2) {	
+					else if (entries.Count == 2) {
 						_writeKeyValues = (entries[1]).Value.OfType<ParserKeyValue>().ToList();
 						_writeArrays = (entries[1]).Value.OfType<ParserArray>().ToList();
 					}
@@ -62,7 +60,7 @@ namespace Utilities.Parsers.Yaml {
 					else {
 						_idKey = idKey;
 					}
-					
+
 					_list = true;
 				}
 			}

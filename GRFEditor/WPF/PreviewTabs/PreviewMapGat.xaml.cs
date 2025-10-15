@@ -61,7 +61,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected override void _load(FileEntry entry) {
 			ImageSource source = null;
 			string fileName = entry.RelativePath;
-			_labelHeader.Dispatch(p => p.Content = "Map preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Map preview : " + Path.GetFileName(fileName));
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
 
 			Gat gat = new Gat(entry.GetDecompressedData());

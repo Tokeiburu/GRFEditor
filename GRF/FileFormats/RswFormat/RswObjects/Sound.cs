@@ -29,18 +29,20 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 			if (_header.IsCompatibleWith(2, 0)) {
 				Cycle = reader.Float();
 			}
-			else if (_header.IsCompatibleWith(1, 9)) {
-				// We cheat a little since float variables are encoded using the IEEE
-				// convention and therefore they're not likely to range between 1-4
-				if (reader.CanRead) {
-					int possibleType = reader.Int32();
-					reader.Forward(-4);
-
-					if (possibleType < 1 || possibleType > 4) {
-						Cycle = reader.Float();
-					}
-				}
-			}
+			// Fix: 2025-09-16
+			// What is this...?
+			//else if (_header.IsCompatibleWith(1, 9)) {
+			//	// We cheat a little since float variables are encoded using the IEEE
+			//	// convention and therefore they're not likely to range between 1-4
+			//	if (reader.CanRead) {
+			//		int possibleType = reader.Int32();
+			//		reader.Forward(-4);
+			//
+			//		if (possibleType < 1 || possibleType > 4) {
+			//			Cycle = reader.Float();
+			//		}
+			//	}
+			//}
 		}
 
 		/// <summary>

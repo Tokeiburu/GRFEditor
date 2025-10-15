@@ -8,11 +8,14 @@ namespace GRF.FileFormats.TgaFormat {
 	/// Encoded with RGBA format
 	/// </summary>
 	public class Tga : IImageable {
+		public Tga(MultiType anyData) : this(anyData, true) {
+		}
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Tga" /> class.
 		/// </summary>
 		/// <param name="anyData">The data.</param>
-		public Tga(MultiType anyData) {
+		public Tga(MultiType anyData, bool flipImage) {
 			var dataDecompressed = anyData.Data;
 
 			Header = new TgaHeader(dataDecompressed);
@@ -21,17 +24,23 @@ namespace GRF.FileFormats.TgaFormat {
 				int stride = Header.Width * Header.Bits / 8;
 				Pixels = new byte[Header.Height * stride];
 
+				//if (dataDecompressed.Length >= Pixels.Length) {
+				//	Buffer.BlockCopy(dataDecompressed, 0, Pixels, 0, Pixels.Length);
+				//}
+
 				for (int i = 0; i < Header.Height; i++) {
 					Buffer.BlockCopy(dataDecompressed, i * stride + TgaHeader.StructSize, Pixels, i * stride, stride);
 				}
 
 				if (Header.Bits == 32) {
 					Image = new GrfImage(Pixels, Header.Width, Header.Height, GrfImageType.Bgra32);
-					Image.Flip(FlipDirection.Vertical);
+					if (flipImage)
+						Image.Flip(FlipDirection.Vertical);
 				}
 				else if (Header.Bits == 24) {
 					Image = new GrfImage(Pixels, Header.Width, Header.Height, GrfImageType.Bgr24);
-					Image.Flip(FlipDirection.Vertical);
+					if (flipImage)
+						Image.Flip(FlipDirection.Vertical);
 				}
 				else {
 					throw GrfExceptions.__FileFormatException2.Create("TGA", string.Format(GrfStrings.TgaBitsExpected, Header.Bits));
@@ -55,6 +64,8 @@ namespace GRF.FileFormats.TgaFormat {
 					}
 
 					Image = new GrfImage(Pixels, Header.Width, Header.Height, GrfImageType.Bgr24);
+					//if (flipImage)
+					//	Image.Flip(FlipDirection.Vertical);
 				}
 				else {
 					throw GrfExceptions.__FileFormatException2.Create("TGA", string.Format(GrfStrings.TgaBitsExpected, Header.Bits));
@@ -159,11 +170,13 @@ namespace GRF.FileFormats.TgaFormat {
 
 				if (Header.Bits == 32) {
 					Image = new GrfImage(Pixels, Header.Width, Header.Height, GrfImageType.Bgra32);
-					Image.Flip(FlipDirection.Vertical);
+					if (flipImage)
+						Image.Flip(FlipDirection.Vertical);
 				}
 				else if (Header.Bits == 24) {
 					Image = new GrfImage(Pixels, Header.Width, Header.Height, GrfImageType.Bgr24);
-					Image.Flip(FlipDirection.Vertical);
+					if (flipImage)
+						Image.Flip(FlipDirection.Vertical);
 				}
 				else {
 					throw GrfExceptions.__FileFormatException2.Create("TGA", string.Format(GrfStrings.TgaBitsExpected, Header.Bits));

@@ -12,10 +12,9 @@ namespace Utilities.Services {
 		static Guid IID_IShellFolder = typeof(NativeMethods.IShellFolder).GUID;
 
 		static IntPtr GetShellFolderChildrenRelativePIDL(NativeMethods.IShellFolder parentFolder, string displayName) {
-			uint pchEaten;
 			uint pdwAttributes = 0;
 			IntPtr ppidl;
-			parentFolder.ParseDisplayName(IntPtr.Zero, null, displayName, out pchEaten, out ppidl, ref pdwAttributes);
+			parentFolder.ParseDisplayName(IntPtr.Zero, null, displayName, out _, out ppidl, ref pdwAttributes);
 
 			return ppidl;
 		}

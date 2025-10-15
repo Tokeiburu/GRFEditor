@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.IO;
 using System.Text;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
@@ -19,11 +20,11 @@ namespace GRFEditor.OpenGL {
 		}
 	}
 
-	public interface ClipboardBE_Interface {
+	public interface IClipboardBE {
 		void Print(StringBuilder b);
 	}
 
-	public class ClipboardBE_Cube : ClipboardBE_Interface {
+	public class ClipboardBE_Cube : IClipboardBE {
 		private readonly OpenGLViewport.SelectionTile _pos;
 		private readonly Cube _cube;
 
@@ -87,7 +88,7 @@ namespace GRFEditor.OpenGL {
 		}
 	}
 
-	public class ClipboardBE_Gat : ClipboardBE_Interface {
+	public class ClipboardBE_Gat : IClipboardBE {
 		private readonly OpenGLViewport.SelectionTile _pos;
 		private readonly Cell _cell;
 
@@ -124,7 +125,7 @@ namespace GRFEditor.OpenGL {
 		}
 	}
 
-	public class ClipboardBE_Tile : ClipboardBE_Interface {
+	public class ClipboardBE_Tile : IClipboardBE {
 		private readonly int _tileId;
 		private readonly Tile _tile;
 
@@ -139,13 +140,13 @@ namespace GRFEditor.OpenGL {
 			b.AppendLine("\": {");
 
 			b.Append("  \"color\": [");
-			b.Append(_tile.Color.X);
+			b.Append((byte)(_tile.Color.X * 255f));
 			b.Append(",");
-			b.Append(_tile.Color.Y);
+			b.Append((byte)(_tile.Color.Y * 255f));
 			b.Append(",");
-			b.Append(_tile.Color.Z);
+			b.Append((byte)(_tile.Color.Z * 255f));
 			b.Append(",");
-			b.Append(_tile.Color.W);
+			b.Append((byte)(_tile.Color.W * 255f));
 			b.AppendLine("],");
 
 			b.AppendLine("  \"lightmapIndex\": " + _tile.LightmapIndex + ",");
@@ -182,7 +183,7 @@ namespace GRFEditor.OpenGL {
 		}
 	}
 
-	public class ClipboardBE_Lightmap : ClipboardBE_Interface {
+	public class ClipboardBE_Lightmap : IClipboardBE {
 		private readonly int _lightmapIndex;
 		private readonly byte[] _data;
 		private readonly int _width;
@@ -196,27 +197,18 @@ namespace GRFEditor.OpenGL {
 		}
 
 		public void Print(StringBuilder b) {
-			b.AppendLine("  \"" + _lightmapIndex + "\": {");
+			b.Append("  \"").Append(_lightmapIndex).AppendLine("\": {");
 			b.AppendLine("  \"data\": [");
-
-			for (int i = 0; i < _data.Length; i++) {
-				if (i == _data.Length - 1)
-					b.AppendLine(_data[i] + "");
-				else {
-					b.Append(_data[i]);
-					b.Append(",");
-				}
-			}
-
+			b.Append(string.Join(",", _data));
+			b.AppendLine();
 			b.AppendLine("  ],");
-
 			b.AppendLine("  \"width\": " + _width + ",");
 			b.AppendLine("  \"height\": " + _height);
 			b.AppendLine("  },");
 		}
 	}
 
-	public class ClipboardBE_Texture : ClipboardBE_Interface {
+	public class ClipboardBE_Texture : IClipboardBE {
 		private readonly int _textureId;
 		private readonly string _file;
 		private readonly string _name;
@@ -240,7 +232,7 @@ namespace GRFEditor.OpenGL {
 		}
 	}
 
-	public class ClipboardBE_Object : ClipboardBE_Interface {
+	public class ClipboardBE_Object : IClipboardBE {
 		private readonly RswObject _obj;
 		private readonly Vector3 _centerObjects;
 

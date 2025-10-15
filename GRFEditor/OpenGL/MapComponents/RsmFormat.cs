@@ -27,14 +27,14 @@ namespace GRFEditor.OpenGL.MapComponents {
 	}
 
 	public class Mesh {
-		public readonly List<Vector3> Vertices = new List<Vector3>();
-		public readonly List<int> TextureIndexes = new List<int>();
-		public readonly List<Vector2> TextureVertices = new List<Vector2>();
-		public readonly List<Face> Faces = new List<Face>();
+		public readonly Vector3[] Vertices = new Vector3[0];
+		public readonly int[] TextureIndexes;
+		public readonly Vector2[] TextureVertices = new Vector2[0];
+		public readonly Face[] Faces = new Face[0];
 		public Mesh Parent;
 		public HashSet<Mesh> Children = new HashSet<Mesh>();
-		public Vector3 Position;
-		public Vector3 Position_;
+		public Vector3 GlobalPosition;
+		public Vector3 LocalPosition;
 		public object AttachedNormals;
 		public int Index { get; set; }
 
@@ -59,15 +59,26 @@ namespace GRFEditor.OpenGL.MapComponents {
 			get { return _textureKeyFrameGroup; }
 		}
 
-		public Matrix4 Matrix1 { get; set; }
-		public Matrix4 Matrix2 { get; set; }
-		public bool IsAnimated { get; set; }
-		public RsmBoundingBox Box { get; set; }
-		public RsmBoundingBox LocalBox { get; set; }
+		public Matrix4 Matrix1;
+		public Matrix4 Matrix2;
 		public Matrix4 RenderMatrix;
-		public Matrix4 RenderMatrixSub;
+		public Matrix4 TransformMatrix;
+		public bool IsAnimated { get; set; }
+		public bool IsMatrixCalculated { get; set; }
+		public bool IsBakedRenderMatrix { get; set; }
+		public RsmBoundingBox LocalBox { get; set; }
+		public Matrix4 TempMatrix;
+		public Matrix4 TempMatrixSub;
 		public int VboOffset;
 		public int VboOffsetTransparent;
+		public int VboOffsetAnimatedTransparent;
+
+		public class RenderData {
+			public Matrix4 Matrix = Matrix4.Identity;
+			public Matrix4 MatrixSub = Matrix4.Identity;
+		}
+
+		public RenderData Render = new RenderData();
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Mesh"/> class.
@@ -75,8 +86,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Mesh() {
 			TransformationMatrix = Matrix4.Identity;
 			InvertTransformationMatrix = Matrix4.Invert(TransformationMatrix);
-			Position = new Vector3();
-			Position_ = new Vector3();
+			GlobalPosition = new Vector3();
+			LocalPosition = new Vector3();
 			RotationAngle = 0;
 			RotationAxis = new Vector3(0, 0, 0);
 			Scale = new Vector3(1, 1, 1);
@@ -99,7 +110,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 
 			if (version >= 2.3) {
-				count = reader.Int32();
+				TextureIndexes = new int[count = reader.Int32()];
 
 				for (int i = 0; i < count; i++) {
 					Textures.Add(reader.String(reader.Int32(), '\0'));
@@ -108,19 +119,19 @@ namespace GRFEditor.OpenGL.MapComponents {
 					var lastIndex = Model.Textures.FirstOrDefault(p => String.Compare(p, lastTexture, StringComparison.OrdinalIgnoreCase) == 0);
 
 					if (lastIndex != null) {
-						TextureIndexes.Add(Model.Textures.IndexOf(lastIndex));
+						TextureIndexes[i] = Model.Textures.IndexOf(lastIndex);
 					}
 					else {
-						TextureIndexes.Add(Model.Textures.Count);
+						TextureIndexes­[i] = Model.Textures.Count;
 						Model.Textures.Add(lastTexture);
 					}
 				}
 			}
 			else {
-				TextureIndexes.Capacity = count = reader.Int32();
+				TextureIndexes = new int[count = reader.Int32()];
 
 				for (int i = 0; i < count; i++) {
-					TextureIndexes.Add(reader.Int32());
+					TextureIndexes[i] = reader.Int32();
 				}
 			}
 
@@ -138,47 +149,39 @@ namespace GRFEditor.OpenGL.MapComponents {
 			TransformationMatrix[2, 2] = reader.Float();
 			InvertTransformationMatrix = Matrix4.Invert(TransformationMatrix);
 
-			Position_ = new Vector3(reader.Float(), reader.Float(), reader.Float());
+			LocalPosition = new Vector3(reader.Float(), reader.Float(), reader.Float());
 
 			if (version >= 2.2) {
-				Position = new Vector3(0, 0, 0);
+				GlobalPosition = new Vector3(0, 0, 0);
 				RotationAngle = 0;
 				RotationAxis = new Vector3(0, 0, 0);
 				Scale = new Vector3(1, 1, 1);
 			}
 			else {
-				Position = new Vector3(reader.Float(), reader.Float(), reader.Float());
+				GlobalPosition = new Vector3(reader.Float(), reader.Float(), reader.Float());
 				RotationAngle = reader.Float();
 				RotationAxis = new Vector3(reader.Float(), reader.Float(), reader.Float());
 				Scale = new Vector3(reader.Float(), reader.Float(), reader.Float());
 			}
 
-			Vertices.Capacity = count = reader.Int32();
+			Vertices = new Vector3[count = reader.Int32()];
 
 			var bytes = reader.Bytes(count * 12);
-			GCHandle handle = GCHandle.Alloc(bytes, GCHandleType.Pinned);
-			var h = handle.AddrOfPinnedObject();
-			
-			for (int i = 0; i < count; i++) {
-				Vertices.Add((Vector3)Marshal.PtrToStructure(h + 12 * i, typeof(Vector3)));
-			}
-			
+			GCHandle handle = GCHandle.Alloc(Vertices, GCHandleType.Pinned);
+			var ptr = handle.AddrOfPinnedObject();
+			Marshal.Copy(bytes, 0, ptr, bytes.Length);
 			handle.Free();
 
-			//for (int i = 0; i < count; i++) {
-			//	Vertices.Add(new Vector3(reader.Float(), reader.Float(), reader.Float()));
-			//}
-
-			TextureVertices.Capacity = count = reader.Int32();
+			TextureVertices = new Vector2[count = reader.Int32()];
 
 			for (int i = 0; i < count; i++) {
 				if (version >= 1.2)
-					reader.Forward(4);	// Color, skip
+					reader.Forward(4);  // Color, skip
 
-				TextureVertices.Add(new Vector2(reader.Float(), reader.Float()));
+				TextureVertices[i] = new Vector2(reader.Float(), reader.Float());
 			}
 
-			Faces.Capacity = count = reader.Int32();
+			Faces = new Face[count = reader.Int32()];
 
 			for (int i = 0; i < count; i++) {
 				Face face = new Face();
@@ -209,19 +212,17 @@ namespace GRFEditor.OpenGL.MapComponents {
 						reader.Forward(len - 32);
 				}
 
-				face.Normal = Vector3.NormalizeFast(Vector3.Cross(
-					Vertices[face.VertexIds[1]] - Vertices[face.VertexIds[0]],
-					Vertices[face.VertexIds[2]] - Vertices[face.VertexIds[0]]
-				));
-
-				Faces.Add(face);
+				Faces[i] = face;
 			}
 
-			if (TextureVertices.Count == 0 && Faces.Count > 0) {
+			CalculateNormals();
+
+			if (TextureVertices.Length == 0 && Faces.Length > 0) {
 				int max = Faces.Max(p => p.TextureVertexIds.Max(g => g));
+				TextureVertices = new Vector2[max + 1];
 
 				for (int i = 0; i <= max; i++)
-					TextureVertices.Add(new Vector2(0, 0));
+					TextureVertices[i] = new Vector2(0, 0);
 			}
 
 			if (Rsm.ForceShadeType > 0) {
@@ -343,6 +344,140 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 		}
 
+		public void CalculateNormals() {
+			if (Faces.Length == 0)
+				return;
+
+			for (int i = 0; i < Faces.Length; i++) {
+				var face = Faces[i];
+				face.Normal = Vector3.NormalizeFast(Vector3.Cross(
+					Vertices[face.VertexIds[1]] - Vertices[face.VertexIds[0]],
+					Vertices[face.VertexIds[2]] - Vertices[face.VertexIds[0]]
+				));
+			}
+
+			if (Model.ShadeType == 0) {
+				// It doesn't care about normals at all, it's all handled with the shader in the end
+				return;
+			}
+
+			if (Model.ShadeType == 1) {
+				for (int i = 0; i < Faces.Length; i++) {
+					var face = Faces[i];
+
+					for (int ii = 0; ii < 3; ii++) {
+						face.VertexNormals[ii] = face.Normal;
+					}
+				}
+			}
+			else if (Model.ShadeType == 2) {
+				int maxGroup = Faces.Max(f => f.SmoothGroup.Max()) + 1;
+				int maxVertex = Vertices.Length;
+
+				if ((double)maxGroup * maxVertex > 1000000.0) {
+					// Slowest algorithm, but works well
+					var groups = new Dictionary<(int smoothGroup, int vertexId), Vector3>(Faces.Length * 3);
+
+					for (int k = 0; k < Faces.Length; k++) {
+						var face = Faces[k];
+						var normal = face.Normal;
+
+						for (int i = 0; i < 3; i++) {
+							int vertexId = face.VertexIds[i];
+							for (int ii = 0; ii < 3; ii++) {
+								var key = (face.SmoothGroup[ii], vertexId);
+
+								if (groups.TryGetValue(key, out var sum))
+									groups[key] = sum + normal;
+								else
+									groups[key] = normal;
+							}
+						}
+					}
+
+					foreach (var face in Faces) {
+						var sg = face.SmoothGroup[0];
+						for (int i = 0; i < 3; i++) {
+							face.VertexNormals[i] = Vector3.NormalizeFast(groups[(sg, face.VertexIds[i])]);
+						}
+					}
+				}
+				else if (maxGroup * maxVertex > 100000 || maxGroup <= 0) {
+					// Hybrid algorithm, supports high values of smooth groups
+					var groupMap = new Dictionary<int, int>();
+					int groupCounter = 0;
+
+					foreach (var face in Faces)
+						foreach (var sg in face.SmoothGroup)
+							if (!groupMap.ContainsKey(sg))
+								groupMap[sg] = groupCounter++;
+
+					maxGroup = groupCounter;
+					Vector3[] accum = new Vector3[maxGroup * maxVertex];
+
+					foreach (var face in Faces) {
+						var n = face.Normal;
+						for (int i = 0; i < 3; i++) {
+							int v = face.VertexIds[i];
+							int sg = groupMap[face.SmoothGroup[0]];
+							for (int ii = 0; ii < 3; ii++) {
+								accum[sg * maxVertex + v] += n;
+							}
+						}
+					}
+
+					foreach (var face in Faces) {
+						var sg = groupMap[face.SmoothGroup[0]];
+						for (int i = 0; i < 3; i++) {
+							int v = face.VertexIds[i];
+							face.VertexNormals[i] = Vector3.NormalizeFast(accum[sg * maxVertex + v]);
+						}
+					}
+				}
+				else {
+					// Fastest algorithm, takes a lot of memory though
+					Vector3[] accum = new Vector3[maxGroup * maxVertex];
+
+					foreach (var face in Faces) {
+						var n = face.Normal;
+						for (int i = 0; i < 3; i++) {
+							int v = face.VertexIds[i];
+							for (int ii = 0; ii < 3; ii++) {
+								int sg = face.SmoothGroup[ii];
+								accum[sg * maxVertex + v] += n;
+							}
+						}
+					}
+
+					foreach (var face in Faces) {
+						var sg = face.SmoothGroup[0];
+						for (int i = 0; i < 3; i++) {
+							int v = face.VertexIds[i];
+							face.VertexNormals[i] = Vector3.NormalizeFast(accum[sg * maxVertex + v]);
+						}
+					}
+				}
+			}
+			else if (Model.ShadeType == 5) {
+				var groups = TextureIndexes.Select(texture => new Dictionary<int, Vector3>()).ToList();
+
+				foreach (var face in Faces) {
+					for (int i = 0; i < 3; i++) {
+						if (!groups[face.TextureId].ContainsKey(face.VertexIds[i]))
+							groups[face.TextureId][face.VertexIds[i]] = new Vector3(0);
+
+						groups[face.TextureId][face.VertexIds[i]] += face.Normal;
+					}
+				}
+
+				foreach (var face in Faces) {
+					for (int i = 0; i < 3; i++) {
+						face.VertexNormals[i] = Vector3.NormalizeFast(groups[face.TextureId][face.VertexIds[i]]);
+					}
+				}
+			}
+		}
+
 		public Mesh(Rsm rsm, IBinaryReader reader)
 			: this(rsm, reader, rsm.Version) {
 		}
@@ -355,21 +490,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 			Matrix1 = Matrix4.Identity;
 
 			if (Model.Version < 2.2) {
-				if (Parent == null) {
-					if (Children.Count > 0) {
-						Matrix1 = GLHelper.Translate(Matrix1, new Vector3(-Model.LocalBox.Center.X, -Model.LocalBox.Max.Y, -Model.LocalBox.Center.Z));
-					}
-					else {
-						Matrix1 = GLHelper.Translate(Matrix1, new Vector3(0, -Model.LocalBox.Max.Y + Model.LocalBox.Center.Y, 0));
-					}
-				}
-				else {
-					Matrix1 = GLHelper.Translate(Matrix1, Position);
-				}
+				Matrix1 = GLHelper.Translate(ref Matrix1, ref GlobalPosition);
 
 				if (RotationKeyFrames.Count == 0) {
 					if (Math.Abs(RotationAngle) > 0.01) {
-						Matrix1 = GLHelper.Rotate(Matrix1, RotationAngle, RotationAxis);
+						Matrix1 = GLHelper.Rotate(ref Matrix1, RotationAngle, RotationAxis);
 					}
 				}
 				else {
@@ -397,30 +522,24 @@ namespace GRFEditor.OpenGL.MapComponents {
 							float interval = (tick - RotationKeyFrames[current].Frame) / (RotationKeyFrames[next].Frame - RotationKeyFrames[current].Frame);
 							Quaternion quat = Quaternion.Slerp(RotationKeyFrames[current].Quaternion, RotationKeyFrames[next].Quaternion, interval);
 							quat = Quaternion.Normalize(quat);
-							Matrix1 = new Matrix4(Matrix3.CreateFromQuaternion(quat)) * Matrix1;
+							Matrix1 = Matrix4.CreateFromQuaternion(quat) * Matrix1;
 						}
 					}
 				}
 
-				Matrix1 = GLHelper.Scale(Matrix1, Scale);
+				Matrix1 = GLHelper.Scale(ref Matrix1, Scale);
+
+				//TransformMatrix = Matrix1 * (Parent != null ? Parent.RenderMatrix : Matrix4.Identity);
+				//RenderMatrix = Matrix2 * TransformMatrix;
+				//
+				//IsBakedRenderMatrix = true;
 			}
 			else {
 				Matrix2 = Matrix4.Identity;
 
 				if (ScaleKeyFrames.Count > 0) {
 					float animationFrame = Model.AnimationIndexFloat % Math.Max(1, Model.AnimationLength);
-					//int prevIndex = -1;
-					//int nextIndex = -1;
-					//
-					//while (true) {
-					//	nextIndex++;
-					//	
-					//	if (nextIndex == ScaleKeyFrames.Count || animationFrame < ScaleKeyFrames[nextIndex].Frame)
-					//		break;
-					//
-					//	prevIndex++;
-					//}
-
+					
 					int prevIndex = -1;
 					int nextIndex = -1;
 
@@ -432,7 +551,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 					Vector3 next = nextIndex == ScaleKeyFrames.Count ? ScaleKeyFrames[nextIndex - 1].Scale : ScaleKeyFrames[nextIndex].Scale;
 
 					float mult = (animationFrame - prevTick) / (nextTick - prevTick);
-					Matrix1 = GLHelper.Scale(Matrix1, mult * (next - prev) + prev);
+					Matrix1 = GLHelper.Scale(ref Matrix1, mult * (next - prev) + prev);
 				}
 
 				if (RotationKeyFrames.Count > 0) {
@@ -459,22 +578,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 					}
 				}
 				
-				Matrix2 = Matrix1;
 				Vector3 position;
 
 				if (PosKeyFrames.Count > 0) {
 					float animationFrame = Model.AnimationIndexFloat % Math.Max(1, Model.AnimationLength);
-					//int prevIndex = -1;
-					//int nextIndex = -1;
-					//
-					//while (true) {
-					//	nextIndex++;
-					//
-					//	if (nextIndex == PosKeyFrames.Count || animationFrame < PosKeyFrames[nextIndex].Frame)
-					//		break;
-					//
-					//	prevIndex++;
-					//}
 
 					int prevIndex = -1;
 					int nextIndex = -1;
@@ -483,7 +590,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 					float prevTick = prevIndex < 0 ? 0 : PosKeyFrames[prevIndex].Frame;
 					float nextTick = nextIndex == PosKeyFrames.Count ? Model.AnimationLength : PosKeyFrames[nextIndex].Frame;
-					Vector3 prev = prevIndex < 0 ? Position_ : PosKeyFrames[prevIndex].Position;
+					Vector3 prev = prevIndex < 0 ? LocalPosition : PosKeyFrames[prevIndex].Position;
 					Vector3 next = nextIndex == PosKeyFrames.Count ? PosKeyFrames[nextIndex - 1].Position : PosKeyFrames[nextIndex].Position;
 
 					float mult = (animationFrame - prevTick) / (nextTick - prevTick);
@@ -491,32 +598,23 @@ namespace GRFEditor.OpenGL.MapComponents {
 				}
 				else {
 					if (Parent != null) {
-						position = Position_ - Parent.Position_;
+						position = LocalPosition - Parent.LocalPosition;
 						position = new Vector3(new Vector4(position.X, position.Y, position.Z, 0) * Parent.InvertTransformationMatrix);
 					}
 					else {
-						position = Position_;
+						position = LocalPosition;
 					}
 				}
-				
-				var mat = Matrix2;
-				mat.Row3 = new Vector4(position.X, position.Y, position.Z, mat.Row3.W);
-				Matrix2 = mat;
-				
-				Mesh mesh = this;
 
-				while (mesh.Parent != null) {
-					mesh = mesh.Parent;
-					Matrix2 = Matrix2 * mesh.Matrix1;
-				}
+				Matrix1 = Matrix1 * Matrix4.CreateTranslation(position);
 
-				if (Parent != null) {
-					var mat2 = Matrix2;
-					mat2.Row3.X += Parent.Matrix2.Row3.X;
-					mat2.Row3.Y += Parent.Matrix2.Row3.Y;
-					mat2.Row3.Z += Parent.Matrix2.Row3.Z;
-					Matrix2 = mat2;
-				}
+				// Use Matrix2 as the final matrix, this is actually faster since RSM2 has no local transform
+				Matrix2 = Matrix1;
+				
+				if (Parent != null)
+					Matrix2 = Matrix2 * Parent.Matrix2;
+
+				IsBakedRenderMatrix = true;
 			}
 
 			foreach (var child in Children) {
@@ -610,11 +708,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 			if (Model.Version < 2.2) {
 				if (Parent == null && Children.Count == 0) {
-					Matrix2 = GLHelper.Translate(Matrix2, Position_);
+					Matrix2 = GLHelper.Translate(ref Matrix2, LocalPosition);
 				}
 
 				if (Parent != null || Children.Count > 0) {
-					Matrix2 = GLHelper.Translate(Matrix2, Position_);
+					Matrix2 = GLHelper.Translate(ref Matrix2, LocalPosition);
 				}
 
 				Matrix2 = TransformationMatrix * Matrix2;
@@ -625,89 +723,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 		}
 
-		public void SetBoundingBox(RsmBoundingBox modelBox) {
-			Box = new RsmBoundingBox();
-
-			if (Parent != null)
-				Box.Min = Box.Max = new Vector3(0);
-
-			Matrix4 m = TransformationMatrix;
-
-			if (Faces.Count > 0) {
-				for (int i = 0; i < Faces.Count; i++) {
-					for (int ii = 0; ii < 3; ii++) {
-						Vector4 v = new Vector4(Vertices[Faces[i].VertexIds[ii]], 1);
-						v = v * m;
-					
-						if (Parent != null || Children.Count > 0) {
-							v += new Vector4(Position + Position_, 1);
-						}
-
-						Box.AddVector(v);
-					}
-				}
-
-				modelBox.AddVector(Box.Min);
-				modelBox.AddVector(Box.Max);
-			}
-
-			foreach (var child in Children) {
-				child.SetBoundingBox(modelBox);
-			}
-		}
-
-		public void SetBoundingBox2(Matrix4 mat, RsmBoundingBox box) {
-			var renderMatrix = (Model.Version >= 2.2 ? Matrix2 : Matrix2 * Matrix1) * mat;
-
-			foreach (var vertice in Vertices) {
-				box.AddVector(GLHelper.MultiplyWithTranslate(renderMatrix, vertice));
-			}
-
-			foreach (var child in Children) {
-				child.SetBoundingBox2(Model.Version >= 2.2 ? Matrix4.Identity : Matrix1 * mat, box);
-			}
-		}
-
-		public void SetBoundingBox3(Matrix4 mat, RsmBoundingBox box) {
-			if (this.Model.Version >= 2.2) {
-				LocalBox = new RsmBoundingBox();
-
-				for (int i = 0; i < Faces.Count; i++) {
-					for (int ii = 0; ii < 3; ii++) {
-						Vector4 v = new Vector4(Vertices[Faces[i].VertexIds[ii]], 1) * Matrix2;
-						box.AddVector(v);
-						LocalBox.AddVector(v);
-					}
-				}
-
-				foreach (var child in Children) {
-					child.SetBoundingBox3(mat, box);
-				}
-			}
-			else {
-				Matrix4 mat1 = Matrix1 * mat;
-				Matrix4 mat2 = Matrix2 * mat1;
-				LocalBox = new RsmBoundingBox();
-
-				for (int i = 0; i < Faces.Count; i++) {
-					for (int ii = 0; ii < 3; ii++) {
-						Vector4 v = new Vector4(Vertices[Faces[i].VertexIds[ii]], 1) * mat2;
-						box.AddVector(v);
-						LocalBox.AddVector(v);
-					}
-				}
-
-				foreach (var child in Children) {
-					child.SetBoundingBox3(mat1, box);
-				}
-			}
-		}
-
 		public void FlattenModel(Matrix4 mat) {
 			if (this.Model.Version >= 2.2) {
 				Matrix4 mat2 = Matrix2;
 
-				for (int i = 0; i < Vertices.Count; i++) {
+				for (int i = 0; i < Vertices.Length; i++) {
 					Vertices[i] = new Vector3(new Vector4(Vertices[i], 1) * mat2);
 				}
 
@@ -719,7 +739,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 				Matrix4 mat1 = Matrix1 * mat;
 				Matrix4 mat2 = Matrix2 * mat1;
 
-				for (int i = 0; i < Vertices.Count; i++) {
+				for (int i = 0; i < Vertices.Length; i++) {
 					Vertices[i] = new Vector3(new Vector4(Vertices[i], 1) * mat2);
 				}
 
@@ -735,7 +755,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			LocalBox = new RsmBoundingBox();
 			List<Vector3> vertices = new List<Vector3>();
 
-			for (int i = 0; i < Faces.Count; i++) {
+			for (int i = 0; i < Faces.Length; i++) {
 				for (int ii = 0; ii < 3; ii++) {
 					Vector4 v = new Vector4(Vertices[Faces[i].VertexIds[ii]], 1) * mat2;
 					vertices.Add(new Vector3(v));
@@ -788,6 +808,95 @@ namespace GRFEditor.OpenGL.MapComponents {
 				child.SetAnimated(isAnimated);
 			}
 		}
+
+		/// <summary>
+		/// Retrieves the BoundingBox for all vertices, even unused ones.
+		/// </summary>
+		/// <param name="mat"></param>
+		/// <param name="box"></param>
+		public void SetVerticesBoundingBox(Matrix4 mat, RsmBoundingBox box) {
+			var renderMatrix = Model.Version >= 2.2 ? Matrix2 * mat : Matrix2 * Matrix1 * mat;
+			
+			foreach (var vertice in Vertices) {
+				var v = GLHelper.MultiplyWithTranslate(ref renderMatrix, vertice);
+				box.AddVector(ref v);
+			}
+
+			foreach (var child in Children) {
+				child.SetVerticesBoundingBox(Model.Version >= 2.2 ? Matrix4.Identity : Matrix1 * mat, box);
+			}
+		}
+
+		public struct RVerticeCalc {
+			public int VerticesCount;
+			public Matrix4 Matrix;
+			public Vector3 Offset;
+
+			public bool IsEqual(RVerticeCalc rvc) {
+				return rvc.VerticesCount == VerticesCount &&
+					rvc.Matrix == Matrix &&
+					rvc.Offset == Offset;
+			}
+		};
+
+		private RVerticeCalc _lastDrawnLocalBB = new RVerticeCalc();
+
+		public void SetDrawnAndLocalBoundingBox(ref Matrix4 mat, RsmBoundingBox box) {
+			if (Model.Version >= 2.2) {
+				RVerticeCalc current = new RVerticeCalc { Matrix = Matrix2, Offset = GlobalPosition, VerticesCount = Vertices.Length };
+			
+				if (!_lastDrawnLocalBB.IsEqual(current)) {
+					LocalBox = new RsmBoundingBox();
+			
+					for (int i = 0; i < Faces.Length; i++) {
+						for (int ii = 0; ii < 3; ii++) {
+							Vector3 v = GLHelper.MultiplyWithTranslate(ref Matrix2, Vertices[Faces[i].VertexIds[ii]] + GlobalPosition);
+							box.AddVector(ref v);
+							LocalBox.AddVector(ref v);
+						}
+					}
+
+					_lastDrawnLocalBB = current;
+				}
+				else {
+					box.AddVectorMin(ref LocalBox.Min);
+					box.AddVectorMax(ref LocalBox.Max);
+				}
+			
+				foreach (var child in Children) {
+					child.SetDrawnAndLocalBoundingBox(ref mat, box);
+				}
+			}
+			else {
+				Matrix4 mat1 = Matrix1 * mat;
+				Matrix4 mat2 = Matrix2 * mat1;
+
+				RVerticeCalc current = new RVerticeCalc { Matrix = mat2, Offset = GlobalPosition, VerticesCount = Vertices.Length };
+
+				if (!_lastDrawnLocalBB.IsEqual(current)) {
+					LocalBox = new RsmBoundingBox();
+
+					for (int i = 0; i < Faces.Length; i++) {
+						for (int ii = 0; ii < 3; ii++) {
+							//Vector4 v = new Vector4(Vertices[Faces[i].VertexIds[ii]], 1) * mat2;
+							Vector3 v = GLHelper.MultiplyWithTranslate(ref mat2, Vertices[Faces[i].VertexIds[ii]]);
+							box.AddVector(ref v);
+							LocalBox.AddVector(ref v);
+						}
+					}
+
+					_lastDrawnLocalBB = current;
+				}
+				else {
+					box.AddVectorMin(ref LocalBox.Min);
+					box.AddVectorMax(ref LocalBox.Max);
+				}
+
+				foreach (var child in Children) {
+					child.SetDrawnAndLocalBoundingBox(ref mat1, box);
+				}
+			}
+		}
 	}
 
 	public class Rsm {
@@ -802,9 +911,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public int AnimationLength { get; internal set; }
 		public int ShadeType { get; set; }
 		public byte Alpha { get; set; }
-		public RsmBoundingBox RealBox = new RsmBoundingBox();
+		public RsmBoundingBox VerticesBox = new RsmBoundingBox();
 		public RsmBoundingBox DrawnBox = new RsmBoundingBox();
-		public RsmBoundingBox LocalBox = new RsmBoundingBox();
 		public float MaxRange { get; set; }
 		public float FramesPerSecond { get; set; }
 		public readonly List<Mesh> Meshes = new List<Mesh>();
@@ -812,6 +920,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public int AnimationIndex { get; private set; }
 		public float AnimationIndexFloat { get; private set; }
 		public bool MeshesDirty { get; set; }
+		public bool NeedsSorting { get; set; }
 
 		public static int ForceShadeType = -1;
 
@@ -906,7 +1015,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 
 			// Skip volume boxes
-			_updateMatrices();
+			SetupBoundingBoxes();
 			MainMesh.SetAnimated(false);
 			MeshesDirty = true;
 		}
@@ -930,27 +1039,27 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 		}
 
-		private void _updateMatrices() {
-			LocalBox = new RsmBoundingBox();
-			MainMesh.SetBoundingBox(LocalBox);
+		public void SetupBoundingBoxes() {
+			if (MainMesh == null)
+				return;
 
 			MainMesh.CalcMatrix1();
 			
 			if (Version < 2.2) {
 				MainMesh.CalcMatrix2();
 			}
-
+			
 			Matrix4 mat = GLHelper.Scale(Matrix4.Identity, new Vector3(1, -1, 1));
-
-			RealBox = new RsmBoundingBox();
-			MainMesh.SetBoundingBox2(Version >= 2.2 ? Matrix4.Identity : mat, RealBox);
-
-			DrawnBox = new RsmBoundingBox();
-			MainMesh.SetBoundingBox3(mat, DrawnBox);
-
-			if (Version >= 2.2) {
-				MainMesh.CalcMatrix1();
+			
+			// **VerticesBox is only used for RSM1**
+			// RSM1 centers the Model around the Vertices, not the Faces
+			if (Version < 2.2) {
+				VerticesBox = new RsmBoundingBox();
+				MainMesh.SetVerticesBoundingBox(mat, VerticesBox);
 			}
+			
+			DrawnBox = new RsmBoundingBox();
+			MainMesh.SetDrawnAndLocalBoundingBox(ref mat, DrawnBox);
 		}
 
 		public Rsm(MultiType data)
@@ -1045,16 +1154,28 @@ namespace GRFEditor.OpenGL.MapComponents {
 			get { return (Max - Min) / 2.0f; }
 		}
 
-		public void AddVector(Vector4 v) {
+		public void AddVector(ref Vector4 v) {
 			for (int c = 0; c < 3; c++) {
 				Min[c] = Math.Min(Min[c], v[c]);
 				Max[c] = Math.Max(Max[c], v[c]);
 			}
 		}
 
-		public void AddVector(Vector3 v) {
+		public void AddVector(ref Vector3 v) {
 			for (int c = 0; c < 3; c++) {
 				Min[c] = Math.Min(Min[c], v[c]);
+				Max[c] = Math.Max(Max[c], v[c]);
+			}
+		}
+
+		public void AddVectorMin(ref Vector3 v) {
+			for (int c = 0; c < 3; c++) {
+				Min[c] = Math.Min(Min[c], v[c]);
+			}
+		}
+
+		public void AddVectorMax(ref Vector3 v) {
+			for (int c = 0; c < 3; c++) {
 				Max[c] = Math.Max(Max[c], v[c]);
 			}
 		}

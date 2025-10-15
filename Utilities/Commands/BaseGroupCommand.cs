@@ -27,7 +27,7 @@ namespace Utilities.Commands {
 			}
 
 			for (int index = 0; index < _commands.Count; index++) {
-				var command = _commands[index];
+				T command = _commands[index];
 				try {
 					command.Execute(act);
 				}

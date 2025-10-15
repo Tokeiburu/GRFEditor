@@ -46,9 +46,7 @@ namespace Utilities.Parsers.Libconfig {
 			_parse(File.ReadAllBytes(file));
 
 			if (mode == ParserMode.Write) {
-				var list = ((ParserKeyValue)Output).Value as ParserArrayBase;
-
-				if (list != null) {
+				if (((ParserKeyValue)Output).Value is ParserArrayBase list) {
 					_writeKeyValues = list.OfType<ParserKeyValue>().ToList();
 					_writeArrays = list.OfType<ParserArray>().ToList();
 
@@ -59,7 +57,7 @@ namespace Utilities.Parsers.Libconfig {
 
 					if (_writeArrays.Count == 0 && _writeKeyValues.Count == 0) {
 						if (list is ParserList) {
-							switch(((ParserKeyValue)Output).Key) {
+							switch (((ParserKeyValue)Output).Key) {
 								case "item_db":
 									_idKey = "Id";
 									break;

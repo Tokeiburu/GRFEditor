@@ -66,7 +66,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
 					_oldPath = _currentPath;
 
-					_labelHeader.Dispatch(p => p.Content = _currentPath.RelativePath);
+					_labelHeader.Dispatch(p => p.Text = _currentPath.RelativePath);
 
 					List<FileEntry> entries = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.AllDirectories, GrfEditorConfiguration.GrfFileTableIgnoreCase);
 					List<FileEntry> entriesRoot = _grfData.FileTable.EntriesInDirectory(currentSearch.RelativePath, SearchOption.TopDirectoryOnly, GrfEditorConfiguration.GrfFileTableIgnoreCase);

@@ -21,10 +21,51 @@ namespace GRFEditor.OpenGL.WPF {
 		private SolidColorBrush _brushEnter;
 		private SolidColorBrush _brushHover;
 
-		private bool _hasMoved = false;
+		private bool _hasMoved;
+		private bool _isMouseDown;
 		private POINT _clickedPoint;
 		private POINT _clickedRealPoint;
 		private Action<string> _preview;
+		public bool IsEditing { get; set; }
+		public bool HasEdited { get; set; }
+
+		public Thickness OuterBorderThickness {
+			get { return (Thickness)GetValue(OuterBorderThicknessProperty); }
+			set { SetValue(OuterBorderThicknessProperty, value); }
+		}
+
+		public static readonly DependencyProperty OuterBorderThicknessProperty =
+			DependencyProperty.RegisterAttached("OuterBorderThickness",
+				typeof(Thickness),
+				typeof(AdvancedTextBox),
+				new PropertyMetadata(new Thickness(), OuterBorderThicknessChanged));
+
+		public static void OuterBorderThicknessChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			var advTb = d as AdvancedTextBox;
+
+			if (advTb != null) {
+				advTb._outerBorder.BorderThickness = (Thickness)e.NewValue;
+			}
+		}
+
+		public CornerRadius OuterCornerRadius {
+			get { return (CornerRadius)GetValue(OuterCornerRadiusProperty); }
+			set { SetValue(OuterCornerRadiusProperty, value); }
+		}
+
+		public static readonly DependencyProperty OuterCornerRadiusProperty =
+			DependencyProperty.RegisterAttached("OuterCornerRadius",
+				typeof(CornerRadius),
+				typeof(AdvancedTextBox),
+				new PropertyMetadata(new CornerRadius(), OuterCornerRadiusChanged));
+
+		public static void OuterCornerRadiusChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			var advTb = d as AdvancedTextBox;
+
+			if (advTb != null) {
+				advTb._outerBorder.CornerRadius = (CornerRadius)e.NewValue;
+			}
+		}
 
 		public delegate void ValueChangedEventHandler(AdvancedTextBox sender, float deltaX, float deltaY, bool addCommand);
 		public event ValueChangedEventHandler MouseValueChanged;
@@ -44,6 +85,7 @@ namespace GRFEditor.OpenGL.WPF {
 			if (_preview != null)
 				_preview(Text);
 
+			HasEdited = true;
 			AdvancedTextChangedEventHandler handler = TextChanged;
 			if (handler != null) handler(this, e, commands);
 		}
@@ -85,14 +127,16 @@ namespace GRFEditor.OpenGL.WPF {
 
 			AddCommand = true;
 
-			_tb.TextChanged += (s, e) => OnTextChanged(e, AddCommand);
+			_tb.TextChanged += (s, e) => {
+				OnTextChanged(e, false);
+			};
 			_tb.KeyDown += new KeyEventHandler(_tb_KeyDown);
 
 			var color = (Color)Application.Current.Resources["UIThemeTextBoxBackgroundColor"];
 
 			SetColor(color, Color.FromArgb(255, 88, 129, 195), Color.FromArgb(255, 255, 255, 255));
 
-			this.Loaded += delegate {
+			Loaded += delegate {
 				if (DesignerProperties.GetIsInDesignMode(this))
 					return;
 
@@ -102,17 +146,15 @@ namespace GRFEditor.OpenGL.WPF {
 					if (_tb.Opacity >= 1) {
 						var position = e.GetPosition(this);
 
-						if (position.X < 0 || position.X > this.ActualWidth || position.Y < 0 || position.Y > this.ActualHeight) {
-							_tb.Opacity = 0;
-							_tb.IsHitTestVisible = false;
-							_outerBorder.Background = _brushColor;
+						if (position.X < 0 || position.X > ActualWidth || position.Y < 0 || position.Y > ActualHeight) {
+							_endEdit();
 						}
 					}
 				};
 			};
 
 			_tb.GotFocus += (s, e) => {
-				_focusTb();
+				_beginEdit();
 			};
 
 			_gridPrevious.MouseEnter += delegate {
@@ -121,8 +163,9 @@ namespace GRFEditor.OpenGL.WPF {
 			};
 
 			_gridPreview.MouseEnter += delegate {
+				_isMouseDown = false;
 				_hasMoved = false;
-				this.Cursor = Cursors.SizeWE;
+				Cursor = Cursors.SizeWE;
 				_enterComponent();
 				_gridPreview.Background = _brushEnter;
 			};
@@ -130,28 +173,31 @@ namespace GRFEditor.OpenGL.WPF {
 			_gridPreview.MouseMove += _gridPreviewMove;
 
 			_gridPreview.MouseLeftButtonDown += (s, e) => {
+				_isMouseDown = true;
 				_hasMoved = false;
-				this.Cursor = Cursors.None;
+				Cursor = Cursors.None;
 				GetCursorPos(out _clickedPoint);
 				_clickedRealPoint = _clickedPoint;
 				((Grid)s).CaptureMouse();
 			};
 
 			_gridPreview.MouseLeftButtonUp += (s, e) => {
-				//if (_tb.Visibility == Visibility.Visible)
 				if (_tb.Opacity >= 1)
 					return;
 
 				if (_tb.IsMouseCaptured)
 					return;
+
+				if (!_isMouseDown)
+					return;
 				
 				UIElement element = (UIElement)s;
 				element.ReleaseMouseCapture();
-				this.Cursor = Cursors.SizeWE;
+				Cursor = Cursors.SizeWE;
 				SetCursorPos((int)_clickedRealPoint.X, (int)_clickedRealPoint.Y);
 
 				if (!_hasMoved) {
-					_focusTb();
+					_beginEdit();
 				}
 				else {
 					OnTextChanged(null, true);
@@ -159,10 +205,7 @@ namespace GRFEditor.OpenGL.WPF {
 			};
 
 			_tb.LostFocus += delegate {
-				_tb.Opacity = 0;
-				_tb.IsHitTestVisible = false;
-				//_tb.Visibility = Visibility.Collapsed;
-				_outerBorder.Background = _brushColor;
+				_endEdit();
 			};
 
 			_gridNext.MouseEnter += delegate {
@@ -179,28 +222,71 @@ namespace GRFEditor.OpenGL.WPF {
 
 			_tb.PreviewKeyDown += (s, e) => {
 				if (_tb.Opacity <= 0) {
-				//if (_tb.Visibility == Visibility.Collapsed) {
 					e.Handled = true;
 					return;
 				}
 			};
+
+			IsEnabledChanged += delegate {
+				if (IsEnabled) {
+					Opacity = 1;
+				}
+				else {
+					Opacity = 0.5;
+				}
+			};
+
+			_updateModeView(true);
 		}
 
-		private void _focusTb() {
-			//_tb.Visibility = Visibility.Visible;
-			_tb.Opacity = 1;
-			_tb.IsHitTestVisible = true;
-			_outerBorder.Background = _tb.Background;
-			Keyboard.Focus(_tb);
-			_tb.SelectAll();
+		private void _updateModeView(bool? current = null) {
+			if (current != null)
+				return;
+
+			_tb.Opacity = 0;
+			_tb.IsHitTestVisible = false;
+			_outerBorder.Background = _brushColor;
+
+			var color = (Color)Application.Current.Resources["AdvancedTextBoxBorderColor"];
+			SetColor(color, Color.FromArgb(255, 88, 129, 195), Color.FromArgb(255, 255, 255, 255));
+		}
+
+		private void _beginEdit() {
+			try {
+				_tb.Opacity = 1;
+				_tb.IsHitTestVisible = true;
+				_outerBorder.Background = _tb.Background;
+				Keyboard.Focus(_tb);
+				_tb.SelectAll();
+			}
+			finally {
+				HasEdited = false;
+				IsEditing = true;
+			}
+		}
+
+		private void _endEdit() {
+			try {
+				_tb.Opacity = 0;
+				_tb.IsHitTestVisible = false;
+				_outerBorder.Background = _brushColor;
+
+				if (HasEdited)
+					OnTextChanged(null, true);
+			}
+			finally {
+				HasEdited = false;
+				IsEditing = false;
+			}
 		}
 
 		private void _tb_KeyDown(object sender, KeyEventArgs e) {
 			if (e.Key == Key.Enter || e.Key == Key.Escape) {
-				//_tb.Visibility = Visibility.Collapsed;
-				_tb.Opacity = 0;
-				_tb.IsHitTestVisible = false;
-				_outerBorder.Background = _brushColor;
+				e.Handled = true;
+				_endEdit();
+
+				// Bring back the focus to its parent, otherwise shortcuts will stop working if we stay in textbox
+				Keyboard.Focus(WpfUtilities.FindDirectParentControl<ScrollViewer>(this));
 			}
 		}
 
@@ -249,8 +335,8 @@ namespace GRFEditor.OpenGL.WPF {
 			_gridNext.Background = _brushHover;
 		}
 
-		private void _leaveComponent(object sender, MouseEventArgs e) {
-			this.Cursor = null;
+		public void _leaveComponent(object sender, MouseEventArgs e) {
+			Cursor = null;
 			_pathPrevious.Visibility = Visibility.Hidden;
 			_pathNext.Visibility = Visibility.Hidden;
 			_gridPrevious.Background = _brushColor;
@@ -259,18 +345,11 @@ namespace GRFEditor.OpenGL.WPF {
 		}
 
 		public void SetColor(Color color, Color boxBackground, Color boxForeground) {
-			int diff1 = 40;
-			int diff2 = 20;
-
-			if (color.R == 255 && color.G == 255 && color.B == 255) {
-				diff2 = -20;
-			}
-
 			_color = color;
-			_colorEnter = Color.FromArgb(color.A, _clamp(color.R + diff1), _clamp(color.G + diff1), _clamp(color.B + diff1));
+			_colorEnter = Color.FromArgb(color.A, _clamp(color.R + 40), _clamp(color.G + 40), _clamp(color.B + 40));
 			_brushEnter = new SolidColorBrush(_colorEnter);
 
-			_colorHover = Color.FromArgb(color.A, _clamp(color.R + diff2), _clamp(color.G + diff2), _clamp(color.B + diff2));
+			_colorHover = Color.FromArgb(color.A, _clamp(color.R + 20), _clamp(color.G + 20), _clamp(color.B + 20));
 			_brushHover = new SolidColorBrush(_colorHover);
 
 			_brushColor = new SolidColorBrush(color);
@@ -289,9 +368,18 @@ namespace GRFEditor.OpenGL.WPF {
 			return (byte)v;
 		}
 
-		public float GetFloat() {
+		public float GetRealFloat() {
 			return FormatConverters.SingleConverterNoThrow(Text);
 		}
+
+		public float GetFloat() {
+			if (InvertValue)
+				return -FormatConverters.SingleConverterNoThrow(Text);
+
+			return FormatConverters.SingleConverterNoThrow(Text);
+		}
+
+		public bool InvertValue { get; set; }
 
 		public int GetInt() {
 			int value;

@@ -38,6 +38,9 @@ namespace GRFEditor.Tools.Map {
 		public bool ShowGutterLines;
 		public bool MatchShadowsWithGatCells;
 		public bool UseShadowsForQuadrants;
+		public bool UseBitmapsForQuadrants;
+		public float BitmapQuadrantFactor;
+		public byte ShadowQuadrantFactor;
 	}
 
 	public class MapEditor {
@@ -196,17 +199,32 @@ namespace GRFEditor.Tools.Map {
 			_mapConfig.ShowGutterLines = GrfEditorConfiguration.ShowGutterLines;
 			_mapConfig.MatchShadowsWithGatCells = GrfEditorConfiguration.MatchShadowsWithGatCells;
 			_mapConfig.UseShadowsForQuadrants = GrfEditorConfiguration.UseShadowsForQuadrants;
+			_mapConfig.UseBitmapsForQuadrants = GrfEditorConfiguration.UseBitmapsForQuadrants;
+			SetQuadrantFactors();
+		}
+
+		public void SetQuadrantFactors() {
+			int f = GrfEditorConfiguration.BitmapQuadrantFactor;
+			f = Math.Max(-255, Math.Min(f, 255));
+
+			if (f < 0) {
+				_mapConfig.BitmapQuadrantFactor = 1 + Math.Abs(f) / 255f;
+			}
+			else {
+				_mapConfig.BitmapQuadrantFactor = (255 - f) / 255f;
+			}
+
+			f = GrfEditorConfiguration.ShadowQuadrantFactor;
+			f = Math.Max(0, Math.Min(f, 255));
+
+			_mapConfig.ShadowQuadrantFactor = (byte)(255 - f);
 		}
 
 		private void _saveFile(IWriteableFile obj, FileStream writer, object threadPoolLock, List<FileEntry> entries) {
 			using (var mem = new MemoryStream()) {
-				//Z.Start(27);
 				obj.Save(mem);
-				//Z.Stop(27);
 				var data = mem.ReadAllBytes();
-				//Z.Start(28);
 				var compressed = Compression.Compress(data);
-				//Z.Stop(28);
 
 				FileEntry entry;
 
@@ -229,9 +247,7 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		private Gnd _configGndFile(byte[] gndData, Gat gat) {
-			//Z.Start(1);
 			Gnd gnd = new Gnd(gndData);
-			//Z.Stop(1);
 
 			if (gnd.Header.Version >= 1.7) {
 				// Doesn't like new maps very much
@@ -266,9 +282,7 @@ namespace GRFEditor.Tools.Map {
 					gnd.RemoveAllTiles();
 				}
 
-				//Z.Start(2);
 				_setCubesAndTiles(gnd, gat);
-				//Z.Stop(2);
 			}
 			else if (_mapConfig.MatchShadowsWithGatCells) {
 				_gndMatchShadowWithGatCells(gnd, gat);
@@ -292,7 +306,7 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		private string _uid = "";
-		private static Dictionary<int, string> _computedGatTypes2Textures = new Dictionary<int, string>();
+		private static Dictionary<long, string> _computedGatTypes2Textures = new Dictionary<long, string>();
 		private MapEditorWindow _editorWindow;
 
 		private void _shadowProc(Gnd gnd, int xx, int yy, byte shadow) {
@@ -349,7 +363,6 @@ namespace GRFEditor.Tools.Map {
 			Cell gatCell;
 			sbyte gatType;
 
-			//Z.Start(3);
 			// For each cube...
 			for (int y = 0; y < gnd.Header.Height; y++) {
 				for (int x = 0; x < gnd.Header.Width; x++) {
@@ -360,7 +373,6 @@ namespace GRFEditor.Tools.Map {
 					cellIndexes[2] = cellIndex + gnd.Header.Width * 2;
 					cellIndexes[3] = cellIndexes[2] + 1;
 
-					//Z.Start(4);
 					for (int i = 0; i < 4; i++) {
 						gatCell = gat.Cells[cellIndexes[i]];
 						gatType = (sbyte)gatCell.Type;
@@ -389,16 +401,31 @@ namespace GRFEditor.Tools.Map {
 						}
 					}
 
-					int gatUid = (cellTypes[0] & 0xff) << 24 | (cellTypes[1] & 0xff) << 16 | (cellTypes[2] & 0xff) << 8 | (cellTypes[3] & 0xff);
+					long gatUid = (cellTypes[0] & 0xff) << 24 | (cellTypes[1] & 0xff) << 16 | (cellTypes[2] & 0xff) << 8 | (cellTypes[3] & 0xff);
 					
 					string textureName;
+
+					string cIdx = "c";
+					bool isQuadrant = false;
+
+					if (_mapConfig.UseBitmapsForQuadrants) {
+						if ((x % 8 < 4 && y % 8 < 4) ||
+							(x % 8 >= 4 && y % 8 >= 4)) {
+							;
+						}
+						else {
+							cIdx = "q";
+							gatUid |= 0x100000000L;
+							isQuadrant = true;
+						}
+					}
 
 					if (!_computedGatTypes2Textures.TryGetValue(gatUid, out textureName)) {
 						StringBuilder b = new StringBuilder();
 						b.Append(id);
 
 						for (int i = 0; i < 4; i++) {
-							b.Append("c");
+							b.Append(cIdx);
 							b.Append(cellTypes[i]);
 						}
 
@@ -407,9 +434,6 @@ namespace GRFEditor.Tools.Map {
 						_computedGatTypes2Textures[gatUid] = textureName;
 					}
 
-					//Z.Stop(4);
-
-					//Z.Start(5);
 					if (_state.OutputTexturePaths == null) {
 						lock (_state.Lock) {
 							if (_state.OutputTexturePaths == null) {
@@ -417,16 +441,14 @@ namespace GRFEditor.Tools.Map {
 							}
 						}
 					}
-					//Z.Stop(5);
 
-					//Z.Start(6);
 					if (gnd.GetTextureIndex(textureName) < 0) {
 						var texturePath = Path.Combine(OutputTexturePath, textureName);
 
 						lock (_state.Lock) {
 							if (!_state.OutputTexturePaths.Contains(texturePath)) {
 								if (!File.Exists(texturePath)) {
-									GenerateTexture(textureName, cellTypes);
+									GenerateTexture(textureName, cellTypes, isQuadrant);
 								}
 
 								_state.OutputTexturePaths.Add(texturePath);
@@ -435,9 +457,7 @@ namespace GRFEditor.Tools.Map {
 
 						gnd.AddTexture(textureName);
 					}
-					//Z.Stop(6);
 
-					//Z.Start(7);
 					// If the ground is flattened, a new tile must be created
 					if (_mapConfig.FlattenGround && _mapConfig.RemoveLight && _mapConfig.RemoveShadow && _mapConfig.RemoveColor) {
 						tile = new Tile(gnd.GetTextureIndex(textureName));
@@ -474,16 +494,12 @@ namespace GRFEditor.Tools.Map {
 							}
 						}
 					}
-					//Z.Stop(7);
 				}
 			}
-			//Z.Stop(3);
 
-			//Z.Start(8);
 			if (_mapConfig.StickGatCellsToGround) {
 				gat.Adjust(gnd);
 			}
-			//Z.Stop(8);
 			_gndMatchShadowWithGatCells(gnd, gat);
 		}
 
@@ -496,7 +512,6 @@ namespace GRFEditor.Tools.Map {
 			int lightmapIndex = 0;
 			int tileCount = gnd.Tiles.Count;
 			int lightmapsCount = gnd.LightmapContainer.Lightmaps.Count;
-			const byte QuadShadow = 191;
 
 			// Add lightmaps
 			for (int y = 0; y < gnd.Header.Height; y++) {
@@ -516,7 +531,7 @@ namespace GRFEditor.Tools.Map {
 						}
 						else {
 							for (int i = 0; i < gnd.PerCell; i++) {
-								lightData[i] = Math.Min(QuadShadow, lightData[i]);
+								lightData[i] = Math.Min(_mapConfig.ShadowQuadrantFactor, lightData[i]);
 							}
 						}
 
@@ -539,7 +554,7 @@ namespace GRFEditor.Tools.Map {
 						}
 						else {
 							for (int i = 0; i < gnd.PerCell; i++) {
-								lightData[i] = Math.Min(QuadShadow, lightData[i]);
+								lightData[i] = Math.Min(_mapConfig.ShadowQuadrantFactor, lightData[i]);
 							}
 						}
 
@@ -562,7 +577,7 @@ namespace GRFEditor.Tools.Map {
 						}
 						else {
 							for (int i = 0; i < gnd.PerCell; i++) {
-								lightData[i] = Math.Min(QuadShadow, lightData[i]);
+								lightData[i] = Math.Min(_mapConfig.ShadowQuadrantFactor, lightData[i]);
 							}
 						}
 
@@ -731,57 +746,24 @@ namespace GRFEditor.Tools.Map {
 			Z.F();
 		}
 
-		public void GenerateTexture(string textureName, IList<sbyte> cellTypes) {
+		public void GenerateTexture(string textureName, IList<sbyte> cellTypes, bool isQuadrant) {
 			var data = new byte[12288];
 
-			// GrfImage for setting pixels, with Dotnet encoder, decent...
-			//Z.Start(30);
-			//for (int i = 0; i < 100; i++) {
-				GrfImage img = new GrfImage(data, 64, 64, GrfImageType.Bgr24);
-				img.SetPixels(32, 0, 32, 32, _getPixels(cellTypes[0]));
-				img.SetPixels(0, 0, 32, 32, _getPixels(cellTypes[1]));
-				img.SetPixels(32, 32, 32, 32, _getPixels(cellTypes[2]));
-				img.SetPixels(0, 32, 32, 32, _getPixels(cellTypes[3]));
-				img.Save(Path.Combine(OutputTexturePath, textureName));
-			//}
-			//Z.Stop(30);
+			GrfImage img = new GrfImage(data, 64, 64, GrfImageType.Bgr24);
 
-			// WriteableBitmap for setting pixels, with Dotnet encoder, very slow...
-			//Z.Start(31);
-			//for (int i = 0; i < 100; i++) {
-			//	WriteableBitmap bit = new WriteableBitmap(64, 64, 96, 96, PixelFormats.Bgr24, null);
-			//	bit.WritePixels(new Int32Rect(32, 0, 32, 32), _getPixels(cellTypes[0]), 32 * PixelFormats.Bgr24.BitsPerPixel / 8, 0);
-			//	bit.WritePixels(new Int32Rect(0, 0, 32, 32), _getPixels(cellTypes[1]), 32 * PixelFormats.Bgr24.BitsPerPixel / 8, 0);
-			//	bit.WritePixels(new Int32Rect(32, 32, 32, 32), _getPixels(cellTypes[2]), 32 * PixelFormats.Bgr24.BitsPerPixel / 8, 0);
-			//	bit.WritePixels(new Int32Rect(0, 32, 32, 32), _getPixels(cellTypes[3]), 32 * PixelFormats.Bgr24.BitsPerPixel / 8, 0);
-			//
-			//	try {
-			//		using (FileStream stream = new FileStream(Path.Combine(OutputTexturePath, textureName), FileMode.Create)) {
-			//			BmpBitmapEncoder encoder = new BmpBitmapEncoder();
-			//			encoder.Frames.Add(BitmapFrame.Create(bit));
-			//			encoder.Save(stream);
-			//			stream.Close();
-			//		}
-			//	}
-			//	catch {
-			//	}
-			//}
-			//Z.Stop(31);
+			img.SetPixels(32, 0, 32, 32, GetPixels(cellTypes[0]));
+			img.SetPixels(0, 0, 32, 32, GetPixels(cellTypes[1]));
+			img.SetPixels(32, 32, 32, 32, GetPixels(cellTypes[2]));
+			img.SetPixels(0, 32, 32, 32, GetPixels(cellTypes[3]));
 
-			// GrfImage for setting pixels, with custom encoder, kinda slow...
-			//Z.Start(31);
-			//for (int i = 0; i < 100; i++) {
-			//	GrfImage img = new GrfImage(ref data, 64, 64, GrfImageType.Bgr24);
-			//	img.SetPixels(32, 0, 32, 32, _getPixels(cellTypes[0]));
-			//	img.SetPixels(0, 0, 32, 32, _getPixels(cellTypes[1]));
-			//	img.SetPixels(32, 32, 32, 32, _getPixels(cellTypes[2]));
-			//	img.SetPixels(0, 32, 32, 32, _getPixels(cellTypes[3]));
-			//	BmpDecoder.Save(img, Path.Combine(OutputTexturePath, textureName));
-			//}
-			//Z.Stop(31);
+			if (isQuadrant) {
+				img.ApplyColorChannel(_mapConfig.BitmapQuadrantFactor);
+			}
+
+			img.Save(Path.Combine(OutputTexturePath, textureName));
 		}
 
-		private byte[] _getPixels(sbyte cellType) {
+		public byte[] GetPixels(sbyte cellType) {
 			if (_state.BufferedImages.ContainsKey(cellType))
 				return _state.BufferedImages[cellType];
 

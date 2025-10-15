@@ -12,15 +12,31 @@ namespace GRF.Image.Decoders {
 		public void ToBgra32(GrfImage image) {
 			int size = image.Width * image.Height;
 			byte[] newPixels = new byte[size * 4];
+			int i = 0;
 
-			for (int i = 0; i < size; i++) {
-				Buffer.BlockCopy(image.Pixels, 3 * i, newPixels, 4 * i, 3);
-
-				if (image.TransparentPixels != null) {
-					newPixels[4 * i + 3] = (byte)(image.TransparentPixels[i] ? 0 : 255);
-				}
-				else {
-					newPixels[4 * i + 3] = 255;
+			unsafe {
+				fixed (byte* pNewPixelsBase = newPixels)
+				fixed (byte* pSourcePixelsBase = image.Pixels) {
+					byte* pSourcePixels = pSourcePixelsBase;
+					byte* pEnd = pSourcePixelsBase + image.Pixels.Length;
+					byte* pNewPixels = pNewPixelsBase;
+			
+					while (pSourcePixels < pEnd) {
+						pNewPixels[0] = pSourcePixels[0];
+						pNewPixels[1] = pSourcePixels[1];
+						pNewPixels[2] = pSourcePixels[2];
+			
+						if (image.TransparentPixels != null) {
+							pNewPixels[3] = (byte)(image.TransparentPixels[i] ? 0 : 255);
+						}
+						else {
+							pNewPixels[3] = 255;
+						}
+			
+						pSourcePixels += 3;
+						pNewPixels += 4;
+						i++;
+					}
 				}
 			}
 

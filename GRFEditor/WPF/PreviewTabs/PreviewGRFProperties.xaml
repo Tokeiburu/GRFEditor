@@ -16,8 +16,8 @@
         </Grid.RowDefinitions>
         <StackPanel>
             <StackPanel>
-                <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+				<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+				<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             </StackPanel>
             <WrapPanel Grid.Row="0">
                 <Styles:FancyButton x:Name="_buttonRawView" Click="_buttonRawView_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Raw view" TextDescription="Show the raw view" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />

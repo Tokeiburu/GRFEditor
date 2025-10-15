@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using GRF.ContainerFormat;
 using GRF.IO;
@@ -64,22 +65,32 @@ namespace GRF {
 		public string Path { get; private set; }
 
 		public static implicit operator MultiType(string file) {
+			if (file == null)
+				throw new ArgumentNullException("file");
 			return new MultiType(File.ReadAllBytes(file)) { Path = file };
 		}
 
 		public static implicit operator MultiType(Stream stream) {
+			if (stream == null)
+				throw new ArgumentNullException("stream");
 			return new MultiType(stream.ReadAllBytes());
 		}
 
 		public static implicit operator MultiType(byte[] data) {
+			if (data == null)
+				throw new ArgumentNullException("data");
 			return new MultiType(data) { IsUnique = false};
 		}
 
 		public static implicit operator MultiType(GrfMemoryStreamHolder data) {
+			if (data == null)
+				throw new ArgumentNullException("data");
 			return new MultiType(data);
 		}
 
 		public static implicit operator MultiType(ContainerEntry entry) {
+			if (entry == null)
+				throw new ArgumentNullException("entry");
 			return new MultiType(entry);
 		}
 
@@ -133,6 +144,14 @@ namespace GRF {
 		/// </summary>
 		/// <returns>Returns the binary reader</returns>
 		public IBinaryReader GetBinaryReader() {
+			return new ByteReader(_data);
+		}
+
+		/// <summary>
+		/// Gets the byte reader.
+		/// </summary>
+		/// <returns>Returns the byte reader</returns>
+		public ByteReader GetByteReader() {
 			return new ByteReader(_data);
 		}
 	}

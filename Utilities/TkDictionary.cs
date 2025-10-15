@@ -16,10 +16,9 @@ namespace Utilities {
 
 		public new TValue this[TKey key] {
 			get {
-				TValue t;
-				if (base.TryGetValue(key, out t))
+				if (TryGetValue(key, out TValue t))
 					return t;
-				t = default(TValue);
+				t = default;
 				Add(key, t);
 				return t;
 			}

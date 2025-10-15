@@ -5,12 +5,16 @@ layout(location = 1) in vec2 aTexCoord;
 
 out vec2 texCoord;
 
-uniform mat4 model;
-uniform mat4 view;
-uniform mat4 projection;
+uniform vec2 uViewportSize;
+uniform float uTexSize;
 
 void main(void)
 {
-	texCoord = aTexCoord;
-    gl_Position = vec4(aPosition, 1.0) * model * view * projection;
+	vec2 screenPos = vec2(
+		(aPosition.x * 0.5 + 0.5) * uViewportSize.x,
+		(1.0 - (aPosition.y * 0.5 + 0.5)) * uViewportSize.y
+	);
+	texCoord = screenPos / uTexSize;
+	
+    gl_Position = vec4(aPosition, 1.0);
 }

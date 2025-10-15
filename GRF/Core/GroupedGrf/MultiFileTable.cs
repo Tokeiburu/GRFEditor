@@ -229,6 +229,7 @@ namespace GRF.Core.GroupedGrf {
 			return entries;
 		}
 
+		[Obsolete]
 		public override sealed List<string> FilesInDirectory(string directory, SearchOption option, bool ignoreCase) {
 			ignoreCase = true;
 			HashSet<string> files = new HashSet<string>();

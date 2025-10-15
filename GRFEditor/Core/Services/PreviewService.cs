@@ -35,7 +35,7 @@ namespace GRFEditor.Core.Services {
 		private readonly object _previewLockQuick = new object();
 		private readonly string[] _rawStructureTextEditorExtensions = new string[] { ".fna", ".imf", ".rsm", ".rsm2", ".lub", ".str", ".bson" };
 		private readonly TabControl _tabControlPreview;
-		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json", ".csv" };
+		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json", ".csv", ".ase" };
 		private readonly TreeView _treeView;
 		private PreviewDisplayConfiguration _currentConf = new PreviewDisplayConfiguration();
 		private string _currentPath;
@@ -206,6 +206,7 @@ namespace GRFEditor.Core.Services {
 								case ".js":
 								case ".ezv":
 								case ".csv":
+								case ".ase":
 									_readAsTxt(node);
 									break;
 								default:

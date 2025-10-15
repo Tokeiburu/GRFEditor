@@ -9,7 +9,11 @@ out vec4 fragColor;
 void main()
 {
 	vec4 outColor = texture2D(s_texture, texCoord);
+	
+	if (outColor.a <= 0)
+		discard;
+	
 	outColor *= color;
-	outColor.a *= alpha;
+	outColor.a = alpha;
 	fragColor = outColor;
 }

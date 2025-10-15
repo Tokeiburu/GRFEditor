@@ -6,7 +6,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 	public class Vbo {
 		private readonly int _vbo;
 
-		public int Length { get; private set; }
+		public int Length { get; set; }
+		public int Id {
+			get { return _vbo; }
+		}
 
 		public Vbo() {
 			_vbo = GL.GenBuffer();

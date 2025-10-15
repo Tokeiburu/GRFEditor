@@ -30,7 +30,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected override void _load(FileEntry entry) {
-			_labelHeader.Dispatch(p => p.Content = "Resource : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "Resource : " + Path.GetFileName(entry.RelativePath));
 
 			byte[] data;
 			bool? raw = entry.Flags.HasFlags(EntryType.GrfEditorCrypted);

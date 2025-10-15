@@ -667,5 +667,64 @@ namespace GRF.FileFormats.GndFormat {
 				tile.LightmapIndex = oldIndex2newIndex[tile.LightmapIndex];
 			}
 		}
+
+		public static GrfImage GenerateShadowMap(int shadowmapSize, int off, int lightmapWidth, int lightmapHeight, int lightmapSizeCell, List<byte[]> lightmaps) {
+			byte[] data = new byte[shadowmapSize * shadowmapSize * 4];
+
+			int xs = 0;
+			int ys = 0;
+			int alphaSize = lightmapWidth * lightmapHeight * lightmapSizeCell;
+			int minLightmapSize = alphaSize * 4;
+
+			unsafe {
+				fixed (byte* pDataBase = data) {
+					byte* pData = pDataBase;
+
+					for (int i = 0; i < lightmaps.Count; i++) {
+						var lightMap = lightmaps[i];
+
+						int xxs = xs;
+						int yys = ys;
+
+						if (lightMap.Length >= minLightmapSize) {
+							fixed (byte* pLightmapBase = lightMap) {
+								byte* pLightmapAlpha = pLightmapBase;
+								byte* pLightmap = pLightmapBase + alphaSize;
+
+								for (int yy = 0; yy < lightmapHeight; yy++) {
+									for (int xx = 0; xx < lightmapWidth; xx++) {
+										int xxx = xxs + xx;
+										int yyy = yys + yy;
+
+										int off1 = (xxx + shadowmapSize * yyy);
+
+										pData[4 * off1 + 0] = pLightmap[2];
+										pData[4 * off1 + 1] = pLightmap[1];
+										pData[4 * off1 + 2] = pLightmap[0];
+										pData[4 * off1 + 3] = *pLightmapAlpha;
+
+										pLightmap += 3;
+										pLightmapAlpha++;
+									}
+								}
+							}
+						}
+
+						xs += lightmapWidth;
+
+						if (xs >= shadowmapSize) {
+							xs = 0;
+							ys += lightmapHeight;
+
+							if (ys >= shadowmapSize) {
+								ys = 0;
+							}
+						}
+					}
+				}
+			}
+
+			return new GrfImage(ref data, shadowmapSize, shadowmapSize, GrfImageType.Bgra32);
+		}
 	}
 }

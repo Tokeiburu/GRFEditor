@@ -54,6 +54,29 @@ namespace GRF.IO {
 		}
 
 		/// <summary>
+		/// Gets the file name of the file path.
+		/// </summary>
+		/// <param name="path">The path.</param>
+		/// <returns>The file name of the file path</returns>
+		public static string GetFileName(string path) {
+			int index1 = path.LastIndexOf(DirectorySeparatorChar);
+			int index2 = path.LastIndexOf(AltDirectorySeparatorChar);
+			int index = Math.Min(index1, index2);
+
+			if (index1 < 0 && index2 > -1)
+				index = index2;
+
+			if (index2 < 0 && index1 > -1)
+				index = index1;
+
+			if (index < 0) {
+				return path;
+			}
+
+			return path.Substring(index + 1, path.Length - index - 1);
+		}
+
+		/// <summary>
 		/// Gets the name of the directory (without cutting away extra slashes).
 		/// </summary>
 		/// <param name="path">The path.</param>

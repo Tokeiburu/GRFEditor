@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 using GRF.Graphics;
 using GRF.Image;
@@ -8,7 +9,7 @@ using Utilities.Services;
 
 namespace GRF.IO {
 	public class ByteReader : IBinaryReader {
-		private readonly byte[] _data;
+		public readonly byte[] _data;
 		private int _byteRead;
 		private int _offset;
 		private string _source;
@@ -34,6 +35,10 @@ namespace GRF.IO {
 
 		public int Length {
 			get { return _data.Length; }
+		}
+
+		public int CanReadLength {
+			get { return _data.Length - Position; }
 		}
 
 		public long LengthLong { get { return _data.Length; } }
@@ -142,9 +147,13 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public ushort UInt16() {
+		public unsafe ushort UInt16() {
 			_forward(2);
-			return BitConverter.ToUInt16(_data, _offset);
+			if (_offset + 2 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(ushort*)p;
+			}
 		}
 
 		public ushort[] ArrayUInt16(int count) {
@@ -157,9 +166,13 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public int Int32() {
+		public unsafe int Int32() {
 			_forward(4);
-			return BitConverter.ToInt32(_data, _offset);
+			if (_offset + 4 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(int*)p;
+			}
 		}
 
 		public int Int32BigEndian() {
@@ -222,14 +235,27 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public float Float() {
+		public unsafe float Float() {
 			_forward(4);
-			return BitConverter.ToSingle(_data, _offset);
+			if (_offset + 4 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(float*)p;
+			}
 		}
 
 		public float[] ArrayFloat(int count) {
 			float[] array = new float[count];
-
+			//_offset += _byteRead;
+			//if (_offset + sizeof(float) * count > _data.Length)
+			//	throw new IndexOutOfRangeException();
+			//fixed (byte* p = _data)
+			//fixed (float* pArray = array) {
+			//	Buffer.MemoryCopy(p, pArray, sizeof(float) * count, sizeof(float) * count);
+			//}
+			//
+			//_offset += sizeof(float) * count;
+			//_byteRead = 0;
 			for (int i = 0; i < count; i++) {
 				array[i] = Float();
 			}
@@ -254,6 +280,7 @@ namespace GRF.IO {
 
 		#endregion
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
 		private void _forward(int numOfBytes) {
 			_offset += _byteRead;
 			_byteRead = numOfBytes;

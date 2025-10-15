@@ -50,7 +50,7 @@ namespace Utilities.Commands {
 			get {
 				if (_commandIndexCurrent >= 0)
 					return _commands[_commandIndexCurrent];
-				return default(T);
+				return default;
 			}
 		}
 
@@ -82,49 +82,40 @@ namespace Utilities.Commands {
 			Dispose(false);
 		}
 
-		protected virtual void _onCommandIndexChanged(T command) {
-			AbstractCommandsEventHandler handler = CommandIndexChanged;
-			if (handler != null) handler(this, command);
+		protected virtual void OnCommandIndexChanged(T command) {
+			CommandIndexChanged?.Invoke(this, command);
 		}
 
-		protected virtual void _onPreviewCommandExecuted(T command) {
-			AbstractCommandsEventHandler handler = PreviewCommandExecuted;
-			if (handler != null) handler(this, command);
+		protected virtual void OnPreviewCommandExecuted(T command) {
+			PreviewCommandExecuted?.Invoke(this, command);
 		}
 
-		protected virtual void _onPreviewCommandUndo(T command) {
-			AbstractCommandsEventHandler handler = PreviewCommandUndo;
-			if (handler != null) handler(this, command);
+		protected virtual void OnPreviewCommandUndo(T command) {
+			PreviewCommandUndo?.Invoke(this, command);
 		}
 
-		protected virtual void _onPreviewCommandRedo(T command) {
-			AbstractCommandsEventHandler handler = PreviewCommandRedo;
-			if (handler != null) handler(this, command);
+		protected virtual void OnPreviewCommandRedo(T command) {
+			PreviewCommandRedo?.Invoke(this, command);
 		}
 
-		protected virtual void _onCommandUndo(T command) {
-			AbstractCommandsEventHandler handler = CommandUndo;
-			if (handler != null) handler(this, command);
+		protected virtual void OnCommandUndo(T command) {
+			CommandUndo?.Invoke(this, command);
 		}
 
-		protected virtual void _onCommandRedo(T command) {
-			AbstractCommandsEventHandler handler = CommandRedo;
-			if (handler != null) handler(this, command);
+		protected virtual void OnCommandRedo(T command) {
+			CommandRedo?.Invoke(this, command);
 		}
 
-		protected virtual void _onCommandExecuted(T command) {
-			AbstractCommandsEventHandler handler = CommandExecuted;
-			if (handler != null) handler(this, command);
+		protected virtual void OnCommandExecuted(T command) {
+			CommandExecuted?.Invoke(this, command);
 		}
 
-		protected virtual void _onModifiedStateChanged(T command) {
-			AbstractCommandsEventHandler handler = ModifiedStateChanged;
-			if (handler != null) handler(this, command);
+		protected virtual void OnModifiedStateChanged(T command) {
+			ModifiedStateChanged?.Invoke(this, command);
 		}
 
-		protected virtual void _onSaveCommandChanged(T command) {
-			AbstractCommandsEventHandler handler = SaveCommandChanged;
-			if (handler != null) handler(this, command);
+		protected virtual void OnSaveCommandChanged(T command) {
+			SaveCommandChanged?.Invoke(this, command);
 		}
 
 		public delegate void AbstractCommandsEventHandler(object sender, T command);
@@ -160,9 +151,9 @@ namespace Utilities.Commands {
 		public void SaveCommandIndex() {
 			_commandIndexNonModified = _commandIndexCurrent;
 			_commandIndexModified = _commandIndexCurrent;
-			_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
-			_onModifiedStateChanged(default(T));
-			_onSaveCommandChanged(default(T));
+			OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+			OnModifiedStateChanged(default);
+			OnSaveCommandChanged(default);
 		}
 
 		/// <summary>
@@ -182,7 +173,7 @@ namespace Utilities.Commands {
 						}
 
 						_commandIndexModified = _commandIndexCurrent;
-						_onModifiedStateChanged(default(T));
+						OnModifiedStateChanged(default);
 						return;
 					}
 
@@ -206,8 +197,8 @@ namespace Utilities.Commands {
 					_commands.Add(command);
 					_commandIndexCurrent = _commands.Count - 1;
 					_commandIndexModified = _commandIndexCurrent;
-					_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
-					_onModifiedStateChanged(default(T));
+					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+					OnModifiedStateChanged(default);
 				}
 				finally {
 					IsLocked = false;
@@ -234,7 +225,7 @@ namespace Utilities.Commands {
 						}
 
 						_commandIndexModified = _commandIndexCurrent;
-						_onModifiedStateChanged(default(T));
+						OnModifiedStateChanged(default);
 						return;
 					}
 
@@ -254,18 +245,18 @@ namespace Utilities.Commands {
 						}
 					}
 
-					_onPreviewCommandExecuted(command);
+					OnPreviewCommandExecuted(command);
 					_execute(command);
 					_commands.Add(command);
 					_commandIndexCurrent = _commands.Count - 1;
 					_commandIndexModified = _commandIndexCurrent;
-					_onCommandExecuted(command);
-					_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
-					_onModifiedStateChanged(default(T));
+					OnCommandExecuted(command);
+					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+					OnModifiedStateChanged(default);
 				}
 				catch (CancelAbstractCommand) {
 					stack.Restore(this);
-					_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
+					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
 				finally {
 					IsLocked = false;
@@ -274,23 +265,16 @@ namespace Utilities.Commands {
 		}
 
 		private bool _mergeDown(T command) {
-			var commandAdded = command as ICombinableCommand;
-
-			if (commandAdded != null) {
+			if (command is ICombinableCommand commandAdded) {
 				if (IsDelayed && _delayedCommands.Count > 0 ||
 					!IsDelayed && _commands.Count > 0 && _commandIndexCurrent > -1) {
 					T lastCommand = IsDelayed ? _delayedCommands.Last() : Current;
 
-					var combinableCommand = lastCommand as ICombinableCommand;
-
-					if (combinableCommand != null && _commandIndexNonModified != _commandIndexModified) {
-						var deleteCommandFrom = lastCommand as IAutoReverse;
-						var deleteCommandTo = command as IAutoReverse;
-
+					if (lastCommand is ICombinableCommand combinableCommand && _commandIndexNonModified != _commandIndexModified) {
 						if (combinableCommand.CanCombine(commandAdded)) {
 							combinableCommand.Combine(commandAdded, this);
 
-							if (deleteCommandFrom != null && deleteCommandTo != null) {
+							if (lastCommand is IAutoReverse deleteCommandFrom && command is IAutoReverse deleteCommandTo) {
 								if (deleteCommandFrom.CanDelete(deleteCommandTo)) {
 									Undo();
 									RemoveLastCommand();
@@ -356,7 +340,7 @@ namespace Utilities.Commands {
 							}
 						}
 
-						_onPreviewCommandExecuted(command);
+						OnPreviewCommandExecuted(command);
 						_execute(command);
 
 						if (commandGroup.Commands.Count > 0) {
@@ -368,14 +352,14 @@ namespace Utilities.Commands {
 
 						_commandIndexCurrent = _commands.Count - 1;
 						_commandIndexModified = _commandIndexCurrent;
-						_onCommandExecuted(command);
-						_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
-						_onModifiedStateChanged(default(T));
+						OnCommandExecuted(command);
+						OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+						OnModifiedStateChanged(default);
 					}
 				}
 				catch (CancelAbstractCommand) {
 					stack.Restore(this);
-					_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
+					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
 				finally {
 					IsLocked = false;
@@ -399,12 +383,12 @@ namespace Utilities.Commands {
 					if (_commandIndexCurrent <= -1) return false;
 
 					_commandIndexModified = _commandIndexCurrent;
-					_onPreviewCommandUndo(_commands[_commandIndexCurrent]);
+					OnPreviewCommandUndo(_commands[_commandIndexCurrent]);
 					_undo(_commands[_commandIndexCurrent]);
-					_onCommandUndo(_commands[_commandIndexCurrent]);
+					OnCommandUndo(_commands[_commandIndexCurrent]);
 					_commandIndexCurrent = _commandIndexCurrent <= -1 ? -1 : _commandIndexCurrent - 1;
-					_onCommandIndexChanged(_commands[_commandIndexCurrent + 1]);
-					_onModifiedStateChanged(default(T));
+					OnCommandIndexChanged(_commands[_commandIndexCurrent + 1]);
+					OnModifiedStateChanged(default);
 					return true;
 				}
 				finally {
@@ -426,11 +410,11 @@ namespace Utilities.Commands {
 
 					_commandIndexCurrent++;
 					_commandIndexModified = _commandIndexCurrent;
-					_onPreviewCommandRedo(_commands[_commandIndexCurrent]);
+					OnPreviewCommandRedo(_commands[_commandIndexCurrent]);
 					_redo(_commands[_commandIndexCurrent]);
-					_onCommandRedo(_commands[_commandIndexCurrent]);
-					_onCommandIndexChanged(_commands[_commandIndexCurrent]);
-					_onModifiedStateChanged(default(T));
+					OnCommandRedo(_commands[_commandIndexCurrent]);
+					OnCommandIndexChanged(_commands[_commandIndexCurrent]);
+					OnModifiedStateChanged(default);
 					return true;
 				}
 				finally {
@@ -444,11 +428,10 @@ namespace Utilities.Commands {
 		/// </summary>
 		public virtual void ClearCommands() {
 			int oldIndex = _commandIndexCurrent;
-			var count = _commands.Count;
+			int count = _commands.Count;
 
-			foreach (var command in _commands) {
-				if (command is IGroupCommand<T>) {
-					var groupCommand = (IGroupCommand<T>)command;
+			foreach (T command in _commands) {
+				if (command is IGroupCommand<T> groupCommand) {
 					groupCommand.Commands.Clear();
 				}
 			}
@@ -458,7 +441,7 @@ namespace Utilities.Commands {
 			_commands.Clear();
 
 			if (oldIndex != _commandIndexCurrent || count > 0)
-				_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
+				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 		}
 
 		/// <summary>
@@ -480,18 +463,18 @@ namespace Utilities.Commands {
 			}
 
 			if (oldIndex != _commandIndexCurrent || numberRemoved > 0) {
-				_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
+				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
-				_onModifiedStateChanged(default(T));
+				OnModifiedStateChanged(default);
 			}
 		}
 
 		internal void RemoveLastCommand() {
 			if (_commands.Count > 0) {
 				_commands.RemoveAt(_commands.Count - 1);
-				_onCommandIndexChanged(_commandIndexCurrent <= -1 ? default(T) : _commands[_commandIndexCurrent]);
+				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
-				_onModifiedStateChanged(default(T));
+				OnModifiedStateChanged(default);
 			}
 		}
 
@@ -517,14 +500,12 @@ namespace Utilities.Commands {
 		///   <c>true</c> if this instance has the command specified; otherwise, <c>false</c>.
 		/// </returns>
 		public bool HasCommand<TFind>() {
-			var list = GetUndoCommands();
+			List<T> list = GetUndoCommands();
 
 			if (list == null) return false;
 
 			foreach (T command in list) {
-				var group = command as IGroupCommand<T>;
-
-				if (group != null) {
+				if (command is IGroupCommand<T> group) {
 					if (@group.Commands.OfType<TFind>().Any()) {
 						return true;
 					}
@@ -541,14 +522,14 @@ namespace Utilities.Commands {
 			_commands.Clear();
 			_commands.AddRange(commands);
 			_commandIndexModified = _commandIndexCurrent;
-			_onModifiedStateChanged(default(T));
+			OnModifiedStateChanged(default);
 		}
 
 		public virtual void SetCommandIndex(int commandIndex) {
 			_commandIndexCurrent = commandIndex;
 			_commandIndexModified = _commandIndexCurrent;
-			_onCommandIndexChanged(_commandIndexCurrent <= -1 || _commandIndexCurrent < _commands.Count ? default(T) : _commands[_commandIndexCurrent]);
-			_onModifiedStateChanged(default(T));
+			OnCommandIndexChanged(_commandIndexCurrent <= -1 || _commandIndexCurrent < _commands.Count ? default : _commands[_commandIndexCurrent]);
+			OnModifiedStateChanged(default);
 		}
 
 		public virtual void BeginEdit(IGroupCommand<T> command) {
@@ -629,7 +610,7 @@ namespace Utilities.Commands {
 			bool isModified = IsModified;
 			_commandIndexNonModified = index;
 			if (isModified != IsModified)
-				_onModifiedStateChanged(default(T));
+				OnModifiedStateChanged(default);
 		}
 	}
 }

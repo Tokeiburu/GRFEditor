@@ -16,8 +16,31 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Gat Gat { get; set; }
 		public GndRenderer GndRenderer { get; set; }
 		public MapRenderer MapRenderer { get; set; }
+		public SkyMapRenderer SkyMapRenderer { get; set; }
 		public object Context { get; set; }
 		public bool ClearOnly { get; set; }
+		public bool AlwaysReload { get; set; }
+
+		public RendererLoadRequest() {
+			AlwaysReload = true;
+		}
+
+		public RendererLoadRequest Copy() {
+			RendererLoadRequest copy = new RendererLoadRequest();
+			copy.IsMap = IsMap;
+			copy.Preloaded = Preloaded;
+			copy.Resource = Resource;
+			copy.Rsm = Rsm;
+			copy.CancelRequired = CancelRequired;
+			copy.Rsw = Rsw;
+			copy.Gnd = Gnd;
+			copy.Gat = Gat;
+			// Don't copy the renderers
+			copy.Context = Context;
+			copy.ClearOnly = ClearOnly;
+			copy.AlwaysReload = AlwaysReload;
+			return copy;
+		}
 	}
 
 	public class RendererLoader {

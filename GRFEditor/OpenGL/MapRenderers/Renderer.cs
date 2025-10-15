@@ -10,6 +10,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		public bool Permanent { get; set; }
 		public bool IsLoaded { get; set; }
 		public bool IsUnloaded { get; set; }
+		protected int _subPass = 0;
 
 		public abstract void Load(OpenGLViewport viewport);
 		public abstract void Render(OpenGLViewport viewport);

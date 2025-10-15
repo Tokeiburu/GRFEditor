@@ -11,8 +11,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+			<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+			<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <Label Content="Directory information" FontWeight="Bold" FontSize="14" Margin="3 10 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <Grid Margin="6 0 0 0">

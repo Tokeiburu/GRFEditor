@@ -7,7 +7,7 @@
         xmlns:wpf="clr-namespace:GRFEditor.OpenGL.WPF"
         xmlns:map="clr-namespace:GRFEditor.Tools.Map"
         xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
-        Width="1160" Height="572">
+        Width="1160" Height="610">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -169,13 +169,30 @@
                                                 </TextBlock>
                                             </CheckBox.ToolTip>
                                         </CheckBox>
-                                        <CheckBox Name="_cbQuadmaps" Content="Use shadows for quadmaps." HorizontalAlignment="Left" Margin="3">
-                                            <CheckBox.ToolTip>
-                                                <TextBlock>
-                                                    This option will add shadows in 8x8 patterns on the ground.
-                                                </TextBlock>
-                                            </CheckBox.ToolTip>
-                                        </CheckBox>
+										<DockPanel>
+											<CheckBox Name="_cbQuadmapsShadow" Content="Use shadows for quadmaps." HorizontalAlignment="Left" Margin="3">
+												<CheckBox.ToolTip>
+													<TextBlock>
+                                                        This option will add shadows in 8x8 patterns on the ground, using lightmap. The strength is the darkness value (from -255 to 255).
+													</TextBlock>
+												</CheckBox.ToolTip>
+											</CheckBox>
+											<TextBlock Text="(Strength: " HorizontalAlignment="Left" VerticalAlignment="Center" />
+											<TextBox x:Name="_tbShadowQuadrantsValue" Width="30" TextAlignment="Right" HorizontalAlignment="Left" Padding="0" Text="255" VerticalContentAlignment="Center" Margin="0 0 4 0" />
+											<TextBlock Text="/ 255)" HorizontalAlignment="Left" VerticalAlignment="Center" />
+										</DockPanel>
+										<DockPanel>
+											<CheckBox Name="_cbQuadmapsBitmap" Content="Use bitmaps for quadmaps." HorizontalAlignment="Left" Margin="3">
+												<CheckBox.ToolTip>
+													<TextBlock>
+                                                        This option will add shadows in 8x8 patterns on the ground, using auto-generated bitmaps. The strength is the darkness value (from -255 to 255).
+													</TextBlock>
+												</CheckBox.ToolTip>
+											</CheckBox>
+											<TextBlock Text="(Strength: " HorizontalAlignment="Left" VerticalAlignment="Center" />
+											<TextBox x:Name="_tbBitmapQuadrantsValue" Width="30" TextAlignment="Right" HorizontalAlignment="Left" Padding="0" Text="255" VerticalContentAlignment="Center" Margin="0 0 4 0" />
+											<TextBlock Text="/ 255)" HorizontalAlignment="Left" VerticalAlignment="Center" />
+										</DockPanel>
                                         <CheckBox Name="_cbUseCustomTextures" Content="Change the textures for custom ones." HorizontalAlignment="Left" Margin="3">
                                             <CheckBox.ToolTip>
                                                 <TextBlock>

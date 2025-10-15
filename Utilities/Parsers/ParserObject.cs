@@ -23,14 +23,10 @@ namespace Utilities.Parsers {
 
 		public string ObjectValue {
 			get {
-				var confString = this as ParserString;
-
-				if (confString != null)
+				if (this is ParserString confString)
 					return confString.Value;
 
-				var confAggregate = this as ParserAggregate;
-
-				if (confAggregate != null) {
+				if (this is ParserAggregate confAggregate) {
 					StringBuilder builder = new StringBuilder();
 					builder.Append("[");
 
@@ -45,9 +41,7 @@ namespace Utilities.Parsers {
 					return builder.ToString();
 				}
 
-				var confKeyValue = this as ParserKeyValue;
-
-				if (confKeyValue != null)
+				if (this is ParserKeyValue confKeyValue)
 					return confKeyValue.Value;
 
 				return null;
@@ -73,27 +67,20 @@ namespace Utilities.Parsers {
 					return obj[keys[1]];
 				}
 
-				var keyValue = this as ParserKeyValue;
-
-				if (keyValue != null && keyValue.Key == key)
+				if (this is ParserKeyValue keyValue && keyValue.Key == key)
 					return keyValue.Value;
 
-				var arrayBase = this as ParserArrayBase;
-
-				if (arrayBase != null && (keyValue = arrayBase.Objects.OfType<ParserKeyValue>().FirstOrDefault(p => p.Key == key)) != null) {
+				if (this is ParserArrayBase arrayBase && (keyValue = arrayBase.Objects.OfType<ParserKeyValue>().FirstOrDefault(p => p.Key == key)) != null) {
 					return keyValue.Value;
 				}
 
 				return null;
 			}
 			set {
-				var keyValue = this as ParserKeyValue;
-				var arrayBase = this as ParserArrayBase;
-
-				if (keyValue != null && keyValue.Key == key) {
+				if (this is ParserKeyValue keyValue && keyValue.Key == key) {
 					keyValue.Value = value;
 				}
-				else if (arrayBase != null && (keyValue = arrayBase.Objects.OfType<ParserKeyValue>().FirstOrDefault(p => p.Key == key)) != null) {
+				else if (this is ParserArrayBase arrayBase && (keyValue = arrayBase.Objects.OfType<ParserKeyValue>().FirstOrDefault(p => p.Key == key)) != null) {
 					keyValue.Value = value;
 				}
 				else {
@@ -109,9 +96,7 @@ namespace Utilities.Parsers {
 		}
 
 		public IEnumerator<ParserObject> GetEnumerator() {
-			var arrayBase = this as ParserArrayBase;
-
-			if (arrayBase != null)
+			if (this is ParserArrayBase arrayBase)
 				return arrayBase.Objects.GetEnumerator();
 
 			return new List<ParserObject>().GetEnumerator();
@@ -129,7 +114,7 @@ namespace Utilities.Parsers {
 			if (Modified)
 				return true;
 
-			foreach (var child in this) {
+			foreach (ParserObject child in this) {
 				if (child.Modified)
 					return true;
 			}

@@ -88,6 +88,7 @@
     <Compile Include="OpenGL\ClipboardBrowEdit.cs" />
     <Compile Include="OpenGL\GLHelper.cs" />
     <Compile Include="OpenGL\MapComponents\Camera.cs" />
+    <Compile Include="OpenGL\MapComponents\Ebo.cs" />
     <Compile Include="OpenGL\MapComponents\GndFormat.cs" />
     <Compile Include="OpenGL\MapComponents\Ray.cs" />
     <Compile Include="OpenGL\MapComponents\RendererOptions.cs" />
@@ -97,12 +98,16 @@
     <Compile Include="OpenGL\MapRenderers\GatRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\GatMinimapRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\LubRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\RenderMode.cs" />
     <Compile Include="OpenGL\MapRenderers\RsmRenderer.cs" />
     <Compile Include="OpenGL\MapComponents\Texture.cs" />
     <Compile Include="OpenGL\MapComponents\Vbo.cs" />
     <Compile Include="OpenGL\MapComponents\RendererLoader.cs" />
     <Compile Include="OpenGL\MapRenderers\BackgroundRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\GndRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\SkyMapEffect.cs" />
+    <Compile Include="OpenGL\MapRenderers\SkyMapRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\ViewportStatistics.cs" />
     <Compile Include="OpenGL\WPF\AdvancedTextBox.xaml.cs">
       <DependentUpon>AdvancedTextBox.xaml</DependentUpon>
     </Compile>
@@ -113,6 +118,7 @@
       <DependentUpon>GatOptions.xaml</DependentUpon>
     </Compile>
     <Compile Include="OpenGL\WPF\FloatTextBoxEdit.cs" />
+    <Compile Include="OpenGL\WPF\IntTextBoxEdit.cs" />
     <Compile Include="OpenGL\WPF\RotateOptions.xaml.cs">
       <DependentUpon>RotateOptions.xaml</DependentUpon>
     </Compile>
@@ -125,7 +131,6 @@
     <Compile Include="OpenGL\WPF\LightingOptions.xaml.cs">
       <DependentUpon>LightingOptions.xaml</DependentUpon>
     </Compile>
-    <Compile Include="OpenGL\MapRenderers\LineRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\Renderer.cs" />
     <Compile Include="OpenGL\MapRenderers\MapRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\ModelRenderer.cs" />
@@ -639,6 +644,11 @@
     <EmbeddedResource Include="Resources\Shaders\map\gat.vert" />
     <EmbeddedResource Include="Resources\Shaders\str\str.frag" />
     <EmbeddedResource Include="Resources\Shaders\str\str.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\skymap.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\skymap.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\rsm_load.comp" />
+    <EmbeddedResource Include="Resources\Shaders\str\background.frag" />
+    <EmbeddedResource Include="Resources\Shaders\str\background.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />

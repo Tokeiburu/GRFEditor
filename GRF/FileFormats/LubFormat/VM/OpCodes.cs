@@ -111,6 +111,13 @@ namespace GRF.FileFormats.LubFormat.VM {
 								builder.Append(" = ");
 								builder.AppendLine(analyser.Statement.ToString());
 							}
+							else if (ins_setter is Return) {
+								function.PC++;
+								function.Stack.Pop();
+								popStack = false;
+								function.Stack[ins_setter.Registers[0]] = new LubOutput(analyser.Statement.ToString());
+								function.PC -= 2;
+							}
 							else {
 								// Local variable assignment, this must be executed after the stack pop too
 								function.PC++;

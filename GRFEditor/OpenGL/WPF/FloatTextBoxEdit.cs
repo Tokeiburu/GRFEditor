@@ -11,6 +11,9 @@ namespace GRFEditor.OpenGL.WPF {
 
 			Init(p => {
 				float value;
+				if (p == "")
+					p = "0";
+
 				if (float.TryParse(p, out value)) {
 					_previewMid.Text = String.Format(DisplayFormat, value);
 				}
@@ -26,6 +29,7 @@ namespace GRFEditor.OpenGL.WPF {
 			try {
 				AddCommand = addCommand;
 				this.Text = (GetFloat() + deltax * Multiplier) + "";
+				OnTextChanged(null, addCommand);
 				base.OnMouseValueChanged(deltax, deltay, addCommand);
 			}
 			finally {

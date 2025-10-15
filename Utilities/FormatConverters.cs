@@ -74,7 +74,7 @@ namespace Utilities {
 				return specConverter(arg);
 			}
 			catch {
-				return default(T);
+				return default;
 			}
 		}
 

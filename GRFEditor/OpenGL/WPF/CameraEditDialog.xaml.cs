@@ -117,7 +117,7 @@ namespace GRFEditor.OpenGL.WPF {
 		}
 
 		private void _update(FloatTextBoxEdit tb, Action<double> setValueFunc, Action<FloatTextBoxEdit> loadValueFunc) {
-			_setupTb(tb);
+			//_setupTb(tb);
 
 			tb.TextChanged += delegate {
 				if (_fieldEditing)
@@ -139,23 +139,6 @@ namespace GRFEditor.OpenGL.WPF {
 
 		private List<Action> _updateFunctions = new List<Action>();
 		private bool _fieldEditing;
-
-		private void _setupTb(FloatTextBoxEdit tb) {
-			tb._outerBorder.BorderThickness = new Thickness(1, 1, 1, 1);
-			tb._outerBorder.CornerRadius = new CornerRadius(4, 4, 4, 4);
-
-			tb._previewLeft.Visibility = Visibility.Collapsed;
-			tb._previewRight.Visibility = Visibility.Collapsed;
-		}
-
-		private void _bind(TextBox tb, Func<string> get, Func<string, float> set) {
-			tb.Text = get();
-
-			tb.TextChanged += delegate {
-				set(tb.Text);
-				MapRenderer.SkyMap.IsChanged = true;
-			};
-		}
 
 		private void _buttonCopy_Click(object sender, RoutedEventArgs e) {
 			_camera.Copy();

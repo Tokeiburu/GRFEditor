@@ -1,0 +1,13 @@
+﻿[*.cs]
+
+# IDE1006: Naming Styles
+dotnet_diagnostic.IDE1006.severity = none
+
+# Use 'var' when the type is obvious from the right-hand side
+csharp_style_var_when_type_is_apparent = true:suggestion
+
+# Use explicit type when the type is not obvious
+csharp_style_var_when_type_is_not_apparent = false:warning
+
+# Use explicit type for built-in primitive types (int, string, etc.)
+csharp_style_var_for_built_in_types = false:suggestion

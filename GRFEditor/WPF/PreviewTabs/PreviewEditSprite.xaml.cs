@@ -34,7 +34,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 						}
 					}
 
-					_labelHeader.Content = "Edit sprite : " + Path.GetFileName(entry.RelativePath);
+					_labelHeader.Text = "Edit sprite : " + Path.GetFileName(entry.RelativePath);
 
 					if (_spriteEditorTab != null && _primary.Items.Contains(_spriteEditorTab))
 						_primary.Items.Remove(_spriteEditorTab);

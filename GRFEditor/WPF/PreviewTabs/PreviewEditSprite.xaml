@@ -13,8 +13,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-            <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+			<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+			<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <Styles:TkProgressBar x:Name="_progress" Margin="1" Width="250" Visibility="Collapsed" />
             <DockPanel>
                 <Styles:FancyButton x:Name="_buttonSave" Click="_buttonSave_Click" Grid.Row="0" Grid.Column="0" Height="43" TextHeader="Save" TextDescription="Save in the GRF" Margin="2" />

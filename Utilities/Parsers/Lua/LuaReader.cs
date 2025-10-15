@@ -70,9 +70,8 @@ namespace Utilities.Parsers.Lua {
 					if (variable == null)
 						break;
 
-					LuaKeyValue keyValue = variable as LuaKeyValue;
 
-					if (keyValue != null) {
+					if (variable is LuaKeyValue keyValue) {
 						mainList._keyValues[keyValue.Key] = keyValue.Value;
 					}
 
@@ -97,9 +96,8 @@ namespace Utilities.Parsers.Lua {
 				ILuaVariable variable = _getVariable();
 				variables.Add(variable);
 
-				LuaKeyValue keyValue = variable as LuaKeyValue;
 
-				if (keyValue != null) {
+				if (variable is LuaKeyValue keyValue) {
 					list._keyValues[keyValue.Key] = keyValue.Value;
 				}
 			} while ((_peekChar() == ',' || _peekChar() == ';') && (_nextChar() == ',' || true));

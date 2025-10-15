@@ -94,7 +94,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 							resources.AddRange(str.Textures.Select(p => @"data\texture\effect\" + p));
 							break;
 						case ".gnd":
-							var dataEntry = ((MultiType)metaGrf.GetData(file)).GetBinaryReader();
+							var dataEntry = ((MultiType)metaGrf.GetData(file)).GetByteReader();
 							GndHeader gndHeader = new GndHeader(dataEntry);
 
 							for (int i = 0; i < gndHeader.TextureCount; i++) {

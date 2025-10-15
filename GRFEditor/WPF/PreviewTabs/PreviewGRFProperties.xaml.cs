@@ -47,7 +47,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_changeRawViewButton();
 
 			FileEntry entryClosure = entry;
-			_labelHeader.Dispatch(p => p.Content = "GRF entry : " + Path.GetFileName(entryClosure.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "GRF entry : " + Path.GetFileName(entryClosure.RelativePath));
 			_buttonRawView.Dispatch(p => p.Visibility = System.Windows.Visibility.Collapsed);
 
 			//if (GrfEditorConfiguration.PreviewRawGrfProperties) {

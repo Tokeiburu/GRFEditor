@@ -42,6 +42,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			int perWidth = _gnd.Width / _water.WaterSplitWidth;
 			int perHeight = _gnd.Height / _water.WaterSplitHeight;
 			_ri.Vertices = new List<Vertex>();
+			var cubes = _gnd.Cubes;
+			int width = _gnd.Width;
+			int height = _gnd.Height;
 
 			for (int yy = _water.WaterSplitHeight - 1; yy >= 0; yy--) {
 				for (int xx = 0; xx < _water.WaterSplitWidth; xx++) {
@@ -57,17 +60,17 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					int xmax = perWidth * (xx + 1);
 
 					if (xx == _water.WaterSplitWidth - 1)
-						xmax = _gnd.Width;
+						xmax = width;
 
 					int ymax = perHeight * (yy + 1);
 
 					if (ymax == _water.WaterSplitHeight - 1)
-						ymax = _gnd.Height;
+						ymax = height;
 
 					List<Vertex> verts = new List<Vertex>();
 					for (int x = perWidth * xx; x < xmax; x++) {
 						for (int y = perHeight * yy; y < ymax; y++) {
-							Cube cube = _gnd[x, (_gnd.Height - y - 1)];
+							Cube cube = cubes[x + (height - y - 1) * width];
 
 							if (cube.TileUp == -1)
 								continue;
@@ -98,7 +101,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || _water == null || !viewport.RenderOptions.Water)
 				return;
 
-			if (viewport.RenderPass != 1)
+			if (viewport.RenderPass != RenderMode.TransparentTextures)
 				return;
 
 			if (!_verticesLoaded) {
@@ -128,15 +131,13 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					Shader.SetFloat("wavePitch", _water.Zones[0].WavePitch);
 				}
 
-				Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
 				_watch.Start();
 			}
 
 			float time = _watch.ElapsedMilliseconds / 1000f;
 
 			Shader.Use();
-			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
-			Shader.SetMatrix4("viewMatrix", ref viewport.View);
+			Shader.SetMatrix4("mvp", ref viewport.ViewProjection);
 			Shader.SetFloat("time", time);
 
 			// The depth mask is set to false from the main render loop, while rendering transparent textures
@@ -163,7 +164,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 
 			if (_isMinimap) {
-				Shader.SetVector4("colorWater", viewport.RenderOptions.MinimapWaterColor);
+				Shader.SetVector4("colorWater", ref viewport.RenderOptions.MinimapWaterColor);
 				Shader.SetInt("colorMode", 1);
 				Shader.SetFloat("amplitude", 0);
 				Shader.SetFloat("waveSpeed", 0);
@@ -178,6 +179,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					}
 
 					GL.DrawArrays(PrimitiveType.Quads, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+#if DEBUG
+					viewport.Stats.DrawArrays_Calls++;
+					viewport.Stats.DrawArrays_Calls_VertexLength += _ri.Indices[i].Count;
+#endif
 				}
 			}
 			else {
@@ -198,6 +203,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					Textures[offset + index].Bind();
 
 					GL.DrawArrays(PrimitiveType.Quads, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+#if DEBUG
+					viewport.Stats.DrawArrays_Calls++;
+					viewport.Stats.DrawArrays_Calls_VertexLength += _ri.Indices[i].Count;
+#endif
 				}
 			}
 

@@ -1,0 +1,38 @@
+#version 430
+
+layout(local_size_x = 256) in;
+
+layout(std430, binding = 0) buffer Vertices {
+    float verts[];
+};
+
+uniform mat4 model;
+uniform int baseVertex;
+uniform int vertexCount;
+uniform float scale;
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+	
+	if (id >= uint(vertexCount))
+        return;
+	
+	uint baseIndex = (baseVertex + id) * 9;
+    vec3 pos = vec3(verts[baseIndex + 0], verts[baseIndex + 1], verts[baseIndex + 2]);
+    vec3 normal = vec3(verts[baseIndex + 5], verts[baseIndex + 6], verts[baseIndex + 7]);
+	
+    vec3 worldPos = pos * mat3(model) + vec3(model[0][3], model[1][3], model[2][3]);
+    mat3 normalMatrix = mat3(model);
+
+    pos = worldPos.xyz;
+    normal = normalize(normal * normalMatrix);
+	
+	// Write back
+    verts[baseIndex + 0] = pos.x;
+    verts[baseIndex + 1] = pos.y;
+    verts[baseIndex + 2] = pos.z;
+    verts[baseIndex + 5] = normal.x;
+    verts[baseIndex + 6] = normal.y;
+    verts[baseIndex + 7] = normal.z;
+    verts[baseIndex + 8] = verts[baseIndex + 8] < 1 ? scale : verts[baseIndex + 8];
+}

@@ -79,6 +79,12 @@ namespace GRFEditor.Tools.SpriteEditor {
 					border.PreviewMouseLeftButtonUp += (e, a) => { if (Closing()) OnClose(OpenedSprite); };
 				}
 
+				var presenter = WpfUtilities.FindChild<ContentPresenter>(this, "ContentSite");
+
+				if (presenter != null) {
+					presenter.Margin = new Thickness(3, 2, 3, 2);
+				}
+
 				var border2 = WpfUtilities.FindChild<Border>(this, "Border");
 
 				if (border2 != null) {

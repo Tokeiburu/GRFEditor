@@ -44,13 +44,13 @@ namespace GRF.Image {
 		/// <param name="height">The height.</param>
 		/// <param name="type">The type.</param>
 		/// <param name="palette">The palette.</param>
-		public GrfImage(ref byte[] pixels, int width, int height, GrfImageType type, ref byte[] palette) {
+		public GrfImage(ref byte[] pixels, int width, int height, GrfImageType type, ref byte[] paletteRgba) {
 			Width = width;
 			Height = height;
 			GrfImageType = type;
 
 			Pixels = pixels;
-			Palette = palette;
+			Palette = paletteRgba;
 
 			if (type >= GrfImageType.NotEvaluated) {
 				SelfAny();
@@ -103,13 +103,13 @@ namespace GRF.Image {
 		/// <param name="height">The height.</param>
 		/// <param name="type">The type.</param>
 		/// <param name="palette">The palette.</param>
-		public GrfImage(byte[] pixels, int width, int height, GrfImageType type, byte[] palette) {
+		public GrfImage(byte[] pixels, int width, int height, GrfImageType type, byte[] paletteRgba) {
 			Width = width;
 			Height = height;
 			GrfImageType = type;
 
 			Pixels = Methods.Copy(pixels);
-			Palette = Methods.Copy(palette);
+			Palette = Methods.Copy(paletteRgba);
 
 			if (type >= GrfImageType.NotEvaluated) {
 				SelfAny();
@@ -318,8 +318,14 @@ namespace GRF.Image {
 
 			int stride = width * bpp;
 
-			for (int y = 0; y < height; y++) {
-				Buffer.BlockCopy(pixels, y * width * bpp, Pixels, (left + (y + top) * Width) * bpp, stride);
+			unsafe {
+				fixed (byte* bImagePixels = Pixels)
+				fixed (byte* bCopyPixels = pixels) {
+					for (int y = 0; y < height; y++) {
+						Buffer.MemoryCopy(bCopyPixels + y * width * bpp, bImagePixels + (left + (y + top) * Width) * bpp, stride, stride);
+						//Buffer.BlockCopy(pixels, y * width * bpp, Pixels, (left + (y + top) * Width) * bpp, stride);
+					}
+				}
 			}
 		}
 
@@ -1001,6 +1007,59 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
+		/// Applies the color factor for each color component.
+		/// </summary>
+		/// <param name="fact">The color factor to apply.</param>
+		public void ApplyColorChannel(float fact) {
+			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
+			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
+			int bpp = GetBpp();
+			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
+
+			if (fact > 1) {
+				if (fact > 2)
+					fact = 2;
+
+				byte add = (byte)(255 * (fact - 1));
+
+				if (GrfImageType == GrfImageType.Indexed8) {
+					if (Palette != null) {
+						for (int i = 0; i < Palette.Length; i += 4) {
+							Palette[i + 0] = (byte)Math.Min(255, Palette[i + 0] + add);
+							Palette[i + 1] = (byte)Math.Min(255, Palette[i + 1] + add);
+							Palette[i + 2] = (byte)Math.Min(255, Palette[i + 2] + add);
+						}
+					}
+				}
+				else {
+					for (int i = 0; i < Pixels.Length; i += bpp) {
+						Pixels[i + 0] = (byte)Math.Min(255, Pixels[i + 0] + add);
+						Pixels[i + 1] = (byte)Math.Min(255, Pixels[i + 1] + add);
+						Pixels[i + 2] = (byte)Math.Min(255, Pixels[i + 2] + add);
+					}
+				}
+			}
+			else {
+				if (GrfImageType == GrfImageType.Indexed8) {
+					if (Palette != null) {
+						for (int i = 0; i < Palette.Length; i += 4) {
+							Palette[i + 0] = (byte)(Palette[i + 0] * fact);
+							Palette[i + 1] = (byte)(Palette[i + 1] * fact);
+							Palette[i + 2] = (byte)(Palette[i + 2] * fact);
+						}
+					}
+				}
+				else {
+					for (int i = 0; i < Pixels.Length; i += bpp) {
+						Pixels[i + 0] = (byte)(Pixels[i + 0] * fact);
+						Pixels[i + 1] = (byte)(Pixels[i + 1] * fact);
+						Pixels[i + 2] = (byte)(Pixels[i + 2] * fact);
+					}
+				}
+			}
+		}
+
+		/// <summary>
 		/// Copy an image at the specified location and return the content.
 		/// </summary>
 		/// <param name="x">x.</param>
@@ -1436,6 +1495,30 @@ namespace GRF.Image {
 		}
 		#endregion
 
+		public static GrfImageType GetGrfImageType(byte[] data) {
+			if (data.Length > 3) {
+				if (Methods.ByteArrayCompare(data, 0, 4, PngHeader, 0)) return GrfImageType.NotEvaluatedPng;
+				if (Methods.ByteArrayCompare(data, 0, 2, BmpHeader, 0)) return GrfImageType.NotEvaluatedBmp;
+				if (Methods.ByteArrayCompare(data, 0, 2, JpgHeader, 0)) return GrfImageType.NotEvaluatedJpg;
+
+				// Might be a TGA, but... since TGAs don't have
+				// have a header (sigh, that, is a bad design) we have
+				// to try and partially read it.
+
+				if (data.Length > TgaHeader.StructSize) {
+					TgaHeader tgaHeader = new TgaHeader(data);
+
+					if (tgaHeader.ValidateHeader()) {
+						return GrfImageType.NotEvaluatedTga;
+					}
+				}
+
+				return GrfImageType.NotEvaluatedJpg;
+			}
+
+			return GrfImageType.NotEvaluated;
+		}
+
 		private byte _getDefaultByteColor() {
 			if (GrfImageType == GrfImageType.Indexed8) {
 				return 0;
@@ -1473,27 +1556,7 @@ namespace GRF.Image {
 			return -1;
 		}
 		private GrfImageType _getType() {
-			if (Pixels.Length > 3) {
-				if (Methods.ByteArrayCompare(Pixels, 0, 4, PngHeader, 0)) return GrfImageType.NotEvaluatedPng;
-				if (Methods.ByteArrayCompare(Pixels, 0, 2, BmpHeader, 0)) return GrfImageType.NotEvaluatedBmp;
-				if (Methods.ByteArrayCompare(Pixels, 0, 2, JpgHeader, 0)) return GrfImageType.NotEvaluatedJpg;
-
-				// Might be a TGA, but... since TGAs don't have
-				// have a header (sigh, that, is a bad design) we have
-				// to try and partially read it.
-
-				if (Pixels.Length > TgaHeader.StructSize) {
-					TgaHeader tgaHeader = new TgaHeader(Pixels);
-
-					if (tgaHeader.ValidateHeader()) {
-						return GrfImageType.NotEvaluatedTga;
-					}
-				}
-
-				return GrfImageType.NotEvaluatedJpg;
-			}
-
-			return GrfImageType.NotEvaluated;
+			return GetGrfImageType(Pixels);
 		}
 		private void _scaleLinear(float scaleX, float scaleY) {
 			int bpp = _getBpp();
@@ -2119,6 +2182,59 @@ namespace GRF.Image {
 			conv.ExistingPalette = newPalette;
 			im.Convert(conv, null);
 			return im;
+		}
+
+		public void ChangePinkToBlack(byte rT, byte gT, byte bT) {
+			int bpp = GetBpp();
+
+			if (bpp != 4)
+				return;
+
+			unsafe {
+				fixed (byte* ptr = Pixels) {
+					byte* pPixels = ptr;
+					byte* pPixelsEnd = ptr + Pixels.Length;
+
+					while (pPixels < pPixelsEnd) {
+						if (pPixels[0] > rT && pPixels[1] < gT && pPixels[2] > bT) {
+							pPixels[0] = 0;
+							pPixels[1] = 0;
+							pPixels[2] = 0;
+							pPixels[3] = 0;
+						}
+
+						pPixels += bpp;
+					}
+				}
+			}
+		}
+
+		public void DitherAndChangePinkToBlack(byte rT, byte gT, byte bT, int ditherDividerShift, float ditherMultiplier) {
+			int bpp = GetBpp();
+
+			if (bpp != 4)
+				return;
+
+			unsafe {
+				fixed (byte* ptr = Pixels) {
+					for (int i = 0; i < Pixels.Length; i += bpp) {
+						if (ptr[i + 0] > rT &&
+							ptr[i + 1] < gT &&
+							ptr[i + 2] > bT) {
+							ptr[i + 0] = 0;
+							ptr[i + 1] = 0;
+							ptr[i + 2] = 0;
+							ptr[i + 3] = 0;
+						}
+						else {
+							ptr[i + 0] = (byte)Math.Min(255, (ptr[i + 0] >> ditherDividerShift) * ditherMultiplier);
+							ptr[i + 1] = (byte)Math.Min(255, (ptr[i + 1] >> ditherDividerShift) * ditherMultiplier);
+							ptr[i + 2] = (byte)Math.Min(255, (ptr[i + 2] >> ditherDividerShift) * ditherMultiplier);
+							ptr[i + 3] = (byte)Math.Min(255, (ptr[i + 3] >> ditherDividerShift) * ditherMultiplier);
+						}
+					}
+				}
+			}
 		}
 	}
 }

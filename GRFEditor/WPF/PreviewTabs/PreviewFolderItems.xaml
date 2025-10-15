@@ -11,8 +11,8 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-            <Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+			<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+			<Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
         <ScrollViewer Grid.Row="1">
             <WrapPanel Name="_wrapPanel" VirtualizingStackPanel.IsVirtualizing="True">

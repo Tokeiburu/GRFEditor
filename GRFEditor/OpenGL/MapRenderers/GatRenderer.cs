@@ -34,7 +34,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				}
 
 				_ri.BindVao();
-				GL.DrawArrays(PrimitiveType.Triangles, _ri.Indices[0].Begin, _ri.Indices[0].Count);
+				GL.DrawArrays(PrimitiveType.Triangles, 0, _ri.Vbo.Length);
+#if DEBUG
+				viewport.Stats.DrawArrays_Calls++;
+				viewport.Stats.DrawArrays_Calls_VertexLength += _ri.Vbo.Length;
+#endif
 			}
 
 			public void Rebuild(GatRenderer renderer) {
@@ -64,9 +68,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						list.Add(v4); list.Add(v1); list.Add(v3);
 					}
 				}
-
-				_ri.Indices.Clear();
-				_ri.Indices.Add(new VboIndex { Begin = 0, Count = list.Count });
 
 				if (!_ri.VaoCreated()) {
 					_ri.CreateVao();
@@ -119,6 +120,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || !viewport.RenderOptions.Gat)
 				return;
 
+			if (viewport.RenderPass != RenderMode.TransparentTextures)
+				return;
+
 			if (!IsLoaded) {
 				Load(viewport);
 			}
@@ -132,9 +136,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 
 			Shader.Use();
-			Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
-			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
-			Shader.SetMatrix4("viewMatrix", ref viewport.View);
+			Shader.SetMatrix4("vp", ref viewport.ViewProjection);
 			Shader.SetFloat("alpha", viewport.RenderOptions.GatAlpha);
 			Shader.SetFloat("zbias", viewport.RenderOptions.GatZBias);
 			Textures[0].Bind();

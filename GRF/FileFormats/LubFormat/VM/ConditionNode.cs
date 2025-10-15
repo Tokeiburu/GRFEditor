@@ -42,8 +42,15 @@ namespace GRF.FileFormats.LubFormat.VM {
 							break;
 						}
 
+						// Check if it "assigns" to return)
+
 						var ins = function.Instructions[pc];
 						VarPosition pos;
+
+						if (ins is LoadBool && function.Instructions[pc + 1 + ins.Registers[2]] is Return && analyser.Assign) {
+							Result = new LubBoolean(ins.Registers[1] == 1);
+							break;
+						}
 
 						if (ins is SetTable || ins is SetGlobal) {
 							if (ins is SetGlobal) {
@@ -67,10 +74,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 							Result = GetKey(RegOutput(pos.StackIndex, function));
 							Statement = new RelationalStatement(Result.ToString());
 							break;
-						}
-
-						if (pc == analyser.PC_End) {
-							Z.F();
 						}
 
 						ins.Execute(function);

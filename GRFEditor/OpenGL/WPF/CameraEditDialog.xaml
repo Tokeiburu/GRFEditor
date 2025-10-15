@@ -62,7 +62,7 @@
         <wpf1:FloatTextBoxEdit Grid.Row="11" Grid.Column="1" Margin="3" x:Name="_tbZNear" />
         <wpf1:FloatTextBoxEdit Grid.Row="12" Grid.Column="1" Margin="3" x:Name="_tbZFar" />
         
-        <Button Grid.Row="13" Grid.Column="1" Margin="3" Content="Copy" Name="_buttonCopy" Click="_buttonCopy_Click" />
-        <Button Grid.Row="14" Grid.Column="1" Margin="3" Content="Patse" Name="_buttonPaste" Click="_buttonPaste_Click" />
+        <Button Grid.Row="13" Grid.Column="1" Margin="3" Content="Copy" Name="_buttonCopy" Click="_buttonCopy_Click" Height="24" />
+		<Button Grid.Row="14" Grid.Column="1" Margin="3" Content="Patse" Name="_buttonPaste" Click="_buttonPaste_Click" Height="24" />
     </Grid>
 </styles:TkWindow>

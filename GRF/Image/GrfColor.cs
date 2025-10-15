@@ -221,7 +221,7 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
-		/// Gets or sets the R component.
+		/// Red color channel.
 		/// </summary>
 		public byte R {
 			get { return _raw[1]; }
@@ -229,7 +229,7 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
-		/// Gets or sets the G component.
+		/// Green color channel.
 		/// </summary>
 		public byte G {
 			get { return _raw[2]; }
@@ -237,7 +237,7 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
-		/// Gets or sets the B component.
+		/// Blue color channel.
 		/// </summary>
 		public byte B {
 			get { return _raw[3]; }
@@ -245,7 +245,7 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
-		/// Gets or sets the A component.
+		/// Alpha color channel.
 		/// </summary>
 		public byte A {
 			get { return _raw[0]; }

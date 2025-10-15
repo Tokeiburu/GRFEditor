@@ -99,6 +99,7 @@ namespace GRFEditor.Tools.Map {
 
 			_buttonOpenIM.Content = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png"), Stretch = Stretch.None };
 
+			bool disableRefresh = false;
 			_mapId.Text = GrfEditorConfiguration.FlatMapsMakerId;
 			Binder.Bind(_cbRemoveLight, () => GrfEditorConfiguration.RemoveLight, _updatePreviewMap, false);
 			Binder.Bind(_cbRemoveShadow, () => GrfEditorConfiguration.RemoveShadow, _updatePreviewMap, false);
@@ -107,10 +108,45 @@ namespace GRFEditor.Tools.Map {
 			Binder.Bind(_cbGutterLines, () => GrfEditorConfiguration.ShowGutterLines, _updatePreviewMap, false);
 			Binder.Bind(_cbResetGlobalLighting, () => GrfEditorConfiguration.ResetGlobalLighting, _updatePreviewMap, false);
 			Binder.Bind(_cbMatchShadow, () => GrfEditorConfiguration.MatchShadowsWithGatCells, _updatePreviewMap, false);
-			Binder.Bind(_cbQuadmaps, () => GrfEditorConfiguration.UseShadowsForQuadrants, _updatePreviewMap, false);
+			Binder.Bind(_cbQuadmapsShadow, () => GrfEditorConfiguration.UseShadowsForQuadrants, delegate {
+				if (disableRefresh)
+					return;
+
+				try {
+					if (GrfEditorConfiguration.UseShadowsForQuadrants && GrfEditorConfiguration.UseBitmapsForQuadrants) {
+						disableRefresh = true;
+						GrfEditorConfiguration.UseBitmapsForQuadrants = false;
+						_cbQuadmapsBitmap.IsChecked = false;
+					}
+				}
+				finally {
+					disableRefresh = false;
+				}
+
+				_updatePreviewMap();
+			}, false);
+			Binder.Bind(_cbQuadmapsBitmap, () => GrfEditorConfiguration.UseBitmapsForQuadrants, delegate {
+				if (disableRefresh)
+					return;
+
+				try {
+					if (GrfEditorConfiguration.UseShadowsForQuadrants && GrfEditorConfiguration.UseBitmapsForQuadrants) {
+						disableRefresh = true;
+						GrfEditorConfiguration.UseShadowsForQuadrants = false;
+						_cbQuadmapsShadow.IsChecked = false;
+					}
+				}
+				finally {
+					disableRefresh = false;
+				}
+
+				_updatePreviewMap();
+			}, false);
 			Binder.Bind(_cbFlattenGround, () => GrfEditorConfiguration.FlattenGround, _enabledCheck, false);
 			Binder.Bind(_cbStickGatCells, () => GrfEditorConfiguration.StickGatCellsToGround, _updatePreviewMap, false);
 			Binder.Bind(_cbRemoveWater, () => GrfEditorConfiguration.RemoveWater, _updatePreviewMap, false);
+			Binder.Bind(_tbShadowQuadrantsValue, () => GrfEditorConfiguration.ShadowQuadrantFactor, _updatePreviewMap, false);
+			Binder.Bind(_tbBitmapQuadrantsValue, () => GrfEditorConfiguration.BitmapQuadrantFactor, _updateTexturesForQuadrants, false);
 			_cbTextureWalls.IsChecked = GrfEditorConfiguration.TextureWalls;
 			_cbTextureBlack.IsChecked = GrfEditorConfiguration.TextureBlack;
 			_cbTextureOriginal.IsChecked = GrfEditorConfiguration.TextureOriginal;
@@ -135,7 +171,7 @@ namespace GRFEditor.Tools.Map {
 
 			WpfUtils.AddMouseInOutEffectsBox(
 				_cbRemoveLight, _cbRemoveShadow, _cbRemoveColor, _cbRemoveObjects, _cbGutterLines, _cbResetGlobalLighting, _cbFlattenGround,
-				_cbStickGatCells, _cbRemoveWater, _cbUseCustomTextures, _checkBoxGrfOnly, _cbMatchShadow, _cbQuadmaps);
+				_cbStickGatCells, _cbRemoveWater, _cbUseCustomTextures, _checkBoxGrfOnly, _cbMatchShadow, _cbQuadmapsShadow, _cbQuadmapsBitmap);
 
 			WpfUtils.AddMouseInOutEffectsBox(_cbTextureBlack, _cbTextureWalls, _cbTextureOriginal);
 
@@ -149,7 +185,7 @@ namespace GRFEditor.Tools.Map {
 			};
 
 			_enabledCheck();
-			_remakeTextureThread.Start("GRF - Remake texture thread", (t, c) => _remakeTextures(c));
+			_remakeTextureThread.Start("GRF - Remake texture thread", (t, c) => _remakeTextures(t, c));
 
 			this.Dispatcher.ShutdownStarted += delegate {
 				_remakeTextureThread.Terminate();
@@ -164,7 +200,7 @@ namespace GRFEditor.Tools.Map {
 				new ListViewDataTemplateHelper.GeneralColumnInfo {Header = "Description", DisplayExpression = "Description", ToolTipBinding = "ToolTipDescription", TextAlignment = TextAlignment.Left, TextWrapping = TextWrapping.Wrap, IsFill = true},
 			}, new DefaultListViewComparer<MapEditorExceptionView>(), new string[] { "Default", "{DynamicResource TextForeground}" });
 
-			_listView.Loaded += delegate {
+			this.Loaded += delegate {
 				_gridError.Visibility = Visibility.Collapsed;
 			};
 		}
@@ -185,6 +221,13 @@ namespace GRFEditor.Tools.Map {
 			_cbTextureBlack.IsEnabled = GrfEditorConfiguration.UseCustomTextures && !GrfEditorConfiguration.FlattenGround;
 			_cbTextureWalls.IsEnabled = GrfEditorConfiguration.UseCustomTextures && !GrfEditorConfiguration.FlattenGround;
 			_cbTextureOriginal.IsEnabled = GrfEditorConfiguration.UseCustomTextures && !GrfEditorConfiguration.FlattenGround;
+
+			if (GrfEditorConfiguration.UseShadowsForQuadrants)
+				_cbQuadmapsBitmap.IsChecked = false;
+
+			if (GrfEditorConfiguration.UseBitmapsForQuadrants)
+				_cbQuadmapsShadow.IsChecked = false;
+
 			_updatePreviewMap();
 		}
 
@@ -251,19 +294,20 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		private void _setButtonImages() {
-			_setCellPreviewImage(_cec0._imagePreview, "c0.bmp");
-			_setCellPreviewImage(_cec1._imagePreview, "c1.bmp");
-			//_setCellPreviewImage(_cec2._imagePreview, "c2.bmp");
-			//_setCellPreviewImage(_cec3._imagePreview, "c3.bmp");
-			//_setCellPreviewImage(_cec4._imagePreview, "c4.bmp");
-			_setCellPreviewImage(_cec5._imagePreview, "c5.bmp");
-			//_setCellPreviewImage(_cec6._imagePreview, "c6.bmp");
-			_setCellPreviewImage(_cecWater0._imagePreview, "c-1.bmp");
-			_setCellPreviewImage(_cecWater1._imagePreview, "c-1.bmp");
-			_setCellPreviewImage(_cecGutter1._imagePreview, "c-2.bmp");
-			_setCellPreviewImage(_cecGutter2._imagePreview, "c-3.bmp");
-			_setCellPreviewImage(_cecX._imagePreview, "cx.bmp");
-			_setCellPreviewImage(_cecWall._imagePreview, "cw.bmp");
+			try {
+				_setCellPreviewImage(_cec0._imagePreview, "c0.bmp");
+				_setCellPreviewImage(_cec1._imagePreview, "c1.bmp");
+				_setCellPreviewImage(_cec5._imagePreview, "c5.bmp");
+				_setCellPreviewImage(_cecWater0._imagePreview, "c-1.bmp");
+				_setCellPreviewImage(_cecWater1._imagePreview, "c-1.bmp");
+				_setCellPreviewImage(_cecGutter1._imagePreview, "c-2.bmp");
+				_setCellPreviewImage(_cecGutter2._imagePreview, "c-3.bmp");
+				_setCellPreviewImage(_cecX._imagePreview, "cx.bmp");
+				_setCellPreviewImage(_cecWall._imagePreview, "cw.bmp");
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException("Failed to load preview texture images. Try rebuilding textures.", err);
+			}
 		}
 
 		private void _setCellPreviewImage(Image img, string fileName) {
@@ -279,7 +323,24 @@ namespace GRFEditor.Tools.Map {
 			_tabItemTexture.IsEnabled = false;
 		}
 
+		private void _updateTexturesForQuadrants() {
+			try {
+				_updatingTextures = true;
+				_applyChanges(true);
+			}
+			catch (Exception err) {
+				AddException(new MapEditorException("Failed to update quadrant textures.", ErrorLevel.NotSpecified, err));
+			}
+			finally {
+				_updatingTextures = false;
+			}
+		}
+
 		private void _updateTextures() {
+			if (_updatingTextures) {
+				Z.F();
+			}
+
 			try {
 				_updatingTextures = true;
 				GrfEditorConfiguration.FlatMapsMakerCBorder = _cBorder.Color;
@@ -290,20 +351,12 @@ namespace GRFEditor.Tools.Map {
 				GrfEditorConfiguration.FlatMapsMakerCWall = _cecWall._qcs.Color;
 				GrfEditorConfiguration.FlatMapsMakerC0 = _cec0._qcs.Color;
 				GrfEditorConfiguration.FlatMapsMakerC1 = _cec1._qcs.Color;
-				//GrfEditorConfiguration.FlatMapsMakerC2 = _cec2._qcs.Color;
-				//GrfEditorConfiguration.FlatMapsMakerC3 = _cec3._qcs.Color;
-				//GrfEditorConfiguration.FlatMapsMakerC4 = _cec4._qcs.Color;
 				GrfEditorConfiguration.FlatMapsMakerC5 = _cec5._qcs.Color;
-				//GrfEditorConfiguration.FlatMapsMakerC6 = _cec6._qcs.Color;
 				GrfEditorConfiguration.FlatMapsMakerCx = _cecX._qcs.Color;
 
 				_generateTexture("c0.bmp", GrfEditorConfiguration.FlatMapsMakerC0);
 				_generateTexture("c1.bmp", GrfEditorConfiguration.FlatMapsMakerC1);
-				//_generateTexture("c2.bmp", GrfEditorConfiguration.FlatMapsMakerC2);
-				//_generateTexture("c3.bmp", GrfEditorConfiguration.FlatMapsMakerC3);
-				//_generateTexture("c4.bmp", GrfEditorConfiguration.FlatMapsMakerC4);
 				_generateTexture("c5.bmp", GrfEditorConfiguration.FlatMapsMakerC5);
-				//_generateTexture("c6.bmp", GrfEditorConfiguration.FlatMapsMakerC6);
 
 				string fullPath = GrfPath.Combine(GrfEditorConfiguration.FlatMapsMakerInputTexturesPath, "c0.bmp");
 				GrfPath.Copy(fullPath, GrfPath.Combine(GrfEditorConfiguration.FlatMapsMakerInputTexturesPath, "c2.bmp"));
@@ -333,7 +386,6 @@ namespace GRFEditor.Tools.Map {
 				image.Save(GrfPath.Combine(GrfEditorConfiguration.FlatMapsMakerInputTexturesPath, "c-1.bmp"), PixelFormats.Bgr24);
 
 				_generateTexture("cw.bmp", GrfEditorConfiguration.FlatMapsMakerCWall, 64);
-
 				_setButtonImages();
 				_applyChanges();
 			}
@@ -347,40 +399,42 @@ namespace GRFEditor.Tools.Map {
 
 		private void _generateTexture(string name, Color color, int size = 32) {
 			try {
-				byte[] data = new byte[size * size * 3];
-				byte[] border = GrfEditorConfiguration.FlatMapsMakerCBorder.ToGrfColor().ToBgrBytes();
-				byte[] background = color.ToGrfColor().ToBgrBytes();
+				lock (_mapEditor.State.Lock) {
+					byte[] data = new byte[size * size * 3];
+					byte[] border = GrfEditorConfiguration.FlatMapsMakerCBorder.ToGrfColor().ToBgrBytes();
+					byte[] background = color.ToGrfColor().ToBgrBytes();
 
-				int cellWidth = GrfEditorConfiguration.FlatMapsCellWidth2;
+					int cellWidth = GrfEditorConfiguration.FlatMapsCellWidth2;
 
-				for (int y = 0, offset = 0; y < size; y++) {
-					for (int x = 0; x < size; x++, offset += 3) {
-						if (y < cellWidth || y >= (size - cellWidth) || x < cellWidth || x >= (size - cellWidth)) {
-							Buffer.BlockCopy(border, 0, data, offset, 3);
-						}
-						else {
-							Buffer.BlockCopy(background, 0, data, offset, 3);
+					for (int y = 0, offset = 0; y < size; y++) {
+						for (int x = 0; x < size; x++, offset += 3) {
+							if (y < cellWidth || y >= (size - cellWidth) || x < cellWidth || x >= (size - cellWidth)) {
+								Buffer.BlockCopy(border, 0, data, offset, 3);
+							}
+							else {
+								Buffer.BlockCopy(background, 0, data, offset, 3);
+							}
 						}
 					}
-				}
 
-				string fullPath = GrfPath.Combine(GrfEditorConfiguration.FlatMapsMakerInputTexturesPath, name);
-				GrfPath.CreateDirectoryFromFile(fullPath);
+					string fullPath = GrfPath.Combine(GrfEditorConfiguration.FlatMapsMakerInputTexturesPath, name);
+					GrfPath.CreateDirectoryFromFile(fullPath);
 
-				WriteableBitmap bit = new WriteableBitmap(size, size, 96, 96, PixelFormats.Bgr24, null);
-				bit.WritePixels(new Int32Rect(0, 0, size, size), data, size * 3, 0);
-				bit.Freeze();
+					WriteableBitmap bit = new WriteableBitmap(size, size, 96, 96, PixelFormats.Bgr24, null);
+					bit.WritePixels(new Int32Rect(0, 0, size, size), data, size * 3, 0);
+					bit.Freeze();
 
-				try {
-					using (FileStream stream = new FileStream(fullPath, FileMode.Create)) {
-						BmpBitmapEncoder encoder = new BmpBitmapEncoder();
-						encoder.Frames.Add(BitmapFrame.Create(bit));
-						encoder.Save(stream);
-						stream.Close();
+					try {
+						using (FileStream stream = new FileStream(fullPath, FileMode.Create)) {
+							BmpBitmapEncoder encoder = new BmpBitmapEncoder();
+							encoder.Frames.Add(BitmapFrame.Create(bit));
+							encoder.Save(stream);
+							stream.Close();
+						}
 					}
-				}
-				catch (Exception err) {
-					AddException(new MapEditorException("Failed to save texture.\n" + fullPath, ErrorLevel.NotSpecified, err));
+					catch (Exception err) {
+						AddException(new MapEditorException("Failed to save texture.\n" + fullPath, ErrorLevel.NotSpecified, err));
+					}
 				}
 			}
 			catch (Exception err) {
@@ -592,16 +646,16 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		public class RemakeTexture {
-			
+			public bool OnlyQuadrants = false;
 		}
 
 		private readonly GrfPushSingleThread<RemakeTexture> _remakeTextureThread = new GrfPushSingleThread<RemakeTexture>();
 
-		private void _applyChanges() {
-			_remakeTextureThread.Push(new RemakeTexture());
+		private void _applyChanges(bool quandrantsOnly = false) {
+			_remakeTextureThread.Push(new RemakeTexture() { OnlyQuadrants = quandrantsOnly });
 		}
 
-		private void _remakeTextures(Func<bool> isCancelling) {
+		private void _remakeTextures(RemakeTexture request, Func<bool> isCancelling) {
 			while (_asyncOperation.IsRunning && _remakeTextureThread.IsRunning) {
 				Thread.Sleep(200);
 			}
@@ -613,19 +667,44 @@ namespace GRFEditor.Tools.Map {
 
 			string[] files = Directory.GetFiles(_mapEditor.OutputTexturePath, "*.bmp");
 
+			// Preload images
+			_mapEditor.GetPixels(-3);
+			_mapEditor.GetPixels(-2);
+			_mapEditor.GetPixels(-1);
+			_mapEditor.GetPixels(0);
+			_mapEditor.GetPixels(1);
+			_mapEditor.GetPixels(2);
+			_mapEditor.GetPixels(3);
+			_mapEditor.GetPixels(4);
+			_mapEditor.GetPixels(5);
+			_mapEditor.GetPixels(6);
+
 			for (int i = 0; i < files.Length; i++) {
 				string file = files[i];
 				string texture = Path.GetFileNameWithoutExtension(file);
 				string id = "";
+				bool isQuadrant = false;
+				char sTexture = 'c';
 
 				try {
-					id = texture.Substring(0, texture.IndexOf('c'));
+					int idx = texture.IndexOf('c');
+
+					if (idx < 0) {
+						idx = texture.IndexOf('q');
+						isQuadrant = true;
+						sTexture = 'q';
+					}
+					else if (request.OnlyQuadrants) {
+						continue;
+					}
+
+					id = texture.Substring(0, idx);
 
 					if (id != GrfEditorConfiguration.FlatMapsMakerId) continue;
 
-					texture = texture.Substring(texture.IndexOf('c') + 1);
-					sbyte[] types = texture.Split('c').Select(sbyte.Parse).ToArray();
-					_mapEditor.GenerateTexture(id + "c" + texture + ".bmp", types);
+					texture = texture.Substring(idx + 1);
+					sbyte[] types = texture.Split(sTexture).Select(sbyte.Parse).ToArray();
+					_mapEditor.GenerateTexture(id + sTexture + texture + ".bmp", types, isQuadrant);
 				}
 				catch {
 					try {
@@ -691,7 +770,8 @@ namespace GRFEditor.Tools.Map {
 			_cbFlattenGround.IsChecked = true;
 			_cbStickGatCells.IsChecked = false;
 			_cbRemoveWater.IsChecked = false;
-			_cbQuadmaps.IsChecked = false;
+			_cbQuadmapsShadow.IsChecked = false;
+			_cbQuadmapsBitmap.IsChecked = false;
 			_cbResetGlobalLighting.IsChecked = true;
 			_cbTextureBlack.IsChecked = true;
 			_cbTextureWalls.IsChecked = false;

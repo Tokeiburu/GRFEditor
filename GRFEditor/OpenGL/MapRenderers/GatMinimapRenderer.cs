@@ -32,7 +32,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (IsUnloaded || !viewport.RenderOptions.Ground)
 				return;
 
-			if (viewport.RenderPass != 3)
+			if (viewport.RenderPass != RenderMode.LubTextures)
 				return;
 
 			if (!IsLoaded) {
@@ -53,15 +53,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
 				GL.VertexAttribPointer(1, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
 				GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
-
-				Shader.Use();
-				Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
 			}
 
 			_ri.BindVao();
 			Shader.Use();
-			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
-			Shader.SetMatrix4("viewMatrix", ref viewport.View);
+			Shader.SetMatrix4("mvp", ref viewport.ViewProjection);
 
 			for (int i = 0; i < 3; i++) {
 				Shader.SetVector4("color", new Vector4(1, 0, 0, 1.0f));
@@ -70,11 +66,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 				if (i == 0) {
 					GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
-					Shader.SetVector4("color", viewport.RenderOptions.MinimapNonWalkColor);
+					Shader.SetVector4("color", ref viewport.RenderOptions.MinimapNonWalkColor);
 				}
 				else if (i == 1) {
 					GL.BlendFunc(BlendingFactor.DstColor, BlendingFactor.One);
-					Shader.SetVector4("color", viewport.RenderOptions.MinimapWalkColor);
+					Shader.SetVector4("color", ref viewport.RenderOptions.MinimapWalkColor);
 				}
 				else {
 					GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
@@ -82,6 +78,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				}
 
 				GL.DrawArrays(PrimitiveType.Triangles, _ri.Indices[i].Begin, _ri.Indices[i].Count);
+#if DEBUG
+				viewport.Stats.DrawArrays_Calls++;
+				viewport.Stats.DrawArrays_Calls_VertexLength += _ri.Indices[i].Count;
+#endif
 			}
 
 			GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);

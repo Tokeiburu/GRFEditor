@@ -84,7 +84,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 						entries = entries.Take(200).ToList();
 					}
 
-					_labelHeader.Dispatch(p => p.Content = _currentPath.RelativePath);
+					_labelHeader.Dispatch(p => p.Text = _currentPath.RelativePath);
 
 					foreach (FileEntry entry in entries) {
 						GrfImage image = ImageProvider.GetImage(entry.GetDecompressedData(), entry.RelativePath.GetExtension());

@@ -13,15 +13,24 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition />
+            <RowDefinition Height="auto" />
+			<RowDefinition Height="auto" />
+			<RowDefinition />
         </Grid.RowDefinitions>
-        <CheckBox Name="_tbEnableSkyMap" Content="Enable skymap (requires render options)" Grid.Row="0" />
-        <DockPanel Grid.Row="1">
-            <TextBlock Text="Background" />
+		<StackPanel>
+			<TextBlock Text="Your RSW map needs to be version 0x202 or above to support custom clouds." TextWrapping="Wrap" Margin="3" MaxWidth="250" HorizontalAlignment="Left" FontStyle="Italic" />
+			<CheckBox Name="_tbEnableSkyMap" Content="Enable skymap (requires render options)" Grid.Row="0" Margin="3" />
+		</StackPanel>
+        <DockPanel Grid.Row="1" Margin="3">
+            <TextBlock Text="Background" VerticalAlignment="Center" />
             <wpf:QuickColorSelector Margin="3 0 0 0" Height="20" x:Name="_tbBg_Color" />
         </DockPanel>
-        <CheckBox Name="_tbEnableStar" Content="Star effect" Grid.Row="2" />
-        <CheckBox Name="_tbEnableCloud" Content="Cloud effect" Grid.Row="3" />
-        <wpf1:CloudEditTab x:Name="_cloudTab" Grid.Row="4" />
-    </Grid>
+		<CheckBox Name="_tbEnableStar" Content="Star effect" Grid.Row="2" Margin="3" />
+		<Button x:Name="_btCopyToClipboard" Content="Copy to clipboard" Grid.Row="3" Margin="3" Height="24" />
+		<Button x:Name="_btAddOldSkyEffect" Content="Add fixed sky effect" Grid.Row="4" Margin="3" Height="24" />
+		<Button x:Name="_btAddNewSkyEffect" Content="Add custom sky effect" Grid.Row="5" Margin="3" Height="24" />
+		<TabControl Grid.Row="6" Name="_primary" Style="{DynamicResource TabControlStyled2}" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}" BorderThickness="0 1 0 0">
+			
+		</TabControl>
+	</Grid>
 </Window>

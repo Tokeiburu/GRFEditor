@@ -6,26 +6,29 @@ uniform vec3 lightDiffuse;
 uniform vec3 lightAmbient;
 uniform vec3 lightDirection;
 uniform vec3 lightPosition;
-uniform float lightIntensity;
+uniform vec4 wireframeColor;
 
 uniform int shadeType;
 uniform float discardValue = 0.8;
+uniform int discardAlphaMode = 0;
 
 uniform mat4 texRot;
 uniform float textureAnimToggle;
 uniform float billboard_off;
 uniform float enableCullFace = 0.0;
 uniform float opacity = 1.0;
-uniform bool fixedColor = false;
+uniform bool wireframe = false;
 
 in vec2 texCoord;
 in vec3 normal;
 in vec3 FragPos;
+in vec3 mult;
 in float cull;
+out vec4 fragColor;
 
 void main()
 {
-	if (!fixedColor && enableCullFace > 0 && cull <= 0) {
+	if (!wireframe && enableCullFace > 0 && cull <= 0) {
 		if (cull >= 0 && !gl_FrontFacing)
 			discard;
 		if (cull < 0 && gl_FrontFacing)
@@ -40,12 +43,29 @@ void main()
 	
 	vec4 color = texture2D(s_texture, texCoord2);
 	
-	if(color.a < discardValue)
+	if (discardAlphaMode == 1 && color.a < 1)
+		discard;
+	if (discardAlphaMode == 2 && color.a >= 1)
+		discard;
+	if (color.a < discardValue)
 		discard;
 		
 	color.a *= opacity;
 		
-	if (shadeType == 4) {	// for editor
+	if (wireframe) {
+		color = wireframeColor;
+		
+		if (shadeType == 0) {
+			
+		}
+		else if (color.r > 0.0) {
+			vec3 lightDir = normalize(lightPosition - FragPos);
+			vec3 ambient = vec3(0.5, 0.5, 0.5);
+			vec3 diffuse = abs(dot(normal, lightDir)) * vec3(1);
+			color.rgb = color.rgb * ambient + (1 - ambient) * diffuse * color.rgb;
+		}
+	}
+	else if (shadeType == 4) {	// for editor
 		vec3 lightDir = normalize(lightPosition - FragPos);
 		vec3 normal2 = normal;
 		
@@ -53,26 +73,15 @@ void main()
 			normal2 = normal2 * -1;
 		}
 		
-		vec3 diffuse = max(dot(normal2, lightDir), 0.0) * vec3(1);
+		vec3 diffuse = abs(dot(normal, lightDir)) * vec3(1);
 		color.rgb = color.rgb * lightAmbient + (1 - lightAmbient) * diffuse * color.rgb;
 	}
 	else if (shadeType == 0) {
 		color.rgb *= min(max(lightDiffuse, lightAmbient) + (1.0 - max(lightDiffuse, lightAmbient)) * min(lightDiffuse, lightAmbient), 1.0);
 	}
 	else {
-		float NL = clamp(dot(normalize(normal), lightDirection),0.0,1.0);
-		vec3 ambientFactor = (1.0 - lightAmbient) * lightAmbient;
-		vec3 ambient = lightAmbient - ambientFactor + ambientFactor * lightDiffuse;
-		vec3 diffuseFactor = (1.0 - lightDiffuse) * lightDiffuse;
-		vec3 diffuse = lightDiffuse - diffuseFactor + diffuseFactor * lightAmbient;
-		vec3 mult1 = min(NL * diffuse + ambient, 1.0);
-		vec3 mult2 = min(max(lightDiffuse, lightAmbient) + (1.0 - max(lightDiffuse, lightAmbient)) * min(lightDiffuse, lightAmbient), 1.0);
-		color.rgb *= min(mult1, mult2);
+		color.rgb *= mult;
 	}
 	
-	if (fixedColor) {
-		color = vec4(0, 0, 0, 1);
-	}
-	
-	gl_FragData[0] = color;
+	fragColor = color;
 }

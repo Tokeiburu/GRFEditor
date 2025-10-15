@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using GRF.FileFormats.TgaFormat;
 using GRF.Image;
 using GRF.Image.Decoders;
 using GRF.Threading;
+using GrfToWpfBridge;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
 using Utilities.Extension;
@@ -59,43 +61,36 @@ namespace GRFEditor.OpenGL.MapComponents {
 				}
 
 				foreach (var entry in textures) {
-					if (entry.Request.CancelRequired())
-						continue;
+					try {
+						if (entry.Request.CancelRequired())
+							continue;
 
-					var data = ResourceManager.GetData(entry.Resource);
-					GrfImage image = null;
+						var data = ResourceManager.GetData(entry.Resource);
+						GrfImage image = null;
 
-					if (entry.Resource == "backside.bmp") {
-						image = new GrfImage(new byte[] { 0, 0, 0, 255 }, 1, 1, GrfImageType.Bgra32);
-					}
-					else if (data != null) {
-						try {
-							image = new GrfImage(data);
+						if (entry.Resource == "backside.bmp") {
+							image = new GrfImage(new byte[] { 0, 0, 0, 255 }, 1, 1, GrfImageType.Bgra32);
 						}
-						catch {
+						else if (data != null) {
+							try {
+								image = new GrfImage(data);
+							}
+							catch {
+							}
 						}
+
+						if (entry.Request.CancelRequired())
+							continue;
+
+						if (image == null) {
+							image = new GrfImage(new byte[] { 0, 0, 255, 255 }, 1, 1, GrfImageType.Bgra32);
+						}
+
+						entry.Texture.Set(image, entry.RenderMode);
 					}
-
-					if (entry.Request.CancelRequired())
-						continue;
-
-					if (image == null) {
-						image = new GrfImage(new byte[] { 0, 0, 255, 255 }, 1, 1, GrfImageType.Bgra32);
+					catch {
+						GLHelper.OnLog(() => "Failed: \"" + entry + "\", Message: thrown exception.");
 					}
-
-					if (image.GrfImageType == GrfImageType.Indexed8) {
-						image.MakePinkTransparent();
-						image.Convert(new Bgra32FormatConverter());
-					}
-					else if (image.GrfImageType == GrfImageType.Bgr24) {
-						image.Convert(new Bgra32FormatConverter());
-						image.MakePinkTransparent();
-					}
-
-					if (image.GrfImageType != GrfImageType.Bgra32)
-						image.Convert(new Bgra32FormatConverter());
-
-					entry.Texture.Set(image, entry.RenderMode);
 				}
 			}
 		}
@@ -286,8 +281,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public bool Permanent { get; set; }
 		public bool FixTransparency { get; set; }
 		public TextureRenderMode RenderMode = TextureRenderMode.RsmTexture;
-		public bool Reverse { get; set; }
 		public static bool EnableMipmap { get; set; }
+		public bool IsDithered { get; set; }
+		public bool TransparencyFixed { get; set; }
 
 		static Texture() {
 			EnableMipmap = false;
@@ -295,7 +291,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 
 		public Texture(string resource) {
 			Resource = resource;
-			IsSemiTransparent = Resource.IsExtension(".tga");
+			IsSemiTransparent = Resource.IsExtension(".tga", ".png");
 			FixTransparency = true;
 		}
 
@@ -303,7 +299,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			IsLoaded = false;
 			Resource = resource;
 			Image = image;
-			IsSemiTransparent = Resource.IsExtension(".tga");
+			IsSemiTransparent = Resource.IsExtension(".tga", ".png");
 			RenderMode = renderMode;
 			FixTransparency = true;
 
@@ -317,16 +313,31 @@ namespace GRFEditor.OpenGL.MapComponents {
 			if (IsUnloaded)
 				return;
 
-			FixTransparency = false;
 			RenderMode = renderMode;
 			IsLoaded = false;
+
+			_setFormatToBgra32(image);
+			_imageDitherAndPinkRemoval(image);
+
+			// Cannot set Image early, otherwise the OpenGL viewport will try to load the image before it's processed
 			Image = image;
+		}
+
+		private void _setFormatToBgra32(GrfImage image) {
+			if (!TransparencyFixed && !String.IsNullOrEmpty(Resource) && FixTransparency) {
+				if (image.GrfImageType != GrfImageType.Bgra32) {
+					image.Convert(new Bgra32FormatConverter());
+				}
+			}
+
+			TransparencyFixed = true;
 		}
 
 		public void Unload() {
 			if (_id > 0) {
 				IsUnloaded = true;
 				Image = null;
+				TransparencyFixed = false;
 
 				GL.DeleteTexture(_id);
 				OpenGLMemoryManager.DelTextureId(_id);
@@ -351,28 +362,19 @@ namespace GRFEditor.OpenGL.MapComponents {
 				return;
 
 			try {
-				if (!String.IsNullOrEmpty(Resource) && FixTransparency) {
-					if (Image.GrfImageType == GrfImageType.Indexed8) {
-						Image.MakePinkTransparent();
-						Image.Convert(new Bgra32FormatConverter());
-					}
-					else if (Image.GrfImageType == GrfImageType.Bgr24) {
-						Image.Convert(new Bgra32FormatConverter());
-						Image.MakePinkTransparent();
-					}
-
-					if (Image.GrfImageType != GrfImageType.Bgra32)
-						Image.Convert(new Bgra32FormatConverter());
-				}
+				_setFormatToBgra32(Image);
+				_imageDitherAndPinkRemoval(Image);
 
 				GL.Hint(HintTarget.PerspectiveCorrectionHint, HintMode.Nicest);
 				_id = GL.GenTexture();
 				OpenGLMemoryManager.AddTextureId(_id);
 				GL.BindTexture(TextureTarget.Texture2D, _id);
 
-				if ((IsSemiTransparent && !Reverse) ||
-					(!IsSemiTransparent && Reverse))
-					Image.Flip(FlipDirection.Vertical);
+				if (IsSemiTransparent) {
+					if (Resource.IsExtension(".tga")) {
+						Image.Flip(FlipDirection.Vertical);
+					}
+				}
 
 				GCHandle pinnedArray = GCHandle.Alloc(Image.Pixels, GCHandleType.Pinned);
 				IntPtr pointer = pinnedArray.AddrOfPinnedObject();
@@ -390,7 +392,33 @@ namespace GRFEditor.OpenGL.MapComponents {
 				GLHelper.OnLog(() => "Loaded: \"" + Resource + "\", Message: texID " + Id + ".");
 			}
 			catch {
+				GLHelper.OnLog(() => "Failed: \"" + Resource + "\", Message: Reload() has thrown an exception.");
 			}
+		}
+
+		private void _imageDitherAndPinkRemoval(GrfImage image) {
+			if (IsDithered)
+				return;
+
+			// RO textures use lower resolution, but we're emulating that process instead
+			//bool dithering = RenderMode == TextureRenderMode.RsmTexture && RsmEditorConfiguration.UseIngameColorDepth;
+			int ditherDivider = 8;
+			int ditherDividerShift = 3;
+			float ditherMultiplier = 8.25f;
+			
+			if (Resource.IsExtension(".png", ".tga")) {
+				ditherDividerShift = 4;
+				ditherDivider = 16;
+				ditherMultiplier = 17;
+			}
+
+			byte rT = (byte)(Math.Ceiling((ditherDivider / ditherMultiplier) * 255) - 1);
+			byte gT = (byte)(255 - rT);
+			byte bT = rT;
+
+			//image.ChangePinkToBlack(rT, gT, bT);
+			image.DitherAndChangePinkToBlack(rT, gT, bT, ditherDividerShift, ditherMultiplier);
+			IsDithered = true;
 		}
 
 		private void _setTextureMode() {

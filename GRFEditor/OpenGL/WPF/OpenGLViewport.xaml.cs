@@ -18,6 +18,7 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using TokeiLibrary;
+using Utilities;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
 using Point = System.Windows.Point;
@@ -30,7 +31,8 @@ namespace GRFEditor.OpenGL.WPF {
 	public partial class OpenGLViewport : UserControl {
 		// Camera settings
 		private Camera _camera;
-
+		public ViewportStatistics Stats = new ViewportStatistics();
+		
 		public Camera Camera {
 			get { return _camera; }
 			set { _camera = value; }
@@ -41,6 +43,7 @@ namespace GRFEditor.OpenGL.WPF {
 		private readonly List<Renderer> _renderers = new List<Renderer>();
 		public Matrix4 View;
 		public Matrix4 Projection;
+		public Matrix4 ViewProjection;
 		public long FrameRenderTime;
 		public int _frameCount = 0;
 
@@ -64,12 +67,14 @@ namespace GRFEditor.OpenGL.WPF {
 		public readonly Shader Shader_lub;
 		public readonly Shader Shader_simple;
 		public readonly Shader Shader_gat;
+		public readonly Shader Shader_skymap;
 
 		// Camera settings
 		public bool ResetCameraDistance { get; set; }
 		public bool ResetCameraPosition { get; set; }
 		public bool RotateCamera { get; set; }
 		public bool IsRotatingCamera { get; set; }
+		public double OpenGLVersion { get; private set; }
 
 		public Vector3 LightAmbient = new Vector3(0.5f);
 		public Vector3 LightDirection {
@@ -89,7 +94,7 @@ namespace GRFEditor.OpenGL.WPF {
 		public MapRendererOptions RenderOptions { get; set; }
 		private TextBlock _tbFps;
 
-		public int RenderPass { get; set; }
+		public RenderMode RenderPass { get; set; } = RenderMode.OpaqueTextures;
 
 		public OpenGLViewport()
 			: this(GrfEditorConfiguration.MapRenderEnableFSAA ? 8 : 0) {
@@ -132,12 +137,19 @@ namespace GRFEditor.OpenGL.WPF {
 				OpenGLMemoryManager.CreateInstance(this);
 				_primary.MakeCurrent();
 
+				GLHelper.VerifyError();
 				Shader_rsm = new Shader("map.rsm.vert", "map.rsm.frag");
 				Shader_gnd = new Shader("map.gnd.vert", "map.gnd.frag");
 				Shader_water = new Shader("map.water.vert", "map.water.frag");
 				Shader_lub = new Shader("map.lub.vert", "map.lub.frag");
 				Shader_simple = new Shader("map.color.vert", "map.color.frag");
 				Shader_gat = new Shader("map.gat.vert", "map.gat.frag");
+				Shader_skymap = new Shader("map.skymap.vert", "map.skymap.frag");
+				GLHelper.VerifyError();
+
+				int majorVersion = GL.GetInteger(GetPName.MajorVersion);
+				int minorVersion = GL.GetInteger(GetPName.MinorVersion);
+				OpenGLVersion = FormatConverters.DoubleConverterNoThrow(majorVersion + "." + minorVersion);
 
 				_renderers.Add(new BackgroundRenderer { Permanent = true });
 
@@ -192,6 +204,11 @@ namespace GRFEditor.OpenGL.WPF {
 		public void Load(RendererLoadRequest request) {
 			if (request.CancelRequired())
 				return;
+
+			if (_request != null && !request.AlwaysReload && _request.Resource == request.Resource)
+				return;
+
+			//request.Resource = @"C:\Games\NovaRO - 4th - NewClient\data\morocc";
 
 			_request = request;
 
@@ -279,15 +296,25 @@ namespace GRFEditor.OpenGL.WPF {
 		private void _loadMap(RendererLoadRequest request) {
 			RenderOptions.ForceShader = -1;
 			RenderOptions.RenderingMap = true;
-			RenderOptions.RenderSkymapDetected = false;
 			Rsm.ForceShadeType = -1;
 			GLHelper.OnLog(() => "Message: Loading map \"" + request.Resource + "\"");
 
 			if (RotateCamera)
 				IsRotatingCamera = true;
-			
+
 			Rsw rsw = request.Preloaded ? request.Rsw : new Rsw(ResourceManager.GetData(request.Resource + ".rsw"));
-			Gnd gnd = request.Preloaded ? request.Gnd : new Gnd(ResourceManager.GetData(request.Resource + ".gnd"));
+			Gnd gnd;
+			if (request.Preloaded) {
+				gnd = request.Gnd;
+			}
+			else {
+				var entryGnd = ResourceManager.GetData(request.Resource + ".gnd");
+
+				if (entryGnd == null)
+					entryGnd = ResourceManager.GetData("data\\" + rsw.Header.GroundFile);
+
+				gnd = new Gnd(entryGnd);
+			}
 
 			var glGnd = new GndRenderer(request, Shader_gnd, gnd, rsw);
 			var glWater = new WaterRenderer(request, Shader_water, rsw, gnd);
@@ -307,30 +334,40 @@ namespace GRFEditor.OpenGL.WPF {
 				glGat.Load(this);
 			glWater.Load(this);
 			MapRenderer mapRenderer = new MapRenderer(request, Shader_rsm, rsw);
-			mapRenderer.LoadModels(rsw, gnd, RenderOptions.AnimateMap);
+			mapRenderer.LoadModels(this, rsw, gnd, RenderOptions.AnimateMap);
 			LubRenderer lubRenderer = null;
+			SkyMapRenderer skyRenderer = null;
 
 			try {	
 				lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
+				//lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"C:\Games\NovaRO - 4th - NewClient\data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
 				lubRenderer.Load(this);
 			}
 			catch {
 				lubRenderer = null;
 			}
 
+			try {
+				skyRenderer = new SkyMapRenderer(request, Shader_skymap, gnd, this);
+			}
+			catch {
+			}
+
 			request.Rsw = rsw;
 			request.Gnd = gnd;
 			request.GndRenderer = glGnd;
 			request.MapRenderer = mapRenderer;
+			request.SkyMapRenderer = skyRenderer;
+
 			Loader.OnLoaded(request);
 
-			_renderers.Add(glGnd);
+			_renderers.Add(glGnd);if (skyRenderer != null)
+				_renderers.Add(skyRenderer);
 			_renderers.Add(mapRenderer);
+			
 			if (glGat != null)
 				_renderers.Add(glGat);
 			_renderers.Add(glWater);
-
-			//nViewport.Camera.Distance = Math.Max(gnd.Header.Height - removeEdge, gnd.Header.Width - removeEdge) * 10f;
 
 			if (lubRenderer != null)
 				_renderers.Add(lubRenderer);
@@ -399,20 +436,25 @@ namespace GRFEditor.OpenGL.WPF {
 		private void _primary_Load(object sender, EventArgs e) {
 			OpenGLMemoryManager.MakeCurrent(this);
 			_primary.MakeCurrent();
+			GLHelper.VerifyError();
 			_glControlReady = true;
 			_watchRenderStart.Start();
 		}
 
 		private void _primary_Render() {
-			if (_crashState || !_glControlReady || _primary.Width <= 0 || _primary.Height <= 0)
+			if (_crashState || !_glControlReady || _primary.Width <= 0 || _primary.Height <= 0 || (_editorWindow != null && _editorWindow.WindowState == System.Windows.WindowState.Minimized))
 				return;
 
 			try {
+#if DEBUG
+				Stats = new ViewportStatistics();
+#endif
 				_currentTick = _watchRenderStart.ElapsedMilliseconds;
 				FrameRenderTime = _currentTick - _previousTick;
 
 				OpenGLMemoryManager.MakeCurrent(this);
 				_primary.MakeCurrent();
+				GLHelper.VerifyError();
 
 				GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 				GL.Disable(EnableCap.CullFace);
@@ -422,44 +464,53 @@ namespace GRFEditor.OpenGL.WPF {
 				GL.Disable(EnableCap.Blend);
 				
 				_camera.Update();
-				
+				GLHelper.VerifyError();
 				View = _camera.GetViewMatrix();
 				Projection = _camera.GetProjectionMatrix();
+				ViewProjection = View * Projection;
 				
 				SharedRsmRenderer.UpdateShader(Shader_rsm, this);
 
 				var renderers = _renderers.ToList();
 
 				// Draw opaque textures
-				RenderPass = 0;
+				RenderPass = RenderMode.OpaqueTextures;
 				foreach (var renderer in renderers) {
 					renderer.Render(this);
 				}
 
+				GLHelper.VerifyError();
+				// Draw opaque transparent textures
+				RenderPass = RenderMode.OpaqueTransparentTextures;
+
+				foreach (var renderer in renderers) {
+					if (renderer is ModelRenderer || renderer is MapRenderer)
+						renderer.Render(this);
+				}
+				GLHelper.VerifyError();
 				// Draw transparent textures
-				RenderPass = 1;
-				GL.DepthMask(false);
-				GL.Enable(EnableCap.Blend);
-				GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+				RenderPass = RenderMode.TransparentTextures;
+				GLHelper.VerifyError();
 				foreach (var renderer in renderers) {
 					renderer.Render(this);
 				}
-
+				GLHelper.VerifyError();
+				// Ignore that, it's merged with transparent textures, though it is technically accurate
 				// Draw animated textures (always on top of transparent textures)
-				RenderPass = 2;
-				//GL.DepthMask(false);	// Reset from WaterRenderer
+				RenderPass = RenderMode.AnimatedTransparentTextures;
 				foreach (var renderer in renderers) {
-					renderer.Render(this);
+					if (renderer is ModelRenderer || renderer is MapRenderer)
+						renderer.Render(this);
 				}
-				
+				GLHelper.VerifyError();
 				// Draw lub effects
-				RenderPass = 3;
+				RenderPass = RenderMode.LubTextures;
 				foreach (var renderer in renderers) {
 					renderer.Render(this);
 				}
 				GL.DepthMask(true);
 				_selectionRender();
-
+				GLHelper.VerifyError();
 				// FPS handling
 				_frameCount++;
 				_fpsRefreshTimer -= FrameRenderTime;
@@ -467,13 +518,19 @@ namespace GRFEditor.OpenGL.WPF {
 				if (_fpsRefreshTimer <= 0) {
 					if (RenderOptions.ShowFps && (_tbFps ?? MapRenderer.FpsTextBlock) != null) {
 						int fps = (int)Math.Ceiling(_frameCount * 1000f / (_fpsUpdateFrequency - _fpsRefreshTimer));
-						(_tbFps ?? MapRenderer.FpsTextBlock).Text = fps + "" + (RenderOptions.FpsCap > 0 ? " (limited " + RenderOptions.FpsCap + ")" : "");
+						string output = fps + "" + (RenderOptions.FpsCap > 0 ? " (limited " + RenderOptions.FpsCap + ")" : "");
+
+#if DEBUG
+						output = "Draw calls: " + Stats.DrawArrays_Calls + ", Vertex count: " + Stats.DrawArrays_Calls_VertexLength + ", " + output;
+#endif
+
+						(_tbFps ?? MapRenderer.FpsTextBlock).Text = output;
 					}
 				
 					_frameCount = 0;
 					_fpsRefreshTimer = _fpsUpdateFrequency;
 				}
-
+				GLHelper.VerifyError();
 				_primary.SwapBuffers();
 				_previousTick = _currentTick;
 			}

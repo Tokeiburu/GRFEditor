@@ -25,6 +25,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities", "Utilities\Util
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Encryption", "Encryption\Encryption.csproj", "{C1C62D60-DDC8-49A8-9611-EE9D1D6590E5}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{91C802CE-1210-470B-9702-E936F3B51597}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +65,7 @@ Global
 		{EC4E062E-A9A8-4C70-A91A-59C64BAFD38A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC4E062E-A9A8-4C70-A91A-59C64BAFD38A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1571CF40-1935-4ABE-A573-3F71505E8724}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1571CF40-1935-4ABE-A573-3F71505E8724}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1571CF40-1935-4ABE-A573-3F71505E8724}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B57E7E46-F5D5-4352-979C-13809D4F292A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B57E7E46-F5D5-4352-979C-13809D4F292A}.Debug|Any CPU.Build.0 = Debug|Any CPU

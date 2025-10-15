@@ -1,10 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using static GRFEditor.OpenGL.MapComponents.Mesh;
 using Mesh = GRFEditor.OpenGL.MapComponents.Mesh;
 using Rsm = GRFEditor.OpenGL.MapComponents.Rsm;
 
@@ -14,9 +16,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		private readonly Rsm _rsm;
 		public readonly Gnd Gnd;
 		private readonly Rsw _rsw;
-		public Dictionary<int, RenderInfo> RenderInfos = new Dictionary<int, RenderInfo>();
 		public RenderInfo RenderInfo = new RenderInfo();
 		public RenderInfo RenderInfoTransparent = new RenderInfo();
+		public Dictionary<int, RenderData> RenderDatas = new Dictionary<int, RenderData>();
+
+		public Vbo Instance;
+		public Matrix4[] InstanceMatrices;
 
 		public SharedRsmRenderer(RendererLoadRequest request, Shader shader, Rsm rsm, Gnd gnd = null, Rsw rsw = null) {
 			Shader = shader;
@@ -40,6 +45,36 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 
 			_initMeshInfo(_rsm.MainMesh);
+			_rsm.Dirty();
+			IsLoaded = true;
+		}
+
+		private List<int> _textureRedirect = new List<int>();
+
+		public void LoadSpecial(OpenGLViewport viewport, MapRenderer mapRenderer) {
+			if (IsLoaded)
+				return;
+
+			_textureRedirect.Clear();
+			var textures = mapRenderer._textures;
+
+			for (int i = 0; i < _rsm.Textures.Count; i++) {
+				var texture = _rsm.Textures[i];
+
+				if (textures.TryGetValue(texture, out Texture foundTexture)) {
+					_textureRedirect.Add(mapRenderer.Textures.IndexOf(foundTexture));
+				}
+				else {
+					var tex = TextureManager.LoadTextureAsync(texture, Rsm.RsmTexturePath + texture, TextureRenderMode.RsmTexture, _request);
+					mapRenderer._textures[texture] = tex;
+					mapRenderer.Textures.Add(tex);
+					_textureRedirect.Add(mapRenderer.Textures.Count - 1);
+				}
+			}
+
+			_initMeshInfoSpecial(_rsm.MainMesh, mapRenderer);
+
+			_rsm.Dirty();
 			IsLoaded = true;
 		}
 
@@ -48,7 +83,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			RenderInfoTransparent.Vertices = new List<Vertex>();
 
 			Matrix4 matrix = Matrix4.Identity;
-			_initMeshInfo(mesh, ref matrix);
+			_initMeshInfoSub(mesh, ref matrix);
 
 			_addRenderInfo(RenderInfo.Vertices, RenderInfo);
 			_addRenderInfo(RenderInfoTransparent.Vertices, RenderInfoTransparent);
@@ -56,49 +91,111 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			RenderInfoTransparent.Vertices = null;
 		}
 
-		private void _initMeshInfo(Mesh mesh, ref Matrix4 matrix) {
-			Dictionary<int, List<Vertex>> verts = new Dictionary<int, List<Vertex>>();
+		private void _initMeshInfoSpecial(Mesh mesh, MapRenderer mapRenderer) {
+			Matrix4 matrix = Matrix4.Identity;
+			_initMeshInfoSubSpecial(mesh, ref matrix, mapRenderer);
+		}
 
-			for (int i = 0; i < mesh.Faces.Count; i++) {
-				for (int ii = 0; ii < 3; ii++) {
-					List<Vertex> l;
+		private void _initMeshInfoSubSpecial(Mesh mesh, ref Matrix4 matrix, MapRenderer mapRenderer) {
+			var dict = new Dictionary<int, List<MapComponents.Face>>();
+			Dictionary<int, VertexP3N2N3[]> verts = new Dictionary<int, VertexP3N2N3[]>();
 
-					if (!verts.TryGetValue(mesh.Faces[i].TextureId, out l)) {
-						l = new List<Vertex>(1024);
-						verts[mesh.Faces[i].TextureId] = l;
+			foreach (var face in mesh.Faces) {
+				var key = face.TextureId;
+				if (!dict.TryGetValue(key, out var list)) {
+					list = new List<MapComponents.Face>(64);
+					dict[key] = list;
+				}
+				list.Add(face);
+			}
+
+			foreach (var entry in dict) {
+				var l = new VertexP3N2N3[entry.Value.Count * 3];
+				verts[entry.Key] = l;
+				int idx = 0;
+
+				foreach (var face in entry.Value) {
+					for (int ii = 0; ii < 3; ii++) {
+						l[idx++] = new VertexP3N2N3(
+						mesh.Vertices[face.VertexIds[ii]],
+						mesh.TextureVertices[face.TextureVertexIds[ii]],
+						face.VertexNormals[ii],
+						face.TwoSide);
 					}
-
-					l.Add(new Vertex(
-						mesh.Vertices[mesh.Faces[i].VertexIds[ii]],
-						mesh.TextureVertices[mesh.Faces[i].TextureVertexIds[ii]],
-						mesh.Faces[i].VertexNormals[ii],
-						mesh.Faces[i].TwoSide)
-					);
 				}
 			}
 
-			RenderInfos[mesh.Index] = new RenderInfo();
-
-			mesh.VboOffset = RenderInfo.Vertices.Count;
-			mesh.VboOffsetTransparent = RenderInfoTransparent.Vertices.Count;
-
 			foreach (var vert in verts) {
-				var ri = Textures[mesh.TextureIndexes[vert.Key]].IsSemiTransparent ? RenderInfoTransparent : RenderInfo;
-				ri.Indices.Add(new VboIndex { Texture = vert.Key, Begin = ri.Vertices.Count, Count = vert.Value.Count });
-				ri.Vertices.AddRange(vert.Value);
+				var tri = mapRenderer.TextureGroups[_textureRedirect[vert.Key]];
+				tri.Indices.Add(new VboIndex { Texture = -1, Begin = tri.VboOffset, Count = vert.Value.Length });
+				tri.AddVertexArray(vert.Value);
 			}
 
-			if (mesh.Model.Version >= 2.2) {
-				RenderInfos[mesh.Index].Matrix = mesh.Matrix2;
-				RenderInfos[mesh.Index].MatrixSub = Matrix4.Identity;
+			if (mesh.IsBakedRenderMatrix) {
+				RenderDatas[mesh.Index].MatrixSub = Matrix4.Identity;
+				RenderDatas[mesh.Index].Matrix = mesh.Matrix2;
 			}
 			else {
-				RenderInfos[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
-				RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * RenderInfos[mesh.Index].MatrixSub;
+				RenderDatas[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
+				RenderDatas[mesh.Index].Matrix = mesh.Matrix2 * RenderDatas[mesh.Index].MatrixSub;
 			}
 
 			foreach (var child in mesh.Children) {
-				_initMeshInfo(child, ref RenderInfos[mesh.Index].MatrixSub);
+				_initMeshInfoSub(child, ref RenderDatas[mesh.Index].MatrixSub);
+			}
+		}
+
+		private void _initMeshInfoSub(Mesh mesh, ref Matrix4 matrix) {
+			// VertexP3N2N3
+			var dict = new Dictionary<int, List<MapComponents.Face>>();
+			Dictionary<int, Vertex[]> verts = new Dictionary<int, Vertex[]>();
+
+			foreach (var face in mesh.Faces) {
+				var key = face.TextureId;
+				if (!dict.TryGetValue(key, out var list)) {
+					list = new List<MapComponents.Face>(64);
+					dict[key] = list;
+				}
+				list.Add(face);
+			}
+			
+			foreach (var entry in dict) {
+				var l = new Vertex[entry.Value.Count * 3];
+				verts[entry.Key] = l;
+				int idx = 0;
+			
+				foreach (var face in entry.Value) {
+					for (int ii = 0; ii < 3; ii++) {
+						l[idx++] = new Vertex(
+						mesh.Vertices[face.VertexIds[ii]],
+						mesh.TextureVertices[face.TextureVertexIds[ii]],
+						face.VertexNormals[ii],
+						face.TwoSide);
+					}
+				}
+			}
+
+			mesh.VboOffset = RenderInfo.Vertices.Count;
+			mesh.VboOffsetTransparent = RenderInfoTransparent.Vertices.Count;
+			RenderDatas[mesh.Index] = new RenderData();
+
+			foreach (var vert in verts) {
+				var ri = Textures[mesh.TextureIndexes[vert.Key]].IsSemiTransparent ? RenderInfoTransparent : RenderInfo;
+				ri.Indices.Add(new VboIndex { Texture = mesh.TextureIndexes[vert.Key], MeshTextureIndice = vert.Key, Begin = ri.Vertices.Count, Count = vert.Value.Length });
+				ri.Vertices.AddRange(vert.Value);
+			}
+
+			if (mesh.IsBakedRenderMatrix) {
+				RenderDatas[mesh.Index].MatrixSub = Matrix4.Identity;
+				RenderDatas[mesh.Index].Matrix = mesh.Matrix2;
+			}
+			else {
+				RenderDatas[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
+				RenderDatas[mesh.Index].Matrix = mesh.Matrix2 * RenderDatas[mesh.Index].MatrixSub;
+			}
+
+			foreach (var child in mesh.Children) {
+				_initMeshInfoSub(child, ref RenderDatas[mesh.Index].MatrixSub);
 			}
 		}
 
@@ -123,15 +220,73 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		}
 
 		public void Render(OpenGLViewport viewport, ref Matrix4 modelMatrixCache) {
+			if (viewport.RenderPass != RenderMode.OpaqueTextures &&
+				viewport.RenderPass != RenderMode.TransparentTextures &&
+				viewport.RenderPass != RenderMode.OpaqueTransparentTextures &&
+				viewport.RenderPass != RenderMode.AnimatedTransparentTextures)
+				return;
+
 			Shader.Use();
-			Shader.SetMatrix4("modelMatrix2", ref modelMatrixCache);
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
+
+			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
+				Shader.SetBool("fixedColor", true);
+			}
+			else {
+				Shader.SetBool("fixedColor", false);
+			}
+
+			switch(viewport.RenderPass) {
+				case RenderMode.OpaqueTextures:
+					GL.DepthMask(true);
+					Shader.SetFloat("discardValue", 0.8f);
+					Shader.SetInt("discardAlphaMode", 0);
+					break;
+				case RenderMode.OpaqueTransparentTextures:
+					GL.DepthMask(true);
+					Shader.SetFloat("discardValue", 0.0f);
+					Shader.SetInt("discardAlphaMode", 1);
+					break;
+				case RenderMode.TransparentTextures:
+					GL.Enable(EnableCap.Blend);
+					GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+					GL.DepthMask(false);
+					Shader.SetFloat("discardValue", 0.0f);
+					Shader.SetInt("discardAlphaMode", 2);
+					break;
+				case RenderMode.AnimatedTransparentTextures:
+					GL.Enable(EnableCap.Blend);
+					GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+
+					GL.DepthMask(false);
+					Shader.SetFloat("discardValue", 0.0f);
+					Shader.SetInt("discardAlphaMode", 0);
+					break;
+			}
+			
+			Shader.SetMatrix4("instanceMatrix", ref modelMatrixCache);
 			Shader.SetInt("shadeType", viewport.RenderOptions.ForceShader > 0 ? viewport.RenderOptions.ForceShader : _rsm.ShadeType);
 
 			Render(viewport);
+
+			if (viewport.RenderOptions.ShowWireframeView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+
+			if (viewport.RenderOptions.ShowPointView)
+				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 		}
 
 		public override void Render(OpenGLViewport viewport) {
-			if (viewport.RenderPass > 2)
+			if (viewport.RenderPass != RenderMode.OpaqueTextures && 
+				viewport.RenderPass != RenderMode.OpaqueTransparentTextures && 
+				viewport.RenderPass != RenderMode.TransparentTextures &&
+				viewport.RenderPass != RenderMode.AnimatedTransparentTextures)
 				return;
 
 			Shader.Use();
@@ -144,13 +299,24 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				Vector3 lightDirection = viewport.LightDirection;
 				lightDirection *= -1;
 				
-				Shader.SetVector3("lightAmbient", viewport.LightAmbient);
+				Shader.SetVector3("lightAmbient", ref viewport.LightAmbient);
 				Shader.SetVector3("lightDiffuse", new Vector3(1f, 1f, 1f));
 				Shader.SetFloat("lightIntensity", 0.5f);
-				Shader.SetVector3("lightDirection", lightDirection);
-				Shader.SetVector3("lightPosition", viewport.Camera.Position);
+				Shader.SetVector3("lightDirection", ref lightDirection);
+				Shader.SetVector3("lightPosition", ref viewport.Camera.Position);
 			}
 
+			// Gotta reverse triangles
+			if (_rsm.Version >= 2.2)
+				GL.FrontFace(FrontFaceDirection.Cw);
+
+			_render(viewport);
+
+			if (_rsm.Version >= 2.2)
+				GL.FrontFace(FrontFaceDirection.Ccw);
+		}
+
+		private void _render(OpenGLViewport viewport) {
 			if (_rsm.MeshesDirty) {
 				var matrix = Matrix4.Identity;
 				_updateMeshMatrix(_rsm.MainMesh, ref matrix, true);
@@ -158,35 +324,29 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 
 			var meshes = _rsm.GetOrdererMeshes();
-			_renderMesh(viewport, meshes, RenderInfo, false);
 
-			if (RenderInfoTransparent.Indices.Count > 0) {
-				Shader.SetFloat("discardValue", 0);
-				_renderMesh(viewport, meshes, RenderInfoTransparent, true);
-				Shader.SetFloat("discardValue", 0.8f);
+			switch(viewport.RenderPass) {
+				case RenderMode.OpaqueTextures:	// Draw opaque textures only
+					_renderMesh(viewport, meshes, RenderInfo, false);
+					break;
+				case RenderMode.TransparentTextures:
+				case RenderMode.OpaqueTransparentTextures:
+				case RenderMode.AnimatedTransparentTextures:
+					if (RenderInfoTransparent.Indices.Count == 0)
+						return;
+
+					_renderMesh(viewport, meshes, RenderInfoTransparent, true);
+					break;
 			}
 		}
 
-		public void RenderDynamicModels(OpenGLViewport viewport, List<Matrix4> modelMatrixCaches) {
+		public void RenderDynamicModels(OpenGLViewport viewport) {
 			if (!IsLoaded)
 				Load(viewport);
 
 			Shader.SetInt("shadeType", viewport.RenderOptions.ForceShader > 0 ? viewport.RenderOptions.ForceShader : _rsm.ShadeType);
 
-			if (_rsm.MeshesDirty) {
-				var matrix = Matrix4.Identity;
-				_updateMeshMatrix(_rsm.MainMesh, ref matrix, true);
-				_rsm.MeshesDirty = false;
-			}
-
-			var meshes = _rsm.GetOrdererMeshes();
-			_renderMesh(viewport, meshes, RenderInfo, false, modelMatrixCaches);
-
-			if (RenderInfoTransparent.Indices.Count > 0) {
-				Shader.SetFloat("discardValue", 0f);
-				_renderMesh(viewport, meshes, RenderInfoTransparent, true, modelMatrixCaches);
-				Shader.SetFloat("discardValue", 0.8f);
-			}
+			_render(viewport);
 		}
 
 		private void _updateMeshMatrix(Mesh mesh, ref Matrix4 matrix, bool calcMatrix) {
@@ -196,29 +356,29 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					mesh.CalcMatrix1();
 				}
 
-				if (mesh.Model.Version >= 2.2) {
-					RenderInfos[mesh.Index].Matrix = mesh.Matrix2;
-					RenderInfos[mesh.Index].MatrixSub = Matrix4.Identity;
+				if (mesh.IsBakedRenderMatrix) {
+					RenderDatas[mesh.Index].MatrixSub = Matrix4.Identity;
+					RenderDatas[mesh.Index].Matrix = mesh.Matrix2;
 				}
 				else {
-					RenderInfos[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
-					RenderInfos[mesh.Index].Matrix = mesh.Matrix2 * RenderInfos[mesh.Index].MatrixSub;
+					RenderDatas[mesh.Index].MatrixSub = mesh.Matrix1 * matrix;
+					RenderDatas[mesh.Index].Matrix = mesh.Matrix2 * RenderDatas[mesh.Index].MatrixSub;
 				}
 			}
 
 			foreach (var child in mesh.Children) {
-				_updateMeshMatrix(child, ref RenderInfos[mesh.Index].MatrixSub, calcMatrix);
+				_updateMeshMatrix(child, ref RenderDatas[mesh.Index].MatrixSub, calcMatrix);
 			}
 		}
 
-		private void _renderMesh(OpenGLViewport viewport, List<Mesh> meshes, RenderInfo ri, bool transparent, List<Matrix4> modelMatrixCaches = null) {
+		private void _renderMesh(OpenGLViewport viewport, List<Mesh> meshes, RenderInfo ri, bool transparent) {
 			if (ri.Vbo != null) {
 				bool repeat = false;
 				ri.BindVao();
 
 				Mesh mesh = null;
 				int meshIndex = -1;
-				int startVboOffset = 0;
+				int startVboOffset;
 				int vboCount = 0;
 
 				foreach (var vboIndex in ri.Indices) {
@@ -233,28 +393,28 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						vboCount = meshIndex + 1 < meshes.Count ? (transparent ? meshes[meshIndex + 1].VboOffsetTransparent : meshes[meshIndex + 1].VboOffset) - startVboOffset : int.MaxValue;
 
 						if (vboCount > 0)
-							Shader.SetMatrix4("modelMatrix", ref RenderInfos[mesh.Index].Matrix);
+							Shader.SetMatrix4("m", ref RenderDatas[mesh.Index].Matrix);
 					}
 
 					if (meshIndex >= meshes.Count)
 						break;
 
-					if (!Textures[mesh.TextureIndexes[vboIndex.Texture]].IsLoaded && Textures[mesh.TextureIndexes[vboIndex.Texture]].Image == null) {
+					if (!Textures[vboIndex.Texture].IsLoaded && Textures[vboIndex.Texture].Image == null) {
 						vboCount -= vboIndex.Count;
 						continue;
 					}
 
-					var texture = Textures[mesh.TextureIndexes[vboIndex.Texture]];
+					var texture = Textures[vboIndex.Texture];
 
-					if (viewport.RenderPass == 2 && (!texture.IsSemiTransparent || mesh.TextureKeyFrameGroup.Count <= 0)) {
+					if (viewport.RenderPass == RenderMode.AnimatedTransparentTextures && (!texture.IsSemiTransparent || mesh.TextureKeyFrameGroup.Count <= 0)) {
 						vboCount -= vboIndex.Count;
 						continue;
 					}
-					if (viewport.RenderPass == 1 && (!texture.IsSemiTransparent || mesh.TextureKeyFrameGroup.Count > 0)) {
+					if ((viewport.RenderPass == RenderMode.TransparentTextures || viewport.RenderPass == RenderMode.OpaqueTransparentTextures) && (!texture.IsSemiTransparent || mesh.TextureKeyFrameGroup.Count > 0)) {
 						vboCount -= vboIndex.Count;
 						continue;
 					}
-					if (viewport.RenderPass == 0 && texture.IsSemiTransparent) {
+					if (viewport.RenderPass == RenderMode.OpaqueTextures && texture.IsSemiTransparent) {
 						vboCount -= vboIndex.Count;
 						continue;
 					}
@@ -264,11 +424,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						Vector2 texMult = new Vector2(1);
 						Matrix4 texRot = Matrix4.Identity;
 						float rotOffset = 0;
-						texRot = GLHelper.Translate(texRot, new Vector3(0.5f, 0.5f, 0));
+						texRot = GLHelper.Translate(ref texRot, new Vector3(0.5f, 0.5f, 0));
 
 						foreach (var type in mesh.TextureKeyFrameGroup.Types) {
-							if (mesh.TextureKeyFrameGroup.HasTextureAnimation(vboIndex.Texture, type)) {
-								float offset = mesh.GetTexture(vboIndex.Texture, type);
+							if (mesh.TextureKeyFrameGroup.HasTextureAnimation(vboIndex.MeshTextureIndice, type)) {
+								float offset = mesh.GetTexture(vboIndex.MeshTextureIndice, type);
 								repeat = true;
 
 								switch (type) {
@@ -291,11 +451,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 							}
 						}
 
-						texRot = GLHelper.Scale(texRot, new Vector3(texMult.X, texMult.Y, 1));
-						texRot = GLHelper.Rotate(texRot, rotOffset, new Vector3(0, 0, 1));
+						texRot = GLHelper.Scale(ref texRot, new Vector3(texMult.X, texMult.Y, 1));
+						texRot = GLHelper.Rotate(ref texRot, rotOffset, new Vector3(0, 0, 1));
 						texRot[3, 0] += texTranslate.X;
 						texRot[3, 1] += texTranslate.Y;
-						texRot = GLHelper.Translate(texRot, new Vector3(-0.5f, -0.5f, 0));
+						texRot = GLHelper.Translate(ref texRot, new Vector3(-0.5f, -0.5f, 0));
 
 						Shader.SetFloat("textureAnimToggle", 1);
 						Shader.SetMatrix4("texRot", ref texRot);
@@ -308,14 +468,21 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 					}
 
-					if (modelMatrixCaches != null) {
-						foreach (var matrix in modelMatrixCaches) {
-							Shader.SetMatrix4("modelMatrix2", matrix);
-							GL.DrawArrays(PrimitiveType.Triangles, vboIndex.Begin, vboIndex.Count);
-						}
+					// modelMatrixCaches are always used for the MapRenderer (map preview)
+					if (InstanceMatrices != null) {
+						GL.DrawArraysInstanced(PrimitiveType.Triangles, vboIndex.Begin, vboIndex.Count, InstanceMatrices.Length);
+#if DEBUG
+						viewport.Stats.DrawArrays_Calls++;
+						viewport.Stats.DrawArrays_Calls_VertexLength += vboIndex.Count;
+#endif
 					}
+					// This part is only used by the RsmRenderer (rsm preview)
 					else {
 						GL.DrawArrays(PrimitiveType.Triangles, vboIndex.Begin, vboIndex.Count);
+#if DEBUG
+						viewport.Stats.DrawArrays_Calls++;
+						viewport.Stats.DrawArrays_Calls_VertexLength += vboIndex.Count;
+#endif
 					}
 
 					if (mesh.Model.Version >= 2.3 && mesh.TextureKeyFrameGroup.Count > 0) {
@@ -332,8 +499,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 		public static void UpdateShader(Shader shader, OpenGLViewport viewport) {
 			shader.Use();
-			shader.SetMatrix4("cameraMatrix", ref viewport.View);
-			shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
+			shader.SetMatrix4("vp", ref viewport.ViewProjection);
 			shader.SetFloat("enableCullFace", viewport.RenderOptions.EnableFaceCulling ? 1.0f : 0.0f);
 		}
 
@@ -341,14 +507,14 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			shader.Use();
 
 			Matrix3 mat = Matrix3.Identity;
-			mat = GLHelper.Rotate(mat, -GLHelper.ToRad(rsw.Light.Latitude), new Vector3(1, 0, 0));
-			mat = GLHelper.Rotate(mat, GLHelper.ToRad(rsw.Light.Longitude), new Vector3(0, 1, 0));
+			mat = GLHelper.Rotate(ref mat, -GLHelper.ToRad(rsw.Light.Latitude), new Vector3(1, 0, 0));
+			mat = GLHelper.Rotate(ref mat, GLHelper.ToRad(rsw.Light.Longitude), new Vector3(0, 1, 0));
 
 			Vector3 lightDirection = mat * new Vector3(0, 1, 0);
 			shader.SetVector3("lightAmbient", new Vector3(rsw.Light.AmbientRed, rsw.Light.AmbientGreen, rsw.Light.AmbientBlue));
 			shader.SetVector3("lightDiffuse", new Vector3(rsw.Light.DiffuseRed, rsw.Light.DiffuseGreen, rsw.Light.DiffuseBlue));
 			shader.SetFloat("lightIntensity", rsw.Light.Intensity);
-			shader.SetVector3("lightDirection", lightDirection);
+			shader.SetVector3("lightDirection", ref lightDirection);
 		}
 
 		public override void Unload() {
@@ -356,9 +522,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				TextureManager.UnloadTexture(texture.Resource, _request.Context);
 			}
 
-			foreach (var ri in RenderInfos.Values) {
-				ri.Unload();
-			}
+			if (Instance != null)
+				Instance.Unload();
 		}
 
 		public override int GetHashCode() {

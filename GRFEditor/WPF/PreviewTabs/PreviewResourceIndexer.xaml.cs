@@ -52,7 +52,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					Clipboard.SetDataObject(((MapExtractorTreeViewItem)_tree.SelectedItem).ResourcePath.GetMostRelative());
 			};
 
-			_labelHeader.Dispatch(p => p.Content = "Searching usages of " + Path.GetFileName(_fileName));
+			_labelHeader.Dispatch(p => p.Text = "Searching usages of " + Path.GetFileName(_fileName));
 			ShowInTaskbar = true;
 
 			_asyncOperation = new AsyncOperation(_progressBarComponent);
@@ -397,7 +397,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public void Update(object selectedItem) {
 			if (selectedItem is FileEntry) {
 				_fileName = ((FileEntry) selectedItem).RelativePath;
-				_labelHeader.Dispatch(p => p.Content = "Searching usages of " + Path.GetFileName(_fileName));
+				_labelHeader.Dispatch(p => p.Text = "Searching usages of " + Path.GetFileName(_fileName));
 				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, 200, null, false, true));
 			}
 		}

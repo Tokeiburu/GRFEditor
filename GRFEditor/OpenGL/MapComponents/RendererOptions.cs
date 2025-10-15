@@ -15,7 +15,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public bool ViewStickToGround { get; set; }
 		public bool UseClientPov { get; set; }
 		public bool RenderSkymapFeature { get; set; }
-		public bool RenderSkymapDetected { get; set; }
 		public bool RenderingMap { get; set; }
 		public bool SmoothCamera { get; set; }
 		public int FpsCap { get; set; }
@@ -29,7 +28,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public bool ShowWireframeView { get; set; }
 		public bool ShowPointView { get; set; }
 
-		public Vector4 SkymapBackgroundColor = new Vector4(102, 152, 204, 255) / 255f;	// rbga
 		public Vector4 MinimapWaterColor = new Vector4(0, 0, 128, 144) / 255f;	// rgba
 		public Vector4 MinimapWalkColor = new Vector4(0.5f, 0.5f, 0.5f, 1f);
 		public Vector4 MinimapNonWalkColor = new Vector4(0, 0, 0, 0.4f);
@@ -48,7 +46,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 			ViewStickToGround = true;
 			UseClientPov = false;
 			RenderSkymapFeature = true;
-			RenderSkymapDetected = true;
 			SmoothCamera = true;
 			FpsCap = 60;
 			EnableFaceCulling = false;

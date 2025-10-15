@@ -7,8 +7,8 @@
                             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Foreground="{StaticResource TextForeground}">
     <StackPanel>
-        <Label Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-        <Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+		<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
+		<Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         <WrapPanel>
             <Styles:FancyButton x:Name="_buttonPlaySound" Click="_buttonPlaySound_Click" Height="43" TextHeader="Play" TextDescription="Play sound file" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />
             <Styles:FancyButton x:Name="_buttonStopSound" Click="_buttonStopSound_Click" Height="43" TextHeader="Stop" TextDescription="Stop sound file" Margin="2" HorizontalAlignment="Left" VerticalAlignment="Top" />

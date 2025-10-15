@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Runtime.InteropServices;
 using GRF.FileFormats.RswFormat;
 using GRF.Graphics;
 using GRF.Image;
@@ -9,6 +11,7 @@ using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using Utilities;
+using Buffer = System.Buffer;
 using Matrix3 = OpenTK.Matrix3;
 using Matrix4 = OpenTK.Matrix4;
 using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
@@ -58,9 +61,37 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			IsLoaded = true;
 		}
 
+		[StructLayout(LayoutKind.Sequential)]
+		public struct VertexP3T2S2C4N3 {
+			public Vector3 Pos;
+			public Vector2 Tex;
+			public Vector2 ShadowTex;
+			public Vector4 Color;
+			public Vector3 Normal;
+
+			public VertexP3T2S2C4N3(in Vector3 pos, in Vector2 tex, in Vector2 shadowTex, in Vector4 color, in Vector3 normal) {
+				Pos = pos;
+				Tex = tex;
+				ShadowTex = shadowTex;
+				Color = color;
+				Normal = normal;
+			}
+
+			public VertexP3T2S2C4N3(in Vector3 pos, in Vector2 tex, in float sX, in float sY, in Vector4 color, in Vector3 normal) {
+				Pos = pos;
+				Tex = tex;
+				ShadowTex.X = sX;
+				ShadowTex.Y = sY;
+				Color = color;
+				Normal = normal;
+			}
+		};
+
+		private static readonly Vector4 ColorWhite = new Vector4(1f);
+
 		private void _loadGround(OpenGLViewport viewport) {
-			var vertices = new List<Vertex>();
-			var verts = new Dictionary<int, List<Vertex>>();
+			VertexP3T2S2C4N3[][] verts;
+			int[] vertsSizes;
 			VertIndices.Clear();
 
 			float lmsx = _gnd.LightmapWidth;
@@ -70,207 +101,243 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			int shadowmapRowCount = ShadowmapSize / _gnd.LightmapWidth;
 
-			for (int x = 0; x < _gnd.Header.Width; x++) {
-				for (int y = 0; y < _gnd.Header.Height; y++) {
-					Cube cube = _gnd[x, y];
-					try {
-						if (cube.TileUp != -1) {
-							Tile tile = _gnd.Tiles[cube.TileUp];
+			// Pre-assign the arrays
+			const int SizePerTile = 6;
 
-							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
+			int size = _gnd.Tiles.Max(p => p.TextureIndex) + 2;
+			int totalVertex = 0;
 
-							TkVector4 c1 = new TkVector4(1f);
+			verts = new VertexP3T2S2C4N3[size][];
+			vertsSizes = new int[size];
+			var cubes = _gnd.Cubes;
+			var tiles = _gnd.Tiles;
+			int width = _gnd.Width;
+			int height = _gnd.Height;
 
-							if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
-								c1 = new TkVector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
+			int x = 0;
+			int y = 0;
 
-							TkVector4 c2 = new TkVector4(1f);
-							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
+			for (int i = 0; i < cubes.Length; i++) {
+				Cube cube = cubes[i];
 
-							TkVector4 c3 = new TkVector4(tile.Color) / 255f;
+				if (cube.TileUp != -1) {
+					vertsSizes[tiles[cube.TileUp].TextureIndex + 1]++;
+				}
+				else if (viewport.RenderOptions.ShowBlackTiles) {
+					vertsSizes[0]++;
+				}
 
-							TkVector4 c4 = new TkVector4(1f);
-							if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
-								c4 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
+				if (cube.TileSide != -1 && x < width - 1) {
+					vertsSizes[tiles[cube.TileSide].TextureIndex + 1]++;
+				}
 
-							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, cube.Normals[2]);
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, cube.Normals[3]);
-							Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), tile[0], new Vector2(lm1.X, lm1.Y), c3, cube.Normals[0]);
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c4, cube.Normals[1]);
+				if (cube.TileFront != -1 && y < height - 1) {
+					vertsSizes[tiles[cube.TileFront].TextureIndex + 1]++;
+				}
 
-							List<Vertex> l;
+				x++;
 
-							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-								l = new List<Vertex>();
-								verts[tile.TextureIndex] = l;
-							}
-
-							l.Add(v4); l.Add(v2); l.Add(v1);
-							l.Add(v4); l.Add(v1); l.Add(v3);
-						}
-						else if (viewport.RenderOptions.ShowBlackTiles) {
-							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[2]);
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[3]);
-							Vertex v3 = new Vertex(new Vector3(10 * x, -cube[0], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[0]);
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), new Vector2(0), new Vector2(0), new TkVector4(0.0f), cube.Normals[1]);
-
-							List<Vertex> l;
-
-							if (!verts.TryGetValue(-1, out l)) {
-								l = new List<Vertex>();
-								verts[-1] = l;
-							}
-
-							l.Add(v3); l.Add(v2); l.Add(v1);
-							l.Add(v4); l.Add(v2); l.Add(v3);
-						}
-
-						if (cube.TileSide != -1 && x < _gnd.Width - 1) {
-							Tile tile = _gnd.Tiles[cube.TileSide];
-
-							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
-
-
-							TkVector4 c1 = new TkVector4(1f);
-							if (x < _gnd.Width - 1 && _gnd[x + 1, y].TileUp != -1)
-								c1 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y].TileUp].Color) / 255.0f;
-							TkVector4 c2 = new TkVector4(1f);
-							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
-
-							Vector3 n = new Vector3(-1, 0, 0);
-							Cube cubeN = _gnd[x + 1, y];
-
-							if (cubeN != null && cube[1] < cubeN[0]) {
-								n *= -1;
-							}
-
-							Vertex v1 = new Vertex(new Vector3(10 * x + 10, -cube[1], 10 * _gnd.Height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, n);
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, n);
-							Vertex v3 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][0], 10 * _gnd.Height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, n);
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x + 1, y][2], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, n);
-
-							List<Vertex> l;
-
-							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-								l = new List<Vertex>();
-								verts[tile.TextureIndex] = l;
-							}
-
-							l.Add(v1); l.Add(v3); l.Add(v4);
-							l.Add(v4); l.Add(v2); l.Add(v1);
-						}
-
-						if (cube.TileFront != -1 && y < _gnd.Height - 1) {
-							Tile tile = _gnd.Tiles[cube.TileFront];
-
-							Vector2 lm1 = new Vector2((tile.LightmapIndex % shadowmapRowCount) * (lmsx / ShadowmapSize) + 1.0f / ShadowmapSize, (tile.LightmapIndex / shadowmapRowCount) * (lmsy / ShadowmapSize) + 1.0f / ShadowmapSize);
-							Vector2 lm2 = lm1 + new Vector2(lmsxu / ShadowmapSize, lmsyu / ShadowmapSize);
-
-							TkVector4 c1 = new TkVector4(1f);
-							if (y < _gnd.Height - 1 && _gnd[x, y + 1].TileUp != -1)
-								c1 = new TkVector4(_gnd.Tiles[_gnd[x, y + 1].TileUp].Color) / 255.0f;
-
-							TkVector4 c2 = new TkVector4(1f);
-							if (x < _gnd.Width - 1 && y < _gnd.Height - 1 && _gnd[x + 1, y + 1].TileUp != -1)
-								c2 = new TkVector4(_gnd.Tiles[_gnd[x + 1, y + 1].TileUp].Color) / 255.0f;
-
-							Vector3 n = new Vector3(0, 0, -1);
-							Cube cubeN = _gnd[x, y + 1];
-
-							if (cubeN != null && cube[2] < cubeN[0]) {
-								n *= -1;
-							}
-
-							Vertex v1 = new Vertex(new Vector3(10 * x, -cube[2], 10 * _gnd.Height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, n);
-							Vertex v2 = new Vertex(new Vector3(10 * x + 10, -cube[3], 10 * _gnd.Height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, n);
-							Vertex v4 = new Vertex(new Vector3(10 * x + 10, -_gnd[x, y + 1][1], 10 * _gnd.Height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, n);
-							Vertex v3 = new Vertex(new Vector3(10 * x, -_gnd[x, y + 1][0], 10 * _gnd.Height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, n);
-
-							List<Vertex> l;
-
-							if (!verts.TryGetValue(tile.TextureIndex, out l)) {
-								l = new List<Vertex>();
-								verts[tile.TextureIndex] = l;
-							}
-
-							l.Add(v1); l.Add(v2); l.Add(v3);
-							l.Add(v3); l.Add(v2); l.Add(v4);
-						}
-					}
-					catch (Exception err) {
-						Z.F(err);
-					}
+				if (x == width) {
+					x = 0;
+					y++;
 				}
 			}
 
-			foreach (var vert in verts) {
-				VertIndices.Add(new VboIndex { Texture = vert.Key, Begin = vertices.Count, Count = vert.Value.Count });
-				vertices.AddRange(vert.Value);
+			for (int i = 0; i < verts.Length; i++) {
+				verts[i] = new VertexP3T2S2C4N3[vertsSizes[i] * SizePerTile];
+				totalVertex += vertsSizes[i] * SizePerTile;
+				vertsSizes[i] = 0;
 			}
 
-			_ri.RawVertices = Vbo.Vertex2Data(vertices);
+			Vector2[] lightmapMins = new Vector2[_gnd.Lightmaps.Count];
+			Vector2[] lightmapMaxs = new Vector2[_gnd.Lightmaps.Count];
+			float shadowUnit = 1.0f / ShadowmapSize;
+			float shadowUnitX = lmsx / ShadowmapSize;
+			float shadowUnitY = lmsy / ShadowmapSize;
+			float shadowUnitUX = lmsxu / ShadowmapSize;
+			float shadowUnitUY = lmsyu / ShadowmapSize;
+			for (int t = 0; t < _gnd.Lightmaps.Count; t++) {
+				float lx = (t % shadowmapRowCount) * shadowUnitX + shadowUnit;
+				float ly = (t / shadowmapRowCount) * shadowUnitY + shadowUnit;
+				lightmapMins[t] = new Vector2(lx, ly);
+				lightmapMaxs[t] = lightmapMins[t] + new Vector2(shadowUnitUX, shadowUnitUY);
+			}
+
+			Vector4 c1, c2, c3, c4;
+			x = 0;
+			y = 0;
+
+			for (int i = 0; i < cubes.Length; i++) {
+				Cube cube = cubes[i];
+
+				if (cube.TileUp != -1) {
+					Tile tile = tiles[cube.TileUp];
+
+					var lm1 = lightmapMins[tile.LightmapIndex];
+					var lm2 = lightmapMaxs[tile.LightmapIndex];
+
+					int idxUp    = (y < height - 1) ? i + width     : -1;
+					int idxRight = (x < width - 1)  ? i + 1         : -1;
+					int idxDiag  = (x < width - 1 && y < height - 1) ? i + width + 1 : -1;
+
+					c1 = (idxUp    >= 0 && cubes[idxUp].TileUp    != -1) ? tiles[cubes[idxUp].TileUp].Color    : ColorWhite;
+					c2 = (idxDiag  >= 0 && cubes[idxDiag].TileUp  != -1) ? tiles[cubes[idxDiag].TileUp].Color  : ColorWhite;
+					c4 = (idxRight >= 0 && cubes[idxRight].TileUp != -1) ? tiles[cubes[idxRight].TileUp].Color : ColorWhite;
+					c3 = tile.Color;
+
+					int offset = vertsSizes[tile.TextureIndex + 1];
+					ref var v1 = ref verts[tile.TextureIndex + 1][offset + 2];
+					ref var v2 = ref verts[tile.TextureIndex + 1][offset + 1];
+					ref var v3 = ref verts[tile.TextureIndex + 1][offset + 5];
+					ref var v4 = ref verts[tile.TextureIndex + 1][offset + 0];
+					v1 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cube[2], 10 * height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, cube.Normals[2]);
+					v2 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[3], 10 * height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, cube.Normals[3]);
+					v3 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cube[0], 10 * height - 10 * y + 10), tile[0], new Vector2(lm1.X, lm1.Y), c3, cube.Normals[0]);
+					v4 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[1], 10 * height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c4, cube.Normals[1]);
+
+					verts[tile.TextureIndex + 1][offset + 3] = verts[tile.TextureIndex + 1][offset + 0];
+					verts[tile.TextureIndex + 1][offset + 4] = verts[tile.TextureIndex + 1][offset + 2];
+					vertsSizes[tile.TextureIndex + 1] += SizePerTile;
+				}
+				else if (viewport.RenderOptions.ShowBlackTiles) {
+					int offset = vertsSizes[0];
+					ref var v1 = ref verts[0][offset + 2];
+					ref var v2 = ref verts[0][offset + 1];
+					ref var v3 = ref verts[0][offset + 0];
+					ref var v4 = ref verts[0][offset + 3];
+					v1 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cube[2], 10 * height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[2]);
+					v2 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[3], 10 * height - 10 * y), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[3]);
+					v3 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cube[0], 10 * height - 10 * y + 10), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[0]);
+					v4 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[1], 10 * height - 10 * y + 10), new Vector2(0), new Vector2(0), new Vector4(0.0f), cube.Normals[1]);
+
+					verts[0][offset + 4] = verts[0][offset + 1];
+					verts[0][offset + 5] = verts[0][offset + 0];
+					vertsSizes[0] += SizePerTile;
+				}
+
+				if (cube.TileSide != -1 && x < width - 1) {
+					Tile tile = tiles[cube.TileSide];
+
+					var lm1 = lightmapMins[tile.LightmapIndex];
+					var lm2 = lightmapMaxs[tile.LightmapIndex];
+					
+					int idxRight = (x < width - 1)  ? i + 1         : -1;
+					int idxDiag  = (x < width - 1 && y < height - 1) ? i + width + 1 : -1;
+					
+					c1 = (idxRight >= 0 && cubes[idxRight].TileUp != -1) ? tiles[cubes[idxRight].TileUp].Color : ColorWhite;
+					c2 = (idxDiag  >= 0 && cubes[idxDiag].TileUp  != -1) ? tiles[cubes[idxDiag].TileUp].Color  : ColorWhite;
+
+					Vector3 n = new Vector3(-1, 0, 0);
+					Cube cubeN = cubes[x + 1 + y * width];
+
+					if (cubeN != null && cube[1] < cubeN[0]) {
+						n *= -1;
+					}
+
+					int offset = vertsSizes[tile.TextureIndex + 1];
+					ref var v1 = ref verts[tile.TextureIndex + 1][offset + 0];
+					ref var v2 = ref verts[tile.TextureIndex + 1][offset + 4];
+					ref var v3 = ref verts[tile.TextureIndex + 1][offset + 1];
+					ref var v4 = ref verts[tile.TextureIndex + 1][offset + 2];
+					v1 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[1], 10 * height - 10 * y + 10), tile[1], new Vector2(lm2.X, lm1.Y), c1, n);
+					v2 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[3], 10 * height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c2, n);
+					v3 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cubes[x + 1 + y * width][0], 10 * height - 10 * y + 10), tile[3], new Vector2(lm2.X, lm2.Y), c1, n);
+					v4 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cubes[x + 1 + y * width][2], 10 * height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c2, n);
+
+					verts[tile.TextureIndex + 1][offset + 3] = verts[tile.TextureIndex + 1][offset + 2];
+					verts[tile.TextureIndex + 1][offset + 5] = verts[tile.TextureIndex + 1][offset + 0];
+					vertsSizes[tile.TextureIndex + 1] += SizePerTile;
+				}
+
+				if (cube.TileFront != -1 && y < height - 1) {
+					Tile tile = tiles[cube.TileFront];
+
+					var lm1 = lightmapMins[tile.LightmapIndex];
+					var lm2 = lightmapMaxs[tile.LightmapIndex];
+
+					int idxUp    = (y < height - 1) ? i + width     : -1;
+					int idxDiag  = (x < width - 1 && y < height - 1) ? i + width + 1 : -1;
+					
+					c1 = (idxUp    >= 0 && cubes[idxUp].TileUp    != -1) ? tiles[cubes[idxUp].TileUp].Color    : ColorWhite;
+					c2 = (idxDiag  >= 0 && cubes[idxDiag].TileUp  != -1) ? tiles[cubes[idxDiag].TileUp].Color  : ColorWhite;
+
+					Vector3 n = new Vector3(0, 0, -1);
+					Cube cubeN = cubes[x + (y + 1) * width];
+
+					if (cubeN != null && cube[2] < cubeN[0]) {
+						n *= -1;
+					}
+
+					int offset = vertsSizes[tile.TextureIndex + 1];
+					ref var v1 = ref verts[tile.TextureIndex + 1][offset + 0];
+					ref var v2 = ref verts[tile.TextureIndex + 1][offset + 1];
+					ref var v3 = ref verts[tile.TextureIndex + 1][offset + 2];
+					ref var v4 = ref verts[tile.TextureIndex + 1][offset + 5];
+					v1 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cube[2], 10 * height - 10 * y), tile[0], new Vector2(lm1.X, lm1.Y), c1, n);
+					v2 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cube[3], 10 * height - 10 * y), tile[1], new Vector2(lm2.X, lm1.Y), c2, n);
+					v4 = new VertexP3T2S2C4N3(new Vector3(10 * x + 10, -cubes[x + (y + 1) * width][1], 10 * height - 10 * y), tile[3], new Vector2(lm2.X, lm2.Y), c2, n);
+					v3 = new VertexP3T2S2C4N3(new Vector3(10 * x, -cubes[x + (y + 1) * width][0], 10 * height - 10 * y), tile[2], new Vector2(lm1.X, lm2.Y), c1, n);
+
+					verts[tile.TextureIndex + 1][offset + 3] = verts[tile.TextureIndex + 1][offset + 2];
+					verts[tile.TextureIndex + 1][offset + 4] = verts[tile.TextureIndex + 1][offset + 1];
+					vertsSizes[tile.TextureIndex + 1] += SizePerTile;
+				}
+
+				x++;
+
+				if (x == width) {
+					x = 0;
+					y++;
+				}
+			}
+
+			int vertOffset = 0;
+			int structSize = Marshal.SizeOf<VertexP3T2S2C4N3>();
+			int structFloatSize = structSize / sizeof(float);
+			_ri.RawVertices = new float[totalVertex * structFloatSize];
+
+			for (int i = 0; i < verts.Length; i++) {
+				VertIndices.Add(new VboIndex { Texture = i - 1, Begin = vertOffset, Count = vertsSizes[i] });
+
+				if (vertsSizes[i] == 0)
+					continue;
+
+				IntPtr ptr = Marshal.UnsafeAddrOfPinnedArrayElement(verts[i], 0);
+				Marshal.Copy(ptr, _ri.RawVertices, vertOffset * structFloatSize, vertsSizes[i] * structFloatSize);
+
+				vertOffset += vertsSizes[i];
+			}
 		}
 
 		private void _loadShadowmap() {
-			byte[] data = new byte[ShadowmapSize * ShadowmapSize * 4];
-
-			int xs = 0;
-			int ys = 0;
-			int off = _gnd.LightmapOffset();
-
-			for (int i = 0; i < _gnd.Lightmaps.Count; i++) {
-				var lightMap = _gnd.Lightmaps[i];
-
-				for (int xx = 0; xx < _gnd.LightmapWidth; xx++) {
-					for (int yy = 0; yy < _gnd.LightmapHeight; yy++) {
-						int xxx = _gnd.LightmapWidth * xs + xx;
-						int yyy = _gnd.LightmapHeight * ys + yy;
-
-						// Ingame lightmap
-						int off1 = (xxx + ShadowmapSize * yyy);
-						int off2 = (xx + _gnd.LightmapWidth * yy);
-
-						data[4 * off1 + 0] = lightMap[off + 3 * off2 + 2];
-						data[4 * off1 + 1] = lightMap[off + 3 * off2 + 1];
-						data[4 * off1 + 2] = lightMap[off + 3 * off2 + 0];
-						data[4 * off1 + 3] = lightMap[xx + _gnd.LightmapWidth * yy];
-					}
-				}
-
-				xs++;
-
-				if (xs * _gnd.LightmapWidth >= ShadowmapSize) {
-					xs = 0;
-					ys++;
-
-					if (ys * _gnd.LightmapHeight >= ShadowmapSize) {
-						ys = 0;
-					}
-				}
-			}
-
-			_shadow = new GrfImage(data, ShadowmapSize, ShadowmapSize, GrfImageType.Bgra32);
+			_shadow = GRF.FileFormats.GndFormat.Gnd.GenerateShadowMap(ShadowmapSize, _gnd.LightmapOffset(), _gnd.LightmapWidth, _gnd.LightmapHeight, _gnd.LightmapSizeCell, _gnd.Lightmaps);
 		}
 
 		public override void Render(OpenGLViewport viewport) {
 			if (IsUnloaded || !viewport.RenderOptions.Ground)
 				return;
 
-			if (viewport.RenderPass > 1)
+			if (viewport.RenderPass != RenderMode.OpaqueTextures && viewport.RenderPass != RenderMode.TransparentTextures)
 				return;
 
 			if (!IsLoaded) {
 				Load(viewport);
 			}
 
-			if (viewport.RenderOptions.ShowWireframeView)
-				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+			Shader.Use();
 
-			if (viewport.RenderOptions.ShowPointView)
+			if (viewport.RenderOptions.ShowWireframeView) {
+				if (_subPass == 0) {
+					Shader.SetVector3("lightPosition", viewport.Camera.Position);
+					Shader.SetVector4("wireframeColor", new Vector4(0.8f, 0.8f, 0.8f, 1));
+					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+				}
+				else if (_subPass == 1) {
+					Shader.SetVector4("wireframeColor", new Vector4(0, 0, 0, 1));
+					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+				}
+			}
+			else if (viewport.RenderOptions.ShowPointView)
 				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
 
 			if (!_ri.VaoCreated()) {
@@ -281,7 +348,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				_ri.Vbo = new Vbo();
 				_ri.Vbo.SetData(_ri.RawVertices, BufferUsageHint.StaticDraw, 14);
 				_ri.RawVertices = null;
-				
+
 				GL.EnableVertexAttribArray(0);
 				GL.EnableVertexAttribArray(1);
 				GL.EnableVertexAttribArray(2);
@@ -293,17 +360,15 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				GL.VertexAttribPointer(3, 4, VertexAttribPointerType.Float, false, 14 * sizeof(float), 7 * sizeof(float));
 				GL.VertexAttribPointer(4, 3, VertexAttribPointerType.Float, false, 14 * sizeof(float), 11 * sizeof(float));
 
-				Shader.Use();
 				Matrix3 mat = Matrix3.Identity;
-				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
-				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
+				mat = GLHelper.Rotate(ref mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
+				mat = GLHelper.Rotate(ref mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
 
 				Vector3 lightDirection = mat * new Vector3(0, 1, 0);
 
 				Shader.SetVector3("lightAmbient", new Vector3(_rsw.Light.AmbientRed, _rsw.Light.AmbientGreen, _rsw.Light.AmbientBlue));
 				Shader.SetVector3("lightDiffuse", new Vector3(_rsw.Light.DiffuseRed, _rsw.Light.DiffuseGreen, _rsw.Light.DiffuseBlue));
-				Shader.SetFloat("lightIntensity", _rsw.Light.Intensity);
-				Shader.SetVector3("lightDirection", lightDirection);
+				Shader.SetVector3("lightDirection", ref lightDirection);
 
 				var textLocation = GL.GetUniformLocation(Shader.Handle, "s_texture");
 				var shadowLocation = GL.GetUniformLocation(Shader.Handle, "s_lighting");
@@ -311,7 +376,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				GL.Uniform1(textLocation, 0);
 				GL.Uniform1(shadowLocation, 1);
 
-				Shader.SetMatrix4("modelMatrix", Matrix4.Identity);
 				Shader.SetFloat("showLightmap", viewport.RenderOptions.Lightmap ? 1.0f : 0.0f);
 				Shader.SetFloat("showShadowmap", viewport.RenderOptions.Shadowmap ? 1.0f : 0.0f);
 				Shader.SetFloat("enableCullFace", viewport.RenderOptions.EnableFaceCulling ? 1.0f : 0.0f);
@@ -320,17 +384,15 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 
 			if (ReloadLight) {
-				Shader.Use();
 				Matrix3 mat = Matrix3.Identity;
-				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
-				mat = GLHelper.Rotate(mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
+				mat = GLHelper.Rotate(ref mat, -GLHelper.ToRad(_rsw.Light.Latitude), new Vector3(1, 0, 0));
+				mat = GLHelper.Rotate(ref mat, -GLHelper.ToRad(_rsw.Light.Longitude), new Vector3(0, 1, 0));
 
 				Vector3 lightDirection = mat * new Vector3(0, 1, 0);
 
 				Shader.SetVector3("lightAmbient", new Vector3(_rsw.Light.AmbientRed, _rsw.Light.AmbientGreen, _rsw.Light.AmbientBlue));
 				Shader.SetVector3("lightDiffuse", new Vector3(_rsw.Light.DiffuseRed, _rsw.Light.DiffuseGreen, _rsw.Light.DiffuseBlue));
-				Shader.SetFloat("lightIntensity", _rsw.Light.Intensity);
-				Shader.SetVector3("lightDirection", lightDirection);
+				Shader.SetVector3("lightDirection", ref lightDirection);
 				ReloadLight = false;
 			}
 
@@ -338,40 +400,51 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			_gndShadow.Bind();
 			GL.ActiveTexture(TextureUnit.Texture0);
 
-			Shader.Use();
-			Shader.SetMatrix4("cameraMatrix", ref viewport.View);
-			Shader.SetMatrix4("projectionMatrix", ref viewport.Projection);
+			Shader.SetMatrix4("mvp", ref viewport.ViewProjection);
 
 			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
-				Shader.SetBool("fixedColor", true);
+				Shader.SetBool("wireframe", true);
 			}
 			else {
-				Shader.SetBool("fixedColor", false);
+				Shader.SetBool("wireframe", false);
 			}
 
 			_ri.BindVao();
 
 			foreach (var vboIndex in VertIndices) {
-				if (viewport.RenderPass == 0 && (vboIndex.Texture >= 0 && Textures[vboIndex.Texture].IsSemiTransparent))
+				if (viewport.RenderPass == RenderMode.OpaqueTextures && (vboIndex.Texture >= 0 && Textures[vboIndex.Texture].IsSemiTransparent))
 					continue;
-				if (viewport.RenderPass == 1 && (vboIndex.Texture < 0 || !Textures[vboIndex.Texture].IsSemiTransparent))
+				if (viewport.RenderPass == RenderMode.TransparentTextures && (vboIndex.Texture < 0 || !Textures[vboIndex.Texture].IsSemiTransparent))
 					continue;
 
 				if (vboIndex.Texture != -1) {
 					Textures[vboIndex.Texture].Bind();
 				}
 				else {
-					Shader.SetInt("showLightmap", 0);
+					Shader.SetFloat("showLightmap", 0.0f);
 					_black.Bind();
 				}
 
 				GL.DrawArrays(PrimitiveType.Triangles, vboIndex.Begin, vboIndex.Count);
+#if DEBUG
+				if (_subPass == 0) {
+					viewport.Stats.DrawArrays_Calls++;
+					viewport.Stats.DrawArrays_Calls_VertexLength += vboIndex.Count;
+				}
+#endif
 
 				if (vboIndex.Texture == -1) {
-					Shader.SetInt("showLightmap", 1);
+					Shader.SetFloat("showLightmap", viewport.RenderOptions.Lightmap ? 1.0f : 0.0f);
 				}
 			}
 
+			if (viewport.RenderOptions.ShowWireframeView && _subPass == 0) {
+				_subPass = 1;
+				Render(viewport);
+				_subPass = 0;
+				return;
+			}
+			
 			if (viewport.RenderOptions.ShowWireframeView)
 				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 

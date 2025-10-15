@@ -14,20 +14,19 @@ namespace GRFEditor.OpenGL.MapComponents {
 	/// This is simplified version of the GRF.FileFormats.Gnd which uses OpenTK structures.
 	/// </summary>
 	public class Gnd {
-		public readonly List<Cube> Cubes = new List<Cube>();
+		public Cube[] Cubes;
 		public readonly List<string> Textures = new List<string>();
-		public readonly List<Tile> Tiles = new List<Tile>();
+		public Tile[] Tiles;
 		public readonly List<byte[]> Lightmaps = new List<byte[]>();
 		public WaterData Water = new WaterData();
 
 		public Gnd(MultiType data)
-			: this(data.GetBinaryReader()) {
+			: this(data.GetByteReader()) {
 		}
 
 		public Gnd(GRF.FileFormats.GndFormat.Gnd gnd) {
 			this.Header = gnd.Header;
 			Textures = gnd.Textures;
-
 
 			LightmapWidth = gnd.LightmapWidth;
 			LightmapHeight = gnd.LightmapHeight;
@@ -36,22 +35,32 @@ namespace GRFEditor.OpenGL.MapComponents {
 			foreach (var light in gnd.LightmapContainer.Lightmaps) {
 				Lightmaps.Add(light.Data);
 			}
-			//grfcolor: argb
-			//grfcolor: z = a, y = r, x = g, w = b
-			foreach (var tile in gnd.Tiles) {
+
+			Tiles = new Tile[gnd.Tiles.Count];
+
+			for (int k = 0; k < gnd.Tiles.Count; k++) {
+				var tile = gnd.Tiles[k];
+				
 				var nTile = new Tile {
-					Color = new TkVector4(tile.TileColor.G, tile.TileColor.R, tile.TileColor.A, tile.TileColor.B),
+					Color = new Vector4(tile.TileColor.G / 255f, tile.TileColor.R / 255f, tile.TileColor.A / 255f, tile.TileColor.B / 255f),
 					LightmapIndex = tile.LightmapIndex,
 					TextureIndex = tile.TextureIndex
 				};
+
+				nTile.TexCoords = new Vector2[4];
 				for (int i = 0; i < 4; i++) {	
 					nTile.TexCoords[i].X = tile.TexCoords[i].X;
 					nTile.TexCoords[i].Y = tile.TexCoords[i].Y;
 				}
-				Tiles.Add(nTile);
+
+				Tiles[k] = nTile;
 			}
 
-			foreach (var cube in gnd.Cubes) {
+			Cubes = new Cube[gnd.Cubes.Count];
+
+			for (int k = 0; k < gnd.Cubes.Count; k++) {
+				var cube = gnd.Cubes[k];
+
 				var nCube = new Cube {
 					TileFront = cube.TileFront,
 					TileSide = cube.TileSide,
@@ -60,13 +69,13 @@ namespace GRFEditor.OpenGL.MapComponents {
 				for (int i = 0; i < 4; i++)
 					nCube[i] = cube[i];
 
-				Cubes.Add(nCube);
+				Cubes[k] = nCube;
 			}
 
 			Water = gnd.Water;
 		}
 
-		private Gnd(IBinaryReader data) {
+		private Gnd(ByteReader data) {
 			Header = new GndHeader(data);
 			_loadTexturesPath(data);
 			_loadLightmaps(data);
@@ -81,7 +90,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 				if (y < 0) return null;
 				if (x >= Header.Width) return null;
 				if (y >= Header.Height) return null;
-				return Cubes[x + Header.Width * y];
+				return Cubes[x + Width * y];
 			}
 		}
 
@@ -99,12 +108,13 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		private void _loadCubes(IBinaryReader data) {
-			Cubes.Capacity = Header.Width * Header.Height;
+			Cubes = new Cube[Header.Width * Header.Height];
 
 			if (Header.Version <= 1) {
 				LightmapHeight = 8;
 				LightmapWidth = 8;
 				LightmapSizeCell = 1;
+				List<Tile> tilesList = new List<Tile>();
 
 				byte[] light = new byte[256];
 
@@ -115,11 +125,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 				Lightmaps.Add(light);
 				
 				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
-					Tile[] tiles = new Tile[3] { new Tile(), new Tile(), new Tile() };	// up, front, side
+					Tile[] tiles = new Tile[3] { new Tile() { TexCoords = new Vector2[4] }, new Tile() { TexCoords = new Vector2[4] }, new Tile() { TexCoords = new Vector2[4] } };	// up, front, side
 					Cube cube = new Cube();
 
 					for (int l = 0; l < 3; l++) {
-						tiles[l].Color = new TkVector4(255, 255, 255, 255);
+						tiles[l].Color = new Vector4(1f);
 						tiles[l].TextureIndex = (short)data.Int32();
 					}
 
@@ -134,31 +144,35 @@ namespace GRFEditor.OpenGL.MapComponents {
 					cube.TileUp = cube.TileSide = cube.TileFront = -1;
 
 					if (tiles[0].TextureIndex > -1) {
-						cube.TileUp = Tiles.Count;
-						Tiles.Add(tiles[0]);
+						cube.TileUp = tilesList.Count;
+						tilesList.Add(tiles[0]);
 					}
 					if (tiles[1].TextureIndex > -1) {
-						cube.TileSide = Tiles.Count;
-						Tiles.Add(tiles[1]);
+						cube.TileSide = tilesList.Count;
+						tilesList.Add(tiles[1]);
 					}
 					if (tiles[2].TextureIndex > -1) {
-						cube.TileFront = Tiles.Count;
-						Tiles.Add(tiles[2]);
+						cube.TileFront = tilesList.Count;
+						tilesList.Add(tiles[2]);
 					}
 
-					Cubes.Add(cube);
+					Cubes[i] = cube;
 					cube.CalculateNormal();
 				}
+
+				Tiles = tilesList.ToArray();
 			}
 			else {
 				for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
-					Cubes.Add(new Cube(Header, data));
+					Cubes[i] = new Cube(Header, data);
 				}
 			}
 			
-			for (int x = 0; x < Header.Width; x++)
-				for (int y = 0; y < Header.Height; y++)
-					this[x, y].CalcNormals(this, x, y);
+			for (int i = 0; i < Cubes.Length; i++) {
+				int x = i % Header.Width;
+				int y = i / Header.Width;
+				Cubes[i].CalcNormals(this, x, y);
+			}
 		}
 
 		private void _loadTiles(IBinaryReader data) {
@@ -166,10 +180,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 				return;
 
 			int count = data.Int32();
-			Tiles.Capacity = count;
+			Tiles = new Tile[count];
 
 			for (int i = 0; i < count; i++) {
-				Tiles.Add(new Tile(data));
+				Tiles[i] = new Tile(data);
 			}
 		}
 
@@ -245,7 +259,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public Vector3 RayCast(Ray ray, bool showBlackTiles, bool pickCubeMode) {
-			if (Cubes.Count == 0)
+			if (Cubes.Length == 0)
 				return new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);
 
 			float rayOffset = 0;
@@ -326,17 +340,15 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 	}
 
-	public class Tile {
-		public TkVector4 Color;
-		public Vector2[] TexCoords = new Vector2[4];
+	public struct Tile {
+		public Vector4 Color;
+		public Vector2[] TexCoords;
 		public Int16 TextureIndex;
 		public UInt16 LightmapIndex;
 
-		public Tile() {
-		}
-
 		public Tile(Tile tile) {
 			Color = tile.Color;
+			TexCoords = new Vector2[4];
 			TexCoords[0] = tile.TexCoords[0];
 			TexCoords[1] = tile.TexCoords[1];
 			TexCoords[2] = tile.TexCoords[2];
@@ -346,11 +358,12 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public Tile(IBinaryReader data) {
+			TexCoords = new Vector2[4];
 			TexCoords[0].X = data.Float(); TexCoords[1].X = data.Float(); TexCoords[2].X = data.Float(); TexCoords[3].X = data.Float();
 			TexCoords[0].Y = data.Float(); TexCoords[1].Y = data.Float(); TexCoords[2].Y = data.Float(); TexCoords[3].Y = data.Float();
 			TextureIndex = data.Int16();
 			LightmapIndex = data.UInt16();
-			Color = new TkVector4 { Z = data.Byte(), Y = data.Byte(), X = data.Byte(), W = data.Byte() };
+			Color = new Vector4 { Z = data.Byte() / 255f, Y = data.Byte() / 255f, X = data.Byte() / 255f, W = data.Byte() / 255f };
 		}
 
 		public Vector2 this[int index] {
@@ -400,8 +413,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 			Vector3 v4 = new Vector3(10, _heights[3], 10);
 
 			// Do not normalize these vectors, otherwise the ratio when adding the normals won't be valid
-			Vector3 normal1 = Vector3.Normalize(Vector3.Cross(v2 - v1, v3 - v1));
-			Vector3 normal2 = Vector3.Normalize(Vector3.Cross(v3 - v4, v2 - v4));
+			Vector3 normal1 = Vector3.NormalizeFast(Vector3.Cross(v2 - v1, v3 - v1));
+			Vector3 normal2 = Vector3.NormalizeFast(Vector3.Cross(v3 - v4, v2 - v4));
 			Normal = normal1 + normal2;
 
 			Normals[0] = normal1;
@@ -414,7 +427,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			NormalsLocal[2] = Normal;
 			NormalsLocal[3] = normal2;
 
-			Normal = Vector3.Normalize(Normal);
+			Normal = Vector3.NormalizeFast(Normal);
 		}
 
 		public void CalcNormals(Gnd gnd, int x, int y) {
@@ -425,14 +438,26 @@ namespace GRFEditor.OpenGL.MapComponents {
 					int xx = (ii % 2) * ((i % 2 == 0) ? -1 : 1);
 					int yy = (ii / 2) * (i < 2 ? -1 : 1);
 
-					if (gnd[x + xx, y + yy] != null) {
-						int ci = (i + ii * (1 - 2 * (i & 1))) & 3;
+					//if (gnd[x + xx, y + yy] != null) {
+					//	int ci = (i + ii * (1 - 2 * (i & 1))) & 3;
+					//
+					//	if (gnd[x + xx, y + yy]._heights[ci] != h)
+					//		continue;
+					//
+					//	Normals[i] += gnd[x + xx, y + yy].NormalsLocal[ci];
+					//}
 
-						if (gnd[x + xx, y + yy]._heights[ci] != h)
-							continue;
-
-						Normals[i] += gnd[x + xx, y + yy].NormalsLocal[ci];
-					}
+					if (x + xx < 0 || x + xx >= gnd.Width ||
+						y + yy < 0 || y + yy >= gnd.Height)
+						continue;
+					
+					int ci = (i + ii * (1 - 2 * (i & 1))) & 3;
+					
+					var c = gnd.Cubes[x + xx + gnd.Width * (y + yy)];
+					if (c._heights[ci] != h)
+						continue;
+					
+					Normals[i] += c.NormalsLocal[ci];
 				}
 				
 				Normals[i] = Vector3.NormalizeFast(Normals[i]);

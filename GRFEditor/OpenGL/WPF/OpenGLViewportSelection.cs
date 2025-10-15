@@ -9,6 +9,7 @@ using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using Utilities;
 using ButtonState = OpenTK.Input.ButtonState;
 using Clipboard = System.Windows.Clipboard;
 using Control = System.Windows.Forms.Control;
@@ -75,12 +76,15 @@ namespace GRFEditor.OpenGL.WPF {
 
 			_selectionRi.BindVao();
 			Shader_simple.Use();
-			Shader_simple.SetMatrix4("projectionMatrix", ref Projection);
-			Shader_simple.SetMatrix4("viewMatrix", ref View);
+			Shader_simple.SetMatrix4("mvp", ref ViewProjection);
 			Shader_simple.SetVector4("color", new Vector4(1, 0, 0, 1.0f));
 			GL.LineWidth(1.0f);
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 			GL.DrawArrays(PrimitiveType.Triangles, 0, _selectionRi.Vbo.Length);
+#if DEBUG
+			Stats.DrawArrays_Calls++;
+			Stats.DrawArrays_Calls_VertexLength += _selectionRi.Vbo.Length;
+#endif
 			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
 			Shader_simple.SetVector4("color", new Vector4(1, 0, 0, 0.25f));
 			GL.DrawArrays(PrimitiveType.Triangles, 0, _selectionRi.Vbo.Length);
@@ -196,17 +200,18 @@ namespace GRFEditor.OpenGL.WPF {
 
 						GL.EnableVertexAttribArray(0);
 						GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-						Shader_simple.Use();
-						Shader_simple.SetMatrix4("modelMatrix", Matrix4.Identity);
 					}
 
 					_selectionRi.BindVao();
 					Shader_simple.Use();
 					Shader_simple.SetVector4("color", new Vector4(1, 0, 0, 0.5f));
-					Shader_simple.SetMatrix4("projectionMatrix", ref Projection);
-					Shader_simple.SetMatrix4("viewMatrix", ref View);
+					Shader_simple.SetMatrix4("mvp", ref ViewProjection);
 					_selectionRi.Vbo.SetData(verts, BufferUsageHint.StaticDraw);
 					GL.DrawArrays(PrimitiveType.Triangles, 0, _selectionRi.Vbo.Length);
+#if DEBUG
+					Stats.DrawArrays_Calls++;
+					Stats.DrawArrays_Calls_VertexLength += _selectionRi.Vbo.Length;
+#endif
 				}
 				else {
 					if (_selectingTiles) {
@@ -311,9 +316,11 @@ namespace GRFEditor.OpenGL.WPF {
 
 				if (lightmaps.Count > 0) {
 					clip.AppendLine(" \"lightmaps\": {");
+					StringBuilder t = new StringBuilder(lightmaps.Count * 700);
 					foreach (var v in lightmaps) {
-						v.Print(clip);
+						v.Print(t);
 					}
+					clip.Append(t);
 					ClipboardBE.RemoveLastComa(clip);
 					clip.AppendLine(" },");
 				}

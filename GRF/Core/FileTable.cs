@@ -315,9 +315,7 @@ namespace GRF.Core {
 				}
 
 				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile)) > 0) {
-					FileEntry conflict;
-
-					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out conflict)) {
+					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out FileEntry conflict)) {
 						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
 							_indexedEntries[fileEntry.RelativePath] = fileEntry;
 						}

@@ -80,7 +80,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected override void _load(FileEntry entry) {
 			_isLua = false;
 			_isBson = false;
-			_labelHeader.Dispatch(p => p.Content = "File info : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "File info : " + Path.GetFileName(entry.RelativePath));
 			_textEditor.Encoding = null;
 			_buttonSave.Dispatch(delegate {
 				_textEditor.IsReadOnly = true;

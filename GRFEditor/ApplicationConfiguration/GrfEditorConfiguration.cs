@@ -25,7 +25,7 @@ namespace GRFEditor.ApplicationConfiguration {
 	/// Contains all the configuration information
 	/// The ConfigAsker shouldn't be used manually to store variable,
 	/// make a new property instead. The properties should also always
-	/// have a default value.1
+	/// have a default value.
 	/// </summary>
 	public static class GrfEditorConfiguration {
 		private static ConfigAsker _configAsker;
@@ -315,7 +315,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.8.9.9"; }
+			get { return "1.9.0.1"; }
 		}
 
 		public static string Author {
@@ -324,10 +324,6 @@ namespace GRFEditor.ApplicationConfiguration {
 
 		public static string ProgramName {
 			get {
-				if (!Wow.Is64BitProcess) {
-					return "WIN32 DEBUG VERSION";
-				}
-
 				return "GRF Editor";
 			}
 		}
@@ -808,6 +804,21 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool UseShadowsForQuadrants {
 			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]", false.ToString()]); }
 			set { ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]"] = value.ToString(); }
+		}
+
+		public static bool UseBitmapsForQuadrants {
+			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]", false.ToString()]); }
+			set { ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]"] = value.ToString(); }
+		}
+
+		public static int BitmapQuadrantFactor {
+			get { return Int32.Parse(ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]", "64"]); }
+			set { ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]"] = value.ToString(); }
+		}
+
+		public static int ShadowQuadrantFactor {
+			get { return Int32.Parse(ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]", "64"]); }
+			set { ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]"] = value.ToString(); }
 		}
 
 		public static bool ResetGlobalLighting {

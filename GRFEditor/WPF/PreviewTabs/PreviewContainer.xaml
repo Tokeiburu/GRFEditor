@@ -12,7 +12,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <StackPanel>
-            <Label Name="_labelHeader" FontWeight="Bold" Content="Container options" FontSize="16" Margin="3 10 0 5" />
+			<TextBlock Name="_labelHeader" FontWeight="Bold" Text="Container options" FontSize="16" Margin="3 10 0 5" Padding="5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <Label Content="Common properties" FontWeight="Bold" FontSize="14" Margin="3 10 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />

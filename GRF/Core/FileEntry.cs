@@ -72,7 +72,7 @@ namespace GRF.Core {
 			NewSizeCompressed = SizeCompressed = BitConverter.ToInt32(data, offset);
 			TemporarySizeCompressedAlignment = SizeCompressedAlignment = BitConverter.ToInt32(data, offset + 4);
 			NewSizeDecompressed = SizeDecompressed = BitConverter.ToInt32(data, offset + 8);
-			Flags = (EntryType) data[offset + 12];
+			Flags = (EntryType)data[offset + 12];
 
 			if (header.IsCompatibleWith(3, 0)) {
 				FileExactOffset = TemporaryOffset = BitConverter.ToInt64(data, offset + 13) + GrfHeader.DataByteSize;

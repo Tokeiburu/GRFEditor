@@ -27,6 +27,7 @@ using System.Linq;
 using Gnd = GRF.FileFormats.GndFormat.Gnd;
 using Matrix4 = OpenTK.Matrix4;
 using Rsm = GRF.FileFormats.RsmFormat.Rsm;
+using Utilities;
 
 namespace GRFEditor.Core.Services {
 	public class RenamingService {
@@ -203,6 +204,8 @@ namespace GRFEditor.Core.Services {
 								if (convertedModels.Add(model.ModelName)) {
 									Rsm rsm = new Rsm(entryModel);
 									OpenGL.MapComponents.Rsm rsm_2 = new OpenGL.MapComponents.Rsm(entryModel);
+									// Calculate the vertices box before flattening model, otherwise vertices won't match anymore
+									rsm_2.MainMesh.SetVerticesBoundingBox(Matrix4.Identity, rsm_2.VerticesBox);
 
 									if (rsm_2.Meshes.Any(p => p.RotationKeyFrames.Count > 0)) {
 										rsm.Downgrade();
@@ -234,37 +237,31 @@ namespace GRFEditor.Core.Services {
 
 								{
 									var rsm_2 = rsm2[model.ModelName];
-									//var rsm_1 = rsm1[model.ModelName];
+
 									var m2 = _calcRenderMatrix(model, gnd, rsm_2);
-									//var m1 = _calcRenderMatrix(model, gnd, rsm_1);
-									var b2 = rsm_2.RealBox;
-									//var b1 = rsm_1.RealBox;
+									var b2 = rsm_2.VerticesBox;
 
 									model.ModelName = model.ModelName.ReplaceExtension(".rsm");
-									model.Position = new TkVector3(
-										m2.Row3.X + b2.Center.X * (model.Scale.X < 0 ? -1 : 1), 
-										-m2.Row3.Y - b2.Min.Y, 
-										-m2.Row3.Z + b2.Center.Z);
 
 									var MatrixCache = Matrix4.Identity;
-									MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(1, 1, -1));
-									MatrixCache = GLHelper.Rotate(MatrixCache, GLHelper.ToRad(model.Rotation.Z), new Vector3(0, 0, 1));
-									MatrixCache = GLHelper.Rotate(MatrixCache, -GLHelper.ToRad(model.Rotation.X), new Vector3(1, 0, 0));
-									MatrixCache = GLHelper.Rotate(MatrixCache, -GLHelper.ToRad(model.Rotation.Y), new Vector3(0, 1, 0));
-									MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(model.Scale.X, model.Scale.Y, model.Scale.Z));
-
+									MatrixCache = GLHelper.Scale(ref MatrixCache, new Vector3(1, 1, -1));
+									MatrixCache = GLHelper.Rotate(ref MatrixCache, GLHelper.ToRad(model.Rotation.Z), new Vector3(0, 0, 1));
+									MatrixCache = GLHelper.Rotate(ref MatrixCache, -GLHelper.ToRad(model.Rotation.X), new Vector3(1, 0, 0));
+									MatrixCache = GLHelper.Rotate(ref MatrixCache, -GLHelper.ToRad(model.Rotation.Y), new Vector3(0, 1, 0));
+									MatrixCache = GLHelper.Scale(ref MatrixCache, new Vector3(model.Scale.X, model.Scale.Y, model.Scale.Z));
+								
 									model.Position = new TkVector3(
 										m2.Row3.X,
 										-m2.Row3.Y,
 										-m2.Row3.Z);
-
+								
 									var offset = new Vector4(b2.Center.X, -b2.Min.Y, -b2.Center.Z, 1);
 									offset = offset * MatrixCache;
-
+								
 									var result = new Vector3(offset.X, offset.Y, offset.Z);
-
+								
 									model.Position += new TkVector3(result.X, result.Y, result.Z);
-
+								
 									model.Scale *= new TkVector3(-1, 1, 1);
 								}
 							}
@@ -309,19 +306,19 @@ namespace GRFEditor.Core.Services {
 
 		private Matrix4 _calcRenderMatrix(Model model, Gnd gnd, OpenGL.MapComponents.Rsm rsm) {
 			var MatrixCache = Matrix4.Identity;
-			MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(1, 1, -1));
+			MatrixCache = GLHelper.Scale(ref MatrixCache, new Vector3(1, 1, -1));
 
-			MatrixCache = GLHelper.Translate(MatrixCache, new Vector3(model.Position.X, -model.Position.Y, model.Position.Z));
-			MatrixCache = GLHelper.Rotate(MatrixCache, -GLHelper.ToRad(model.Rotation.Z), new Vector3(0, 0, 1));
-			MatrixCache = GLHelper.Rotate(MatrixCache, -GLHelper.ToRad(model.Rotation.X), new Vector3(1, 0, 0));
-			MatrixCache = GLHelper.Rotate(MatrixCache, GLHelper.ToRad(model.Rotation.Y), new Vector3(0, 1, 0));
-			MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(model.Scale.X, -model.Scale.Y, model.Scale.Z));
+			MatrixCache = GLHelper.Translate(ref MatrixCache, new Vector3(model.Position.X, -model.Position.Y, model.Position.Z));
+			MatrixCache = GLHelper.Rotate(ref MatrixCache, -GLHelper.ToRad(model.Rotation.Z), new Vector3(0, 0, 1));
+			MatrixCache = GLHelper.Rotate(ref MatrixCache, -GLHelper.ToRad(model.Rotation.X), new Vector3(1, 0, 0));
+			MatrixCache = GLHelper.Rotate(ref MatrixCache, GLHelper.ToRad(model.Rotation.Y), new Vector3(0, 1, 0));
+			MatrixCache = GLHelper.Scale(ref MatrixCache, new Vector3(model.Scale.X, -model.Scale.Y, model.Scale.Z));
 
 			if (rsm.Version < 2.2) {
-				MatrixCache = GLHelper.Translate(MatrixCache, new Vector3(-rsm.RealBox.Center.X, rsm.RealBox.Min.Y, -rsm.RealBox.Center.Z));
+				MatrixCache = GLHelper.Translate(ref MatrixCache, new Vector3(-rsm.VerticesBox.Center.X, rsm.VerticesBox.Min.Y, -rsm.VerticesBox.Center.Z));
 			}
 			else {
-				MatrixCache = GLHelper.Scale(MatrixCache, new Vector3(1, -1, 1));
+				MatrixCache = GLHelper.Scale(ref MatrixCache, new Vector3(1, -1, 1));
 			}
 
 			return MatrixCache;

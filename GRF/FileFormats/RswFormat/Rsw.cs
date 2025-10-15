@@ -7,6 +7,7 @@ using GRF.Core;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.IO;
+using Utilities;
 
 namespace GRF.FileFormats.RswFormat {
 	/// <summary>
@@ -218,6 +219,8 @@ namespace GRF.FileFormats.RswFormat {
 						}
 
 						break;
+					default:
+						continue;
 				}
 
 				Objects.Add(obj);

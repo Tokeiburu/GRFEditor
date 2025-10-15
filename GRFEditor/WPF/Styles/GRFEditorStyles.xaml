@@ -316,9 +316,8 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <Style x:Key="TabItemSprite" TargetType="{x:Type TabItem}">
-        <Setter Property="Background" Value="Blue" />
-        <Setter Property="Template">
+	<Style x:Key="TabItemSprite" TargetType="{x:Type TabItem}">
+		<Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TabItem}">
                     <Grid x:Name="Grid">
