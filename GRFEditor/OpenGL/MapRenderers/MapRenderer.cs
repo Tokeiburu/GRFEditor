@@ -186,89 +186,63 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			var sTick = _watch.ElapsedMilliseconds;
 
-			if (_newMethod) {
-				if (!_firstCall) {
-					foreach (var entry in _modelGroups) {
-						entry.Key.LoadSpecial(viewport, this);
+			Shader.SetBool("useInstances", true);
+
+			if (!_firstCall) {
+				foreach (var entry in _modelGroups) {
+					var sharedModel = entry.Key;
+					sharedModel.Instance = new Vbo();
+					sharedModel.InstanceMatrices = new Matrix4[entry.Value.Count];
+					Matrix4[] instanceMatrixes = sharedModel.InstanceMatrices;
+
+					// Load models
+					for (int i = 0; i < entry.Value.Count; i++) {
+						var model = entry.Value[i];
+
+						if (!model.IsLoaded)
+							model.Load(viewport);
+
+						instanceMatrixes[i] = model.MatrixCache;
+						instanceMatrixes[i].Transpose();
 					}
 
-					_firstCall = true;
-				}
+					sharedModel.Instance.Bind();
+					GL.BufferData(BufferTarget.ArrayBuffer, instanceMatrixes.Length * 64, instanceMatrixes, BufferUsageHint.StaticDraw);
 
-				// 
-				foreach (var textureGroup in TextureGroups) {
-					Textures[textureGroup.Key].Bind();
-					Matrix4[] matrices = new Matrix4[textureGroup.Value.Indices.Count];
+					RenderInfo[] renderInfos = new[] { sharedModel.RenderInfo, sharedModel.RenderInfoTransparent };
 
-					bool ccw = true;
+					foreach (var ri in renderInfos) {
+						if (ri.Vao != 0) {
+							ri.BindVao();
+							sharedModel.Instance.Bind();
 
-					for (int i = 0; i < textureGroup.Value.Indices.Count; i++) {
-						matrices[i] = textureGroup.Value.MeshReferences[i].Render.Matrix;
-					}
+							int location = 4;
 
-
-
-				}
-			}
-			else {
-				Shader.SetBool("useInstances", true);
-
-				if (!_firstCall) {
-					foreach (var entry in _modelGroups) {
-						var sharedModel = entry.Key;
-						sharedModel.Instance = new Vbo();
-						sharedModel.InstanceMatrices = new Matrix4[entry.Value.Count];
-						Matrix4[] instanceMatrixes = sharedModel.InstanceMatrices;
-
-						// Load models
-						for (int i = 0; i < entry.Value.Count; i++) {
-							var model = entry.Value[i];
-
-							if (!model.IsLoaded)
-								model.Load(viewport);
-
-							instanceMatrixes[i] = model.MatrixCache;
-							instanceMatrixes[i].Transpose();
-						}
-
-						sharedModel.Instance.Bind();
-						GL.BufferData(BufferTarget.ArrayBuffer, instanceMatrixes.Length * 64, instanceMatrixes, BufferUsageHint.StaticDraw);
-
-						RenderInfo[] renderInfos = new[] { sharedModel.RenderInfo, sharedModel.RenderInfoTransparent };
-
-						foreach (var ri in renderInfos) {
-							if (ri.Vao != 0) {
-								ri.BindVao();
-								sharedModel.Instance.Bind();
-
-								int location = 4;
-
-								for (int i = 0; i < 4; i++) {
-									GL.EnableVertexAttribArray(location + i);
-									GL.VertexAttribPointer(location + i, 4, VertexAttribPointerType.Float, false, 64, i * 16);
-									GL.VertexAttribDivisor(location + i, 1);
-								}
+							for (int i = 0; i < 4; i++) {
+								GL.EnableVertexAttribArray(location + i);
+								GL.VertexAttribPointer(location + i, 4, VertexAttribPointerType.Float, false, 64, i * 16);
+								GL.VertexAttribDivisor(location + i, 1);
 							}
 						}
 					}
-
-					_firstCall = true;
 				}
 
-				foreach (var entry in _modelGroups) {
-					var sharedModel = entry.Key;
-					var tick = sTick;
-
-					//if (viewport.RenderPass == 0) {
-						sharedModel.Rsm.SetAnimationIndex(tick, entry.Value.First().Model.AnimationSpeed);
-						sharedModel.Rsm.Dirty();
-					//}
-
-					sharedModel.RenderDynamicModels(viewport);
-				}
-
-				Shader.SetBool("useInstances", false);
+				_firstCall = true;
 			}
+
+			foreach (var entry in _modelGroups) {
+				var sharedModel = entry.Key;
+				var tick = sTick;
+
+				if (viewport.RenderPass == 0) {
+					sharedModel.Rsm.SetAnimationIndex(tick, entry.Value.First().Model.AnimationSpeed);
+					sharedModel.Rsm.Dirty();
+				}
+
+				sharedModel.RenderDynamicModels(viewport);
+			}
+
+			Shader.SetBool("useInstances", false);
 
 			if (viewport.RenderOptions.ShowWireframeView && _subPass == 0) {
 				_subPass = 1;

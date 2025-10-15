@@ -165,7 +165,6 @@ namespace GRFEditor.OpenGL.WPF {
 
 		private void _setupTooltip(UIElement control, string toolTip) {
 			int row = Grid.GetRow(control);
-			int column = 0;
 
 			foreach (UIElement child in _grid.Children) {
 				if (Grid.GetRow(child) == row && Grid.GetColumn(child) == 0) {
