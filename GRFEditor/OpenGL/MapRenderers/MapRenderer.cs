@@ -622,8 +622,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 								Vector3 position = new Vector3(5 * gnd.Width + modelRsm.Model.Position.X, 0, 5 * gnd.Height + modelRsm.Model.Position.Z);
 								if (position.X < 0 || position.X > gnd.Header.Width * 10 ||
 									position.Z < 0 || position.Z > gnd.Header.Height * 10) {
-									//GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
-									//continue;
+									GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
+									continue;
 								}
 
 								if (!sharedRsmRenderers.ContainsKey(key)) {
