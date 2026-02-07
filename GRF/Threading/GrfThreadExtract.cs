@@ -20,7 +20,7 @@ namespace GRF.Threading {
 		private readonly StreamReadBlockInfo _srb = new StreamReadBlockInfo(_bufferSize);
 
 		internal static bool IsLuaBytecode(byte[] data) {
-			if (data == null || data.Length < 4)
+			if (data == null || data.Length < _luaBytecodeMagic.Length)
 				return false;
 
 			for (int i = 0; i < _luaBytecodeMagic.Length; i++) {
@@ -134,10 +134,28 @@ namespace GRF.Threading {
 							if (IsPaused)
 								Pause();
 
-							if (File.Exists(entryCopy.ExtractionFilePath))
-								File.Delete(entryCopy.ExtractionFilePath);
+							try {
+								if (File.Exists(entryCopy.ExtractionFilePath))
+									File.Delete(entryCopy.ExtractionFilePath);
 
-							File.Copy(entryCopy.SourceFilePath, entryCopy.ExtractionFilePath);
+								if (Settings.DecompileLubOnExtract) {
+									byte[] rawData = File.ReadAllBytes(entryCopy.SourceFilePath);
+									if (_shouldDecompileLub(entryCopy, rawData)) {
+										rawData = _tryDecompileLub(rawData);
+										File.WriteAllBytes(entryCopy.ExtractionFilePath, rawData);
+									}
+									else {
+										File.WriteAllBytes(entryCopy.ExtractionFilePath, rawData);
+									}
+								}
+								else {
+									File.Copy(entryCopy.SourceFilePath, entryCopy.ExtractionFilePath);
+								}
+							}
+							catch (Exception err) {
+								Error = true;
+								Exception = new Exception("#File: " + entryCopy.RelativePath, err);
+							}
 						}
 
 						NumberOfFilesProcessed++;
