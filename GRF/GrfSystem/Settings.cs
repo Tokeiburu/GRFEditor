@@ -11,6 +11,7 @@ namespace GRF.GrfSystem {
 		public static bool CpuMonitoringEnabled = true;
 		public static bool LockFiles { get; set; }
 		public static bool PreserveDirectoryStructure { get; set; }
+		public static bool DecompileLubOnExtract { get; set; }
 		public static Action OnSavingFailed;
 		public static float CpuUsageCritical = 90f;
 		public static bool AddHashFileForThor = false;

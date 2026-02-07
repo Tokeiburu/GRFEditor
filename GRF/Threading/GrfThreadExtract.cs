@@ -4,7 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using GRF.Core;
+using GRF.FileFormats.LubFormat;
+using GRF.GrfSystem;
 using Utilities.Extension;
+using Utilities.Services;
 
 namespace GRF.Threading {
 	/// <summary>
@@ -12,8 +15,39 @@ namespace GRF.Threading {
 	/// It's used to optimize the data transfer.
 	/// </summary>
 	public class GrfThreadExtract : GrfWriterThread<FileEntry> {
+		private static readonly byte[] _luaBytecodeMagic = { 0x1b, 0x4c, 0x75, 0x61 };
 		private const int _bufferSize = 8388608;
 		private readonly StreamReadBlockInfo _srb = new StreamReadBlockInfo(_bufferSize);
+
+		internal static bool IsLuaBytecode(byte[] data) {
+			if (data == null || data.Length < _luaBytecodeMagic.Length)
+				return false;
+
+			for (int i = 0; i < _luaBytecodeMagic.Length; i++) {
+				if (data[i] != _luaBytecodeMagic[i])
+					return false;
+			}
+
+			return true;
+		}
+
+		private static bool _shouldDecompileLub(FileEntry entry, byte[] data) {
+			if (!Settings.DecompileLubOnExtract)
+				return false;
+
+			string extension = entry.RelativePath.GetExtension();
+			return extension != null && extension.Equals(".lub", StringComparison.OrdinalIgnoreCase) && IsLuaBytecode(data);
+		}
+
+		private static byte[] _tryDecompileLub(byte[] data) {
+			try {
+				string text = new Lub(data).Decompile();
+				return EncodingService.DisplayEncoding.GetBytes(text);
+			}
+			catch {
+				return data;
+			}
+		}
 
 		public override void Start() {
 			new Thread(_start) { Name = "GRF - Extract files thread " + StartIndex }.Start();
@@ -73,6 +107,10 @@ namespace GRF.Threading {
 								else
 									dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 
+								if (_shouldDecompileLub(entry, dataTmp)) {
+									dataTmp = _tryDecompileLub(dataTmp);
+								}
+
 								using (FileStream fs = new FileStream(entry.ExtractionFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
 									fs.Write(dataTmp, 0, dataTmp.Length);
 							}
@@ -96,10 +134,28 @@ namespace GRF.Threading {
 							if (IsPaused)
 								Pause();
 
-							if (File.Exists(entryCopy.ExtractionFilePath))
-								File.Delete(entryCopy.ExtractionFilePath);
+							try {
+								if (File.Exists(entryCopy.ExtractionFilePath))
+									File.Delete(entryCopy.ExtractionFilePath);
 
-							File.Copy(entryCopy.SourceFilePath, entryCopy.ExtractionFilePath);
+								if (Settings.DecompileLubOnExtract) {
+									byte[] rawData = File.ReadAllBytes(entryCopy.SourceFilePath);
+									if (_shouldDecompileLub(entryCopy, rawData)) {
+										rawData = _tryDecompileLub(rawData);
+										File.WriteAllBytes(entryCopy.ExtractionFilePath, rawData);
+									}
+									else {
+										File.WriteAllBytes(entryCopy.ExtractionFilePath, rawData);
+									}
+								}
+								else {
+									File.Copy(entryCopy.SourceFilePath, entryCopy.ExtractionFilePath);
+								}
+							}
+							catch (Exception err) {
+								Error = true;
+								Exception = new Exception("#File: " + entryCopy.RelativePath, err);
+							}
 						}
 
 						NumberOfFilesProcessed++;

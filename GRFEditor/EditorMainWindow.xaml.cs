@@ -81,6 +81,7 @@ namespace GRFEditor {
 			Settings.CpuMonitoringEnabled = Configuration.CpuPerformanceManagement;
 			Settings.LockFiles = Configuration.LockFiles;
 			Settings.AddHashFileForThor = Configuration.AddHashFileForThor;
+			Settings.DecompileLubOnExtract = Configuration.DecompileLubOnExtract;
 			TemporaryFilesManager.ClearTemporaryFiles();
 			Settings.OnSavingFailed = _onSavingFailed;
 			return encoding;
