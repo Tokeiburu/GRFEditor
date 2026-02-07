@@ -444,6 +444,14 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]"] = value.ToString(); }
 		}
 
+		public static bool DecompileLubOnExtract {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Decompile LUB on extract]", false.ToString()]); }
+			set {
+				ConfigAsker["[GRFEditor - ExtractingService - Decompile LUB on extract]"] = value.ToString();
+				Settings.DecompileLubOnExtract = value;
+			}
+		}
+
 		public static bool AutomaticallyPlaceFiles {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]", false.ToString()]); }
 			set { ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]"] = value.ToString(); }
