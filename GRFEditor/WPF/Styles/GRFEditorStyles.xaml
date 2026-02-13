@@ -72,6 +72,7 @@
     <SolidColorBrush x:Key="CellBrushAdded" Color="Blue"/>
     <SolidColorBrush x:Key="CellBrushModified" Color="Green"/>
     <SolidColorBrush x:Key="CellBrushMvp" Color="#FFBA6200"/>
+	<SolidColorBrush x:Key="CellGravityEncrypted" Color="#FF00A7A7"/>
 
     <!-- TreeView -->
     <SolidColorBrush x:Key="UITreeViewDefaultForegroundBrush" Color="Black"/>

@@ -238,6 +238,10 @@ namespace GRF.Core {
 			get { return Modification.HasFlags(Modification.FileNameRenamed); }
 		}
 
+		public bool GravityEncrypted {
+			get { return Flags.HasFlag(EntryType.GravityEncryptedFile); }
+		}
+
 		#endregion
 
 		#region INotifyPropertyChanged Members
@@ -270,6 +274,9 @@ namespace GRF.Core {
 
 			if (BypassSaveCheck)
 				BypassSaveCheck = false;
+
+			if (Flags.HasFlag(EntryType.GravityEncryptedFile))
+				throw GrfExceptions.__GravityEncryptedFile.Create(RelativePath);
 
 			lock (Stream.SharedLock) {
 				Stream.PositionLong = FileExactOffset;

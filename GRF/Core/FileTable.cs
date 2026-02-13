@@ -378,7 +378,7 @@ namespace GRF.Core {
 					}
 				}
 
-				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile)) > 0) {
+				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
 					FileEntry conflict;
 
 					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out conflict)) {

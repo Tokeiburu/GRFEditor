@@ -82,6 +82,7 @@
     <SolidColorBrush x:Key="CellBrushEncrypted" Color="{StaticResource UIThemePropertyEncryptedColor}"/>
     <SolidColorBrush x:Key="CellBrushRemoved" Color="{StaticResource UIThemePropertyRemovedColor}"/>
     <SolidColorBrush x:Key="CellBrushAdded" Color="{StaticResource UIThemePropertyAddedColor}"/>
+	<SolidColorBrush x:Key="CellGravityEncrypted" Color="#FF00A7A7"/>
 
     <!-- GRF Editor style overrides - TabControl -->
     <SolidColorBrush x:Key="TabControlBackground" Color="{StaticResource UIThemeBackground1Color}"/>

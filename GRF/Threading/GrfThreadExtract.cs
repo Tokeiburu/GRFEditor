@@ -64,7 +64,9 @@ namespace GRF.Threading {
 							}
 
 							try {
-								if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+								if (entry.Flags.HasFlag(EntryType.GravityEncryptedFile))
+									dataTmp = null;
+								else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 									dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 								else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
 									dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
@@ -73,8 +75,10 @@ namespace GRF.Threading {
 								else
 									dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 
-								using (FileStream fs = new FileStream(entry.ExtractionFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
-									fs.Write(dataTmp, 0, dataTmp.Length);
+								if (dataTmp != null) {
+									using (FileStream fs = new FileStream(entry.ExtractionFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
+										fs.Write(dataTmp, 0, dataTmp.Length);
+								}
 							}
 							catch (Exception err) {
 								Error = true;

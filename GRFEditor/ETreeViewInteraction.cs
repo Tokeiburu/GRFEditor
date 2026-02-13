@@ -767,9 +767,7 @@ namespace GRFEditor {
 						}
 
 						_search();
-
-						if (!settings.VisualReloadRequired)
-							_loadListItems();
+						_loadListItems();
 					}
 				}
 				catch (Exception err) {

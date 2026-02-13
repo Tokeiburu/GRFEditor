@@ -127,7 +127,7 @@ namespace GRF.Threading {
 			if (isCancelling()) throw new OperationCanceledException();
 
 			if (_threads.Any(p => p.Error)) {
-				ErrorHandler.HandleException("Generic failure : a task in the thread pool has failed to finish properly. The current operation will be cancelled.", _threads.First(p => p.Error).Exception);
+				ErrorHandler.HandleException("Generic failure: a task in the thread pool has failed to finish properly. The current operation will be cancelled.", _threads.First(p => p.Error).Exception);
 				throw new OperationCanceledException();
 			}
 
@@ -313,7 +313,7 @@ namespace GRF.Threading {
 			if (isCancelling()) throw new OperationCanceledException();
 
 			if (_threads.Any(p => p.Error)) {
-				ErrorHandler.HandleException("Generic failure : a task in the thread pool has failed to finish properly. The current operation will be cancelled.", _threads.First(p => p.Error).Exception);
+				ErrorHandler.HandleException("Generic failure: a task in the thread pool has failed to finish properly. The current operation will be cancelled.", _threads.First(p => p.Error).Exception);
 				throw new OperationCanceledException();
 			}
 
