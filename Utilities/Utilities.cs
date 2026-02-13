@@ -7,11 +7,11 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using ErrorManager;
-using Microsoft.Win32;
 
 namespace Utilities {
 	/// <summary>
@@ -981,6 +981,69 @@ namespace Utilities {
 		public static string StringLimit(string text, int count) {
 			if (text.Length <= count) return text;
 			return text.Substring(0, count);
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static int Clamp(int value, int min, int max) {
+			if (value < min)
+				return min;
+			if (value > max)
+				return max;
+			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static float Clamp(float value, float min, float max) {
+			if (value < min)
+				return min;
+			if (value > max)
+				return max;
+			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static double Clamp(double value, double min, double max) {
+			if (value < min)
+				return min;
+			if (value > max)
+				return max;
+			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static byte Clamp(byte value, byte min, byte max) {
+			if (value < min)
+				return min;
+			if (value > max)
+				return max;
+			return value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static byte ClampToColorByte(int value) {
+			if (value < 0)
+				return 0;
+			if (value > 255)
+				return 255;
+			return (byte)value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static byte ClampToColorByte(float value) {
+			if (value < 0)
+				return 0;
+			if (value > 255)
+				return 255;
+			return (byte)value;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		public static byte ClampToColorByte(double value) {
+			if (value < 0)
+				return 0;
+			if (value > 255)
+				return 255;
+			return (byte)value;
 		}
 	}
 

@@ -46,9 +46,6 @@ namespace GRF.FileFormats.LubFormat {
 				if (function.FunctionLevel > 0)
 					_appendEnd(builder);
 
-				if (function.Label == 0)
-					Z.F();
-
 				return builder.ToString();
 			}
 			catch {

@@ -156,6 +156,14 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			_str.Commands.StoreAndExecute(new FlipVCommand(layerIndex, keyIndex, origin));
 		}
 
+		public void FlipHSelf(int layerIndex, int keyIndex) {
+			_str.Commands.StoreAndExecute(new FlipHSelfCommand(layerIndex, keyIndex));
+		}
+
+		public void FlipVSelf(int layerIndex, int keyIndex) {
+			_str.Commands.StoreAndExecute(new FlipVSelfCommand(layerIndex, keyIndex));
+		}
+
 		public void Backup(Action<Str> action) {
 			_str.Commands.StoreAndExecute(new BackupCommand(action));
 		}

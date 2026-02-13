@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -130,7 +131,7 @@ namespace GRFEditor.Core.Services {
 					}
 				}
 
-				new Thread(_showPreview) { Name = "GrfEditor - Preview thread " + _currentPath + "\\" + _selectedItem }.Start();
+				Task.Run(() => _showPreview());
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err, ErrorLevel.Warning);

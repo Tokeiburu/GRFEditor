@@ -6,9 +6,9 @@ using GRF;
 using GRF.FileFormats.RsmFormat;
 using GRF.IO;
 using OpenTK;
-using Matrix3 = OpenTK.Matrix3;
 using Matrix4 = OpenTK.Matrix4;
 using Utilities;
+using GRFEditor.ApplicationConfiguration;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class Face {
@@ -198,6 +198,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 				face.TextureVertexIds[1] = reader.UInt16();
 				face.TextureVertexIds[2] = reader.UInt16();
 				face.TextureId = reader.UInt16();
+
+				if (face.TextureId >= TextureIndexes.Length) {
+					face.TextureId = 0;
+				}
+
 				face.Padding = reader.UInt16();
 				face.TwoSide = reader.Int32() > 0 ? 1 : 0;
 
@@ -283,7 +288,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 				}
 			}
 
-			if (version >= 1.6) {
+			if (version >= 1.6 && version < 1.7) {
 				ScaleKeyFrames.Capacity = count = reader.Int32();
 
 				for (int i = 0; i < count; i++) {
@@ -340,6 +345,14 @@ namespace GRFEditor.OpenGL.MapComponents {
 							});
 						}
 					}
+				}
+			}
+
+			if (version >= 1.7) {
+				count = reader.Int32();
+
+				if (count > 0) {
+					Z.F();
 				}
 			}
 		}
@@ -935,6 +948,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 			AnimationLength = reader.Int32();
 			ShadeType = reader.Int32();
 			Alpha = 0xFF;
+
+			if (Version == 1.5 && GrfEditorConfiguration.SpecialDxhjVersionSupport) {
+				Header.SetVersion(1, 7);
+			}
 
 			if (Version >= 1.4) {
 				Alpha = reader.Byte();

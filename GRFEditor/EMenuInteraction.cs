@@ -748,7 +748,7 @@ namespace GRFEditor {
 		private readonly MenuItem _miTreeSelectInExplorer = new MenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png") } };
 		private readonly Separator _miTreeSeparator = new Separator();
 		private readonly MenuItem _miTreeSetEncryptionKey = new MenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
-		private readonly MenuItem _miDecryptFileTable = new MenuItem { Header = "Decrypt file header", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("diff.png"), Visibility = Visibility.Collapsed } };
+		private readonly MenuItem _miDecryptFileTable = new MenuItem { Header = "Decrypt file table", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("diff.png"), Visibility = Visibility.Collapsed } };
 		private readonly MenuItem _miUsage = new MenuItem { Header = "Find usages...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("help.png") } };
 
 		#endregion

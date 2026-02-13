@@ -3,8 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles" xmlns:TokeiLibrary="clr-namespace:TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView" mc:Ignorable="d" 
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles" xmlns:TokeiLibrary="clr-namespace:TokeiLibrary"
+		     mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
         <Grid.RowDefinitions>
@@ -12,7 +12,7 @@
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <ContentControl Name="_content" />
-        <Grid Name="_gridActionPresenter" ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="50" Background="{DynamicResource UIDialogBackground}">
+		<Grid Name="_gridActionPresenter" TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="1" Height="50" Background="{DynamicResource UIDialogBackground}">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="auto" />

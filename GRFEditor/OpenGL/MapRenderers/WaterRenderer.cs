@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using GRF.FileFormats.RswFormat;
+using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
@@ -25,6 +26,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				_water = _gnd.Water;
 			}
 			else if (rsw.Header.Version < 2.6) {
+				_water = new WaterData(rsw.Water);
+			}
+			else if (GrfEditorConfiguration.SpecialDxhjVersionSupport) {
 				_water = new WaterData(rsw.Water);
 			}
 		}

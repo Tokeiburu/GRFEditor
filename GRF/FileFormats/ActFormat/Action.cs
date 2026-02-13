@@ -246,5 +246,9 @@ namespace GRF.FileFormats.ActFormat {
 		public void Magnify(float value) {
 			AllFrames(p => p.Magnify(value));
 		}
+
+		public Action Clone() {
+			return new Action(this);
+		}
 	}
 }

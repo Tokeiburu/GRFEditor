@@ -33,7 +33,6 @@ namespace GRF.FileFormats.ActFormat {
 		public Act(Spr spr) {
 			Sprite = spr;
 			Commands = new CommandsHolder(this);
-
 			Header = new ActHeader();
 		}
 
@@ -63,7 +62,9 @@ namespace GRF.FileFormats.ActFormat {
 			Commands = new CommandsHolder(this);
 			Name = act.Name;
 			AnchoredTo = act.AnchoredTo;
+			IsSelectable = act.IsSelectable;
 			Sprite = new Spr(act.Sprite);
+			Header = new ActHeader();
 		}
 
 		internal Act(byte[] actData, byte[] sprData)
@@ -127,6 +128,7 @@ namespace GRF.FileFormats.ActFormat {
 		public Spr Sprite { get; internal set; }
 		public Act AnchoredTo { get; set; }
 		public string Name { get; set; }
+		public bool IsSelectable { get; set; }
 
 		public List<string> SoundFiles {
 			get { return _soundFiles; }
@@ -155,6 +157,7 @@ namespace GRF.FileFormats.ActFormat {
 		#endregion
 
 		public event InvalidateVisualDelegate VisualInvalidated;
+		public event InvalidateVisualDelegate RenderInvalidated;
 		public event InvalidateVisualDelegate SpriteVisualInvalidated;
 		public event InvalidateVisualDelegate SpritePaletteInvalidated;
 
@@ -173,10 +176,18 @@ namespace GRF.FileFormats.ActFormat {
 			if (handler != null) handler(this);
 		}
 
+		public void OnRenderInvalidated() {
+			InvalidateVisualDelegate handler = RenderInvalidated;
+			if (handler != null) handler(this);
+		}
+
 		public static Act DebugLoad(byte[] entireData, Spr spr) {
 			return new Act(entireData, spr, false);
 		}
 
+		/// <summary>
+		/// Ensures all actions have at least one frame. If there is no frame, an empty one will be generated.
+		/// </summary>
 		public void Safe() {
 			AllActions(a => {
 				if (a.Frames.Count == 0) {
@@ -449,6 +460,10 @@ namespace GRF.FileFormats.ActFormat {
 			OnSpriteVisualInvalidated();
 		}
 
+		public void InvalidateFrame() {
+			OnRenderInvalidated();
+		}
+
 		public List<Frame> GetAllFrames() {
 			List<Frame> frames = new List<Frame>();
 
@@ -569,102 +584,34 @@ namespace GRF.FileFormats.ActFormat {
 			Save(LoadedPath);
 		}
 
-		public List<string> GetAnimationStrings() {
+		private static string[][] _animations = new[] {
+			new[] { "Null" },	// 0
+			new[] { "0 - Idle" },	// 1, 8
+			new[] { "0 - Idle", "1 - Walking" },	// 2, 16
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack" },	// 3, 24
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit" },	// 4, 32
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead" },	// 5, 40
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1" },	// 6, 48
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2" },	// 7, 56
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2", "7 - Special 3" },	// 8, 64
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2", "7 - Special 3", "8 - Special 4" },	// 9, 72
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2", "7 - Special 3", "8 - Special 4", "9 - Special 5" },	// 10, 80 - doesn't exist
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2", "7 - Special 3", "8 - Special 4", "9 - Special 5", "10 - Special 6" },	// 11, 88 - doesn't exist
+			new[] { "0 - Idle", "1 - Walking", "2 - Attack", "3 - Hit", "4 - Dead", "5 - Special 1", "6 - Special 2", "7 - Special 3", "8 - Special 4", "9 - Special 5", "10 - Special 6", "11 - Special 7" },	// 12, 96 - doesn't exist
+			new[] { "0 - Idle", "1 - Walking", "2 - Sitting", "3 - Picking item", "4 - After Hit", "5 - Attacking1", "6 - Hit", "7 - Freeze1", "8 - Dead", "9 - Freeze2", "10 - Attacking2 (no weapon)", "11 - Attacking3 (weapon)", "12 - Casting spell" },	// 13, 104
+		};
+
+		public List<string> GetAnimations() {
 			int actionsCount = NumberOfActions;
+			int animationsCount = actionsCount / 8;
 
-			if (actionsCount == 5 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walk",
-					"2 - Attack",
-					"3 - Receiving damage",
-					"4 - Die",
-				};
-			}
+			if (animationsCount * 8 == actionsCount && actionsCount > 0 && animationsCount < _animations.Length)
+				return new List<string>(_animations[actionsCount / 8]);
 
-			if (actionsCount == 4 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walk",
-					"2 - Receiving damage",
-					"3 - Attack",
-				};
-			}
-
-			if (actionsCount == 13 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walking",
-					"2 - Sitting",
-					"3 - Picking item",
-					"4 - Standby",
-					"5 - Attacking1",
-					"6 - Receiving damage",
-					"7 - Freeze1",
-					"8 - Dead",
-					"9 - Freeze2",
-					"10 - Attacking2 (no weapon)",
-					"11 - Attacking3 (weapon)",
-					"12 - Casting spell"
-				};
-			}
-
-			if (actionsCount == 9 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walking",
-					"2 - Attacking",
-					"3 - Receiving damage",
-					"4 - Dead",
-					"5 - Special",
-					"6 - Perf1",
-					"7 - Perf2",
-					"8 - Perf3",
-				};
-			}
-
-			if (actionsCount == 2 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walking",
-				};
-			}
-
-			if (actionsCount == 8 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walking",
-					"2 - Attacking1",
-					"3 - Receiving damage",
-					"4 - Dead",
-					"5 - Attacking2",
-					"6 - Attacking3",
-					"7 - Action",
-				};
-			}
-
-			if (actionsCount == 7 * 8) {
-				return new List<string> {
-					"0 - Idle",
-					"1 - Walking",
-					"2 - Attacking1",
-					"3 - Receiving damage",
-					"4 - Dead",
-					"5 - Attacking2",
-					"6 - Attacking3",
-				};
-			}
-
-			if (actionsCount == 8) {
-				return new List<string> {
-					"0 - Idle",
-				};
-			}
-
-			int animations = (int) Math.Ceiling(actionsCount / 8f);
+			int animations = (int)Math.Ceiling(actionsCount / 8f);
 
 			List<string> items = new List<string>();
-
+			
 			for (int i = 0; i < animations; i++) {
 				items.Add(i.ToString(CultureInfo.InvariantCulture));
 			}
@@ -855,6 +802,14 @@ namespace GRF.FileFormats.ActFormat {
 			}
 
 			return input;
+		}
+
+		public List<Action> CopyActions() {
+			return Actions.Select(p => new Action(p)).ToList();
+		}
+
+		public Act Clone() {
+			return new Act(this);
 		}
 	}
 }

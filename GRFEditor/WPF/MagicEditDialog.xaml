@@ -3,8 +3,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                  xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                  xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
-                 xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
                  xmlns:forms="clr-namespace:Be.Windows.Forms;assembly=Be.Windows.Forms.HexBox"
                  MinWidth="570" MaxWidth="570" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <StackPanel>
@@ -12,7 +10,7 @@
         <WindowsFormsHost Name="_hexEditorHost" Height="50">
             <forms:HexBox x:Name="_hexEditor" ColumnInfoVisible="True" HexCasing="Lower" StringViewVisible="True" VScrollBarVisible="False" UseFixedBytesPerLine="True" GroupSeparatorVisible="True" Copied="_hexEditor_Copied" ReadOnly="False"></forms:HexBox>
         </WindowsFormsHost>
-        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+        <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <Grid Margin="0 0 3 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

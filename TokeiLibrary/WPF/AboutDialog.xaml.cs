@@ -20,7 +20,7 @@ namespace TokeiLibrary.WPF {
 			_imageBackground.Source = ApplicationManager.PreloadResourceImage(imageName);
 			_labelSoftwareName.Text = programName;
 			_labelSoftwareName_2.Text = programName;
-			_textBlock.Text = String.Format(programName + "\n\nProduct version : " + productVersion + "\nAssembly version : " + assemblyVersion + "\nAuthor : " + author + "\n\n" + "This program was designed by " + author + ". " +
+			_textBlock.Text = String.Format(programName + "\n\nProduct version: " + productVersion + "\nAssembly version: " + assemblyVersion + "\nAuthor: " + author + "\n\n" + "This program was designed by " + author + ". " +
 				"The software is provided \"as is\" and should be used at your own risk. The author will not be held responsible for any issues it may cause.");
 		}
 

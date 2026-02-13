@@ -1,14 +1,13 @@
 ﻿<Styles:TkWindow x:Class="GRFEditor.WPF.SettingsDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                 xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
-                 xmlns:WPF="clr-namespace:GRFEditor.WPF"
-                 xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
-                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
-                 xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
-                 MaxWidth="470" MinWidth="470" MinHeight="498" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
+        xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+        xmlns:WPF="clr-namespace:GRFEditor.WPF"
+        xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
+        xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
+        xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
+        MaxWidth="470" MinWidth="470" MinHeight="520" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -269,7 +268,7 @@
                 <!--<Image IsHitTestVisible="False" Source="../Resources/tree.png" Height="28" Width="28" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 52 0 0" />-->
             </Grid>
         </Border>
-        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
+        <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button Content="Ok" Height="24" Margin="3" Width="100" Click="_buttonClose" />
             </DockPanel>

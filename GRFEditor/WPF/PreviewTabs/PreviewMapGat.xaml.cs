@@ -16,7 +16,6 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities.Extension;
 using Utilities.Services;
 
@@ -42,7 +41,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_isInvisibleResult = () => _imagePreview.Dispatch(p => p.Visibility = Visibility.Hidden);
 			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
-			WpfUtils.AddMouseInOutEffectsBox(_cbHideBorders, _cbRescale, _cbTransparent);
+			WpfUtilities.AddMouseInOutUnderline(_cbHideBorders, _cbRescale, _cbTransparent);
 		}
 
 		public Action<Brush> BackgroundBrushFunction {

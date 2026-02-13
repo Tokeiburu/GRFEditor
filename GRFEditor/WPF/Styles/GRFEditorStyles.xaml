@@ -108,10 +108,9 @@
         <GradientStop Offset="0" Color="#FFE9F3FF" />
         <GradientStop Offset="0.5" Color="#FFC1DBFC" />
     </LinearGradientBrush>
-    
-    <Style TargetType="WPF:TkView">
-        <Setter Property="Background" Value="{DynamicResource UIThemeBackground1Brush}" />
-        <Style.Resources>
+
+	<Style TargetType="WPF:TkView">
+		<Style.Resources>
             <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="Transparent" />
         </Style.Resources>
     </Style>
@@ -212,19 +211,15 @@
                 </Trigger.EnterActions>
 
             </Trigger>
-            <Trigger Property="IsPressed" Value="true">
-                <Trigger.ExitActions>
-                    <BeginStoryboard Storyboard="{StaticResource PressedOff}" />
-                </Trigger.ExitActions>
-                <Trigger.EnterActions>
-                    <BeginStoryboard Storyboard="{StaticResource PressedOn}" />
-                </Trigger.EnterActions>
-            </Trigger>
-
-            <Trigger Property="IsEnabled" Value="false">
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush_Button}" />
-            </Trigger>
-        </ControlTemplate.Triggers>
+			<Trigger Property="IsPressed" Value="true">
+				<Trigger.ExitActions>
+					<BeginStoryboard Storyboard="{StaticResource PressedOff}" />
+				</Trigger.ExitActions>
+				<Trigger.EnterActions>
+					<BeginStoryboard Storyboard="{StaticResource PressedOn}" />
+				</Trigger.EnterActions>
+			</Trigger>
+		</ControlTemplate.Triggers>
     </ControlTemplate>
 
     <ControlTemplate x:Key="ButtonTemplateXP" TargetType="{x:Type Button}">
@@ -707,5 +702,38 @@
 
 	<Style TargetType="{x:Type Image}">
 		<Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality" />
+	</Style>
+
+	<Style TargetType="{x:Type WPF:SimpleButton}">
+		<Setter Property="SnapsToDevicePixels" Value="True" />
+
+		<Setter Property="Template">
+			<Setter.Value>
+				<ControlTemplate TargetType="{x:Type Button}">
+					<Grid>
+						<Border x:Name="Border" BorderThickness="1" CornerRadius="1" Background="Transparent" BorderBrush="Transparent">
+							<ContentPresenter x:Name="MyContentPresenter" Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+						</Border>
+						<Border x:Name="BorderEnabled" BorderThickness="1" CornerRadius="1" Background="{DynamicResource FancyButtonDisabledBackgroundBrush}" BorderBrush="{DynamicResource FancyButtonDisabledBorderBrush}" Visibility="Hidden" />
+					</Grid>
+
+					<ControlTemplate.Triggers>
+						<Trigger Property="IsMouseOver" Value="True">
+							<Setter TargetName="Border" Property="Background" Value="{DynamicResource FancyButtonMouseOverBackgroundBrush}" />
+							<Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FancyButtonMouseOverBorderBrush}" />
+						</Trigger>
+
+						<Trigger Property="WPF:SimpleButton.IsStatePressed" Value="True">
+							<Setter TargetName="Border" Property="Background" Value="{DynamicResource FancyButtonPressedBackgroundBrush}" />
+							<Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource FancyButtonPressedBorderBrush}" />
+						</Trigger>
+
+						<Trigger Property="IsEnabled" Value="False">
+							<Setter TargetName="BorderEnabled" Property="Visibility" Value="Visible" />
+						</Trigger>
+					</ControlTemplate.Triggers>
+				</ControlTemplate>
+			</Setter.Value>
+		</Setter>
 	</Style>
 </ResourceDictionary>

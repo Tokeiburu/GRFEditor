@@ -243,5 +243,9 @@ namespace GRF.FileFormats.ActFormat {
 		public void Magnify(float value) {
 			Layers.ForEach(p => p.Magnify(value));
 		}
+
+		public Frame Clone() {
+			return new Frame(this);
+		}
 	}
 }

@@ -257,6 +257,7 @@ namespace GRF.Image {
 							node.IsRgb = false;
 							break;
 					}
+
 					node.PixelCount = count;
 
 					_leafCount -= (leavesUnder - 1);
@@ -306,7 +307,7 @@ namespace GRF.Image {
 
 			if (node.IsLeaf && !node.IsReserved) {
 				if (node.PixelCount > 0) {
-					if (ColorMode == GrfColorMode.Lab) {
+					if (ColorMode == GrfColorMode.Lab && !node.IsRgb) {
 						var rgb = _GrfColorRgb.From(new _GrfColorXyz(node.Xyz.X / node.PixelCount, node.Xyz.Y / node.PixelCount, node.Xyz.Z / node.PixelCount));
 						palette.Add(rgb.R << 16 | rgb.G << 8 | rgb.B);
 						return;

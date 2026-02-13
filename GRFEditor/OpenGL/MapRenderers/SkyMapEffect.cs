@@ -53,7 +53,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			effect.NumPerSquared = (float)(60f * 4 / Math.Pow(400, 2));
 			effect.Color = new Vector3(1);
 			effect.SrcMode = BlendingFactor.SrcAlpha;
-			effect.DstMode = BlendingFactor.DstAlpha;
+			effect.DstMode = BlendingFactor.One;
 			effect.ShaderParameters = GetDefaultShaderParameters();
 			effect.ShaderParameters.Size = 20f;
 			effect.ShaderParameters.Size_Extra = 10f;

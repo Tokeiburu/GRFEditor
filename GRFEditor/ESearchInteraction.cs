@@ -4,12 +4,12 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
 using GRF.Core;
-using GRF.IO;
 using GRF.Threading;
 using GRFEditor.Core;
 using GRFEditor.OpenGL.MapComponents;
@@ -23,7 +23,6 @@ using Utilities.Extension;
 
 namespace GRFEditor {
 	partial class EditorMainWindow : Window {
-		private readonly object _filterLock = new object();
 		private readonly FileEntryComparer2 _grfEntrySorter = new FileEntryComparer2();
 		private readonly FileEntryComparer2 _grfSearchEntrySorter = new FileEntryComparer2();
 		private readonly object _searchLock = new object();
@@ -153,7 +152,7 @@ namespace GRFEditor {
 		}
 
 		private void _initSearchThreads() {
-			_searchFolderListingThread.Start("GrfEditor - Search filter for folder listing", (folderListingSearch, cancel) => {
+			_searchFolderListingThread.Start((folderListingSearch, cancel) => {
 				try {
 					if (cancel())
 						return;
@@ -165,7 +164,7 @@ namespace GRFEditor {
 						return;
 					}
 
-					this.Dispatch(p => p._grfEntrySorter.SetOrder(WpfUtils.GetLastGetSearchAccessor(_items), WpfUtils.GetLastSortDirection(_items)));
+					this.Dispatch(p => p._grfEntrySorter.SetOrder(ListViewExtensions.GetLastGetSearchAccessor(_items), ListViewExtensions.GetLastSortDirection(_items)));
 
 					if (cancel())
 						return;
@@ -251,10 +250,8 @@ namespace GRFEditor {
 			};
 		}
 
-		private void _search(bool isAsync = true) {
-			string currentSearch = _searchString;
-
-			GrfThread.Start(delegate {
+		private void _searchTask(string currentSearch) {
+			Task.Run(() => {
 				lock (_searchLock) {
 					try {
 						if (currentSearch != _searchString)
@@ -283,7 +280,7 @@ namespace GRFEditor {
 							_gridSplitterSearch.Visibility = Visibility.Visible;
 						});
 
-						this.Dispatch(p => p._grfSearchEntrySorter.SetOrder(WpfUtils.GetLastGetSearchAccessor(_listBoxResults), WpfUtils.GetLastSortDirection(_listBoxResults)));
+						this.Dispatch(p => p._grfSearchEntrySorter.SetOrder(ListViewExtensions.GetLastGetSearchAccessor(_listBoxResults), ListViewExtensions.GetLastSortDirection(_listBoxResults)));
 
 						if (_grfHolder.IsClosed)
 							return;
@@ -336,7 +333,16 @@ namespace GRFEditor {
 						ErrorHandler.HandleException(err);
 					}
 				}
-			}, "GrfEditor - Search filter for all items thread", isAsync);
+			});
+		}
+
+		private void _search(bool isAsync = true) {
+			string currentSearch = _searchString;
+
+			if (!isAsync)
+				_searchTask(currentSearch);
+			else
+				Task.Run(() => _searchTask(currentSearch));
 		}
 
 		private void _folderListing() {
@@ -376,7 +382,7 @@ namespace GRFEditor {
 			private readonly DefaultListViewComparer<FileEntry> _internalSearch = new DefaultListViewComparer<FileEntry>();
 			private ListSortDirection _direction;
 			private string _searchGetAccessor;
-			private readonly AlphanumComparator _alphanumComparer = new AlphanumComparator(StringComparison.OrdinalIgnoreCase);
+			private readonly AlphanumComparer _alphanumComparer = new AlphanumComparer(StringComparison.OrdinalIgnoreCase);
 			public bool UseAlphaNum { get; set; }
 
 			#region IComparer<FileEntry> Members

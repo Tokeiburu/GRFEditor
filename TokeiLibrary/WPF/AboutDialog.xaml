@@ -1,8 +1,7 @@
 ﻿<Styles:TkWindow x:Class="TokeiLibrary.WPF.AboutDialog"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles"
-                 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView">
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary">
     <StackPanel>
         <Grid>
             <Image Name="_imageBackground"  Height="275" Width="634"/>
@@ -22,7 +21,7 @@
                 </Border>
             </Grid>
         </Grid>
-        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+		<Grid TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button Content="Close" Width="100" Height="24" Margin="3" Click="_buttonClose"/>
             </DockPanel>

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ErrorManager;
+using GRF.Core;
 using GRF.FileFormats.PalFormat;
 using GRF.Image;
 using GRF.IO;
@@ -16,10 +17,18 @@ namespace GRF.FileFormats.SprFormat {
 		/// </returns>
 		internal List<GrfImage> GetImages(IBinaryReader reader, bool loadFirstImageOnly) {
 // ReSharper disable CompareOfFloatsByEqualityOperator
-			if (Header.Version != 1.0 && Header.Version != 2.0 && Header.Version != 2.1) {
-// ReSharper restore CompareOfFloatsByEqualityOperator
-				ErrorHandler.HandleException("Unsupported format, attempting version 2.1 : Major = " + Header.MajorVersion + " Minor = " + Header.MinorVersion, ErrorLevel.Low);
+			switch(Header.Version) {
+				case 1.0:
+				case 2.0:
+				case 2.1:
+				case 2.2:
+				case 3.2:
+					break;
+				default:
+					ErrorHandler.HandleException("Unsupported SPR format, attempting version 2.1: Major = " + Header.MajorVersion + " Minor = " + Header.MinorVersion, ErrorLevel.Low);
+					break;
 			}
+// ReSharper restore CompareOfFloatsByEqualityOperator
 
 			return _getImages(reader, loadFirstImageOnly);
 		}
@@ -90,6 +99,14 @@ namespace GRF.FileFormats.SprFormat {
 				palette[4 * i + 3] = 255;
 			}
 
+			if (Header.Version >= 2.2) {
+				//for (int i = 0; i < 256; i++) {
+				//	byte r = palette[4 * i + 0];
+				//	palette[4 * i + 0] = palette[4 * i + 2];
+				//	palette[4 * i + 2] = r;
+				//}
+			}
+
 			palette[3] = 0;
 
 			Palette = new Pal(palette, false);
@@ -100,7 +117,14 @@ namespace GRF.FileFormats.SprFormat {
 		protected void _readAsBgra32(List<Rle> rleImages, IBinaryReader reader) {
 			int width = reader.UInt16();
 			int height = reader.UInt16();
-			byte[] frameData = reader.Bytes(width * height * 4);
+			byte[] frameData;
+
+			if (Header.Version >= 3.2) {
+				frameData = Compression.DecompressZlib(reader.Bytes(reader.Int32()), 4 * width * height);
+			}
+			else {
+				frameData = reader.Bytes(width * height * 4);
+			}
 
 			rleImages.Add(new Rle { FrameData = frameData, Height = height, Width = width });
 		}
@@ -110,7 +134,10 @@ namespace GRF.FileFormats.SprFormat {
 			int height = reader.UInt16();
 			byte[] frameData;
 
-			if (Header.Version >= 2.1) {
+			if (Header.Version >= 2.2) {
+				frameData = reader.Bytes(reader.Int32());
+			}
+			else if (Header.Version >= 2.1) {
 				frameData = reader.Bytes(reader.UInt16());
 			}
 			else {
@@ -121,6 +148,10 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		protected GrfImage _loadBgra32Image(Rle rleImage) {
+			if (Header.IsCompatibleWith(3, 2)) {
+				return new GrfImage(ref rleImage.FrameData, rleImage.Width, rleImage.Height, GrfImageType.Bgra32);
+			}
+
 			byte[] realData = new byte[rleImage.Width * rleImage.Height * 4];
 			byte[] data = rleImage.FrameData;
 

@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Controls;
 using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
@@ -13,9 +12,7 @@ using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
 using Matrix4 = OpenTK.Matrix4;
-using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class RenderDataInfo {
@@ -393,12 +390,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (model.Rsm == null)
 				return;
 
-			Vector3 position = new Vector3(5 * gnd.Width + model.Model.Position.X, 0, 5 * gnd.Height + model.Model.Position.Z);
-			if (position.X < 0 || position.X > gnd.Header.Width * 10 ||
-				position.Z < 0 || position.Z > gnd.Header.Height * 10) {
-				return;
-			}
-
 			model.MatrixCache = Matrix4.Identity;
 			model.MatrixCache = GLHelper.Scale(ref model.MatrixCache, new Vector3(1, 1, -1));
 
@@ -586,6 +577,13 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					if (modelRsm.Rsm == null)
 						continue;
 					
+					Vector3 position = new Vector3(5 * gnd.Width + modelRsm.Model.Position.X, 0, 5 * gnd.Height + modelRsm.Model.Position.Z);
+					if (position.X < 0 || position.X > gnd.Width * 10 ||
+						position.Z < 0 || position.Z > gnd.Height * 10) {
+						GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
+						continue;
+					}
+
 					if (loadAnimation) {
 						if (modelRsm.Rsm.AnimationLength > 0) {
 							bool any = modelRsm.Rsm.Meshes.Any(p => p.IsAnimated);
@@ -593,13 +591,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 							//if (true) {
 							if (any) {
-								Vector3 position = new Vector3(5 * gnd.Width + modelRsm.Model.Position.X, 0, 5 * gnd.Height + modelRsm.Model.Position.Z);
-								if (position.X < 0 || position.X > gnd.Header.Width * 10 ||
-									position.Z < 0 || position.Z > gnd.Header.Height * 10) {
-									GLHelper.OnLog(() => "Message: Model omitted " + modelRsm.Model.ModelName + ", outside GND boundary (" + _watch.ElapsedMilliseconds + " ms)");
-									continue;
-								}
-
 								if (!sharedRsmRenderers.ContainsKey(key)) {
 									var rsmRenderer = new SharedRsmRenderer(_request, Shader, modelRsm.Rsm, gnd, rsw);
 									sharedRsmRenderers[key] = rsmRenderer;
@@ -621,10 +612,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				
 					if (_request.CancelRequired())
 						return;
-				}
-
-				foreach (var modelGroup in _modelGroups) {
-					
 				}
 
 				// Does not support computer shader, load models on the CPU

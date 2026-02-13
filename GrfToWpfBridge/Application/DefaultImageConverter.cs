@@ -21,12 +21,24 @@ namespace GrfToWpfBridge.Application {
 			switch (image.GrfImageType) {
 				case GrfImageType.Bgra32:
 					bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Bgra32, null);
-					bit.WritePixels(new Int32Rect(0, 0, image.Width, image.Height), image.Pixels, image.Width * 4, 0);
+					bit.Lock();
+					unsafe {
+						fixed (byte* src = image.Pixels)
+							Buffer.MemoryCopy(src, (void*)bit.BackBuffer, image.Pixels.Length, image.Pixels.Length);
+					}
+					bit.AddDirtyRect(new Int32Rect(0, 0, image.Width, image.Height));
+					bit.Unlock();
 					bit.Freeze();
 					return bit;
 				case GrfImageType.Bgr32:
 					bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Bgr32, null);
-					bit.WritePixels(new Int32Rect(0, 0, image.Width, image.Height), image.Pixels, image.Width * 4, 0);
+					bit.Lock();
+					unsafe {
+						fixed (byte* src = image.Pixels)
+							Buffer.MemoryCopy(src, (void*)bit.BackBuffer, image.Pixels.Length, image.Pixels.Length);
+					}
+					bit.AddDirtyRect(new Int32Rect(0, 0, image.Width, image.Height));
+					bit.Unlock();
 					bit.Freeze();
 					return bit;
 				case GrfImageType.Bgr24:

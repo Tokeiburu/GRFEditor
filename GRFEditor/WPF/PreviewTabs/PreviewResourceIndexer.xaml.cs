@@ -13,7 +13,6 @@ using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
-using GRFEditor.Tools.MapExtractor;
 using GrfToWpfBridge.Application;
 using GrfToWpfBridge.TreeViewManager;
 using TokeiLibrary;

@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
+			 xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
              xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge" mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
@@ -116,7 +117,7 @@
                     <TextBlock Text="Patching mode" Margin="3" Grid.Row="0" VerticalAlignment="Center" />
                     <TextBox Height="24" VerticalContentAlignment="Center" Name="_textBoxTargetGrf" GotFocus="_tbTarget_GotFocus" LostFocus="_tbTarget_LostFocus" Visibility="Collapsed" Grid.Row="1" Grid.Column="1" Margin="3" />
                     <!--<TextBlock Name="_labelFind" Grid.Row="1" Grid.Column="1" Margin="6 0 6 0" VerticalAlignment="Center" Text="'default.grf'..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />-->
-                    <WPF:TkInfoBlock VerticalContentAlignment="Center" Height="24" x:Name="_tkInfo" Margin="3" Visibility="Collapsed" Grid.Row="2" Text="Leaving this field empty will merge into the default GRF." ImagePath="help.png" Grid.Column="0" Grid.ColumnSpan="2" />
+					<WPF:TkInfoBlock VerticalContentAlignment="Center" Height="24" x:Name="_tkInfo" Margin="3" Visibility="Collapsed" Grid.Row="2" Text="Leaving this field empty will merge into the default GRF." TokeiLibrary:WpfProperties.ImagePath="help.png" Grid.Column="0" Grid.ColumnSpan="2" />
                     <ComboBox Grid.Row="0" Grid.Column="1" Width="160" HorizontalAlignment="Left" Name="_comboBoxPatchMode" SelectedIndex="0" VerticalAlignment="Center" Margin="3" >
                         <ComboBoxItem Content="Merge into RO directory" />
                         <ComboBoxItem Content="Merge into GRF" />

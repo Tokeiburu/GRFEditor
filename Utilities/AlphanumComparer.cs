@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Utilities {
-	public class AlphanumComparator : IComparer<string> {
+	public class AlphanumComparer : IComparer<string> {
 		private StringComparison _comparison;
 
 		private enum ChunkType { Alphanumeric, Numeric };
@@ -22,7 +22,7 @@ namespace Utilities {
 			return true;
 		}
 
-		public AlphanumComparator(StringComparison comparison) {
+		public AlphanumComparer(StringComparison comparison) {
 			_comparison = comparison;
 		}
 

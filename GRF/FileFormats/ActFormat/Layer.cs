@@ -29,7 +29,25 @@ namespace GRF.FileFormats.ActFormat {
 		private float _scaleX = 1f;
 		private float _scaleY = 1f;
 
+		public bool Preview;
+
 		internal Layer() {
+		}
+
+		public Layer(SpriteIndex spriteIndex) {
+			SprSpriteIndex = spriteIndex;
+			Color = new GrfColor(255, 255, 255, 255);
+			ScaleX = 1;
+			ScaleY = 1;
+		}
+
+		public Layer(SpriteIndex spriteIndex, GrfImage image) {
+			SprSpriteIndex = spriteIndex;
+			Color = new GrfColor(255, 255, 255, 255);
+			ScaleX = 1;
+			ScaleY = 1;
+			Width = image.Width;
+			Height = image.Height;
 		}
 
 		public Layer(int relativeIndex, GrfImage image) {
@@ -110,6 +128,16 @@ namespace GRF.FileFormats.ActFormat {
 		public int SpriteTypeInt {
 			get { return (int) SpriteType; }
 			set { SpriteType = (SpriteTypes) value; }
+		}
+
+		public SpriteIndex SprSpriteIndex {
+			get {
+				return new SpriteIndex(this);
+			}
+			set {
+				SpriteType = value.Type == GrfImageType.Indexed8 ? SpriteTypes.Indexed8 : SpriteTypes.Bgra32;
+				SpriteIndex = value.Index;
+			}
 		}
 
 		protected bool Equals(Layer other) {
@@ -218,10 +246,14 @@ namespace GRF.FileFormats.ActFormat {
 		}
 
 		public bool IsIndexed8() {
+			if (SpriteIndex < 0)
+				return true;
 			return SpriteType == SpriteTypes.Indexed8;
 		}
 
 		public bool IsBgra32() {
+			if (SpriteIndex < 0)
+				return false;
 			return SpriteType == SpriteTypes.Bgra32;
 		}
 
@@ -288,6 +320,14 @@ namespace GRF.FileFormats.ActFormat {
 			Scale(value);
 			OffsetX = (int) (value * OffsetX);
 			OffsetY = (int) (value * OffsetY);
+		}
+
+		public Layer Clone() {
+			return new Layer(this);
+		}
+
+		public Plane ToPlane(Act act) {
+			return Plane.FromLayer(act, this);
 		}
 	}
 }

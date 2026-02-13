@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" MinWidth="450" MaxWidth="450" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
+	    MinWidth="450" MaxWidth="450" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
     <StackPanel>
         <StackPanel Margin="0 3 3 3">
             <TextBlock Name="_tbInfo" Text="Information" TextWrapping="Wrap" Margin="5" />
@@ -30,7 +31,7 @@
                 </Styles:ButtonMenu>
             </Grid>
         </StackPanel>
-        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+		<Grid TokeiLibrary:WpfProperties.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button Name="_buttonOk" Content="Set key" Width="100" Height="24" Margin="3" Click="_buttonOk_Click" />
                 <Button Name="_buttonCancel" Content="Cancel" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />

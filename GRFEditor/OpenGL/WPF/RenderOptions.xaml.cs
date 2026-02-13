@@ -5,7 +5,6 @@ using System.Windows.Media;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF.PreviewTabs;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 using Binder = GrfToWpfBridge.Binder;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -48,7 +47,7 @@ namespace GRFEditor.OpenGL.WPF {
 
 			//Binder.Bind(_checkBoxClientPerspective, () => GrfEditorConfiguration.MapRendererClientPov, v => GrfEditorConfiguration.MapRendererClientPov = v, () => _previewRsm.Reload(false));
 
-			WpfUtils.AddMouseInOutEffectsBox(
+			WpfUtilities.AddMouseInOutUnderline(
 				_checkBoxRenderWater, _checkBoxRenderWater, _checkBoxRenderGround, _checkBoxRenderObjects, _checkBoxAnimateMap, _checkBoxLightmap, 
 				_checkBoxShadowmap, _checkBoxFps, _checkBoxTileUp, _checkBoxRenderLub, _checkBoxStickToGround, _checkBoxClientPerspective,
 				_checkBoxRenderSkymap, _checkBoxSmoothCamera, _checkBoxUnlimitedFps, _checkBoxFaceCulling, _checkBoxFSAA, _checkBoxRenderGat);

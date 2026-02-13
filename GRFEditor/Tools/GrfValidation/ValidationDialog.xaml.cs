@@ -87,7 +87,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			_cbComparisonAlrightm.Items.Add(new FileSizeHash());
 			_cbComparisonAlrightm.SelectedIndex = 0;
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbVeIgnoreFilesNotFound, _cbVeFilesDifferentSize);
+			WpfUtilities.AddMouseInOutUnderline(_cbVeIgnoreFilesNotFound, _cbVeFilesDifferentSize);
 		}
 
 		private void _loadSettingsValidateContent() {
@@ -124,7 +124,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			Binder.Bind(_cbVcSpriteSoundMissing, () => GrfEditorConfiguration.VcSpriteSoundMissing);
 			Binder.Bind(_cbVcSpriteIndex, () => GrfEditorConfiguration.VcSpriteIndex);
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbVcDecompressEntries, _cbVcLoadEntries, _cbVcInvalidEntryMetadata, _cbVcSpriteIssues,
+			WpfUtilities.AddMouseInOutUnderline(_cbVcDecompressEntries, _cbVcLoadEntries, _cbVcInvalidEntryMetadata, _cbVcSpriteIssues,
 											 _cbVcResourcesModelFiles, _cbVcResourcesMapFiles, _cbVcChecksum, _cbVcSpriteIssuesRle, _cbVcSpriteSoundIndex,
 											 _cbVcSpriteSoundMissing, _cbVcSpriteIndex);
 		}
@@ -141,7 +141,7 @@ namespace GRFEditor.Tools.GrfValidation {
 			Binder.Bind(_cbFeInvalidFileTable, () => GrfEditorConfiguration.FeInvalidFileTable);
 			Binder.Bind(_cbFeRootFiles, () => GrfEditorConfiguration.FeRootFiles);
 
-			WpfUtils.AddMouseInOutEffectsBox(
+			WpfUtilities.AddMouseInOutUnderline(
 				_cbFeNoExtension, _cbFeMissingSprAct, _cbFeEmptyFiles, _cbFeDb, _cbFeSvn,
 				_cbFeDuplicateFiles, _cbFeDuplicatePaths, _cbFeSpaceSaved, _cbFeInvalidFileTable, _cbFeRootFiles);
 		}

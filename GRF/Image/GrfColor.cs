@@ -652,6 +652,14 @@ namespace GRF.Image {
 			return value.ToHexString();
 		}
 
+		public static GrfColor operator *(GrfColor color1, float rate) {
+			return new GrfColor((byte)(color1.A * rate), (byte)(color1.R * rate), (byte)(color1.G * rate), (byte)(color1.B * rate));
+		}
+
+		public static GrfColor operator +(GrfColor color1, GrfColor color2) {
+			return new GrfColor(ClampToByte(color1.A + color2.A), ClampToByte(color1.R + color2.R), ClampToByte(color1.G + color2.G), ClampToByte(color1.B + color2.B));
+		}
+
 		/// <summary>
 		/// Converts from HSL to RGB
 		/// </summary>

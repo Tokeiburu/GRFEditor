@@ -9,13 +9,11 @@ using GRFEditor.OpenGL.MapComponents;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-using Utilities;
 using ButtonState = OpenTK.Input.ButtonState;
 using Clipboard = System.Windows.Clipboard;
 using Control = System.Windows.Forms.Control;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
-using Matrix4 = OpenTK.Matrix4;
 using UserControl = System.Windows.Controls.UserControl;
 using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
@@ -359,6 +357,9 @@ namespace GRFEditor.OpenGL.WPF {
 					}
 					ClipboardBE.RemoveLastComa(clip);
 					clip.AppendLine(" ],");
+				}
+				else {
+					clip.AppendLine(" \"objects\": [],");
 				}
 
 				ClipboardBE.RemoveLastComa(clip);

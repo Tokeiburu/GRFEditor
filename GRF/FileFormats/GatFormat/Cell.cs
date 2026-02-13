@@ -2,7 +2,6 @@
 using GRF.Graphics;
 using GRF.IO;
 using GRF.Image;
-using Utilities;
 
 namespace GRF.FileFormats.GatFormat {
 	public class Cell : IWriteableObject {

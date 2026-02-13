@@ -837,7 +837,7 @@ namespace Utilities.Parsers.Yaml {
 					_allLines[confElement.Line - 1] = confElement.Objects[1].ObjectValue;
 				}
 
-				AlphanumComparator alphaComparer = new AlphanumComparator(StringComparison.Ordinal);
+				AlphanumComparer alphaComparer = new AlphanumComparer(StringComparison.Ordinal);
 				_writeArrays = _writeArrays.OrderBy(p => p[_idKey], alphaComparer).ToList();
 
 				// Set added lines in order of their ID

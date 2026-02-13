@@ -18,6 +18,7 @@ namespace GRF.IO {
 		void Forward(int numberOfBytes);
 		void WriteToFile(string file);
 
+		byte Peek();
 		byte Byte();
 		byte[] Bytes(int count);
 

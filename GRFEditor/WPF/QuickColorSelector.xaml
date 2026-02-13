@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-             xmlns:listView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+             xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
              mc:Ignorable="d" d:Width="100" d:Height="20">
     <Grid>
         <Grid.ColumnDefinitions>
@@ -26,12 +26,12 @@
             </Grid>
             <Border.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Copy" listView:WpfUtils.ImagePath="copy.png" Click="_meCopy_Click" />
-                    <MenuItem Header="Paste" listView:WpfUtils.ImagePath="paste.png" Click="_mePaste_Click" />
+                    <MenuItem Header="Copy" TokeiLibrary:WpfProperties.ImagePath="copy.png" Click="_meCopy_Click" />
+                    <MenuItem Header="Paste" TokeiLibrary:WpfProperties.ImagePath="paste.png" Click="_mePaste_Click" />
                 </ContextMenu>
             </Border.ContextMenu>
         </Border>
         <Border IsHitTestVisible="False" Name="_borderEnabled" CornerRadius="2" Margin="0" BorderBrush="Transparent" BorderThickness="0" Background="Transparent" RenderOptions.BitmapScalingMode="NearestNeighbor" />
-        <styles:FancyButton Visibility="Collapsed" Grid.Column="1" Name="_reset" Click="_reset_Click" Width="18" Height="18" ImagePath="reset.png" Margin="3 0 0 0" />
+		<styles:FancyButton Visibility="Collapsed" Grid.Column="1" Name="_reset" Click="_reset_Click" Width="18" Height="18" TokeiLibrary:WpfProperties.ImagePath="reset.png" Margin="3 0 0 0" />
     </Grid>
 </UserControl>

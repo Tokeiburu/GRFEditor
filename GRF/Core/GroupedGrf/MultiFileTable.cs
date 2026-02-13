@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using GRF.ContainerFormat;
 using GRF.IO;
-using Utilities.Extension;
 using Utilities.Services;
 
 namespace GRF.Core.GroupedGrf {

@@ -22,10 +22,8 @@ using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using TokeiLibrary;
 using TokeiLibrary.Shortcuts;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities.Extension;
 using Binder = GrfToWpfBridge.Binder;
-using Button = System.Windows.Controls.Button;
 using RenderOptions = GRFEditor.OpenGL.WPF.RenderOptions;
 using WindowState = System.Windows.WindowState;
 
@@ -87,7 +85,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 
 			_sliderAnimation.ValueChanged += new SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
-			WpfUtils.AddMouseInOutEffectsBox(_checkBoxRotateCamera, _checkBoxUseGlobalLighting, _checkBoxEnableMipmap);
+			WpfUtilities.AddMouseInOutUnderline(_checkBoxRotateCamera, _checkBoxUseGlobalLighting, _checkBoxEnableMipmap);
 			
 			IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
 			new Thread(_animationThread) { Name = "GrfEditor - RSM2 animation update thread" }.Start();
@@ -192,6 +190,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				var gatRenderer = new GatMinimapRenderer(request, nViewport.Shader_simple, request.Gat, request.Gnd);
 				nViewport.Renderers.Add(gatRenderer);
+				nViewport.Minimap = true;
 
 				MinimapDialog diag = new MinimapDialog();
 				diag.Owner = WpfUtilities.TopWindow;

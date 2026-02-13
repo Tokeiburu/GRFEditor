@@ -100,6 +100,12 @@ namespace GRF.IO {
 			Stream.Seek(numberOfBytes, SeekOrigin.Current);
 		}
 
+		public byte Peek() {
+			byte value = Byte();
+			Forward(-1);
+			return value;
+		}
+
 		public byte Byte() {
 			return (byte) Stream.ReadByte();
 		}

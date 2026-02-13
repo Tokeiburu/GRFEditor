@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using GRF.FileFormats.SprFormat.Builder;
 using GRF.Image;
-using GRF.IO;
-using GRF.GrfSystem;
 using Utilities;
 
 namespace GRF.FileFormats.SprFormat {

@@ -5,5 +5,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public static byte[] GetData(string path) {
 			return GrfEditorConfiguration.Resources.MultiGrf.GetData(path);
 		}
+
+		public static byte[] GetDataBuffered(string path) {
+			return GrfEditorConfiguration.Resources.MultiGrf.GetDataBuffered(path);
+		}
 	}
 }

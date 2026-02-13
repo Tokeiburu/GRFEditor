@@ -21,13 +21,22 @@ namespace GRFEditor.OpenGL.WPF {
 			InitializeComponent();
 		}
 
-		public CloudEditTab(SkyEffect skyEffect) {
+		public CloudEditTab(OpenGLViewport viewport, SkyEffect skyEffect) {
 			InitializeComponent();
 
 			_skyEffect = skyEffect;
 
 			if (skyEffect.OldCloudEffect == 0) {
 				_tbAmount.TextNoEvent = skyEffect.Num.ToString();
+
+				if (viewport._request != null && viewport._request.Gnd != null) {
+					var gnd = viewport._request.Gnd;
+					_tbAmount.TextNoEvent = ((int)(skyEffect.NumPerSquared * gnd.Width * gnd.Height * 100f)).ToString();
+				}
+				else {
+					_tbAmount.TextNoEvent = skyEffect.Num.ToString();
+				}
+
 				_tbAmount.TextChanged += delegate {
 					int value = _tbAmount.GetInt();
 

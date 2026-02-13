@@ -6,6 +6,7 @@ using GRF.IO;
 using GRFEditor.WPF.PreviewTabs;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using Utilities.Extension;
 using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.StrGroup {
@@ -46,6 +47,10 @@ namespace GRFEditor.OpenGL.StrGroup {
 					if (entry != null) {
 						try {
 							image = new GrfImage(entry.GetDecompressedData());
+
+							if (entry.RelativePath.IsExtension(".tga")) {
+								image.Flip(FlipDirection.Vertical);
+							}
 						}
 						catch {
 							// 
@@ -61,13 +66,6 @@ namespace GRFEditor.OpenGL.StrGroup {
 				}
 			}
 
-			//GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
-			//GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
-			//
-			//GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Nearest);
-			//GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMagFilter.Nearest);
-			//
-			//Shader = new Shader("shader_color.vert", "shader_color.frag");
 			Shader = _shader;
 			SetupShader();
 		}

@@ -22,7 +22,7 @@ void main(void)
 	if (billboard_off == 0) {
 		vec3 camRight = vec3(view[0][0], view[0][1], view[0][2]);
 		vec3 camUp    = vec3(view[1][0], view[1][1], view[1][2]);
-		vec3 worldPos = vec3(vec4(pos, 1) * m) + (camRight * position.x * scale.x) + (camUp * position.y);
+		vec3 worldPos = vec3(vec4(pos, 1) * m) + (camRight * position.x) + (camUp * position.y);
 		
 		gl_Position = vec4(worldPos, 1.0) * vp;
 	}

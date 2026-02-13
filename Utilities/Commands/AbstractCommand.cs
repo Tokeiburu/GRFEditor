@@ -17,7 +17,7 @@ namespace Utilities.Commands {
 		/// <summary>
 		/// Gets a value indicating whether the command stack is being grouped.
 		/// </summary>
-		public bool IsDelayed { get; private set; }
+		public bool IsDelayed { get; protected set; }
 
 		public int CommandIndexNonModified { get { return _commandIndexNonModified; } }
 
@@ -179,8 +179,7 @@ namespace Utilities.Commands {
 
 					if (IsDelayed) {
 						_delayedCommands.Add(command);
-						IGroupCommand<T> commandGroup = _delayedCommandsCommand;
-						commandGroup.Processing(command);
+						_delayedCommandsCommand?.Processing(command);
 						return;
 					}
 
@@ -231,7 +230,7 @@ namespace Utilities.Commands {
 
 					if (IsDelayed) {
 						_delayedCommands.Add(command);
-						_delayedCommandsCommand.Processing(command);
+						_delayedCommandsCommand?.Processing(command);
 						return;
 					}
 
@@ -252,7 +251,7 @@ namespace Utilities.Commands {
 					_commandIndexModified = _commandIndexCurrent;
 					OnCommandExecuted(command);
 					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
-					OnModifiedStateChanged(default);
+					OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
 				catch (CancelAbstractCommand) {
 					stack.Restore(this);
@@ -354,7 +353,7 @@ namespace Utilities.Commands {
 						_commandIndexModified = _commandIndexCurrent;
 						OnCommandExecuted(command);
 						OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
-						OnModifiedStateChanged(default);
+						OnModifiedStateChanged(command);
 					}
 				}
 				catch (CancelAbstractCommand) {
@@ -388,7 +387,7 @@ namespace Utilities.Commands {
 					OnCommandUndo(_commands[_commandIndexCurrent]);
 					_commandIndexCurrent = _commandIndexCurrent <= -1 ? -1 : _commandIndexCurrent - 1;
 					OnCommandIndexChanged(_commands[_commandIndexCurrent + 1]);
-					OnModifiedStateChanged(default);
+					OnModifiedStateChanged(_commands[_commandIndexCurrent + 1]);
 					return true;
 				}
 				finally {
@@ -414,7 +413,7 @@ namespace Utilities.Commands {
 					_redo(_commands[_commandIndexCurrent]);
 					OnCommandRedo(_commands[_commandIndexCurrent]);
 					OnCommandIndexChanged(_commands[_commandIndexCurrent]);
-					OnModifiedStateChanged(default);
+					OnModifiedStateChanged(_commands[_commandIndexCurrent]);
 					return true;
 				}
 				finally {
@@ -465,7 +464,7 @@ namespace Utilities.Commands {
 			if (oldIndex != _commandIndexCurrent || numberRemoved > 0) {
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
-				OnModifiedStateChanged(default);
+				OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 			}
 		}
 
@@ -474,7 +473,7 @@ namespace Utilities.Commands {
 				_commands.RemoveAt(_commands.Count - 1);
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
-				OnModifiedStateChanged(default);
+				OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 			}
 		}
 
@@ -529,7 +528,7 @@ namespace Utilities.Commands {
 			_commandIndexCurrent = commandIndex;
 			_commandIndexModified = _commandIndexCurrent;
 			OnCommandIndexChanged(_commandIndexCurrent <= -1 || _commandIndexCurrent < _commands.Count ? default : _commands[_commandIndexCurrent]);
-			OnModifiedStateChanged(default);
+			OnModifiedStateChanged(_commandIndexCurrent <= -1 || _commandIndexCurrent < _commands.Count ? default : _commands[_commandIndexCurrent]);
 		}
 
 		public virtual void BeginEdit(IGroupCommand<T> command) {
@@ -537,6 +536,7 @@ namespace Utilities.Commands {
 				IsLocked = true;
 
 				try {
+					_delayedCommands.Clear();
 					_delayedCommandsCommand = command;
 					IsDelayed = true;
 				}
@@ -554,7 +554,7 @@ namespace Utilities.Commands {
 					if (_delayedCommands.Count != 0) {
 						StoreAndExecute(_delayedCommands);
 						try {
-							_delayedCommandsCommand.Close();
+							_delayedCommandsCommand?.Close();
 						}
 						catch { }
 					}
@@ -584,6 +584,10 @@ namespace Utilities.Commands {
 				}
 			}
 			catch { }
+		}
+
+		public virtual void ClearDelayedCommands() {
+			_delayedCommands?.Clear();
 		}
 
 		protected virtual void Dispose(bool disposing) {

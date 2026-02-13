@@ -14,6 +14,7 @@ namespace GRF.GrfSystem {
 		public static Action OnSavingFailed;
 		public static float CpuUsageCritical = 90f;
 		public static bool AddHashFileForThor = false;
+		public static bool FullFileTableEncryptionSupport = false;
 
 		static Settings() {
 			LubDecompilerSettings = new LubSettings {

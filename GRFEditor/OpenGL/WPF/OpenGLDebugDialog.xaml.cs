@@ -159,7 +159,7 @@ namespace GRFEditor.OpenGL.WPF {
 
 				Log = "- Context: " + FindParentControl(viewport) + " (" + viewport.GetHashCode() + ")\r\n";
 				Log = "  - Last request: \"" + (viewport._request == null ? "[null]" : viewport._request.Resource) + "\"\r\n";
-				Log = "  - Texture requested: " + TextureManager.ContextBufferedTextures[viewport].Sum(p => p.Value) + " / " + TextureManager.BufferedTextures.Sum(p => p.Value.Item2) + "\r\n";
+				Log = "  - Texture requested: " + (TextureManager.ContextBufferedTextures.ContainsKey(viewport) ? TextureManager.ContextBufferedTextures[viewport].Sum(p => p.Value) : 0) + " / " + TextureManager.BufferedTextures.Sum(p => p.Value.Item2) + "\r\n";
 				Log = "  - Unique texture: " + manager.TextureIds.Count + " / " + OpenGLMemoryManager._managers.Sum(p => p.Value.TextureIds.Count) + "\r\n";
 				Log = "  - VAO: " + manager.VertexArrayObjects.Count + " / " + OpenGLMemoryManager._managers.Sum(p => p.Value.VertexArrayObjects.Count) + "\r\n";
 				Log = "  - VBO: " + manager.VertexBufferObjects.Count + " / " + OpenGLMemoryManager._managers.Sum(p => p.Value.VertexBufferObjects.Count) + "\r\n";

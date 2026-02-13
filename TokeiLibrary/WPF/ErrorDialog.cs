@@ -5,7 +5,6 @@ using System.Windows.Input;
 using System.Windows.Media;
 using ErrorManager;
 using TokeiLibrary.WPF.Styles;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities.Services;
 
 namespace TokeiLibrary.WPF {
@@ -91,7 +90,7 @@ namespace TokeiLibrary.WPF {
 
 			Grid footer = new Grid { Height = 40, Background = Application.Current.Resources["UIDialogBackground"] as Brush };
 			footer.SetValue(Grid.RowProperty, 1);
-			footer.SetValue(WpfUtils.IsDraggableProperty, true);
+			footer.SetValue(WpfProperties.IsDraggableProperty, true);
 			Grid panel = new Grid { Margin = new Thickness(0, 0, 3, 0) };
 			panel.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(-1, GridUnitType.Auto) });
 			panel.ColumnDefinitions.Add(new ColumnDefinition());

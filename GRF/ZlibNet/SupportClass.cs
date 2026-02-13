@@ -1,9 +1,4 @@
-
-using System;
-
-
-namespace ComponentAce.Compression.Libs.zlib
-{
+namespace ComponentAce.Compression.Libs.zlib {
 	public class SupportClass
 	{
 		/// <summary>

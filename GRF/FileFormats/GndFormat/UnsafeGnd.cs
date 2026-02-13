@@ -3,7 +3,6 @@ using GRF.FileFormats.RswFormat;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Text;
 using Utilities;
 using Utilities.Services;
 

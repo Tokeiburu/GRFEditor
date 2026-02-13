@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 using System.Windows.Threading;
 using ColorPicker;
 using ColorPicker.Sliders;
@@ -108,6 +108,9 @@ namespace GRFEditor.WPF {
 
 		public QuickColorSelector() {
 			InitializeComponent();
+
+			if (DesignerProperties.GetIsInDesignMode(this))
+				return;
 
 			_border.MouseEnter += new MouseEventHandler(_quickColorSelector_MouseEnter);
 			_border.MouseLeave += new MouseEventHandler(_quickColorSelector_MouseLeave);

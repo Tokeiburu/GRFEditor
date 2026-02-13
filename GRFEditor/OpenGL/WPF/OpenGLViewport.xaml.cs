@@ -46,6 +46,7 @@ namespace GRFEditor.OpenGL.WPF {
 		public Matrix4 ViewProjection;
 		public long FrameRenderTime;
 		public int _frameCount = 0;
+		public bool Minimap { get; set; }
 
 		public List<Renderer> Renderers {
 			get { return _renderers; }
@@ -124,7 +125,20 @@ namespace GRFEditor.OpenGL.WPF {
 				_primary.KeyDown += new KeyEventHandler(_primary_KeyDown);
 
 				IsVisibleChanged += delegate {
-					EnableRenderThread = IsVisible && Visibility == Visibility.Visible;
+					//EnableRenderThread = IsVisible && Visibility == Visibility.Visible;
+				};
+				bool wasVisible = true;
+				LayoutUpdated += delegate {
+					bool nowVisible = IsVisible;
+					if (nowVisible != wasVisible && !Minimap) {
+						wasVisible = nowVisible;
+
+						EnableRenderThread = nowVisible;
+						//if (nowVisible)
+						//	OnBecameVisible();
+						//else
+						//	OnBecameHidden();
+					}
 				};
 
 				EnableRenderThread = true;
@@ -333,6 +347,7 @@ namespace GRFEditor.OpenGL.WPF {
 			if (glGat != null)
 				glGat.Load(this);
 			glWater.Load(this);
+
 			MapRenderer mapRenderer = new MapRenderer(request, Shader_rsm, rsw);
 			mapRenderer.LoadModels(this, rsw, gnd, RenderOptions.AnimateMap);
 			LubRenderer lubRenderer = null;
@@ -341,7 +356,7 @@ namespace GRFEditor.OpenGL.WPF {
 			try {	
 				lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
 				//lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"C:\Games\NovaRO - 4th - NewClient\data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
-				lubRenderer.Load(this);
+				//lubRenderer.Load(this);
 			}
 			catch {
 				lubRenderer = null;
@@ -361,9 +376,10 @@ namespace GRFEditor.OpenGL.WPF {
 
 			Loader.OnLoaded(request);
 
-			_renderers.Add(glGnd);if (skyRenderer != null)
-				_renderers.Add(skyRenderer);
+			_renderers.Add(glGnd);
 			_renderers.Add(mapRenderer);
+			if (skyRenderer != null)
+				_renderers.Add(skyRenderer);
 			
 			if (glGat != null)
 				_renderers.Add(glGat);
@@ -454,7 +470,6 @@ namespace GRFEditor.OpenGL.WPF {
 
 				OpenGLMemoryManager.MakeCurrent(this);
 				_primary.MakeCurrent();
-				GLHelper.VerifyError();
 
 				GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 				GL.Disable(EnableCap.CullFace);
@@ -464,7 +479,7 @@ namespace GRFEditor.OpenGL.WPF {
 				GL.Disable(EnableCap.Blend);
 				
 				_camera.Update();
-				GLHelper.VerifyError();
+
 				View = _camera.GetViewMatrix();
 				Projection = _camera.GetProjectionMatrix();
 				ViewProjection = View * Projection;
@@ -479,7 +494,6 @@ namespace GRFEditor.OpenGL.WPF {
 					renderer.Render(this);
 				}
 
-				GLHelper.VerifyError();
 				// Draw opaque transparent textures
 				RenderPass = RenderMode.OpaqueTransparentTextures;
 
@@ -487,14 +501,14 @@ namespace GRFEditor.OpenGL.WPF {
 					if (renderer is ModelRenderer || renderer is MapRenderer)
 						renderer.Render(this);
 				}
-				GLHelper.VerifyError();
+
 				// Draw transparent textures
 				RenderPass = RenderMode.TransparentTextures;
 				GLHelper.VerifyError();
 				foreach (var renderer in renderers) {
 					renderer.Render(this);
 				}
-				GLHelper.VerifyError();
+
 				// Ignore that, it's merged with transparent textures, though it is technically accurate
 				// Draw animated textures (always on top of transparent textures)
 				RenderPass = RenderMode.AnimatedTransparentTextures;
@@ -502,7 +516,7 @@ namespace GRFEditor.OpenGL.WPF {
 					if (renderer is ModelRenderer || renderer is MapRenderer)
 						renderer.Render(this);
 				}
-				GLHelper.VerifyError();
+
 				// Draw lub effects
 				RenderPass = RenderMode.LubTextures;
 				foreach (var renderer in renderers) {
@@ -510,7 +524,7 @@ namespace GRFEditor.OpenGL.WPF {
 				}
 				GL.DepthMask(true);
 				_selectionRender();
-				GLHelper.VerifyError();
+
 				// FPS handling
 				_frameCount++;
 				_fpsRefreshTimer -= FrameRenderTime;
@@ -530,7 +544,7 @@ namespace GRFEditor.OpenGL.WPF {
 					_frameCount = 0;
 					_fpsRefreshTimer = _fpsUpdateFrequency;
 				}
-				GLHelper.VerifyError();
+
 				_primary.SwapBuffers();
 				_previousTick = _currentTick;
 			}

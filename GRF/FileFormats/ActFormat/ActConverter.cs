@@ -30,8 +30,15 @@ namespace GRF.FileFormats.ActFormat {
 						for (int k = 0; k < numberOfLayers; k++) {
 							Layer layer = new Layer();
 
-							layer.OffsetX = reader.Int32();
-							layer.OffsetY = reader.Int32();
+							if (act.Version >= 2.6) {
+								layer.OffsetX = (int)reader.Float();
+								layer.OffsetY = (int)reader.Float();
+							}
+							else {
+								layer.OffsetX = reader.Int32();
+								layer.OffsetY = reader.Int32();
+							}
+
 							layer.SpriteIndex = reader.Int32();
 							layer.Mirror = reader.Int32() != 0;
 

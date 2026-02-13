@@ -23,7 +23,6 @@ using Microsoft.Win32;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Hash;
@@ -102,7 +101,7 @@ namespace GRFEditor.WPF {
 			_assShellAll.Unchecked += _assShellAll_Unchecked;
 			_textBoxMaxThreads.TextChanged += _textBoxMaxThreads_TextChanged;
 
-			WpfUtils.AddMouseInOutEffects(_encodingImage);
+			WpfUtilities.AddMouseInOutHandEffect(_encodingImage);
 
 			int row;
 			_add(_gridTreeBehavior, row = 0, "Remember tree expansion for each GRF", "Saves the structure of the tree for the opened GRF to make it faster when opening the file again.", () => GrfEditorConfiguration.TreeBehaviorSaveExpansion);
@@ -112,6 +111,7 @@ namespace GRFEditor.WPF {
 			_add(_gridTreeBehavior, ++row, "Translate paths in the tree", "If enabled, common paths will be translated in gray.", () => Configuration.TranslateTreeView);
 
 			_add(_gridDebugger, row = 0, "Log any exceptions (debug.log)", "If enabled, all exceptions will be logged in the debug.log (found in the roaming folder).", () => Configuration.LogAnyExceptions);
+			_add(_gridDebugger, ++row, "Read map files using 大话仙境OL's engine.", "If enabled, map files will read using the 大话仙境OL engine, which is not compatible with the normal RO formats.", () => GrfEditorConfiguration.SpecialDxhjVersionSupport);
 
 			_add(_gridGeneral, row = 9, "CPU performance management", "This option monitors your CPU usage and it'll be used to dynamically change the number of threads doing work. " +
 										 "The main purpose of this feature is to avoid situations where the CPU could reach 100% usage and hence lagging the entire system.", () => GrfEditorConfiguration.CpuPerformanceManagement, () => Settings.CpuMonitoringEnabled = GrfEditorConfiguration.CpuPerformanceManagement);
@@ -122,13 +122,14 @@ namespace GRFEditor.WPF {
 			_add(_gridGeneral, ++row, "Lock added files", "If enabled, files added to a GRF will be locked (other processes won't be able to move, delete or modify them).", () => GrfEditorConfiguration.LockFiles);
 			_add(_gridGeneral, ++row, "Add hash data to Thor files", "If enabled, a hash file will be added to Thor patches.", () => GrfEditorConfiguration.AddHashFileForThor);
 			_add(_gridGeneral, ++row, "Save GRF Editor window position", "If enabled, the window position and width will be saved upon re-opening the program.", () => GrfEditorConfiguration.SaveEditorPosition);
+			_add(_gridGeneral, ++row, "Enable full encryption file table support", "If enabled and the GRF's file table is encrypted, an encryption key will be requested when opening the GRF instead of showing a loading error.", () => GrfEditorConfiguration.FullFileTableEncryptionSupport);
 			//_add(_gridGeneral, ++row, "Remove duplicate GRF entries", "If enabled, this will hide duplicated entries caused by lowercase and uppercase path names.", () => GrfEditorConfiguration.GrfFileTableIgnoreCase);
 
 			Binder.Bind(_cbOverrideExtractionPath, () => GrfEditorConfiguration.OverrideExtractionPath, delegate {
 				_pbExtration.IsEnabled = GrfEditorConfiguration.OverrideExtractionPath;
 			}, true);
 			Binder.Bind(_pbExtration.TextBox, () => GrfEditorConfiguration.DefaultExtractingPath);
-			WpfUtils.AddMouseInOutEffectsBox(_cbOverrideExtractionPath);
+			WpfUtilities.AddMouseInOutUnderline(_cbOverrideExtractionPath);
 
 			//_add(_grid, ++row, "", "", () => );
 
@@ -157,7 +158,7 @@ namespace GRFEditor.WPF {
 				ApplicationManager.OnThemeChanged();
 				//ErrorHandler.HandleException("For the theme to apply properly, please restart the application.");
 			});
-			WpfUtils.AddMouseInOutEffectsBox(_assShellAll);
+			WpfUtilities.AddMouseInOutUnderline(_assShellAll);
 
 			_mViewer.SaveResourceMethod = v => GrfEditorConfiguration.Resources.SaveResources(v);
 			_mViewer.LoadResourceMethod = () => GrfEditorConfiguration.Resources.LoadResources();
@@ -177,7 +178,7 @@ namespace GRFEditor.WPF {
 		}
 
 		private void _assoc(CheckBox box, string ext, FileAssociation assoc) {
-			WpfUtils.AddMouseInOutEffectsBox(box);
+			WpfUtilities.AddMouseInOutUnderline(box);
 			box.ToolTip = new TextBlock { Text = "Associates GRF Editor with " + ext + " file extension.", MaxWidth = 350, TextWrapping = TextWrapping.Wrap };
 			box.SetValue(ToolTipService.ShowDurationProperty, 30000);
 
@@ -223,7 +224,7 @@ namespace GRFEditor.WPF {
 
 			gridTreeBehavior.Children.Add(box);
 
-			WpfUtils.AddMouseInOutEffectsBox(box);
+			WpfUtilities.AddMouseInOutUnderline(box);
 
 			if (v != null)
 				Binder.Bind(box, get, v, true);
@@ -486,7 +487,7 @@ namespace GRFEditor.WPF {
 		}
 
 		public static void SetImagePreviewEvents(Rectangle previewPanel) {
-			WpfUtils.AddMouseInOutEffects(previewPanel);
+			WpfUtilities.AddMouseInOutHandEffect(previewPanel);
 		}
 
 		private void _buttonRemoveAllExtensions_Click(object sender, RoutedEventArgs e) {

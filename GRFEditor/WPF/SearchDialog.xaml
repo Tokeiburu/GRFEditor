@@ -5,7 +5,6 @@
                  xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
                  xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
                  xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-                 xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
                  xmlns:WPF1="clr-namespace:GRFEditor.WPF" Height="485" Width="660" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
@@ -60,7 +59,7 @@
                         </TextBox>
                         <TextBlock  Name="_labelFind" Margin="3 0 0 0" VerticalAlignment="Center" Text="Find..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
                         <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="White" BorderThickness="0">
-                            <Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
+							<Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" TokeiLibrary:WpfProperties.ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
                         </Border>
                     </Grid>
                 </Border>
@@ -78,19 +77,19 @@
                         <TextBlock  Name="_labelFilePattern" Margin="3 0 0 0" VerticalAlignment="Center" Text="File filter (*.txt;*.lua;*.lub)..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
                     </Grid>
                 </Border>
-                <Styles:FancyButton HorizontalAlignment="Left" Width="22" Height="22" ImagePath="reset.png" x:Name="_fbReset" Click="_fbReset_Click" VerticalAlignment="Center" />
+				<Styles:FancyButton HorizontalAlignment="Left" Width="22" Height="22" TokeiLibrary:WpfProperties.ImagePath="reset.png" x:Name="_fbReset" Click="_fbReset_Click" VerticalAlignment="Center" />
             </DockPanel>
             
             <Styles:TkProgressBar Margin="0 0 3 0" x:Name="_progressBar" Grid.Column="1" HorizontalAlignment="Right" Width="250" />
             
             <Rectangle Grid.Row="2" Height="2" Grid.ColumnSpan="3" Margin="0 10 0 0" VerticalAlignment="Top" Fill="{x:Static TokeiLibrary:Configuration.UIGridBackground}" HorizontalAlignment="Stretch" />
-            <ListView Name="_listViewResults" Grid.Row="2" Grid.ColumnSpan="2" TextSearch.TextPath="FileName" ListView:WpfUtils.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+            <ListView Name="_listViewResults" Grid.Row="2" Grid.ColumnSpan="2" TextSearch.TextPath="FileName" ListView:ListViewExtensions.IsGridSortable="True" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       FocusVisualStyle="{x:Null}"  BorderThickness="0" Margin="0 12 0 0">
                 <ListView.ContextMenu>
                     <ContextMenu>
-                        <MenuItem ListView:WpfUtils.ImagePath="arrowdown.png" Header="Select in GRF" Name="_miSelect" Click="_miSelect_Click" />
-                        <MenuItem ListView:WpfUtils.ImagePath="archive.png" Header="Extract" Name="_miExtract" Click="_miExtract_Click" />
-                        <MenuItem ListView:WpfUtils.ImagePath="archive.png" Header="Extract..." Name="_miExtractTo" Click="_miExtractTo_Click" />
+                        <MenuItem TokeiLibrary:WpfProperties.ImagePath="arrowdown.png" Header="Select in GRF" Name="_miSelect" Click="_miSelect_Click" />
+                        <MenuItem TokeiLibrary:WpfProperties.ImagePath="archive.png" Header="Extract" Name="_miExtract" Click="_miExtract_Click" />
+                        <MenuItem TokeiLibrary:WpfProperties.ImagePath="archive.png" Header="Extract..." Name="_miExtractTo" Click="_miExtractTo_Click" />
                     </ContextMenu>
                 </ListView.ContextMenu>
             </ListView>
@@ -104,7 +103,7 @@
                 <avalonedit:TextEditor x:Name="_tbPreview"   Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" IsReadOnly="True" />
             </Grid>
         </Grid>
-        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
+        <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}">
             <Grid Margin="0 0 3 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

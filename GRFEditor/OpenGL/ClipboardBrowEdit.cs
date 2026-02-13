@@ -1,5 +1,4 @@
 ﻿using System.Globalization;
-using System.IO;
 using System.Text;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
@@ -301,17 +300,20 @@ namespace GRFEditor.OpenGL {
 					break;
 				case RswObjectType.Light:
 					b.AppendLine("     \"affectLightmap\": true,");
-					b.AppendLine("     \"affectShadowMap\": true,");
+					b.AppendLine("     \"affectShadowMap\": false,");
 					b.AppendLine("     \"color\": [" + ClipboardBE.F2S(light.ColorVector.X) + "," + ClipboardBE.F2S(light.ColorVector.Y) + "," + ClipboardBE.F2S(light.ColorVector.Z) + "],");
 					b.AppendLine("     \"cutOff\": 0.5,");
+					b.AppendLine("     \"diffuseLighting\": true,");
 					b.AppendLine("     \"direction\": [0.5773502588272095,-0.5773502588272095,0.5773502588272095],");
 					b.AppendLine("     \"enabled\": true,");
 					b.AppendLine("     \"falloff\": [[0.0,1.0],[1.0,0.0]],");
 					b.AppendLine("     \"falloffStyle\": 0,");
-					b.AppendLine("     \"givesShadow\": true,");
+					b.AppendLine("     \"givesShadow\": false,");
 					b.AppendLine("     \"intensity\": 1.0,");
 					b.AppendLine("     \"lightType\": 0,");
+					b.AppendLine("     \"minShadowDistance\": 0.0,");
 					b.AppendLine("     \"range\": " + ClipboardBE.F2S(light.Range) + ",");
+					b.AppendLine("     \"noTerrainShading\": false,");
 					b.AppendLine("     \"shadowTerrain\": true,");
 					b.AppendLine("     \"spotlightWidth\": 0.5,");
 					b.AppendLine("     \"sunMatchRswDirection\": true,");
@@ -352,6 +354,7 @@ namespace GRFEditor.OpenGL {
 					b.AppendLine("     \"destmode\": " + lubEffect.Destmode + ",");
 					b.AppendLine("     \"dir1\": [" + ClipboardBE.F2S(lubEffect.Dir1.X) + "," + ClipboardBE.F2S(lubEffect.Dir1.Y) + "," + ClipboardBE.F2S(lubEffect.Dir1.Z) + "],");
 					b.AppendLine("     \"dir2\": [" + ClipboardBE.F2S(lubEffect.Dir2.X) + "," + ClipboardBE.F2S(lubEffect.Dir2.Y) + "," + ClipboardBE.F2S(lubEffect.Dir2.Z) + "],");
+					b.AppendLine("     \"eternity\": " + (lubEffect.Eternity ? 1 : 0) + ",");
 					b.AppendLine("     \"gravity\": [" + ClipboardBE.F2S(lubEffect.Gravity.X) + "," + ClipboardBE.F2S(lubEffect.Gravity.Y) + "," + ClipboardBE.F2S(lubEffect.Gravity.Z) + "],");
 					b.AppendLine("     \"life\": [" + ClipboardBE.F2S(lubEffect.Life.X) + "," + ClipboardBE.F2S(lubEffect.Life.Y) + "],");
 					b.AppendLine("     \"maxcount\": " + lubEffect.Maxcount + ",");
@@ -359,6 +362,7 @@ namespace GRFEditor.OpenGL {
 					b.AppendLine("     \"radius\": [" + ClipboardBE.F2S(lubEffect.Radius.X) + "," + ClipboardBE.F2S(lubEffect.Radius.Y) + "," + ClipboardBE.F2S(lubEffect.Radius.Z) + "],");
 					b.AppendLine("     \"rate\": [" + ClipboardBE.F2S(lubEffect.Rate.X) + "," + ClipboardBE.F2S(lubEffect.Rate.Y) + "],");
 					b.AppendLine("     \"rotate_angle\": [" + ClipboardBE.F2S(lubEffect.Rotate_angle.X) + "," + ClipboardBE.F2S(lubEffect.Rotate_angle.Y) + "," + ClipboardBE.F2S(lubEffect.Rotate_angle.Z) + "],");
+					b.AppendLine("     \"scale\": [" + ClipboardBE.F2S(lubEffect.Scale.X) + "," + ClipboardBE.F2S(lubEffect.Scale.Y) + "],");
 					b.AppendLine("     \"size\": [" + ClipboardBE.F2S(lubEffect.Size.X) + "," + ClipboardBE.F2S(lubEffect.Size.Y) + "],");
 					b.AppendLine("     \"speed\": " + ClipboardBE.F2S(lubEffect.Speed) + ",");
 					b.AppendLine("     \"srcmode\": " + lubEffect.Srcmode + ",");

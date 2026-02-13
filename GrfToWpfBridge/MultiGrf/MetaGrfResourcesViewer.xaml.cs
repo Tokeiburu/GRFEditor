@@ -5,7 +5,6 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Input;
 using ErrorManager;
-using GRF;
 using GRF.Core.GroupedGrf;
 using TokeiLibrary;
 using TokeiLibrary.Paths;
@@ -44,7 +43,7 @@ namespace GrfToWpfBridge.MultiGrf {
 
 			_itemsResources.ItemsSource = _itemsResourcesSource;
 			_loadResourcesInfo();
-			WpfUtils.AddDragDropEffects(_itemsResources);
+			WpfUtilities.AddDragDropEffects(_itemsResources);
 
 			ApplicationShortcut.Link(ApplicationShortcut.Delete, "MultiGrf.Delete", () => _menuItemsDelete_Click(null, null), _itemsResources);
 			ApplicationShortcut.Link(ApplicationShortcut.Confirm, "MultiGrf.Select in explorer", () => _menuItemsSelectInExplorer_Click(null, null), _itemsResources);

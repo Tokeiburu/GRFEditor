@@ -50,7 +50,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					act[_actionIndex, _frameIndex, _layerIndex].Color = _oldColor;
 					break;
 				case 1:
-					_copy.Apply(act);
+					_copy.Undo(act);
 					break;
 			}
 		}

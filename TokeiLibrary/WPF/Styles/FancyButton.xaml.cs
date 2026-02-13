@@ -159,6 +159,7 @@ namespace TokeiLibrary.WPF.Styles {
 				var img = ApplicationManager.PreloadResourceImage(e.NewValue.ToString());
 				//fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
 				fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
+				fb._imageIcon.Stretch = Stretch.None;
 				fb._imageIcon.Source = img;
 			}
 		}

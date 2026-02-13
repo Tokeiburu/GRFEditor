@@ -75,6 +75,8 @@ namespace GrfToWpfBridge {
 		}
 
 		public static PixelFormatInfo GetFormatFromAssembly(string name) {
+			name = name.ToLowerInvariant();
+
 			foreach (PixelFormatInfo info in _formats) {
 				if (info.AssemblyName.ToLowerInvariant() == name)
 					return info;

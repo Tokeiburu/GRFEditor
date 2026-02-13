@@ -78,7 +78,7 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		private static string _dotTerminate(string s) {
-			if (!s.EndsWith("."))
+			if (!s.EndsWith(".") && !s.EndsWith("?") && !s.EndsWith("!"))
 				return s + ".";
 			return s;
 		}

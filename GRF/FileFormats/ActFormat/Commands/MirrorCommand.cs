@@ -44,7 +44,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					act[_actionIndex, _frameIndex, _layerIndex].Mirror = !act[_actionIndex, _frameIndex, _layerIndex].Mirror;
 					break;
 				case 1:
-					_copy.Apply(act);
+					_copy.Undo(act);
 					break;
 			}
 		}

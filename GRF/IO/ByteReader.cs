@@ -87,6 +87,10 @@ namespace GRF.IO {
 			return _data[_offset];
 		}
 
+		public byte Peek() {
+			return _data[_offset];
+		}
+
 		public byte[] Bytes(int count) {
 			_forward(count);
 			byte[] data = new byte[count];

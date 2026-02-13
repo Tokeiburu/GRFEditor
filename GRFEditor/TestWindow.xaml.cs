@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Threading;
 using System.Windows;
-using System.Windows.Input;
-using System.Windows.Threading;
-using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL.MapComponents;
 using TokeiLibrary;

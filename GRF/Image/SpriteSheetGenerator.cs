@@ -92,9 +92,9 @@ namespace GRF.Image {
 			headLayer.OffsetX = headLayer.OffsetX + body[settings.ActionIndex, 0].Anchors[0].OffsetX - head[settings.ActionIndex, 0].Anchors[0].OffsetX;
 			headLayer.OffsetY = headLayer.OffsetY + body[settings.ActionIndex, 0].Anchors[0].OffsetY - head[settings.ActionIndex, 0].Anchors[0].OffsetY;
 
-			Plane planeHead = settings.ShowHead ? _calculatePlane(head, head[settings.ActionIndex, 0]) : null;
-			Plane planeBody = settings.ShowBody ? _calculatePlane(body, body[settings.ActionIndex, 0]) : null;
-			Plane planeShadow = settings.ShowShadow ? _calculatePlane(shadowAct, shadowAct[0, 0]) : null;
+			Plane planeHead = settings.ShowHead ? head[settings.ActionIndex, 0, 0].ToPlane(head) : null;
+			Plane planeBody = settings.ShowBody ? body[settings.ActionIndex, 0, 0].ToPlane(body) : null;
+			Plane planeShadow = settings.ShowShadow ? shadowAct[0, 0, 0].ToPlane(shadowAct) : null;
 
 			if (planeShadow != null) {
 				for (int index = 0; index < planeShadow.Points.Length; index++) {
@@ -238,18 +238,6 @@ namespace GRF.Image {
 			}
 
 			return mega;
-		}
-
-		private static Plane _calculatePlane(Act act, Frame frame) {
-			Layer layer = frame.Layers[0];
-			GrfImage img = layer.GetImage(act.Sprite);
-			Plane plane = new Plane(img.Width, img.Height);
-
-			plane.ScaleX(layer.ScaleX * (layer.Mirror ? -1f : 1f));
-			plane.ScaleY(layer.ScaleY);
-			plane.RotateZ(layer.Rotation);
-			plane.Translate(layer.OffsetX + (layer.Mirror ? -(img.Width + 1) % 2 : 0), layer.OffsetY);
-			return plane;
 		}
 
 		private static Margin _calculateMargin(Plane plane1, Plane plane2, Plane plane3) {

@@ -9,6 +9,9 @@ using Utilities.Commands;
 namespace GRF.FileFormats.ActFormat.Commands {
 	public class CommandsHolder : AbstractCommand<IActCommand> {
 		private readonly Act _act;
+		private ActEditCommand _actEditCommand;
+
+		public bool IsActEdit => _actEditCommand != null;
 
 		public CommandsHolder(Act act) {
 			_act = act;
@@ -43,7 +46,10 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// </summary>
 		/// <param name="action">The action.</param>
 		public void Backup(Action<Act> action) {
-			_act.Commands.StoreAndExecute(new BackupCommand(action));
+			if (_actEditCommand != null)
+				action(_act);
+			else
+				_act.Commands.StoreAndExecute(new BackupCommand(action));
 		}
 
 		/// <summary>
@@ -52,18 +58,20 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="action">The action.</param>
 		/// <param name="commandName">Name of the command.</param>
 		public void Backup(Action<Act> action, string commandName) {
-			_act.Commands.StoreAndExecute(new BackupCommand(action, commandName));
+			if (_actEditCommand != null)
+				action(_act);
+			else
+				_act.Commands.StoreAndExecute(new BackupCommand(action, commandName));
 		}
-
 
 		/// <summary>
 		/// Backups the Act and execute the action
 		/// </summary>
 		/// <param name="action">The action.</param>
 		/// <param name="commandName">Name of the command.</param>
-		/// <param name="forceReload">if set to <c>true</c> [force reload].</param>
-		public void Backup(Action<Act> action, string commandName, bool forceReload) {
-			_act.Commands.StoreAndExecute(new BackupCommand(action, commandName, forceReload));
+		/// <param name="dummy">Deprecated parameter, kept for script compabitlity.</param>
+		public void Backup(Action<Act> action, string commandName, bool dummy) {
+			Backup(action, commandName);
 		}
 
 		/// <summary>
@@ -85,6 +93,52 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// </summary>
 		public void End() {
 			_act.Commands.EndEdit();
+		}
+
+		/// <summary>
+		/// Begins the free edit mode on the Act object, all changes will be added when ActEditEnd is called.
+		/// </summary>
+		public void ActEditBegin(string commandName) {
+			if (IsDelayed)
+				throw new Exception("Cannot start ActEdit while the command stack is already in Delayed mode (from Begin(), BeginEdit() or ActEditBegin()).");
+
+			_actEditCommand = new ActEditCommand(_act, commandName);
+			_act.Commands.BeginEdit(new ActGroupCommand(_act, true));
+		}
+
+		/// <summary>
+		/// Ends the commands stack grouping.
+		/// </summary>
+		public void ActEditEnd() {
+			if (!IsDelayed)
+				throw new Exception("Unexpected command stack state. Trying to end the ActEdit mode but it has already ended.");
+
+			//var commands = DelayedCommands;
+			//
+			//foreach (var command in commands) {
+			//	command.Execute(_act);
+			//}
+
+			ClearDelayedCommands();
+			EndEdit();
+			IsDelayed = false;
+
+			if (_actEditCommand != null && _actEditCommand.HasChanged(_act)) {
+				Store(_actEditCommand);
+			}
+
+			_actEditCommand = null;
+			_act.InvalidateSpriteVisual();
+		}
+
+		/// <summary>
+		/// Ends the commands stack grouping.
+		/// </summary>
+		public void ActCancelEdit() {
+			if (_actEditCommand != null && _actEditCommand.HasChanged(_act)) {
+				_actEditCommand.Undo(_act);
+				_actEditCommand = null;
+			}
 		}
 
 		#region Transform
@@ -828,7 +882,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="layerIndexTo">The layer index destination.</param>
 		/// <returns></returns>
 		public bool LayerSwitchRange(int actionIndex, int frameIndex, int layerIndexFrom, int count, int layerIndexTo) {
-			if (count <= 0) return false;
+			if (count <= 0 || layerIndexFrom < 0) return false;
 			if (count == 1) {
 				return LayerSwitch(actionIndex, frameIndex, layerIndexFrom, layerIndexTo);
 			}
@@ -942,6 +996,15 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		}
 
 		/// <summary>
+		/// Overwrites a sprite at the index.
+		/// </summary>
+		/// <param name="index">The index.</param>
+		/// <param name="image">The image.</param>
+		public void SpriteReplaceAt(SpriteIndex index, GrfImage image) {
+			SpriteReplaceAt(index.GetAbsoluteIndex(_act.Sprite), image);
+		}
+
+		/// <summary>
 		/// Converts a sprite at the absolute index to the other type. This command also handles layer indexes.
 		/// </summary>
 		/// <param name="absoluteIndex">The absolute index.</param>
@@ -979,7 +1042,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					_act.Sprite.InsertAny(imageConverted);
 					_act.Sprite.ShiftIndexesAbove(act, image.GrfImageType, -1,
 						_act.Sprite.AbsoluteToRelative(absoluteIndex, image.GrfImageType == GrfImageType.Indexed8 ? 0 : 1));
-				}, "Sprite convert", true);
+				}, "Sprite convert");
 			}
 			catch {
 				CancelEdit();
@@ -1005,7 +1068,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="imageType">Type of the image.</param>
 		/// <param name="direction">The direction.</param>
 		public void SpriteFlip(int relativeIndex, int imageType, FlipDirection direction) {
-			_act.Commands.StoreAndExecute(new Flip(imageType == 0 ? relativeIndex : relativeIndex - _act.Sprite.NumberOfIndexed8Images, direction));
+			_act.Commands.StoreAndExecute(new Flip(imageType == 0 ? relativeIndex : relativeIndex + _act.Sprite.NumberOfIndexed8Images, direction));
 		}
 
 		/// <summary>
@@ -1024,7 +1087,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="imageType">Type of the image.</param>
 		/// <param name="image">The image.</param>
 		public void SpriteInsert(int relativeIndex, int imageType, GrfImage image) {
-			_act.Commands.StoreAndExecute(new Insert(imageType == 0 ? relativeIndex : relativeIndex - _act.Sprite.NumberOfIndexed8Images, image));
+			_act.Commands.StoreAndExecute(new Insert(imageType == 0 ? relativeIndex : relativeIndex + _act.Sprite.NumberOfIndexed8Images, image));
 		}
 
 		/// <summary>
@@ -1042,7 +1105,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="relativeIndex">The relative index.</param>
 		/// <param name="imageType">Type of the image.</param>
 		public void SpriteRemove(int relativeIndex, int imageType) {
-			_act.Commands.StoreAndExecute(new RemoveCommand(imageType == 0 ? relativeIndex : relativeIndex - _act.Sprite.NumberOfIndexed8Images));
+			_act.Commands.StoreAndExecute(new RemoveCommand(imageType == 0 ? relativeIndex : relativeIndex + _act.Sprite.NumberOfIndexed8Images));
 		}
 
 		/// <summary>
@@ -1060,6 +1123,14 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="absoluteIndex">The absolute index.</param>
 		public void SpriteRemove(int absoluteIndex) {
 			_act.Commands.StoreAndExecute(new RemoveCommand(absoluteIndex));
+		}
+
+		/// <summary>
+		/// Removes a sprite.
+		/// </summary>
+		/// <param name="index">The index.</param>
+		public void SpriteRemove(SpriteIndex index) {
+			SpriteRemove(index.Index, index.Type);
 		}
 
 		/// <summary>

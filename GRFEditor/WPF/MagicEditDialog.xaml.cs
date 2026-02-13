@@ -2,18 +2,9 @@
 using System.Drawing;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using Be.Windows.Forms;
-using ErrorManager;
-using GRF;
-using GRFEditor.ApplicationConfiguration;
-using GrfToWpfBridge.TreeViewManager;
-using TokeiLibrary;
-using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
-using Utilities;
-using Utilities.Extension;
 using Utilities.Services;
 using Color = System.Drawing.Color;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,8 +22,8 @@ namespace GRFEditor.OpenGL.WPF {
 
 		private bool _hasMoved;
 		private bool _isMouseDown;
-		private POINT _clickedPoint;
-		private POINT _clickedRealPoint;
+		private NativeMethods.POINT _clickedPoint;
+		private NativeMethods.POINT _clickedRealPoint;
 		private Action<string> _preview;
 		public bool IsEditing { get; set; }
 		public bool HasEdited { get; set; }
@@ -108,18 +107,6 @@ namespace GRFEditor.OpenGL.WPF {
 			}
 		}
 
-		[StructLayout(LayoutKind.Sequential)]
-		struct POINT {
-			public Int32 X;
-			public Int32 Y;
-		}
-
-		[DllImport("User32.dll")]
-		private static extern bool SetCursorPos(int X, int Y);
-
-		[DllImport("User32.dll")]
-		private static extern bool GetCursorPos(out POINT point);
-
 		public bool AddCommand { get; set; }
 
 		public AdvancedTextBox() {
@@ -176,7 +163,7 @@ namespace GRFEditor.OpenGL.WPF {
 				_isMouseDown = true;
 				_hasMoved = false;
 				Cursor = Cursors.None;
-				GetCursorPos(out _clickedPoint);
+				NativeMethods.GetCursorPos(out _clickedPoint);
 				_clickedRealPoint = _clickedPoint;
 				((Grid)s).CaptureMouse();
 			};
@@ -194,7 +181,7 @@ namespace GRFEditor.OpenGL.WPF {
 				UIElement element = (UIElement)s;
 				element.ReleaseMouseCapture();
 				Cursor = Cursors.SizeWE;
-				SetCursorPos((int)_clickedRealPoint.X, (int)_clickedRealPoint.Y);
+				NativeMethods.SetCursorPos((int)_clickedRealPoint.X, (int)_clickedRealPoint.Y);
 
 				if (!_hasMoved) {
 					_beginEdit();
@@ -303,9 +290,9 @@ namespace GRFEditor.OpenGL.WPF {
 			if (!element.IsMouseCaptured || !_enableMoveEvents)
 				return;
 
-			POINT current;
+			NativeMethods.POINT current;
 
-			GetCursorPos(out current);
+			NativeMethods.GetCursorPos(out current);
 
 			var deltaX = current.X - _clickedPoint.X;
 			var deltaY = current.Y - _clickedPoint.Y;
@@ -320,7 +307,7 @@ namespace GRFEditor.OpenGL.WPF {
 			if (current.X < _clickedPoint.X ||
 				current.X > _clickedPoint.X) {
 				_enableMoveEvents = false;
-				SetCursorPos(_clickedRealPoint.X, _clickedRealPoint.Y);
+				NativeMethods.SetCursorPos(_clickedRealPoint.X, _clickedRealPoint.Y);
 				_enableMoveEvents = true;
 			}
 

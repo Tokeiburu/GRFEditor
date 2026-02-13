@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Utilities;
 
 namespace GRF.FileFormats.LubFormat.VM {
 	public static class OpcodeMapper {

@@ -244,6 +244,49 @@ namespace ActImaging {
 			return GenerateFrameBoundingBox(act, act[actionIndex, frameIndex]);
 		}
 
+		public static BoundingBox GenerateFrameBoundingBox(Act act, Layer layer) {
+			List<Plane> planes = new List<Plane>();
+			BoundingBox box = new BoundingBox();
+
+			if (layer.SpriteIndex < 0)
+				return box;
+
+			Plane plane = layer.ToPlane(act);
+			planes.Add(plane);
+
+			if (planes.Count == 0) {
+				box.Max[0] = 2;
+				box.Max[1] = 2;
+				box.Min[0] = 0;
+				box.Min[1] = 0;
+
+				box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
+				box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
+
+				box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
+				box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
+
+				box.Range[0] = box.Max[0] - box.Center[0];
+				box.Range[1] = box.Max[1] - box.Center[1];
+
+				return box;
+			}
+
+			box.Max[0] = _awayRounding(planes.Max(p => p.Points.Max(q => q.X)));
+			box.Max[1] = _awayRounding(planes.Max(p => p.Points.Max(q => q.Y)));
+			box.Min[0] = _awayRounding(planes.Min(p => p.Points.Min(q => q.X)));
+			box.Min[1] = _awayRounding(planes.Min(p => p.Points.Min(q => q.Y)));
+
+			box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
+			box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
+			box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
+			box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
+			box.Range[0] = box.Max[0] - box.Center[0];
+			box.Range[1] = box.Max[1] - box.Center[1];
+
+			return box;
+		}
+
 		public static BoundingBox GenerateFrameBoundingBox(Act act, Frame frame) {
 			List<Plane> planes = new List<Plane>();
 			BoundingBox box = new BoundingBox();
@@ -253,13 +296,7 @@ namespace ActImaging {
 					continue;
 
 				GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
-				Plane plane = new Plane(img.Width, img.Height);
-
-				plane.ScaleX(layer.ScaleX * (layer.Mirror ? -1f : 1f));
-				plane.ScaleY(layer.ScaleY);
-				plane.RotateZ(layer.Rotation);
-				plane.Translate(layer.OffsetX + (layer.Mirror ? -(img.Width + 1) % 2 : 0), layer.OffsetY);
-
+				Plane plane = layer.ToPlane(act);
 				planes.Add(plane);
 			}
 
@@ -306,13 +343,7 @@ namespace ActImaging {
 						continue;
 
 					GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
-					Plane plane = new Plane(img.Width, img.Height);
-
-					plane.ScaleX(layer.ScaleX * (layer.Mirror ? -1f : 1f));
-					plane.ScaleY(layer.ScaleY);
-					plane.RotateZ(layer.Rotation);
-					plane.Translate(layer.OffsetX + (layer.Mirror ? -(img.Width + 1) % 2 : 0), layer.OffsetY);
-
+					Plane plane = layer.ToPlane(act);
 					planes.Add(plane);
 				}
 			}

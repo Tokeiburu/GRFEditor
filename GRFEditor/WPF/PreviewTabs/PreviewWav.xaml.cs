@@ -6,7 +6,6 @@ using GRF.Core;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -19,7 +18,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			InitializeComponent();
 
 			Binder.Bind(_checkBoxPlayAutomatically, () => GrfEditorConfiguration.AutomaticallyPlaySoundFiles);
-			WpfUtils.AddMouseInOutEffectsBox(_checkBoxPlayAutomatically);
+			WpfUtilities.AddMouseInOutUnderline(_checkBoxPlayAutomatically);
 		}
 
 		protected override void _load(FileEntry entry) {

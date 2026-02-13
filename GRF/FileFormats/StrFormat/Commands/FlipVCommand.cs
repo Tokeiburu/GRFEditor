@@ -14,7 +14,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 
 		public string CommandDescription {
 			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Flip Vertical";
+				return "[" + _layerIdx + "," + _frameIdx + "] Flip vertical";
 			}
 		}
 

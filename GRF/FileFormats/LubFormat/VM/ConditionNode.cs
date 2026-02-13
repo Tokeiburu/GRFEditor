@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using GRF.FileFormats.LubFormat.Types;
-using Utilities;
 
 namespace GRF.FileFormats.LubFormat.VM {
 	public partial class OpCodes {
@@ -213,7 +212,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 							return true;
 						}
 					}
-					Z.F();
 				}
 
 				if (parent.False == this && parent.True != null) {
@@ -247,7 +245,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 							return true;
 						}
 					}
-					Z.F();
 				}
 
 				return false;

@@ -5,7 +5,6 @@ using System.Linq;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.ContainerFormat.Commands;
-using Utilities.Extension;
 
 namespace GRF.Core {
 	internal class QuickMergeHelper {

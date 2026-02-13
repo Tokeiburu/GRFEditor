@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -14,6 +15,7 @@ using System.Windows.Threading;
 using ErrorManager;
 using Microsoft.Win32;
 using Utilities;
+using Utilities.Extension;
 
 namespace TokeiLibrary {
 	public static class ApplicationManager {
@@ -116,7 +118,7 @@ namespace TokeiLibrary {
 				if (_resources.ContainsKey(resource))
 					return _resources[resource];
 				else {
-					foreach (Assembly currentAssembly in new Assembly[] { Assembly.GetCallingAssembly(), Assembly.GetEntryAssembly(), Assembly.GetExecutingAssembly(), assembly }) {
+					foreach (Assembly currentAssembly in new Assembly[] { Application.ResourceAssembly, Assembly.GetCallingAssembly(), Assembly.GetEntryAssembly(), Assembly.GetExecutingAssembly(), assembly }) {
 						if (currentAssembly == null) continue;
 
 						string[] names = currentAssembly.GetManifestResourceNames();
@@ -206,18 +208,25 @@ namespace TokeiLibrary {
 
 				using (MemoryStream file = new MemoryStream(imageData)) {
 					try {
-						if (resource.ToLower().EndsWith(".jpg")) {
-							JpegBitmapDecoder decoder = new JpegBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-							return ImageProcessing(resource, decoder.Frames[0]);
+						BitmapDecoder decoder = null;
+
+						switch (resource.GetExtension()) {
+							case ".jpg":
+								decoder = new JpegBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+								break;
+							case ".png":
+								decoder = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+								break;
+							case ".bmp":
+								decoder = new BmpBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+								break;
+							case ".ico":
+								decoder = new IconBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+								break;
 						}
-						if (resource.ToLower().EndsWith(".png")) {
-							PngBitmapDecoder decoder = new PngBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
+
+						if (decoder != null)
 							return ImageProcessing(resource, decoder.Frames[0]);
-						}
-						if (resource.ToLower().EndsWith(".bmp")) {
-							BmpBitmapDecoder decoder = new BmpBitmapDecoder(file, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.OnLoad);
-							return ImageProcessing(resource, decoder.Frames[0]);
-						}
 					}
 					catch (Exception err) {
 						ErrorHandler.HandleException(err);
@@ -407,13 +416,28 @@ namespace TokeiLibrary {
 			RefreshExplorer();
 		}
 
-		public static BitmapSource PreloadResourceImage(string image) {
+		private static DependencyObject _dp = new DependencyObject();
+
+		public static BitmapSource PreloadResourceImage(string image, bool fixDpi = true) {
 			if (_preloadedResources.Count > 30)
 				_preloadedResources.Clear();
 
 			if (!_preloadedResources.ContainsKey(image)) {
 				var frame = GetResourceImage(image);
-				_preloadedResources[image] = WpfImaging.FixDPI(frame, DpiX, DpiY);
+				
+				if (frame == null && DesignerProperties.GetIsInDesignMode(_dp)) {
+					return new BitmapImage(new Uri($"pack://application:,,,/TokeiLibrary;component/Resources/spritemaker.png", UriKind.Absolute));
+				}
+
+				if (frame == null)
+					return null;
+
+				var r = fixDpi ? WpfImaging.FixDPI(frame, DpiX, DpiY) : frame;
+
+				if (!r.IsFrozen)
+					r.Freeze();
+
+				_preloadedResources[image] = r;
 			}
 
 			return _preloadedResources[image];

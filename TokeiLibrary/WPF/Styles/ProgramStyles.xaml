@@ -464,18 +464,14 @@
                 </Trigger.EnterActions>
 
             </Trigger>
-            <Trigger Property="IsPressed" Value="true">
-                <Trigger.ExitActions>
-                    <BeginStoryboard Storyboard="{StaticResource PressedOff}" />
-                </Trigger.ExitActions>
-                <Trigger.EnterActions>
-                    <BeginStoryboard Storyboard="{StaticResource PressedOn}" />
-                </Trigger.EnterActions>
-            </Trigger>
-
-            <Trigger Property="IsEnabled" Value="false">
-                <Setter Property="Foreground" Value="{DynamicResource DisabledForegroundBrush_Button}" />
-            </Trigger>
-        </ControlTemplate.Triggers>
+			<Trigger Property="IsPressed" Value="true">
+				<Trigger.ExitActions>
+					<BeginStoryboard Storyboard="{StaticResource PressedOff}" />
+				</Trigger.ExitActions>
+				<Trigger.EnterActions>
+					<BeginStoryboard Storyboard="{StaticResource PressedOn}" />
+				</Trigger.EnterActions>
+			</Trigger>
+		</ControlTemplate.Triggers>
     </ControlTemplate>
 </ResourceDictionary>

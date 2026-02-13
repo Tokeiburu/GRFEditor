@@ -168,7 +168,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					}
 
 					act[_actionIndex, _frameIndex].Layers.InsertRange(_frameIndexTo, layersToAdd);
-					_copy.Clean(act);
+					_copy.RemovedUnusedChanges(act);
 					break;
 				case FrameEdit.MoveRange:
 					act[_actionIndex].Frames.Move(_frameIndex, _range, _frameIndexTo);
@@ -221,7 +221,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					act[_actionIndexTo, _frameIndexTo] = new Frame(_conflict);
 					break;
 				case FrameEdit.AddRange:
-					_copy.Apply(act);
+					_copy.Undo(act);
 					break;
 				case FrameEdit.MoveRange:
 					act[_actionIndex].Frames.ReverseMove(_frameIndex, _range, _frameIndexTo);

@@ -35,10 +35,12 @@ namespace GRF.Core {
 	public class CustomEncryption : IEncryption {
 		public delegate int EncryptionMethod(byte[] key, int key_len, byte[] data, int data_len, int uncomp_len);
 		public delegate int DecryptionMethod(byte[] key, int key_len, byte[] data, int data_len, int uncomp_len);
+		public delegate bool IsEncryptFileTableMethod();
 		private readonly string _path;
 
 		protected EncryptionMethod _encrypt;
 		protected DecryptionMethod _decrypt;
+		public bool IsEncryptFileTable;
 
 		protected IntPtr _hModule;
 
@@ -91,6 +93,18 @@ namespace GRF.Core {
 					throw GrfExceptions.__DllMissingFunction.Create("decrypt");
 
 				_decrypt = (DecryptionMethod)Marshal.GetDelegateForFunctionPointer(intPtr, typeof(DecryptionMethod));
+
+				intPtr = NativeMethods.GetProcAddress(_hModule, "isEncryptFileTable");
+
+				if (intPtr != IntPtr.Zero) {
+					try {
+						IsEncryptFileTable = ((IsEncryptFileTableMethod)Marshal.GetDelegateForFunctionPointer(intPtr, typeof(IsEncryptFileTableMethod)))();
+					}
+					catch {
+						IsEncryptFileTable = false;
+					}
+				}
+
 				Success = true;
 			}
 			catch (Exception err) {

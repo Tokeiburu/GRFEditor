@@ -399,10 +399,9 @@ namespace GrfCL {
 				"Path of the image file (if a GRF is opened, it will look for the file in it first).",
 				"Output format (values are " + Methods.Aggregate(PixelFormatInfo.Formats.Select(p => p.AssemblyName).ToList(), "|") + ")",
 				"Stops the conversion if an error occurs (value is true or false, false by default)",
-				"Sets the transparent pixel index (usually set to 0)",
-				"Sets the transparent color (usually is #FFFF00FF for pink)"
+				"Makes pink transparent after converting (value is true or false, true by default)"
 			},
-			"ignore,transparentIndex,transparentColor"
+			"ignore,makePinkTransparent"
 		);
 
 		/// <summary>

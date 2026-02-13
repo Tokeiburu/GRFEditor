@@ -13,7 +13,7 @@ namespace GRF.Core {
 	/// </summary>
 	internal static class GrfContainerProvider {
 		/// <summary>
-		/// Gets the specified file name.
+		/// Retrieves a GRF container using the filename to decided its format.
 		/// </summary>
 		/// <param name="fileName">Name of the file.</param>
 		/// <param name="loadData">Optional loading parameters.</param>

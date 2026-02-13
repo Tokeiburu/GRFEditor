@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using GRF.ContainerFormat;
 using GRF.Core;
 using Utilities;
-using Utilities.Extension;
 
 namespace GRF.IO {
 	/// Two ways of doing it : 

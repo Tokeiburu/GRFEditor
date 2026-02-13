@@ -1,6 +1,4 @@
-﻿using GRF.Core;
-
-namespace GRF.ContainerFormat.Commands {
+﻿namespace GRF.ContainerFormat.Commands {
 	internal class ChangeHeader<TEntry> : IContainerCommand<TEntry> where TEntry : ContainerEntry {
 		private readonly CCallbacks.ChangeHeaderCallback _callback;
 

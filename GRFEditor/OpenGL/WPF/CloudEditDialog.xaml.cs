@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,10 +10,8 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using ErrorManager;
 using GRFEditor.OpenGL.MapRenderers;
-using GrfToWpfBridge;
 using OpenTK;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -29,7 +26,7 @@ namespace GRFEditor.OpenGL.WPF {
 		public CloudEditDialog() {
 			InitializeComponent();
 
-			WpfUtils.AddMouseInOutEffectsBox(_tbEnableStar, _tbEnableSkyMap);
+			WpfUtilities.AddMouseInOutUnderline(_tbEnableStar, _tbEnableSkyMap);
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
 			_primary.SelectionChanged += (s, e) => {
@@ -89,7 +86,7 @@ namespace GRFEditor.OpenGL.WPF {
 					if (skyEffect.IsDeleted || skyEffect.IsStarEffect)
 						continue;
 
-					_addNewTab(skyEffect);
+					_addNewTab(viewport, skyEffect);
 				}
 
 				if (_primary.SelectedIndex < 0 && _primary.Items.Count > 0)
@@ -104,13 +101,13 @@ namespace GRFEditor.OpenGL.WPF {
 						b.AppendLine("\t\tStar_Effect = " + (skyMap.Star_Effect ? "true" : "false") + ",");
 						b.AppendLine("\t\tBG_Fog = true,");
 
-						List<SkyEffect> oldSkyEffects = skyMap.SkyEffects.Where(p => p.OldCloudEffect > 0 && p.IsEnabled).ToList();
+						List<SkyEffect> oldSkyEffects = skyMap.SkyEffects.Where(p => p.OldCloudEffect > 0 && p.IsEnabled && !p.IsDeleted).ToList();
 
 						if (oldSkyEffects.Count > 0) {
 							b.AppendLine("\t\tOld_Cloud_Effect = { " + Methods.Aggregate(oldSkyEffects.Select(p => p.OldCloudEffect.ToString()).ToList(), ", ") + " },");
 						}
 
-						List<SkyEffect> newSkyEffects = skyMap.SkyEffects.Where(p => p.OldCloudEffect == 0 && p.IsEnabled).ToList();
+						List<SkyEffect> newSkyEffects = skyMap.SkyEffects.Where(p => p.OldCloudEffect == 0 && p.IsEnabled && !p.IsStarEffect && !p.IsDeleted).ToList();
 
 						if (newSkyEffects.Count > 0) {
 							b.AppendLine("\t\tCloud_Effect = {");
@@ -159,11 +156,11 @@ namespace GRFEditor.OpenGL.WPF {
 					};
 
 					_btAddOldSkyEffect.Click += delegate {
-						_addSkyEffect(1);
+						_addSkyEffect(viewport, 1);
 					};
 
 					_btAddNewSkyEffect.Click += delegate {
-						_addSkyEffect(-1);
+						_addSkyEffect(viewport, -1);
 					};
 
 					_tbEnableStar.Checked += delegate {
@@ -197,13 +194,13 @@ namespace GRFEditor.OpenGL.WPF {
 		}
 
 		private string _toString(float size) {
-			string output = String.Format("{0:0.000}", size).Replace(",", ".").TrimEnd('0', '.');
+			string output = String.Format("{0:0.000}", size).Replace(",", ".").TrimEnd('0').TrimEnd('.');
 			if (output == "")
 				return "0";
 			return output;
 		}
 
-		private void _addSkyEffect(int cloudType) {
+		private void _addSkyEffect(OpenGLViewport viewport, int cloudType) {
 			try {
 				if (_tbEnableSkyMap.IsChecked == false) {
 					_tbEnableSkyMap.IsChecked = true;
@@ -215,7 +212,7 @@ namespace GRFEditor.OpenGL.WPF {
 
 				SkyEffect effect = SkyMapEffectTemplates.GetTemplate(cloudType, 0);
 				_skyMapRenderer.SkyMap.SkyEffects.Add(effect);
-				_addNewTab(effect);
+				_addNewTab(viewport, effect);
 
 				if (_primary.Items.Count > 0)
 					_primary.SelectedIndex = _primary.Items.Count - 1;
@@ -225,8 +222,8 @@ namespace GRFEditor.OpenGL.WPF {
 			}
 		}
 
-		private void _addNewTab(SkyEffect skyEffect) {
-			var tab = new CloudEditTab(skyEffect);
+		private void _addNewTab(OpenGLViewport viewport, SkyEffect skyEffect) {
+			var tab = new CloudEditTab(viewport, skyEffect);
 			tab.Header = skyEffect.IsStarEffect ? "Star" : "Sky";
 			tab.Style = TryFindResource("TabItemSprite") as Style;
 

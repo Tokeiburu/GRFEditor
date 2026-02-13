@@ -315,7 +315,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.9.0.1"; }
+			get { return "1.9.0.4"; }
 		}
 
 		public static string Author {
@@ -359,6 +359,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool AlwaysReopenLatestGrf {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Always reopen latest Grf]", true.ToString()]); }
 			set { ConfigAsker["[GRFEditor - Always reopen latest Grf]"] = value.ToString(); }
+		}
+
+		public static bool SpecialDxhjVersionSupport {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]"] = value.ToString(); }
 		}
 
 		public static bool LockFiles {
@@ -407,6 +412,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - PreviewSpritesShowNames]"] = value.ToString(); }
 		}
 
+		public static bool ImConverterMakePinkTransparent {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]"] = value.ToString(); }
+		}
+
 		public static int PreviewSpritesPerLine {
 			get {
 				int value = Int32.Parse(ConfigAsker["[GRFEditor - Preview sprites per line]", "8"]);
@@ -447,6 +457,14 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool AutomaticallyPlaceFiles {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]", false.ToString()]); }
 			set { ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]"] = value.ToString(); }
+		}
+
+		public static bool FullFileTableEncryptionSupport {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - FullFileTableEncryptionSupport]", true.ToString()]); }
+			set { 
+				ConfigAsker["[GRFEditor - FullFileTableEncryptionSupport]"] = value.ToString();
+				Settings.FullFileTableEncryptionSupport = true;
+			}
 		}
 
 		public static int EncodingCodepage {

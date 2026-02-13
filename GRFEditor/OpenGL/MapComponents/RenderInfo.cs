@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using GRF.Graphics;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Matrix4 = OpenTK.Matrix4;
 
 namespace GRFEditor.OpenGL.MapComponents {
 	public class RenderInfo {

@@ -27,7 +27,6 @@ using System.Linq;
 using Gnd = GRF.FileFormats.GndFormat.Gnd;
 using Matrix4 = OpenTK.Matrix4;
 using Rsm = GRF.FileFormats.RsmFormat.Rsm;
-using Utilities;
 
 namespace GRFEditor.Core.Services {
 	public class RenamingService {

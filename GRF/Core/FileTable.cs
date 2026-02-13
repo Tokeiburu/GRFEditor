@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Encryption;
 using GRF.ContainerFormat;
 using GRF.IO;
 using Utilities;
-using Utilities.Extension;
 using Utilities.Services;
 
 namespace GRF.Core {
@@ -279,6 +277,21 @@ namespace GRF.Core {
 			}
 		}
 
+		private byte[] _uncompressFileTable(ByteReaderStream grfStream) {
+			byte[] compressedData = grfStream.Bytes(TableSizeCompressed);
+
+			if (Ee322.a184e9055afb92382b66a5d5b739e726(compressedData)) {
+				if (_header.EncryptionKey != null)
+					Encryption.Decrypt(_header.EncryptionKey, compressedData, TableSize + 8);
+				else if (GrfSystem.Settings.FullFileTableEncryptionSupport)
+					_header.SetRequiresFileTableDecryption();
+			}
+
+			byte[] data = Compression.Decompress(compressedData, TableSize);
+
+			return data;
+		}
+
 		/// <summary>
 		/// Loads the file table using the GRF version 0x200 format.
 		/// </summary>
@@ -293,8 +306,7 @@ namespace GRF.Core {
 			if (TableSizeCompressed == 0 || TableSize == 0)
 				return;
 
-			byte[] compressedData = grfStream.Bytes(TableSizeCompressed);
-			byte[] data = Compression.Decompress(compressedData, TableSize);
+			byte[] data = _uncompressFileTable(grfStream);
 
 			int bufferPosition = 0;
 			int streamLength = data.Length;
@@ -346,11 +358,7 @@ namespace GRF.Core {
 			if (TableSizeCompressed == 0 || TableSize == 0)
 				return;
 
-			byte[] compressedData = grfStream.Bytes(TableSizeCompressed);
-			if (Ee322.a184e9055afb92382b66a5d5b739e726(compressedData))
-				Encryption.Decrypt(_header.EncryptionKey, compressedData, TableSize + 8);
-
-			byte[] data = Compression.Decompress(compressedData, TableSize);
+			byte[] data = _uncompressFileTable(grfStream);
 
 			int bufferPosition = 0;
 			int streamLength = data.Length;

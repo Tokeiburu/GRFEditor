@@ -8,7 +8,6 @@ using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using TokeiLibrary.WPF.Styles.ListView;
 
 namespace TokeiLibrary.WPF.Styles {
 	public class TkProgressBar : UserControl {
@@ -517,7 +516,7 @@ namespace TokeiLibrary.WPF.Styles {
 			_buttonError.SetValue(Grid.ColumnProperty, 0);
 			_buttonError.Visibility = Visibility.Collapsed;
 			_buttonError.MouseLeftButtonUp += new System.Windows.Input.MouseButtonEventHandler(_buttonError_MouseLeftButtonUp);
-			WpfUtils.AddMouseInOutEffects(image);
+			WpfUtilities.AddMouseInOutHandEffect(image);
 
 			if (ShowCancelButton) {
 				Canvas canva = new Canvas();

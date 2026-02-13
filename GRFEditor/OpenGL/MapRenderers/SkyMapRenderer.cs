@@ -13,8 +13,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -455,8 +453,21 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			GL.Enable(EnableCap.Blend);
 			GL.Enable(EnableCap.DepthTest);
 			GL.DepthMask(false);
+
+			// Priority order:
+			// CustomEffects
+			// Stars
+			// OldEffects
 			
-			foreach (var skyEffect in SkyMap.SkyEffects) {
+			foreach (var skyEffect in SkyMap.SkyEffects.Where(p => p.OldCloudEffect == 0 && p.IsStarEffect == false)) {
+				_renderSub(viewport, skyEffect);
+			}
+
+			foreach (var skyEffect in SkyMap.SkyEffects.Where(p => p.IsStarEffect == true)) {
+				_renderSub(viewport, skyEffect);
+			}
+
+			foreach (var skyEffect in SkyMap.SkyEffects.Where(p => p.OldCloudEffect > 0)) {
 				_renderSub(viewport, skyEffect);
 			}
 

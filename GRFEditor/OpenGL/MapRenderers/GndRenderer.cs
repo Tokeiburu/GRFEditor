@@ -4,17 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using GRF.FileFormats.RswFormat;
-using GRF.Graphics;
 using GRF.Image;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
-using Buffer = System.Buffer;
 using Matrix3 = OpenTK.Matrix3;
-using Matrix4 = OpenTK.Matrix4;
-using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class GndRenderer : Renderer {

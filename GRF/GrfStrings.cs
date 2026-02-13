@@ -46,7 +46,7 @@ namespace GRF {
 		#endregion
 
 		#region Encryption
-		public const string FailedHeaderEncrypted = "GRF encryption can only be used for RGZ, GRF and GPF files which use the 0x200 version.";
+		public const string FailedHeaderEncrypted = "GRF encryption can only be used for THOR, GRF and GPF files which use the 0x200 format.";
 		public const string EncryptionNotSet = "Couldn't set the encryption key. The key must be the same as the one used for the encryption. If you're trying to encrypt a GRF again with a different key, then you must decrypt the entire content first.";
 		public const string DecryptionNotSet = "Couldn't set the decryption key. The key must be the same as the one used for the encryption.";
 		#endregion

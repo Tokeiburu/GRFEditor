@@ -50,25 +50,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 	public class Particle {
 		public Vector3 BasePosition;
 		public Vector3 Position;
-		public Vector3 BaseSpeed;
 		public Vector3 Speed;
 		public Vector3 Dir;
 		public Vector2 Size;
 		public float TickStart;
-		public float Life;
 		public float Duration;
 		public float Alpha;
-		public float CloudAlphaIncreaseDuration;
-		public float CloudAlphaDecreaseDuration;
-		public float CloudAlphaIncreaseFactor;
-		public float CloudAlphaDecreaseFactor;
-		public float CloudAlphaDecreaseOffset;
-		public float CloudOriginalSize;
-		public float CloudExpandTime;
-		public float CloudExpandFactor;
-		public float TextureLife { get; set; }
-		public int TextureIndex { get; set; }
-		public int TextureType { get; set; }
 	}
 
 	public class RenderInfoEffects {
@@ -366,14 +353,14 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 				if (prevBlend == null || prevBlend != (effect.Srcmode << 16 | effect.Destmode)) {
 					//GL.BlendEquation(BlendEquationMode.FuncAdd);
-					GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
+					//GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
 
-					//GL.BlendFuncSeparate(
-					//	GLHelper.GetOpenGlBlendFromDirectXSrc2(effect.Srcmode),
-					//	GLHelper.GetOpenGlBlendFromDirectXDest2(effect.Destmode),
-					//	BlendingFactorSrc.One,
-					//	BlendingFactorDest.OneMinusSrcAlpha
-					//);
+					GL.BlendFuncSeparate(
+						GLHelper.GetOpenGlBlendFromDirectXSrc2(effect.Srcmode),
+						GLHelper.GetOpenGlBlendFromDirectXDest2(effect.Destmode),
+						BlendingFactorSrc.One,
+						BlendingFactorDest.OneMinusSrcAlpha
+					);
 
 					prevBlend = (effect.Srcmode << 16 | effect.Destmode);
 				}

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats.RswFormat;

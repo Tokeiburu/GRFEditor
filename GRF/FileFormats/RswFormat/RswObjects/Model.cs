@@ -1,7 +1,6 @@
 ﻿using System.IO;
 using GRF.Graphics;
 using GRF.IO;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.RswFormat.RswObjects {
@@ -40,10 +39,6 @@ namespace GRF.FileFormats.RswFormat.RswObjects {
 
 				if (_header.Version >= 2.7) {
 					Unknown2 = reader.Int32();
-
-					if (Unknown2 != -1) {
-						Z.F();
-					}
 				}
 			}
 			else {

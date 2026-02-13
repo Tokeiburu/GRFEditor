@@ -5,7 +5,7 @@ namespace GRF.FileFormats {
 		public int Width { get; set; }
 		public int Height { get; set; }
 		public bool? EarlyEndingEncoding { get; set; }
-		public byte[] FrameData { get; set; }
+		public byte[] FrameData;
 
 		public byte[] Decompress() {
 			int decompressedLength = Width * Height;
@@ -13,9 +13,30 @@ namespace GRF.FileFormats {
 			byte[] decompressed = new byte[decompressedLength];
 			int position = 0;
 
+			//unsafe {
+			//	fixed (byte* srcBase = data)
+			//	fixed (byte* dstBase = decompressed) {
+			//		byte* src = srcBase;
+			//		byte* dst = dstBase;
+			//		byte* srcEnd = srcBase + data.Length;
+			//
+			//		while (src < srcEnd) {
+			//			byte byteRead = *src++;
+			//
+			//			if (byteRead == 0) {
+			//				if (src < srcEnd)
+			//					dst += *src++;
+			//			}
+			//			else {
+			//				*dst++ = byteRead;
+			//			}
+			//		}
+			//	}
+			//}
+
 			for (int k = 0; k < data.Length; k++) {
 				byte byteRead = data[k];
-
+			
 				if (byteRead == 0) {
 					position += data[++k];
 				}

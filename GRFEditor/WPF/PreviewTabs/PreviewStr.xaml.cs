@@ -11,7 +11,6 @@ using GRF.FileFormats.StrFormat;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -68,7 +67,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_qcsBackground.ColorBrush = GrfEditorConfiguration.UIPanelPreviewBackgroundStr;
 
 			Binder.Bind(_checkBoxShowGrid, () => GrfEditorConfiguration.StrEditorShowGrid, () => _viewport.Update(), false);
-			WpfUtils.AddMouseInOutEffectsBox(_checkBoxShowGrid);
+			WpfUtilities.AddMouseInOutUnderline(_checkBoxShowGrid);
 
 			new Thread(_animationThread) { Name = "GrfEditor - Str animation update thread" }.Start();
 		}

@@ -126,6 +126,8 @@
     <Compile Include="WPF\SelectedItemsList.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="WPF\SettingsShortcutGenerator.cs" />
+    <Compile Include="WPF\SimpleButton.cs" />
     <Compile Include="WPF\Styles\ButtonMenu.cs" />
     <Compile Include="WPF\Styles\FrozenBrush.cs" />
     <Compile Include="WPF\Styles\Header.xaml.cs">
@@ -179,7 +181,7 @@
     <Compile Include="WPF\Styles\ListView\RangeColumn.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="WPF\Styles\ListView\WpfUtils.cs">
+    <Compile Include="WPF\Styles\ListView\ListViewExtensions.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="WPF\Styles\PathBrowser.xaml.cs">
@@ -210,6 +212,7 @@
     <Compile Include="WPF\WindowProvider.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="WpfProperties.cs" />
     <Compile Include="WPF\XImage.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -327,6 +330,9 @@
     <None Include="..\.editorconfig">
       <Link>.editorconfig</Link>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\spritemaker.png" />
   </ItemGroup>
   <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />

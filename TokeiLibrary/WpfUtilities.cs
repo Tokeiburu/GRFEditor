@@ -25,16 +25,6 @@ namespace TokeiLibrary {
 		public static Brush LostFocusBrush = new SolidColorBrush(Color.FromArgb(255, 149, 149, 149));
 		public static Brush MouseOverFocusBrush = new SolidColorBrush(Color.FromArgb(255, 174, 174, 201));
 
-		public static readonly DependencyProperty TkVerticalAlignmentProperty;
-
-		public static VerticalAlignment GetTkVerticalAlignment(DependencyObject obj) {
-			return (VerticalAlignment)obj.GetValue(TkVerticalAlignmentProperty);
-		}
-
-		public static void SetTkVerticalAlignment(DependencyObject obj, VerticalAlignment value) {
-			obj.SetValue(TkVerticalAlignmentProperty, value);
-		}
-
 		static WpfUtilities() {
 			Ok.Freeze();
 			Error.Freeze();
@@ -42,52 +32,6 @@ namespace TokeiLibrary {
 			GotFocusBrush.Freeze();
 			LostFocusBrush.Freeze();
 			MouseOverFocusBrush.Freeze();
-
-			TkVerticalAlignmentProperty = DependencyProperty.RegisterAttached(
-				"TkVerticalAlignment",
-				typeof(VerticalAlignment),
-				typeof(WpfUtilities),
-				new PropertyMetadata(new PropertyChangedCallback(OnRegisterSortableGrid)));
-		}
-
-		private static void OnRegisterSortableGrid(DependencyObject sender, DependencyPropertyChangedEventArgs args) {
-			FrameworkElement grid = sender as FrameworkElement;
-			if (grid != null) {
-				RegisterSortableGridview(grid, args);
-			}
-		}
-
-		private static void RegisterSortableGridview(FrameworkElement grid, DependencyPropertyChangedEventArgs args) {
-			if (args.NewValue is VerticalAlignment) {
-				grid.VerticalAlignment = VerticalAlignment.Top;
-
-				VerticalAlignment alignment = (VerticalAlignment)args.NewValue;
-
-				if (alignment == VerticalAlignment.Center) {
-					var res = FindDirectParentControl<FrameworkElement>(grid);
-
-					if (res != null) {
-						int absoluteTopMargin = 0;
-
-						if (res is TabItem) {
-							res = FindDirectParentControl<TabControl>(res);
-							absoluteTopMargin = 20;
-						}
-
-						res.SizeChanged += delegate {
-							int top = (int)((res.ActualHeight - grid.ActualHeight) / 2) + absoluteTopMargin;
-
-							grid.Margin = new Thickness(grid.Margin.Left, top, grid.Margin.Right, grid.Margin.Bottom);
-						};
-					}
-				}
-				else if (alignment == VerticalAlignment.Top) {
-					// Do nothing
-				}
-				else if (alignment == VerticalAlignment.Bottom) {
-					grid.VerticalAlignment = VerticalAlignment.Bottom;
-				}
-			}
 		}
 
 		public static void RemoveKeyboardFocus() {
@@ -159,10 +103,45 @@ namespace TokeiLibrary {
 						IntPtr active = NativeMethods.GetActiveWindow();
 						Window topWindow = Application.Current.Windows.OfType<Window>().FirstOrDefault(window => window.IsLoaded && new WindowInteropHelper(window).Handle == active);
 
-						if (topWindow != null) {
+						if (topWindow != null && !(bool)topWindow.GetValue(WpfProperties.DisableChildrenWindowsProperty)) {
 							return topWindow;
 						}
-						return Application.Current.MainWindow.IsVisible ? Application.Current.MainWindow : Application.Current.Windows.Cast<Window>().FirstOrDefault(window => window.IsVisible);
+
+						List<Window> windows = Application.Current.Windows.OfType<Window>().Where(p => p.IsVisible).ToList();
+						
+						// Remove parents
+						for (int i = 0; i < windows.Count; i++) {
+							if ((bool)windows[i].GetValue(WpfProperties.DisableChildrenWindowsProperty)) {
+								windows.RemoveAt(i);
+								i--;
+								continue;
+							}
+
+							if (windows[i].Parent == null) {
+								continue;
+							}
+						
+							if (windows[i].Parent != null && windows[i].Parent is Window) {
+								// Need to remove parent!
+								var idx = windows.IndexOf((Window)windows[i].Parent);
+						
+								if (idx > -1) {
+									// Go through the list again
+									windows.RemoveAt(idx);
+									i--;
+									continue;
+								}
+							}
+						}
+						
+						if (windows.Count == 1) {
+							return windows[0];
+						}
+						
+						if (windows.Count == 0)
+							return Application.Current.MainWindow.IsVisible ? Application.Current.MainWindow : Application.Current.Windows.Cast<Window>().FirstOrDefault(window => window.IsVisible);
+
+						return windows.Last();
 					});
 				}
 				catch {
@@ -485,8 +464,8 @@ namespace TokeiLibrary {
 		}
 
 		public static void PreviewLabel(TextBox element, string content) {
-			Label label = new Label();
-			label.Content = content;
+			TextBlock label = new TextBlock();
+			label.Text = content;
 			label.Foreground = Brushes.DarkGray;
 			label.Margin = new Thickness(7, 0, 0, 0);
 			label.VerticalAlignment = VerticalAlignment.Center;
@@ -559,6 +538,105 @@ namespace TokeiLibrary {
 			catch (Exception) {
 				//log
 			}
+		}
+
+		public static void AddDragDropEffects(Control control, Func<List<string>, bool> condition = null) {
+			Brush oldBrush = control.Background;
+
+			control.PreviewDragEnter += delegate (object sender, DragEventArgs e) {
+				oldBrush = control.Background;
+
+				if (condition != null) {
+					List<string> files = _getFiles(e);
+
+					if (files != null && condition(files)) {
+						control.Background = Application.Current.Resources["UIDragDropBrush"] as Brush;
+					}
+				}
+				else
+					control.Background = Application.Current.Resources["UIDragDropBrush"] as Brush;
+			};
+
+			control.PreviewDragLeave += delegate {
+				control.Background = oldBrush;
+			};
+
+			control.PreviewDrop += delegate {
+				control.Background = oldBrush;
+			};
+		}
+
+		private static List<string> _getFiles(DragEventArgs e) {
+			string[] files = e.Data.GetData(DataFormats.FileDrop, true) as string[];
+
+			if (files != null) {
+				return files.ToList();
+			}
+
+			return null;
+		}
+
+		// Used to be AddMouseInOutEffects
+		public static void AddMouseInOutHandEffect(UIElement element) {
+			element.MouseEnter += delegate {
+				Mouse.OverrideCursor = Cursors.Hand;
+			};
+
+			element.MouseLeave += delegate {
+				Mouse.OverrideCursor = null;
+			};
+		}
+
+		public static void AddMouseInOutUnderline(params CheckBox[] boxes) {
+			foreach (var box in boxes) {
+				AddMouseInOutUnderline((ContentControl)box);
+			}
+		}
+
+		public static void AddMouseInOutUnderline(params RadioButton[] boxes) {
+			foreach (var box in boxes) {
+				AddMouseInOutUnderline((ContentControl)box);
+			}
+		}
+
+		public static void AddMouseInOutUnderline(TextBlock tb) {
+			tb.MouseEnter += delegate {
+				Mouse.OverrideCursor = Cursors.Hand;
+				tb.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
+				tb.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
+			};
+
+			tb.MouseLeave += delegate {
+				Mouse.OverrideCursor = null;
+				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+				tb.SetValue(TextBlock.TextDecorationsProperty, null);
+			};
+
+			ApplicationManager.ThemeChanged += delegate {
+				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+			};
+		}
+
+		public static void AddMouseInOutUnderline(ContentControl element) {
+			if (element.Content is string) {
+				element.Content = new TextBlock { Text = element.Content.ToString(), TextWrapping = TextWrapping.Wrap };
+			}
+
+			var tb = element.Content as TextBlock;
+
+			element.MouseEnter += delegate {
+				Mouse.OverrideCursor = Cursors.Hand;
+				element.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
+				if (tb != null)
+					tb.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
+			};
+
+			element.MouseLeave += delegate {
+				Mouse.OverrideCursor = null;
+				element.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+				if (tb != null)
+					tb.SetValue(TextBlock.TextDecorationsProperty, null);
+			};
 		}
 	}
 }

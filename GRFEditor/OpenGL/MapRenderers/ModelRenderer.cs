@@ -2,7 +2,6 @@
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.WPF;
 using OpenTK;
-using OpenTK.Graphics.OpenGL;
 
 namespace GRFEditor.OpenGL.MapRenderers {
 	public class ModelRenderer : Renderer {

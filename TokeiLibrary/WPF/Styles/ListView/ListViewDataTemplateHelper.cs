@@ -128,7 +128,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					grid.Columns.Add(gridColumn);
 				}
 
-				WpfUtils.SetCustomSorter(list, sorter);
+				ListViewExtensions.SetCustomSorter(list, sorter);
 
 				list.View = grid;
 
@@ -275,10 +275,10 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					if (Environment.OSVersion.Version.Major < 6)
 						col.CellTemplate.Triggers.Add(trigger);
 					grid.Columns.Add(col);
-					WpfUtils.SetSortBindingMember(col, new Binding(column.SearchGetAccessor));
+					ListViewExtensions.SetSortBindingMember(col, new Binding(column.SearchGetAccessor));
 				}
 
-				WpfUtils.SetCustomSorter(list, sorter);
+				ListViewExtensions.SetCustomSorter(list, sorter);
 
 				list.SizeChanged += (sender, e) => {
 					double width = list.ActualWidth;

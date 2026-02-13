@@ -1,12 +1,8 @@
 ﻿using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,7 +11,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.Core;
-using GRF.Graphics;
 using GRF.IO;
 using GRF.Image;
 using GRF.GrfSystem;
@@ -169,11 +164,11 @@ namespace GRFEditor.Tools.Map {
 
 			_asyncOperation = new AsyncOperation(_progressBar);
 
-			WpfUtils.AddMouseInOutEffectsBox(
+			WpfUtilities.AddMouseInOutUnderline(
 				_cbRemoveLight, _cbRemoveShadow, _cbRemoveColor, _cbRemoveObjects, _cbGutterLines, _cbResetGlobalLighting, _cbFlattenGround,
 				_cbStickGatCells, _cbRemoveWater, _cbUseCustomTextures, _checkBoxGrfOnly, _cbMatchShadow, _cbQuadmapsShadow, _cbQuadmapsBitmap);
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbTextureBlack, _cbTextureWalls, _cbTextureOriginal);
+			WpfUtilities.AddMouseInOutUnderline(_cbTextureBlack, _cbTextureWalls, _cbTextureOriginal);
 
 			_cbTextureBlack.Checked += _wall_Checked;
 			_cbTextureWalls.Checked += _wall_Checked;
@@ -337,10 +332,6 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		private void _updateTextures() {
-			if (_updatingTextures) {
-				Z.F();
-			}
-
 			try {
 				_updatingTextures = true;
 				GrfEditorConfiguration.FlatMapsMakerCBorder = _cBorder.Color;

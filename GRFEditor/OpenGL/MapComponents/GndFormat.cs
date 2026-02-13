@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Windows;
 using GRF;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
-using GRF.Graphics;
-using GRF.Image;
 using GRF.IO;
+using GRFEditor.ApplicationConfiguration;
 using OpenTK;
 
 namespace GRFEditor.OpenGL.MapComponents {
@@ -195,6 +193,10 @@ namespace GRFEditor.OpenGL.MapComponents {
 			LightmapWidth = data.Int32();
 			LightmapHeight = data.Int32();
 			LightmapSizeCell = data.Int32();
+
+			if (GrfEditorConfiguration.SpecialDxhjVersionSupport)
+				LightmapSizeCell = 1;
+
 			int size = LightmapWidth * LightmapHeight * LightmapSizeCell * 4;
 
 			for (int i = 0; i < count; i++) {
@@ -215,14 +217,20 @@ namespace GRFEditor.OpenGL.MapComponents {
 				RswWater defWWater = new RswWater();
 
 				defWWater.Level = data.Float();
+
+				if (data.Length - data.Position == Header.Width * Header.Height * 46) {
+					Water = null;
+					return;
+				}
+
 				defWWater.Type = data.Int32();
 				defWWater.WaveHeight = data.Float();
 				defWWater.WaveSpeed = data.Float();
 				defWWater.WavePitch = data.Float();
 				defWWater.TextureCycling = data.Int32();
 
-				Water.WaterSplitWidth = data.Int32();
-				Water.WaterSplitHeight = data.Int32();
+				Water.WaterSplitWidth = Math.Max(1, data.Int32());
+				Water.WaterSplitHeight = Math.Max(1, data.Int32());
 
 				if (Header.IsCompatibleWith(1, 9)) {
 					Water.Zones.Clear();

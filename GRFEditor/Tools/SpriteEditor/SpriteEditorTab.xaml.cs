@@ -12,7 +12,6 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.FileFormats;
-using GRF.FileFormats.SprFormat;
 using GRF.FileFormats.SprFormat.Builder;
 using GRF.FileFormats.SprFormat.Commands;
 using GRF.Image;

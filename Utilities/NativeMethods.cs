@@ -142,6 +142,12 @@ namespace Utilities {
 		[DllImport("user32.dll")]
 		internal static extern bool ClientToScreen(IntPtr hWnd, ref POINT lpPoint);
 
+		[DllImport("User32.dll")]
+		public static extern bool SetCursorPos(int X, int Y);
+
+		[DllImport("User32.dll")]
+		public static extern bool GetCursorPos(out POINT point);
+
 		[DllImport("user32.dll")]
 		internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 

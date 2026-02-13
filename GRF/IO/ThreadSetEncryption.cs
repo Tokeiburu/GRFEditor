@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Threading;
 using GRF.Core;
 using GRF.Threading;
-using Utilities;
 
 namespace GRF.IO {
 	public class QuickOrderedGrfStreamReader {

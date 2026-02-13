@@ -71,7 +71,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					act.SoundFiles.RemoveAt(_soundId);
 					break;
 				case SoundIdEdit.RemoveAt:
-					_copy.Apply(act);
+					_copy.Undo(act);
 					act.SoundFiles.Insert(_soundId, _name);
 					break;
 			}

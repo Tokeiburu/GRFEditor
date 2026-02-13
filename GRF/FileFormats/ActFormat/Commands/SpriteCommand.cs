@@ -77,7 +77,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					break;
 			}
 
-			_previousState.Clean(act);
+			_previousState.RemovedUnusedChanges(act);
 		}
 
 		public void Undo(Act act) {
@@ -101,7 +101,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					break;
 			}
 
-			_previousState.Apply(act);
+			_previousState.Undo(act);
 		}
 
 		public string CommandDescription {

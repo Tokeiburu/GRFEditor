@@ -5,6 +5,8 @@ namespace Utilities.Tools {
 		private double _maxScale = 32;
 		private double _minScale = 0.03;
 		private Func<double> _zoomInMultiplier = new Func<double>(() => 1d);
+		public delegate double ZoomIncrementFunction(double mouseWheel);
+		public ZoomIncrementFunction ZoomFunction;
 
 		public double MaxScale {
 			get { return _maxScale; }
@@ -33,11 +35,33 @@ namespace Utilities.Tools {
 			get { return String.Format("{0:0.00} %", Scale * 100f); }
 		}
 
+		private double _defaultZoom(double delta) {
+			return Scale * (1 + 0.002 * ZoomInMultiplier() * delta);
+		}
+
+		public double DefaultLimitZoom(double delta) {
+			double newScale;
+			double mult = 1 + 0.24 * ZoomInMultiplier();
+
+			if (delta > 0)
+				newScale = Scale * mult;
+			else
+				newScale = Scale / mult;
+
+			if (newScale > MaxScale)
+				return Scale;
+			else if (newScale < MinScale)
+				return Scale;
+
+			return newScale;
+		}
+
 		public void Zoom(double mouseWheel) {
-			double incrementFactor = 0.002 * Scale * ZoomInMultiplier();
+			if (ZoomFunction == null)
+				ZoomFunction = _defaultZoom;
 
 			OldScale = Scale;
-			Scale = Scale + incrementFactor * mouseWheel;
+			Scale = ZoomFunction(mouseWheel);
 			_checkScale();
 		}
 

@@ -131,6 +131,11 @@ namespace GRF.Core {
 		/// </summary>
 		public bool EncryptionCheckFlag { get; set; }
 
+		/// <summary>
+		/// Gets or sets a value indicating whether the FileTable requires decryption.
+		/// </summary>
+		public bool FileTableRequiresDecryption { get; private set; }
+
 		public ReadOnlyCollection<string> Errors {
 			get { return _errors.AsReadOnly(); }
 		}
@@ -166,6 +171,10 @@ namespace GRF.Core {
 		internal void SetGrfVersion(byte major, byte minor) {
 			MajorVersion = major;
 			MinorVersion = minor;
+		}
+
+		internal void SetRequiresFileTableDecryption() {
+			FileTableRequiresDecryption = true;
 		}
 
 		public void SetKey(byte[] key, GrfHolder grf) {

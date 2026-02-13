@@ -251,7 +251,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 
 				if (Registers[2] != 2) {
 					Console.WriteLine("Loop has more than 2 results to return...? Inspect this properly.");
-					Z.F();
 				}
 
 				var ins_jmp = function.Instructions[function.PC + 1];

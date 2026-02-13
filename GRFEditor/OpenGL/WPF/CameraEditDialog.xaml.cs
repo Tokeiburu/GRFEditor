@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using GRFEditor.OpenGL.MapComponents;
-using GRFEditor.OpenGL.MapRenderers;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
 

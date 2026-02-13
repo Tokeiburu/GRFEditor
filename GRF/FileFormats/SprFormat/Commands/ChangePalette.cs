@@ -12,6 +12,9 @@ namespace GRF.FileFormats.SprFormat.Commands {
 
 		public ChangePalette(byte[] palette) {
 			Buffer.BlockCopy(palette, 0, _palette, 0, 1024);
+
+			// The palette transparency is always set to 0 for ActEditor
+			_palette[3] = 0;
 		}
 
 		#region IActCommand Members

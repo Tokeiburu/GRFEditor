@@ -9,20 +9,11 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using ErrorManager;
-using GRF.ContainerFormat;
 using GRF.Core;
-using GRF.FileFormats.GatFormat;
-using GRF.FileFormats.GndFormat;
-using GRF.FileFormats.LubFormat;
-using GRF.FileFormats.RswFormat;
-using GRF.FileFormats.RswFormat.RswObjects;
-using GRF.Graphics;
-using GRF.Image;
 using GRF.GrfSystem;
 using GRF.Threading;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
-using GRFEditor.Tools.SpriteEditor;
 using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.Application;
@@ -34,9 +25,6 @@ using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.CommandLine;
 using Utilities.Extension;
-using Utilities.Parsers.Yaml;
-using Utilities.Services;
-using Action = System.Action;
 using AsyncOperation = GrfToWpfBridge.Application.AsyncOperation;
 using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 using OpeningService = GRFEditor.Core.Services.OpeningService;
@@ -60,6 +48,69 @@ namespace GRFEditor {
 		private EditorPosition _editorPosition = new EditorPosition();
 		public static EditorMainWindow Instance;
 
+		public static class LZ4Raw {
+			public static byte[] Decompress(byte[] input, int uncompressedSizeGuess = 0) {
+				int outCap = uncompressedSizeGuess > 0 ? uncompressedSizeGuess : input.Length * 10;
+				byte[] output = new byte[outCap];
+				int ip = 0;
+				int op = 0;
+
+				while (ip < input.Length) {
+					if (op >= output.Length - 300) {
+						Array.Resize(ref output, output.Length * 2);
+					}
+
+					byte token = input[ip++];
+					int literalLength = token >> 4;
+
+					if (literalLength == 15) {
+						byte len;
+						do {
+							len = input[ip++];
+							literalLength += len;
+						}
+						while (len == 255);
+					}
+
+					// Copy literals
+					Buffer.BlockCopy(input, ip, output, op, literalLength);
+					ip += literalLength;
+					op += literalLength;
+
+					if (ip >= input.Length)
+						break;
+
+					// Read match offset
+					int offset = input[ip++] | (input[ip++] << 8);
+
+					int matchLength = token & 0x0F;
+
+					// If match length is extended
+					if (matchLength == 15) {
+						byte len;
+						do {
+							len = input[ip++];
+							matchLength += len;
+						}
+						while (len == 255);
+					}
+
+					matchLength += 4;
+					int matchSrc = op - offset;
+
+					if (matchSrc < 0)
+						throw new Exception("Invalid LZ4 offset.");
+
+					for (int i = 0; i < matchLength; i++) {
+						output[op++] = output[matchSrc + i];
+					}
+				}
+
+				Array.Resize(ref output, op);
+				return output;
+			}
+		}
+
 		public EditorMainWindow() {
 			Instance = this;
 			InitializeComponent();
@@ -81,6 +132,7 @@ namespace GRFEditor {
 			Settings.CpuMonitoringEnabled = Configuration.CpuPerformanceManagement;
 			Settings.LockFiles = Configuration.LockFiles;
 			Settings.AddHashFileForThor = Configuration.AddHashFileForThor;
+			Settings.FullFileTableEncryptionSupport = Configuration.FullFileTableEncryptionSupport;
 			TemporaryFilesManager.ClearTemporaryFiles();
 			Settings.OnSavingFailed = _onSavingFailed;
 			return encoding;
@@ -152,8 +204,8 @@ namespace GRFEditor {
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
 			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "CustomCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}" });
 
-			WpfUtils.AddDragDropEffects(_items);
-			WpfUtils.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf"));
+			WpfUtilities.AddDragDropEffects(_items);
+			WpfUtilities.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf"));
 
 			_grfEntrySorter.SetOrder("DisplayRelativePath", ListSortDirection.Ascending);
 			_grfSearchEntrySorter.SetOrder("RelativePath", ListSortDirection.Ascending);
@@ -208,8 +260,6 @@ namespace GRFEditor {
 			};
 
 			_editorPosition.Load(this);
-			this.Loaded += delegate {
-			};
 		}
 
 		private void _loadServices() {

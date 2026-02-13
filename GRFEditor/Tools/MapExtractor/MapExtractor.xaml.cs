@@ -36,6 +36,7 @@ namespace GRFEditor.Tools.MapExtractor {
 		private readonly AsyncOperation _asyncOperation;
 		private readonly object _lock = new object();
 		private string _destinationPath;
+		private bool _userDestination;
 		private string _fileName;
 		private GrfHolder _grf;
 		private string _grfPath;
@@ -131,6 +132,7 @@ namespace GRFEditor.Tools.MapExtractor {
 		}
 
 		public void Export() {
+			_userDestination = false;
 			_destinationPath = Configuration.OverrideExtractionPath ? Configuration.DefaultExtractingPath : Path.GetDirectoryName(new FileInfo(_grf.FileName).FullName);
 			_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
 		}
@@ -139,6 +141,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			string path = PathRequest.FolderExtract();
 
 			if (path != null) {
+				_userDestination = true;
 				_destinationPath = path;
 				_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
 			}
@@ -200,7 +203,23 @@ namespace GRFEditor.Tools.MapExtractor {
 				Progress = -1;
 
 				List<Utilities.Extension.Tuple<TkPath, string>> selectedNodes = _getSelectedNodes(null).GroupBy(p => p.Item1.GetFullPath()).Select(p => p.First()).ToList();
-				List<string> pathsToCreate = selectedNodes.Select(p => Path.Combine(_destinationPath, Path.GetDirectoryName(p.Item2.ReplaceFirst("data\\", "")))).Distinct().ToList();
+				string commonRoot = "";
+
+				if (_userDestination) {
+					// Find common root
+					var splitPaths = selectedNodes
+						.Select(p => p.Item2.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+						.ToList();
+
+					var commonPrefixParts = splitPaths
+						.First()
+						.TakeWhile((part, index) => splitPaths.All(p => p.Length > index && string.Equals(p[index], part, StringComparison.OrdinalIgnoreCase)))
+						.ToArray();
+
+					commonRoot = string.Join("" + Path.DirectorySeparatorChar, commonPrefixParts);
+				}
+
+				List<string> pathsToCreate = selectedNodes.Select(p => Path.Combine(_destinationPath, Path.GetDirectoryName(p.Item2.ReplaceFirst(commonRoot, "").TrimStart('\\')))).Distinct().ToList();
 
 				foreach (string pathToCreate in pathsToCreate) {
 					if (!Directory.Exists(pathToCreate))
@@ -210,7 +229,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				for (int index = 0; index < selectedNodes.Count; index++) {
 					string relativePath = selectedNodes[index].Item2;
 
-					string outputPath = Path.Combine(_destinationPath, relativePath.ReplaceFirst("data\\", ""));
+					string outputPath = Path.Combine(_destinationPath, relativePath.ReplaceFirst(commonRoot, "").TrimStart('\\'));
 
 					File.WriteAllBytes(outputPath, GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
 

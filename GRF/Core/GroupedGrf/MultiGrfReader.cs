@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using ErrorManager;
 using Utilities;
-using Utilities.Extension;
 
 namespace GRF.Core.GroupedGrf {
 	public class MultiGrfPath {
@@ -208,7 +207,7 @@ namespace GRF.Core.GroupedGrf {
 			if (_bufferedData.ContainsKey(relativePath))
 				return _bufferedData[relativePath];
 
-			if (_bufferedData.Count > 15)
+			if (_bufferedData.Count > 30)
 				_bufferedData.Clear();
 
 			byte[] data;

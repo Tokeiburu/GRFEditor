@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-        xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
         MinWidth="550" MaxWidth="550" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}" SnapsToDevicePixels="True">
     <StackPanel>
         <StackPanel>
@@ -84,7 +84,7 @@
                 </DockPanel>-->
             </StackPanel>
         </StackPanel>
-        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+		<Grid TokeiLibrary:WpfProperties.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button Name="_buttonGenerateClientConf" Click="_buttonGenerateClientConf_Click" Grid.Row="6" Grid.Column="1" Content="Generate files" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" />
                 <Button Name="_buttonCancel" Content="Close" Width="100" Height="24" Margin="3" Click="_buttonCancel_Click" />

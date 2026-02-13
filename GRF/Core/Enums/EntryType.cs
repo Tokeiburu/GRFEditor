@@ -19,10 +19,11 @@ namespace GRF.Core {
 		RemoveFile = 1 << 4,
 		GrfEditorCrypted = 1 << 5,
 		Encrypt = 1 << 6,
-		Decrypt = 1 << 7,
-		FileNameRenamed = 1 << 8,
-		CustomCompressed = 1 << 9,
-		RawDataFile = 1 << 10,
-		LZSS = 1 << 11,
+		GravityEncryptedFile = 1 << 7,
+		Decrypt = 1 << 8,
+		FileNameRenamed = 1 << 9,
+		CustomCompressed = 1 << 10,
+		RawDataFile = 1 << 11,
+		LZSS = 1 << 12,
 	}
 }

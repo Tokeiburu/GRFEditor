@@ -8,7 +8,6 @@ using GRF.FileFormats.TgaFormat;
 using GRF.Graphics;
 using GRF.Image.Decoders;
 using Utilities;
-using Utilities.Extension;
 
 namespace GRF.Image {
 	/// <summary>
@@ -20,6 +19,7 @@ namespace GRF.Image {
 		public static byte[] JpgHeader = new byte[] {0xff, 0xd8};
 		private static readonly Dictionary<GrfImage, List<int>> _bufferedSimilarities = new Dictionary<GrfImage, List<int>>();
 		private bool _isClosed;
+		private int? _hashCode;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="GrfImage" /> class.
@@ -43,7 +43,7 @@ namespace GRF.Image {
 		/// <param name="width">The width.</param>
 		/// <param name="height">The height.</param>
 		/// <param name="type">The type.</param>
-		/// <param name="palette">The palette.</param>
+		/// <param name="paletteRgba">The palette.</param>
 		public GrfImage(ref byte[] pixels, int width, int height, GrfImageType type, ref byte[] paletteRgba) {
 			Width = width;
 			Height = height;
@@ -102,7 +102,7 @@ namespace GRF.Image {
 		/// <param name="width">The width.</param>
 		/// <param name="height">The height.</param>
 		/// <param name="type">The type.</param>
-		/// <param name="palette">The palette.</param>
+		/// <param name="paletteRgba">The palette.</param>
 		public GrfImage(byte[] pixels, int width, int height, GrfImageType type, byte[] paletteRgba) {
 			Width = width;
 			Height = height;
@@ -327,6 +327,8 @@ namespace GRF.Image {
 					}
 				}
 			}
+
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -422,6 +424,8 @@ namespace GRF.Image {
 					Buffer.BlockCopy(pixels, y * width * bpp, Pixels, (left + (y + top) * Width) * bpp, stride);
 				}
 			}
+
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -431,6 +435,7 @@ namespace GRF.Image {
 		public void SetPixels(ref byte[] pixels) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = pixels;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -440,6 +445,7 @@ namespace GRF.Image {
 		public void SetPixels(byte[] pixels) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = Methods.Copy(pixels);
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -489,6 +495,33 @@ namespace GRF.Image {
 			_setPixels(left, top, image.Width, image.Height, image, blendLayers);
 		}
 
+		public bool IsPixelTransparent(int x, int y) {
+			if (x < 0 || y < 0 || x >= Width || y >= Height)
+				return false;
+
+			if (GrfImageType == GrfImageType.Indexed8) {
+				return Pixels[Width * y + x] == 0;
+			}
+			else if (GrfImageType == GrfImageType.Bgra32) {
+				return Pixels[(Width * y + x) * 4 + 3] == 0;
+			}
+
+			return false;
+		}
+
+		public void SetPixelTransparent(int x, int y) {
+			if (x < 0 || y < 0 || x >= Width || y >= Height)
+				return;
+
+			if (GrfImageType == GrfImageType.Indexed8) {
+				Pixels[Width * y + x] = 0;
+			}
+			else if (GrfImageType == GrfImageType.Bgra32) {
+				Pixels[(Width * y + x) * 4 + 3] = 0;
+			}
+			InvalidateHash();
+		}
+
 		/// <summary>
 		/// Sets the palette.
 		/// </summary>
@@ -496,6 +529,7 @@ namespace GRF.Image {
 		public void SetPalette(ref byte[] newPalette) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Palette = newPalette;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -505,6 +539,7 @@ namespace GRF.Image {
 		public void SetPalette(byte[] newPalette) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Palette = Methods.Copy(newPalette);
+			InvalidateHash();
 		}
 		#endregion
 
@@ -665,6 +700,7 @@ namespace GRF.Image {
 			Pixels = data;
 			Width = width;
 			Height = height;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -691,6 +727,7 @@ namespace GRF.Image {
 			var temp = Height;
 			Height = Width;
 			Width = temp;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -722,6 +759,7 @@ namespace GRF.Image {
 			}
 
 			Buffer.BlockCopy(pixels, 0, Pixels, 0, Pixels.Length);
+			InvalidateHash();
 		}
 
 		public void DrawLine(int x1, int y1, int x2, int y2, GrfColor color) {
@@ -765,9 +803,10 @@ namespace GRF.Image {
 				if (x < 0 || y < 0) continue;
 				SetColor(x, y, color);
 			}
+			InvalidateHash();
 		}
 
-		internal void SetColor(int x, int y, GrfColor color) {
+		public void SetColor(int x, int y, GrfColor color) {
 			int bpp = _getBpp();
 
 			if (bpp <= 1)
@@ -782,6 +821,7 @@ namespace GRF.Image {
 			else if (GrfImageType == GrfImageType.Bgr32) {
 				Buffer.BlockCopy(color.ToBgraBytes(), 0, Pixels, (y * Width + x) * bpp, bpp);
 			}
+			InvalidateHash();
 		}
 
 		#endregion
@@ -794,33 +834,7 @@ namespace GRF.Image {
 		public void SetGrfImageType(GrfImageType type) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfImageType = type;
-		}
-
-		public void Stroke(int thickness, int pixelIndex) {
-			
-		}
-
-		public void Stroke(int thickness, GrfColor color) {
-			//GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-			//GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
-			//int bpp = GetBpp();
-			//GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
-			//
-			//var stroke = new bool[this.Pixels.Length / bpp];
-			//
-			//if (GrfImageType == Image.GrfImageType.Bgra32) {
-			//	for (int y = 0; y < Height; y++) {
-			//		for (int x = 0; x < Width; x++) {
-			//			int idx = y * Height + x;
-			//			int alpha = idx * bpp + 3;
-			//			
-			//			if (Pixels[alpha] == 0)
-			//		}
-			//	}
-			//}
-			//else {
-			//	throw GrfExceptions.__UnsupportedImageFormat.Create();
-			//}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -858,6 +872,7 @@ namespace GRF.Image {
 				Width = width;
 				Height = height;
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -928,6 +943,16 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
+		/// Gets the color at the requested pixel index.
+		/// </summary>
+		/// <param name="x">Index pixel for width.</param>
+		/// <param name="y">Index pixel for height.</param>
+		/// <returns>The requested color</returns>
+		public GrfColor GetColor(int x, int y) {
+			return GetColor(y * Width + x);
+		}
+
+		/// <summary>
 		/// Sets the color at the requested pixel index.
 		/// </summary>
 		/// <param name="pixelIndex">Index of the pixel.</param>
@@ -948,6 +973,8 @@ namespace GRF.Image {
 			else {
 				Buffer.BlockCopy(color.ToBgrBytes(), 0, Pixels, bpp * pixelIndex, bpp);
 			}
+
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -957,6 +984,7 @@ namespace GRF.Image {
 			_isClosed = true;
 			Pixels = null;
 			Palette = null;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -979,31 +1007,97 @@ namespace GRF.Image {
 			float facA = color.A / 255f;
 
 			if (GrfImageType == GrfImageType.Indexed8) {
-				if (Palette != null) {
-					for (int i = 0; i < 1024; i += 4) {
-						Palette[i + 0] = (byte)(Palette[i + 0] * facR);
-						Palette[i + 1] = (byte)(Palette[i + 1] * facG);
-						Palette[i + 2] = (byte)(Palette[i + 2] * facB);
-						Palette[i + 3] = (byte)(Palette[i + 3] * facA);
+				if (Palette != null && Palette.Length == 1024) {
+					unsafe {
+						fixed (byte* pBase = Palette) {
+							byte* p = pBase;
+							byte* pEnd = pBase + Palette.Length;
+
+							while (p < pEnd) {
+								p[0] = (byte)(p[0] * facR);
+								p[1] = (byte)(p[1] * facG);
+								p[2] = (byte)(p[2] * facB);
+								p[3] = (byte)(p[3] * facA);
+
+								p += 4;
+							}
+						}
 					}
 				}
 			}
 			else {
-				float[] fac = new float[] {
-					color.B / 255f,
-					color.G / 255f,
-					color.R / 255f,
-					color.A / 255f
-				};
+				if (bpp == 3) {
+					unsafe {
+						fixed (byte* pBase = Pixels) {
+							byte* p = pBase;
+							byte* pEnd = pBase + Pixels.Length;
 
-				int numIt = Width * Height * bpp;
+							while (p < pEnd) {
+								p[0] = (byte)(p[0] * facB);
+								p[1] = (byte)(p[1] * facG);
+								p[2] = (byte)(p[2] * facR);
 
-				for (int i = 0; i < numIt; i += bpp) {
-					for (int k = 0; k < bpp; k++) {
-						Pixels[i + k] = (byte)(Pixels[i + k] * fac[k]);
+								p += 3;
+							}
+						}
+					}
+				}
+				else if (bpp == 4) {
+					byte mB = color.B;
+					byte mG = color.G;
+					byte mR = color.R;
+					byte mA = color.A;
+
+					byte[] lutB = new byte[256];
+					byte[] lutG = new byte[256];
+					byte[] lutR = new byte[256];
+					byte[] lutA = new byte[256];
+
+					for (int i = 0; i < 256; i++) {
+						lutB[i] = (byte)((i * mB) >> 8);
+						lutG[i] = (byte)((i * mG) >> 8);
+						lutR[i] = (byte)((i * mR) >> 8);
+						lutA[i] = (byte)((i * mA) >> 8);
+					}
+
+					unsafe {
+						fixed (byte* pBase = Pixels) {
+							uint* p = (uint*)pBase;
+							uint* pEnd = (uint*)(pBase + Pixels.Length);
+
+							fixed (byte* lb = lutB, lg = lutG, lr = lutR, la = lutA) {
+								while (p < pEnd) {
+									uint px = *p;
+
+									*p++ =
+										((uint)la[(px >> 24) & 0xFF] << 24) |
+										((uint)lr[(px >> 16) & 0xFF] << 16) |
+										((uint)lg[(px >> 8) & 0xFF] << 8) |
+										 (uint)lb[px & 0xFF];
+								}
+							}
+						}
+					}
+				}
+				else {
+					float[] fac = new float[] {
+						color.B / 255f,
+						color.G / 255f,
+						color.R / 255f,
+						color.A / 255f
+					};
+
+					// ?? Should never happen...
+					int numIt = Width * Height * bpp;
+
+					for (int i = 0; i < numIt; i += bpp) {
+						for (int k = 0; k < bpp; k++) {
+							Pixels[i + k] = (byte)(Pixels[i + k] * fac[k]);
+						}
 					}
 				}
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1057,6 +1151,7 @@ namespace GRF.Image {
 					}
 				}
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1117,6 +1212,7 @@ namespace GRF.Image {
 		/// <param name="color">The color.</param>
 		public void SetPaletteColor(int index256, GrfColor color) {
 			Buffer.BlockCopy(color.ToRgbaBytes(), 0, Palette, 4 * index256, 4);
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1136,28 +1232,49 @@ namespace GRF.Image {
 			else if (GrfImageType == GrfImageType.Bgra32) {
 				int bpp = _getBpp();
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i + 3] == 0) {
-						Pixels[i + 0] = 255;
-						Pixels[i + 1] = 0;
-						Pixels[i + 2] = 255;
-						Pixels[i + 3] = 255;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+
+						while (p < pEnd) {
+							if (p[3] == 0) {
+								p[0] = 255;
+								p[1] = 0;
+								p[2] = 255;
+								p[3] = 255;
+							}
+
+							p += bpp;
+						}
 					}
 				}
 			}
 			else {
 				int bpp = _getBpp();
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] == pink[0] &&
-						Pixels[i + 1] == pink[1] &&
-						Pixels[i + 2] == pink[2]) {
-						for (int p = 0; p < bpp; p++) {
-							Pixels[p + i] = 0;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+
+						while (p < pEnd) {
+							if (p[0] == pink[0] && 
+								p[1] == pink[1] && 
+								p[2] == pink[2]) {
+								p[0] = p[1] = p[2] = 0;
+
+								for (int i = 3; i < bpp; i++) {
+									p[i] = 0;
+								}
+							}
+
+							p += bpp;
 						}
 					}
 				}
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1228,6 +1345,7 @@ namespace GRF.Image {
 					}
 				}
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1240,14 +1358,23 @@ namespace GRF.Image {
 			byte[] pink = new byte[] { 255, 0, 255, 255 };
 
 			if (GrfImageType == GrfImageType.Indexed8) {
-				for (int i = 0; i < 1024; i += 4) {
-					if (Palette[i] > 250 &&
-						Palette[i + 1] < 5 && 
-						Palette[i + 2] > 250) {
-						Palette[i + 0] = 255;
-						Palette[i + 1] = 0;
-						Palette[i + 2] = 255;
-						Palette[i + 3] = 0;
+				unsafe {
+					fixed (byte* pPaletteBase = Palette) {
+						byte* pPalette = pPaletteBase;
+						byte* pPaletteEnd = pPaletteBase + Palette.Length;
+
+						while (pPalette < pPaletteEnd) {
+							if (pPalette[0] > 250 &&
+								pPalette[1] < 5 &&
+								pPalette[2] > 250) {
+								pPalette[0] = 255;
+								pPalette[1] = 0;
+								pPalette[2] = 255;
+								pPalette[3] = 0;
+							}
+
+							pPalette += 4;
+						}
 					}
 				}
 			}
@@ -1255,14 +1382,22 @@ namespace GRF.Image {
 				int bpp = _getBpp();
 				TransparentPixels = new bool[Width * Height];
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] > 250 &&
-						Pixels[i + 1] < 5 &&
-						Pixels[i + 2] > 250) {
-						TransparentPixels[i / bpp] = true;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+						int i = 0;
 
-						for (int p = 0; p < bpp; p++) {
-							Pixels[p + i] = 0;
+						while (p < pEnd) {
+							if (p[0] > 250 &&
+								p[1] < 5 &&
+								p[2] > 250) {
+								p[0] = p[1] = p[2] = 0;
+								TransparentPixels[i] = true;
+							}
+
+							p += bpp;
+							i++;
 						}
 					}
 				}
@@ -1270,16 +1405,28 @@ namespace GRF.Image {
 			else {
 				int bpp = _getBpp();
 
-				for (int i = 0, count = Pixels.Length; i < count; i += bpp) {
-					if (Pixels[i] > 250 &&
-						Pixels[i + 1] < 5 &&
-						Pixels[i + 2] > 250) {
-						for (int p = 0; p < bpp; p++) {
-							Pixels[p + i] = 0;
+				unsafe {
+					fixed (byte* pBase = Pixels) {
+						byte* p = pBase;
+						byte* pEnd = pBase + Pixels.Length;
+
+						while (p < pEnd) {
+							if (p[0] > 250 &&
+								p[1] < 5 &&
+								p[2] > 250) {
+								p[0] = p[1] = p[2] = 0;
+
+								for (int i = 3; i < bpp; i++) {
+									p[i] = 0;
+								}
+							}
+
+							p += bpp;
 						}
 					}
 				}
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1292,6 +1439,7 @@ namespace GRF.Image {
 			if (GrfImageType == GrfImageType.Indexed8) {
 				Palette[3] = 0;
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1318,6 +1466,14 @@ namespace GRF.Image {
 			}
 
 			return new GrfImage(ref pixels, Width, Height, GrfImageType) { TransparentPixels = transPixels };
+		}
+
+		/// <summary>
+		/// Creates a copy of the image.
+		/// </summary>
+		/// <returns></returns>
+		public GrfImage Clone() {
+			return Copy();
 		}
 
 		/// <summary>
@@ -1399,6 +1555,7 @@ namespace GRF.Image {
 			Palette = image.Palette;
 			Width = image.Width;
 			Height = image.Height;
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1426,6 +1583,7 @@ namespace GRF.Image {
 
 			sourceFormat.ToBgra32(this);
 			destinationFormat.Convert(this);
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1454,6 +1612,7 @@ namespace GRF.Image {
 				default:
 					throw new Exception("Image format not supported. Use the method requiring an IImageFormatConverter provider instead.");
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1470,6 +1629,7 @@ namespace GRF.Image {
 			else {
 				Convert(newFormat);
 			}
+			InvalidateHash();
 		}
 
 		/// <summary>
@@ -1598,6 +1758,7 @@ namespace GRF.Image {
 			Pixels = data;
 			Width = newWidth;
 			Height = newHeight;
+			InvalidateHash();
 		}
 		private void _scaleNearest(float x, float y) {
 			if (GrfImageType == GrfImageType.Indexed8) {
@@ -1635,6 +1796,7 @@ namespace GRF.Image {
 				Width = newWidth;
 				Height = newHeight;
 			}
+			InvalidateHash();
 		}
 
 		public override bool Equals(object obj) {
@@ -1659,14 +1821,43 @@ namespace GRF.Image {
 		}
 
 		public override int GetHashCode() {
+			if (_hashCode != null)
+				return _hashCode.Value;
+
 			unchecked {
-				int hashCode = Width;
-				hashCode = (hashCode * 397) ^ Height;
-				hashCode = (hashCode * 397) ^ (Pixels != null ? Pixels.GetHashCode() : 0);
-				hashCode = (hashCode * 397) ^ GrfImageType.GetHashCode();
-				hashCode = (hashCode * 397) ^ (Palette != null ? Palette.GetHashCode() : 0);
-				return hashCode;
+				const ulong FNV_OFFSET = 14695981039346656037UL;
+				const ulong FNV_PRIME = 1099511628211UL;
+
+				ulong hash = FNV_OFFSET;
+
+				void HashByte(byte b) => hash = (hash ^ b) * FNV_PRIME;
+				void HashInt(int v) {
+					HashByte((byte)v);
+					HashByte((byte)(v >> 8));
+					HashByte((byte)(v >> 16));
+					HashByte((byte)(v >> 24));
+				}
+
+				HashInt((int)GrfImageType);
+				HashInt(Width);
+				HashInt(Height);
+
+				var pixels = Pixels;
+				for (int i = 0; i < pixels.Length; i++)
+					hash = (hash ^ pixels[i]) * FNV_PRIME;
+
+				if (GrfImageType == GrfImageType.Indexed8 && Palette != null) {
+					for (int i = 0; i < Palette.Length; i++)
+						hash = (hash ^ Palette[i]) * FNV_PRIME;
+				}
+
+				_hashCode = (int)hash;
+				return _hashCode.Value;
 			}
+		}
+
+		public void InvalidateHash() {
+			_hashCode = null;
 		}
 
 		public override string ToString() {
@@ -2235,6 +2426,85 @@ namespace GRF.Image {
 					}
 				}
 			}
+		}
+
+		public byte GetAlphaChannel(int x, int y) {
+			if (x < 0 || y < 0 || x >= Width || y >= Height)
+				return 0;
+
+			if (GrfImageType == GrfImageType.Indexed8) {
+				return Palette[4 * Pixels[Width * y + x] + 3];
+			}
+			else if (GrfImageType == GrfImageType.Bgra32) {
+				return Pixels[(Width * y + x) * 4 + 3];
+			}
+
+			return 255;
+		}
+
+		public (int Left, int Top, int Right, int Bottom) GetTrimLenghts(byte tolerance = 0) {
+			int left = 0;
+			int right = 0;
+			int top = 0;
+			int bottom = 0;
+
+			// Left
+			for (int x = 0; x < Width; x++) {
+				int y;
+				for (y = 0; y < Height; y++) {
+					if (GetAlphaChannel(x, y) > tolerance)
+						break;
+				}
+
+				if (y != Height)
+					break;
+
+				left++;
+			}
+
+			// Right
+			for (int x = Width - 1; x >= 0; x--) {
+				int y;
+				for (y = 0; y < Height; y++) {
+					if (GetAlphaChannel(x, y) > tolerance)
+						break;
+				}
+
+				if (y != Height)
+					break;
+
+				right++;
+			}
+
+			// Top
+			for (int y = 0; y < Height; y++) {
+				int x;
+				for (x = 0; x < Width; x++) {
+					if (GetAlphaChannel(x, y) > tolerance)
+						break;
+				}
+
+				if (x != Width)
+					break;
+
+				top++;
+			}
+
+			// Bottom
+			for (int y = Height - 1; y >= 0; y--) {
+				int x;
+				for (x = 0; x < Width; x++) {
+					if (GetAlphaChannel(x, y) > tolerance)
+						break;
+				}
+
+				if (x != Width)
+					break;
+
+				bottom++;
+			}
+
+			return (left, top, right, bottom);
 		}
 	}
 }

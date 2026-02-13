@@ -21,7 +21,6 @@ using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
 using Utilities.Extension;
 using Utilities.Services;
-using Action = System.Action;
 using Imaging = ActImaging.Imaging;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -218,7 +217,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				oldActionIndex = 0;
 
 			_comboBoxActionIndex.Dispatch(() => _comboBoxActionIndex.ItemsSource = actions);
-			_comboBoxAnimationIndex.Dispatch(() => _comboBoxAnimationIndex.ItemsSource = act.GetAnimationStrings());
+			_comboBoxAnimationIndex.Dispatch(() => _comboBoxAnimationIndex.ItemsSource = act.GetAnimations());
 			_setDisabledButtons();
 
 			if (_isCancelRequired()) return;

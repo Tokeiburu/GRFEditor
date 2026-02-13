@@ -64,9 +64,14 @@ namespace GrfCL {
 			}
 			else if (clOption == CommandLineOptions.ImageConvert) {
 				bool ignored = false;
+				bool makePinkTransparent = true;
 
 				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[0]] != null) {
 					ignored = Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[0]]);
+				}
+
+				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[1]] != null) {
+					makePinkTransparent = Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[1]]);
 				}
 
 				Regex regex = new Regex(Methods.WildcardToRegexLine(clOption.Args[1]), RegexOptions.IgnoreCase);
@@ -102,11 +107,22 @@ namespace GrfCL {
 						}
 
 						GrfImage imageSource = ImageProvider.GetImage(data, extension);
-						imageSource.Save(destinationFile.ReplaceExtension(""), PixelFormatInfo.GetFormatFromAssembly(clOption.Args[2]));
-						CLHelper.Log = "File converted successfully : " + Path.GetFileName(fullPath);
+
+						if (destinationFile.GetExtension() != null) {
+							destinationFile = destinationFile.ReplaceExtension("");
+						}
+
+						if (makePinkTransparent) {
+							imageSource.MakePinkTransparent();
+						}
+
+						var format = PixelFormatInfo.GetFormatFromAssembly(clOption.Args[2]);
+
+						imageSource.Save(destinationFile + format.Extension, format);
+						CLHelper.Log = "File converted successfully: " + Path.GetFileName(fullPath);
 					}
 					catch (Exception) {
-						CLHelper.Warning = "File conversion failed : " + fullPath;
+						CLHelper.Warning = "File conversion failed: " + fullPath;
 
 						if (ignored) {
 							continue;
@@ -731,8 +747,8 @@ namespace GrfCL {
 			}
 			else if (clOption == CommandLineOptions.Version) {
 				Assembly assembly = Assembly.GetExecutingAssembly();
-				Console.WriteLine("Current assembly version : " + assembly.GetName().Version);
-				Console.WriteLine("Current assembly file version : " + FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion);
+				Console.WriteLine("Current assembly version: " + assembly.GetName().Version);
+				Console.WriteLine("Current assembly file version: " + FileVersionInfo.GetVersionInfo(assembly.Location).FileVersion);
 			}
 			else if (clOption == CommandLineOptions.LubDecompile) {
 				string headDirectory = Path.GetFullPath(Path.GetDirectoryName(clOption.Args[0])) + "\\";

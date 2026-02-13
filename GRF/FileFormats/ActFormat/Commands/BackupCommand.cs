@@ -6,9 +6,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		private readonly Action<Act> _command;
 		public CopyStructureMode CopyMode = CopyStructureMode.Full;
 		private string _commandName;
-
 		private CopyStructureAct _copy;
-		private bool _forceUpdateOnUndoRedoCommands;
 
 		public BackupCommand(Action<Act> command) {
 			_command = command;
@@ -17,17 +15,6 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		public BackupCommand(Action<Act> command, string commandName) {
 			_command = command;
 			_commandName = commandName;
-		}
-
-		public BackupCommand(Action<Act> command, string commandName, bool forceUpdateOnUndoRedoCommands) {
-			_command = command;
-			_commandName = commandName;
-			_forceUpdateOnUndoRedoCommands = forceUpdateOnUndoRedoCommands;
-		}
-
-		public bool ForceUpdateOnUndoRedoCommands {
-			get { return _forceUpdateOnUndoRedoCommands; }
-			set { _forceUpdateOnUndoRedoCommands = value; }
 		}
 
 		public string CommandName {
@@ -46,30 +33,24 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					_command(act);
 				}
 				catch {
-					_copy.Apply(act);
+					_copy.Undo(act);
 					throw;
 				}
 			}
 
-			_copy.Clean(act);
+			_copy.RemovedUnusedChanges(act);
 
-			//if (_forceUpdateOnUndoRedoCommands) {
 			if (!_copy.HasChanged(act)) {
 				throw new CancelAbstractCommand(new AbstractCommandArg { Cancel = true });
 			}
-			//}
 
-			if (_forceUpdateOnUndoRedoCommands) {
-				act.InvalidateSpriteVisual();
-			}
+			act.InvalidateSpriteVisual();
 		}
 
 		public void Undo(Act act) {
-			_copy.Apply(act);
+			_copy.Undo(act);
 
-			if (_forceUpdateOnUndoRedoCommands) {
-				act.InvalidateSpriteVisual();
-			}
+			act.InvalidateSpriteVisual();
 		}
 
 		public string CommandDescription {

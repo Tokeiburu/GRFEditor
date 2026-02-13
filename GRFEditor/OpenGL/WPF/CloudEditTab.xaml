@@ -33,7 +33,7 @@
 		<TextBlock Grid.Row="0" Grid.Column="0" Margin="3" Text="Enabled" Tag="old" />
         <TextBlock Grid.Row="2" Grid.Column="0" Margin="3" Text="Amount" />
         <TextBlock Grid.Row="3" Grid.Column="0" Margin="3" Text="Color" />
-        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Size_Min" />
+        <TextBlock Grid.Row="4" Grid.Column="0" Margin="3" Text="Size" />
         <TextBlock Grid.Row="5" Grid.Column="0" Margin="3" Text="Size_Extra" />
         <TextBlock Grid.Row="6" Grid.Column="0" Margin="3" Text="Expand_Rate" />
         <TextBlock Grid.Row="7" Grid.Column="0" Margin="3" Text="Alpha_Inc_Time" />

@@ -25,7 +25,7 @@
             <Label Width="130" Content="Grf path" />
             <TextBox Name="_textBoxGrfPath" Margin="3 3 0 3" IsReadOnly="True" />
         </DockPanel>
-        <Grid ListView:WpfUtils.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
+        <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <Grid Margin="0 0 3 0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

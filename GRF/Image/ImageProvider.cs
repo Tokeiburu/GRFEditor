@@ -4,6 +4,7 @@ using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.PalFormat;
 using GRF.FileFormats.SprFormat;
 using GRF.FileFormats.TgaFormat;
+using System.IO;
 using Utilities.Extension;
 
 namespace GRF.Image {
@@ -14,6 +15,14 @@ namespace GRF.Image {
 
 		public static GrfImage GetFirstImage(FileEntry entry) {
 			return GetImage(entry.GetDecompressedData(), entry.RelativePath.GetExtension(), true);
+		}
+
+		public static GrfImage GetImage(string file) {
+			return GetImage(File.ReadAllBytes(file), file.GetExtension());
+		}
+
+		public static GrfImage GetFirstImage(string file) {
+			return GetImage(File.ReadAllBytes(file), file.GetExtension(), true);
 		}
 
 		public static GrfImage GetImage(MultiType data, string extension, bool firstImageOnly = false) {

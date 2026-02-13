@@ -27,11 +27,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 
 		public CopyStructureAct(Act act, CopyStructureMode mode) {
 			if ((mode & CopyStructureMode.Actions) == CopyStructureMode.Actions) {
-				Actions = new List<Action>();
-
-				foreach (Action action in act) {
-					Actions.Add(new Action(action));
-				}
+				Actions = act.Select(p => new Action(p)).ToList();
 			}
 
 			if ((mode & CopyStructureMode.SoundFiles) == CopyStructureMode.SoundFiles) {
@@ -39,11 +35,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			}
 
 			if ((mode & CopyStructureMode.Sprite) == CopyStructureMode.Sprite) {
-				Images = new List<GrfImage>(act.Sprite.Images.Count);
-
-				foreach (GrfImage image in act.Sprite.Images) {
-					Images.Add(image.Copy());
-				}
+				Images = act.Sprite.Images.Select(p => p.Copy()).ToList();
 
 				if (act.Sprite.Palette != null) {
 					_palette = new byte[1024];
@@ -52,21 +44,25 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			}
 		}
 
-		public void Apply(Act act) {
-			if (!_hasBeenCleaned) {
-				if (Actions != null)
-					act.Actions = Actions.Select(action => new Action(action)).ToList();
+		public void Redo(Act act) {
+			if (Actions != null)
+				act.Actions = Actions.Select(action => new Action(action)).ToList();
 
-				if (SoundFiles != null) {
-					act.SoundFiles.Clear();
-					act.SoundFiles.AddRange(SoundFiles);
-				}
+			if (SoundFiles != null) {
+				act.SoundFiles.Clear();
+				act.SoundFiles.AddRange(SoundFiles);
+			}
 
-				if (Images != null) {
-					act.Sprite.Images.Clear();
-					act.Sprite.Images.AddRange(Images.Select(p => p.Copy()));
-					act.Sprite.ReloadCount();
-				}
+			if (Images != null) {
+				act.Sprite.Images.Clear();
+				act.Sprite.Images.AddRange(Images.Select(p => p.Copy()));
+				act.Sprite.ReloadCount();
+			}
+		}
+
+		public void Undo(Act act, bool force = false) {
+			if (!force && !_hasBeenCleaned) {
+				Redo(act);
 			}
 			else {
 				if (Actions != null) {
@@ -118,7 +114,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			}
 		}
 
-		public void Clean(Act act) {
+		public void RemovedUnusedChanges(Act act) {
 			if (!_hasBeenCleaned) {
 				if (Actions != null && act.NumberOfActions == Actions.Count) {
 					_changedActions = new Dictionary<int, Action>();

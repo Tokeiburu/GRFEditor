@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using GRF.FileFormats.TgaFormat;
 using GRF.Image;
 using GRF.Image.Decoders;
 using GRF.Threading;
-using GrfToWpfBridge;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRFEditor.OpenGL.MapComponents {

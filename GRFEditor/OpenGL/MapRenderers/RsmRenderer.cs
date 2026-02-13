@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;
 using GRFEditor.OpenGL.MapComponents;

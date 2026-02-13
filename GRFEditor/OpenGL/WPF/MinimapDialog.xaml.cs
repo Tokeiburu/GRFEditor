@@ -9,8 +9,8 @@ using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
-using TokeiLibrary.WPF.Styles.ListView;
 using Color = System.Windows.Media.Color;
 using PixelFormat = System.Drawing.Imaging.PixelFormat;
 
@@ -68,7 +68,7 @@ namespace GRFEditor.OpenGL.WPF {
 				viewport.RenderOptions.MinimapWaterOverride = GrfEditorConfiguration.MapRenderMinimapEnableWaterOverride;
 			}, true);
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbEnableWater);
+			WpfUtilities.AddMouseInOutUnderline(_cbEnableWater);
 		}
 
 		private void _buttonSave_Click(object sender, RoutedEventArgs e) {

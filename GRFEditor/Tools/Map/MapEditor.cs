@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
 using GRF.Core;
@@ -14,7 +11,6 @@ using GRF.FileFormats;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat;
-using GRF.Image.Decoders;
 using GRF.IO;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
@@ -743,7 +739,6 @@ namespace GRFEditor.Tools.Map {
 			}
 
 			gnd.CleanupLightmaps();
-			Z.F();
 		}
 
 		public void GenerateTexture(string textureName, IList<sbyte> cellTypes, bool isQuadrant) {

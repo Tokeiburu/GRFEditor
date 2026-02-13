@@ -28,7 +28,6 @@ using ICSharpCode.AvalonEdit.Indentation;
 using ICSharpCode.AvalonEdit.Indentation.CSharp;
 using Lua;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -60,7 +59,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			Binder.Bind(_cbWordWrap, () => GrfEditorConfiguration.EnableWordWrap, delegate {
 				_textEditor.WordWrap = GrfEditorConfiguration.EnableWordWrap;
 			}, true);
-			WpfUtils.AddMouseInOutEffectsBox(_cbWordWrap);
+			WpfUtilities.AddMouseInOutUnderline(_cbWordWrap);
 			_textEditor.TextChanged += delegate {
 				try {
 					if (_textEditor.IsReadOnly)

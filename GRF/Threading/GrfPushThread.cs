@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using ErrorManager;
 
 namespace GRF.Threading {
@@ -66,7 +67,6 @@ namespace GRF.Threading {
 	}
 
 	public class GrfPushMultiThread<T> where T : class {
-		private string _threadName;
 		private Action<T, Func<bool>> _process;
 		private readonly object _lock = new object();
 		private T _lastItem = null;
@@ -76,22 +76,21 @@ namespace GRF.Threading {
 				_lastItem = item;
 			}
 
-			new Thread(new ThreadStart(delegate {
+			Task.Run(() => {
 				try {
 					_process(item, () => _lastItem != item);
 				}
 				catch (Exception err) {
 					ErrorHandler.HandleException(err);
 				}
-			})) { Name = _threadName }.Start();
+			});
 		}
 
 		public void Terminate() {
 			
 		}
 
-		public void Start(string threadName, Action<T, Func<bool>> process) {
-			_threadName = threadName;
+		public void Start(Action<T, Func<bool>> process) {
 			_process = process;
 		}
 	}

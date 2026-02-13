@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using ErrorManager;
 using GRF.Core;
 using TokeiLibrary;
-using Utilities.Extension;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	public class FilePreviewTab : UserControl, IPreviewTab {

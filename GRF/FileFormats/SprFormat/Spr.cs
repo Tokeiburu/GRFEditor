@@ -64,8 +64,15 @@ namespace GRF.FileFormats.SprFormat {
 			ByteReader reader = new ByteReader(dataDecompressed);
 			Header = new SprHeader(reader);
 			RleImages = new List<Rle>();
-			NumberOfIndexed8Images = reader.UInt16();
-			NumberOfBgra32Images = reader.UInt16();
+			
+			if (Header.IsCompatibleWith(3, 2)) {
+				NumberOfBgra32Images = reader.Int32();
+			}
+			else {
+				NumberOfIndexed8Images = reader.UInt16();
+				NumberOfBgra32Images = reader.UInt16();
+			}
+
 			Images = GetImages(reader, loadFirstImageOnly);
 		}
 
@@ -406,6 +413,15 @@ namespace GRF.FileFormats.SprFormat {
 			}
 		}
 
+		public void Remove(GrfImage image) {
+			var idx = Images.IndexOf(image);
+
+			if (idx < 0)
+				throw new Exception("Image not found in the Images list.");
+
+			Remove(image.GrfImageType == GrfImageType.Indexed8 ? idx : NumberOfIndexed8Images + idx, image.GrfImageType);
+		}
+
 		public void Remove(int relativeIndex, GrfImageType type) {
 			if (type == GrfImageType.Indexed8) {
 				if (relativeIndex < NumberOfIndexed8Images && relativeIndex > -1) {
@@ -546,13 +562,18 @@ namespace GRF.FileFormats.SprFormat {
 			}
 		}
 
-		public int InsertAny(GrfImage image) {
+		public SpriteIndex InsertAny(GrfImage image) {
 			if (image.GrfImageType == GrfImageType.Indexed8 ||
 			    image.GrfImageType == GrfImageType.Bgra32) {
-				return AddImage(image);
+				var index = AddImage(image);
+				return new SpriteIndex(index, image);
 			}
 
 			throw new Exception("Invalid image format. Found : " + image.GrfImageType + ", expected Indexed8 or Bgra32.");
+		}
+
+		public GrfImage GetImage(SpriteIndex source) {
+			return GetImage(source.Index, source.Type);
 		}
 
 		public GrfImage GetImage(int index, int type) {
@@ -663,10 +684,113 @@ namespace GRF.FileFormats.SprFormat {
 					yield return index;
 			}
 		}
+
+		public SpriteIndex Exists(GrfImage source) {
+			Dictionary<int, List<(int, GrfImage)>> images = new Dictionary<int, List<(int, GrfImage)>>();
+
+			for (int i = 0; i < Images.Count; i++) {
+				GrfImage image = Images[i];
+
+				List<(int, GrfImage)> l;
+
+				if (!images.TryGetValue(image.GetHashCode(), out l)) {
+					l = new List<(int, GrfImage)>();
+					images[image.GetHashCode()] = l;
+				}
+
+				l.Add((i, image));
+			}
+
+			if (images.TryGetValue(source.GetHashCode(), out List<(int, GrfImage)> list)) {
+				foreach (var imageIndex in list) {
+					if (imageIndex.Item2.Equals(source))
+						return new SpriteIndex(imageIndex.Item1 + (imageIndex.Item2.GrfImageType == GrfImageType.Indexed8 ? 0 : -NumberOfIndexed8Images), source.GrfImageType);
+				}
+			}
+			
+			return new SpriteIndex(-1, GrfImageType.Indexed8);
+		}
 	}
 
 	public enum EditOption {
 		KeepCurrentIndexes,
 		AdjustIndexes,
+	}
+
+	public struct SpriteIndex {
+		public int Index;
+		public GrfImageType Type;
+
+		public bool Valid => Index > -1;
+
+		public SpriteIndex(int index, GrfImageType type) {
+			Index = index;
+			Type = type;
+		}
+
+		public SpriteIndex(int index, GrfImage image) {
+			Index = index;
+			Type = image.GrfImageType == GrfImageType.Indexed8 ? GrfImageType.Indexed8 : GrfImageType.Bgra32;
+		}
+
+		public SpriteIndex(Layer layer) {
+			Index = layer.SpriteIndex;
+
+			if (Index < 0)
+				Type = GrfImageType.Indexed8;
+			else
+				Type = layer.SpriteType == SpriteTypes.Indexed8 ? GrfImageType.Indexed8 : GrfImageType.Bgra32;
+		}
+
+		public int GetAbsoluteIndex(Spr sprite) {
+			if (Type == GrfImageType.Indexed8)
+				return Index;
+
+			return Index + sprite.NumberOfIndexed8Images;
+		}
+
+		public override int GetHashCode() {
+			return Index + 10000 * (int)Type;
+		}
+
+		public override bool Equals(object obj) {
+			if (ReferenceEquals(null, obj)) return false;
+			if (ReferenceEquals(this, obj)) return true;
+			if (obj.GetType() != this.GetType()) return false;
+			return obj.GetHashCode() == this.GetHashCode();
+		}
+
+		public static bool operator ==(SpriteIndex exp1, SpriteIndex exp2) {
+			return exp1.Equals(exp2);
+		}
+
+		public static bool operator !=(SpriteIndex exp1, SpriteIndex exp2) {
+			return !(exp1 == exp2);
+		}
+
+		public static SpriteIndex FromAbsoluteIndex(int index, Spr spr, GrfImage image) {
+			return FromAbsoluteIndex(index, spr, image.GrfImageType);
+		}
+
+		public static SpriteIndex FromAbsoluteIndex(int index, Spr spr, GrfImageType type) {
+			if (type == GrfImageType.Indexed8)
+				return new SpriteIndex(index, type);
+
+			return new SpriteIndex(index - spr.NumberOfIndexed8Images, type);
+		}
+
+		public static SpriteIndex FromAbsoluteIndex(int index, Spr spr) {
+			if (index < spr.NumberOfIndexed8Images)
+				return new SpriteIndex(index, GrfImageType.Indexed8);
+
+			return new SpriteIndex(index - spr.NumberOfIndexed8Images, GrfImageType.Bgra32);
+		}
+
+		public static SpriteIndex Null => _nullSpriteIndex;
+		public static SpriteIndex _nullSpriteIndex = new SpriteIndex(-1, GrfImageType.Indexed8);
+
+		public override string ToString() {
+			return Type == GrfImageType.Indexed8 ? "Indexed8;" + Index : "Bgra32;" + Index;
+		}
 	}
 }

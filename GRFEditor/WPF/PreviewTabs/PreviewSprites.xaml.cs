@@ -16,7 +16,6 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.WPF.Styles.ListView;
 using Utilities;
 using Utilities.Extension;
 
@@ -70,7 +69,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				}
 			}, true);
 
-			WpfUtils.AddMouseInOutEffectsBox(_cbWrapImages, _cbShowNames);
+			WpfUtilities.AddMouseInOutUnderline(_cbWrapImages, _cbShowNames);
 
 			_gpEase.SetPosition(0.2d, false);
 

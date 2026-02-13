@@ -2,7 +2,6 @@
 using System.Text;
 using GRF.FileFormats.LubFormat.Types;
 using GRF.GrfSystem;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.LubFormat.VM {
@@ -333,7 +332,6 @@ namespace GRF.FileFormats.LubFormat.VM {
 					return "[\"" + lubString + "\"]";
 				}
 
-				Z.F();
 				return key;
 			}
 		}

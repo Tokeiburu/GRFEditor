@@ -116,17 +116,17 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			get {
 				switch (_edit) {
 					case ActionEdit.RemoveAt:
-						return CommandsHolder.GetId(_actionIndex) + " Remove";
+						return CommandsHolder.GetId(_actionIndex) + " Remove action";
 					case ActionEdit.CopyAt:
-						return CommandsHolder.GetId(_actionIndex) + " Copy and insert to " + CommandsHolder.GetId(_actionIndexTo);
+						return CommandsHolder.GetId(_actionIndex) + " Copy and insert action to " + CommandsHolder.GetId(_actionIndexTo);
 					case ActionEdit.InsertAt:
-						return CommandsHolder.GetId(_actionIndex) + " Insert new";
+						return CommandsHolder.GetId(_actionIndex) + " Insert new action";
 					case ActionEdit.ReplaceTo:
-						return CommandsHolder.GetId(_actionIndex) + " Copy and replace to " + CommandsHolder.GetId(_actionIndexTo);
+						return CommandsHolder.GetId(_actionIndex) + " Copy and replace action to " + CommandsHolder.GetId(_actionIndexTo);
 					case ActionEdit.Switch:
-						return CommandsHolder.GetId(_actionIndex) + " Switch with " + CommandsHolder.GetId(_actionIndexTo);
+						return CommandsHolder.GetId(_actionIndex) + " Switch action with " + CommandsHolder.GetId(_actionIndexTo);
 					case ActionEdit.Move:
-						return CommandsHolder.GetId(_actionIndex) + " Moved to " + CommandsHolder.GetId(_actionIndexTo);
+						return CommandsHolder.GetId(_actionIndex) + " Moved action to " + CommandsHolder.GetId(_actionIndexTo);
 				}
 
 				return "Unknown";

@@ -92,6 +92,10 @@ namespace GRF.Core {
 				case EntryType.FileAndDataCrypted:
 					Cycle = 0;
 					break;
+				case EntryType.GravityEncryptedFile:
+					Cycle = -1;
+					//Flags = EntryType.File;
+					break;
 				default:
 					Cycle = -1;
 					break;
@@ -427,8 +431,11 @@ namespace GRF.Core {
 						if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
 							data[fileName.Length + 22] = 0;
 						}
+						else if (Flags.HasFlag(EntryType.GravityEncryptedFile)) {
+							data[fileName.Length + 13] = (byte)EntryType.GravityEncryptedFile;
+						}
 						else {
-							data[fileName.Length + 22] = (byte) EntryType.File;
+							data[fileName.Length + 22] = (byte)EntryType.File;
 						}
 					}
 
@@ -451,6 +458,9 @@ namespace GRF.Core {
 
 					if (!overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
 						data[fileName.Length + 13] = (byte)(baseFlag | EntryType.RemoveFile);
+					}
+					else if (Flags.HasFlag(EntryType.GravityEncryptedFile)) {
+						data[fileName.Length + 13] = (byte)EntryType.GravityEncryptedFile;
 					}
 					else {
 						data[fileName.Length + 13] = (byte)baseFlag;

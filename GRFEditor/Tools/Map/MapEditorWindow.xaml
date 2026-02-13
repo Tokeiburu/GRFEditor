@@ -6,7 +6,7 @@
         xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
         xmlns:wpf="clr-namespace:GRFEditor.OpenGL.WPF"
         xmlns:map="clr-namespace:GRFEditor.Tools.Map"
-        xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit"
+        xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
         Width="1160" Height="610">
     <Grid>
         <Grid.RowDefinitions>
@@ -74,7 +74,7 @@
                                 <RowDefinition />
                             </Grid.RowDefinitions>
                             <TextBlock Grid.Row="0" HorizontalAlignment="Left" Margin="3" Text="Error console" VerticalAlignment="Center" />
-                            <ListView Grid.Row="1" BorderThickness="0 1 0 1" ListView:WpfUtils.IsGridSortable="False" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Name="_listView" Margin="0 0 1 0" />
+                            <ListView Grid.Row="1" BorderThickness="0 1 0 1" ListView:ListViewExtensions.IsGridSortable="False" VirtualizingStackPanel.IsVirtualizing="True" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Name="_listView" Margin="0 0 1 0" />
                         </Grid>
                     </Grid>
                 </TabItem>
@@ -375,7 +375,7 @@
                 </TabItem>
             </TabControl>
         </Border>
-        <Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}" Grid.ColumnSpan="1">
+        <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="1" Height="40" Background="{DynamicResource UIDialogBackground}" Grid.ColumnSpan="1">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button DockPanel.Dock="Right" Name="_buttonCancel" Content="Close" Height="24" Width="100" Click="_buttonCancel_Click" Margin="3" />
                 <Button Name="_buttonApplyTextures" Height="24" Margin="3" Width="130" Click="_buttonApplyTextures_Click">
