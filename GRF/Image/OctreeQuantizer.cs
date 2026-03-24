@@ -32,7 +32,7 @@ namespace GRF.Image {
 				_levels[i] = new List<OctreeNode>();
 		}
 
-		public void AddColor(GrfColor color, long count) {
+		public void AddColor(in GrfColor color, long count) {
 			if (color.A == 0)
 				return;
 
@@ -43,7 +43,7 @@ namespace GRF.Image {
 			_addColor(_root, color, count, 0);
 		}
 
-		public void AddColor(GrfColor color) {
+		public void AddColor(in GrfColor color) {
 			AddColor(color, 1);
 		}
 

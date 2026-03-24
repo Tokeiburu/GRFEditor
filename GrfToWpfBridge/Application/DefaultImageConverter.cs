@@ -120,7 +120,7 @@ namespace GrfToWpfBridge.Application {
 				if (image.GrfImageType == GrfImageType.NotEvaluatedPng && bit.Palette != null) {
 					if (type != GrfImageType.Bgra32) {
 						// Convert the palette to Bgra32
-						GrfImage img = new GrfImage(ref pixels, bit.PixelWidth, bit.PixelHeight, GrfImageType.Indexed8, ref palette);
+						GrfImage img = new GrfImage(pixels, bit.PixelWidth, bit.PixelHeight, GrfImageType.Indexed8, palette);
 						img.Convert(GrfImageType.Bgra32);
 						pixels = img.Pixels;
 						palette = null;
@@ -136,20 +136,18 @@ namespace GrfToWpfBridge.Application {
 				palette = Imaging.Get256BytePaletteRGBA(bit.Palette);
 			}
 
-			return new GrfImage(ref pixels, bit.PixelWidth, bit.PixelHeight, type, ref palette);
+			return new GrfImage(pixels, bit.PixelWidth, bit.PixelHeight, type, palette);
 		}
 
 		private BitmapSource _readAsCommonFormat(GrfImage image) {
 			if (image.Pixels.Length > 3) {
-				if (Methods.ByteArrayCompare(image.Pixels, 0, 4, GrfImage.PngHeader, 0)) {
+				if (Methods.ByteArrayCompare(image.Pixels, 0, 4, GrfImageAnalysis.PngHeader, 0)) {
 					BitmapDecoder decoder = new PngBitmapDecoder(new MemoryStream(image.Pixels), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
 					return decoder.Frames[0];
-					//return Imaging.FixDpi(decoder.Frames[0]);
 				}
-				if (Methods.ByteArrayCompare(image.Pixels, 0, 2, GrfImage.BmpHeader, 0)) {
+				if (Methods.ByteArrayCompare(image.Pixels, 0, 2, GrfImageAnalysis.BmpHeader, 0)) {
 					BitmapDecoder decoder = new BmpBitmapDecoder(new MemoryStream(image.Pixels), BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
 					return decoder.Frames[0];
-					//return Imaging.FixDpi(decoder.Frames[0]);
 				}
 			}
 
@@ -160,7 +158,6 @@ namespace GrfToWpfBridge.Application {
 			bitImage.Freeze();
 
 			return bitImage;
-			//return Imaging.FixDpi(bitImage);
 		}
 
 		private WriteableBitmap _readAsTgaFormat(GrfImage image) {

@@ -33,10 +33,10 @@ namespace GRF.Image.Decoders {
 
 		#region IImageFormatConverter Members
 
-		public void ToBgra32(GrfImage image) {
+		public void ToBgra32(GrfImage image, byte[] palette) {
 			int size = image.Width * image.Height;
 			byte[] newPixels = new byte[size * 4];
-			byte[] bgraPalette = _toBgraPalette(image.Palette);
+			byte[] bgraPalette = _toBgraPalette(palette);
 
 			unsafe {
 				fixed (byte* src = image.Pixels)
@@ -54,6 +54,10 @@ namespace GRF.Image.Decoders {
 			image.SetGrfImageType(GrfImageType.Bgra32);
 		}
 
+		public void ToBgra32(GrfImage image) {
+			ToBgra32(image, image.Palette);
+		}
+
 		private static int[] _preSquared = new int[256];
 
 		static Indexed8FormatConverter() {
@@ -65,9 +69,11 @@ namespace GRF.Image.Decoders {
 		public void Convert(GrfImage image) {
 			if (image.GrfImageType != GrfImageType.Bgra32) throw new Exception("Expected pixel format is Bgra32, found " + image.GrfImageType);
 
+			Z.Start(3000);
 			if (UseBackgroundColor) {
 				_applyBackgroundColor(image, BackgroundColor);
 			}
+			Z.Stop(3000);
 
 			byte[] newPixels = new byte[image.Width * image.Height];
 
@@ -129,7 +135,7 @@ namespace GRF.Image.Decoders {
 								int idx = y * image.Width + x;
 
 								// Find nearest palette color
-								*pNewPixels = isLab ? _findClosetMatchLab(matches, pPixels, pPaletteLabBase) : _findClosetMatch(matches, pPixels, pPaletteBase);
+								*pNewPixels = isLab ? _findClosetMatchLab(matches, pPixels, pPaletteLabBase, paletteLab.Length) : _findClosetMatch(matches, pPixels, pPaletteBase);
 
 								byte* pPalTarget = pPaletteBase + 4 * (*pNewPixels);
 
@@ -164,7 +170,7 @@ namespace GRF.Image.Decoders {
 			else {
 				if ((Options & PaletteOptions.UseLabDistance) == PaletteOptions.UseLabDistance) {
 					double[] paletteLab = new double[ExistingPalette.Length / 4 * 3];
-
+					
 					for (int i = 0, size = ExistingPalette.Length / 4; i < size; i++) {
 						var lab = _GrfColorLab.From(ExistingPalette[4 * i + 0], ExistingPalette[4 * i + 1], ExistingPalette[4 * i + 2]);
 						paletteLab[3 * i + 0] = lab.L;
@@ -172,8 +178,8 @@ namespace GRF.Image.Decoders {
 						paletteLab[3 * i + 2] = lab.B;
 					}
 
-
 					// Parallel
+					Z.Start(1000);
 					ConcurrentDictionary<int, int> matches2 = new ConcurrentDictionary<int, int>();
 
 					unsafe {
@@ -186,10 +192,11 @@ namespace GRF.Image.Decoders {
 							double* pPalette = pPaletteBase;
 
 							Parallel.For(0, image.Width * image.Height, idx => {
-								pNewPixels[idx] = _findClosetMatchLab(matches2, pPixels + 4 * idx, pPalette);
+								pNewPixels[idx] = _findClosetMatchLab(matches2, pPixels + 4 * idx, pPalette, paletteLab.Length);
 							});
 						}
 					}
+					Z.Stop(1000);
 
 					// Linear
 					//unsafe {
@@ -230,6 +237,7 @@ namespace GRF.Image.Decoders {
 					//}
 
 					// Parallel
+					Z.Start(1001);
 					ConcurrentDictionary<int, int> matches2 = new ConcurrentDictionary<int, int>();
 
 					unsafe {
@@ -246,6 +254,7 @@ namespace GRF.Image.Decoders {
 							});
 						}
 					}
+					Z.Stop(1001);
 
 					// Linear
 					//unsafe {
@@ -272,10 +281,7 @@ namespace GRF.Image.Decoders {
 				}
 			}
 
-			byte[] imagepal = new byte[ExistingPalette.Length];
-			Buffer.BlockCopy(ExistingPalette, 0, imagepal, 0, imagepal.Length);
-
-			image.SetPalette(ref imagepal);
+			image.SetPalette(Methods.Copy(ExistingPalette));
 			image.SetGrfImageType(GrfImageType.Indexed8);
 			image.SetPixels(ref newPixels);
 		}
@@ -283,7 +289,7 @@ namespace GRF.Image.Decoders {
 		#endregion
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private unsafe byte _findClosetMatchLab(Dictionary<int, int> matches, byte* pPixels, double* pPaletteBase) {
+		private unsafe byte _findClosetMatchLab(Dictionary<int, int> matches, byte* pPixels, double* pPaletteBase, int palLength) {
 			if (pPixels[3] == 0)
 				return 0;
 
@@ -294,7 +300,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				double bestDist = double.MaxValue;
 				double* pPal = pPaletteBase + 3;
-				double* pPalEnd = pPal + ExistingPalette.Length;
+				double* pPalEnd = pPal + palLength;
 
 				while (pPal < pPalEnd) {
 					double dL = lab.L - pPal[0];
@@ -318,7 +324,7 @@ namespace GRF.Image.Decoders {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private unsafe byte _findClosetMatchLab(ConcurrentDictionary<int, int> matches, byte* pPixels, double* pPaletteBase) {
+		private unsafe byte _findClosetMatchLab(ConcurrentDictionary<int, int> matches, byte* pPixels, double* pPaletteBase, int palLength) {
 			if (pPixels[3] == 0)
 				return 0;
 
@@ -329,7 +335,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				double bestDist = double.MaxValue;
 				double* pPal = pPaletteBase + 3;
-				double* pPalEnd = pPal + ExistingPalette.Length;
+				double* pPalEnd = pPal + palLength;
 
 				while (pPal < pPalEnd) {
 					double dL = lab.L - pPal[0];

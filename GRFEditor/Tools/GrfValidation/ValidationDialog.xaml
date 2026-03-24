@@ -4,7 +4,8 @@
         xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
 		xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
         xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
-        xmlns:MultiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge" MinHeight="400" Height="400" Width="750" MinWidth="750">
+        xmlns:MultiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
+		MinHeight="400" Height="400" Width="750" MinWidth="750">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />

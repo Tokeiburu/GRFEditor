@@ -38,6 +38,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __ClosedImage = "The image component has been closed.";
 		public static readonly FormattedExceptionMessage __NonLoadedImage = "Pixel data hasn't been set (invalid image format?).";
 		public static readonly FormattedExceptionMessage __UnsupportedImageFormat = "The image format doesn't support this operation.";
+		public static readonly FormattedExceptionMessage __UnsupportedImageFormatMethod = "The image format doesn't support this operation '{1}'.";
 		public static readonly FormattedExceptionMessage __NoFilesSelected = "At least one entry must be selected.";
 		public static readonly FormattedExceptionMessage __ChecksumFailed = "The zlib checksum for the compressed data has failed.";
 		public static readonly FormattedExceptionMessage __InvalidImagePosition = "The value '{0}' must be greater or equal to {1}.";

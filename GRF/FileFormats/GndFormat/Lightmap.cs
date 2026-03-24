@@ -50,21 +50,15 @@ namespace GRF.FileFormats.GndFormat {
 		internal bool IsLoaded { get; set; }
 
 		internal void Load(Gnd gnd) {
-			int offset = 0;
 			_gnd = gnd;
 
-			for (int i = 0; i < gnd.PerCell; i++) {
-				_colors.Add(new GrfColor());
-			}
+			int offsetA = 0;
+			int offsetRgb = gnd.PerCell;
 
 			for (int i = 0; i < gnd.PerCell; i++) {
-				_colors[i].A = Data[offset++];
-			}
-
-			for (int i = 0; i < gnd.PerCell; i++) {
-				_colors[i].R = Data[offset++];
-				_colors[i].G = Data[offset++];
-				_colors[i].B = Data[offset++];
+				_colors.Add(new GrfColor(Data[offsetA], Data[offsetRgb + 0], Data[offsetRgb + 1], Data[offsetRgb + 2]));
+				offsetA++;
+				offsetRgb += 3;
 			}
 		}
 

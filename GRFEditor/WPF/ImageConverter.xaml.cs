@@ -53,6 +53,7 @@ namespace GRFEditor.WPF {
 			_formats.AddRange(PixelFormatInfo.Formats);
 
 			_cbFormats.ItemsSource = _formats.Select(p => p.DisplayName + " (*" + p.Extension + ")").ToList();
+			_cbFormats.SelectedIndex = 5;
 			ShowInTaskbar = true;
 
 			_sv.ScrollChanged += new ScrollChangedEventHandler(_sv_ScrollChanged);
@@ -74,14 +75,8 @@ namespace GRFEditor.WPF {
 
 			double width = _previewElementWidth;
 
-			if (GrfEditorConfiguration.PreviewSpritesWrap) {
-				_elementPerLine = Math.Max(1, (int)(targetWidth / _previewElementWidth));
-			}
-			else {
-				width = _gridBackground.ActualWidth;
-				_elementPerLine = 1;
-			}
-
+			_elementPerLine = Math.Max(1, (int)(targetWidth / _previewElementWidth));
+			
 			var lineCount = Math.Ceiling((double)_previewFiles.Count / _elementPerLine);
 
 			var targetHeight = lineCount * _previewElementHeight;
@@ -131,17 +126,9 @@ namespace GRFEditor.WPF {
 		}
 
 		private void _stretchCheck(PreviewImageItem item) {
-			if (GrfEditorConfiguration.PreviewSpritesWrap) {
-				item._image.VerticalAlignment = VerticalAlignment.Stretch;
-				item._image.HorizontalAlignment = HorizontalAlignment.Stretch;
-				item._image.Stretch = Stretch.Uniform;
-			}
-			else {
-				item._image.VerticalAlignment = VerticalAlignment.Top;
-				item._image.HorizontalAlignment = HorizontalAlignment.Left;
-				item._image.Stretch = Stretch.None;
-			}
-
+			item._image.VerticalAlignment = VerticalAlignment.Stretch;
+			item._image.HorizontalAlignment = HorizontalAlignment.Stretch;
+			item._image.Stretch = Stretch.Uniform;
 			item._tbName.Visibility = GrfEditorConfiguration.PreviewSpritesShowNames ? Visibility.Visible : Visibility.Collapsed;
 		}
 
@@ -217,12 +204,7 @@ namespace GRFEditor.WPF {
 									var image = new GrfImage(file);
 
 									if (pinkTransparent) {
-										if (file.IsExtension(".bmp")) {
-											image.MakePinkTransparent();
-										}
-										else if (file.IsExtension(".png")) {
-											image.MakeTransparentPink();
-										}
+										image.MakePinkShadeTransparent();
 									}
 
 									image.Save(GrfPath.Combine(path, Path.GetFileNameWithoutExtension(file) + format.Extension), format);
@@ -244,12 +226,7 @@ namespace GRFEditor.WPF {
 							var image = new GrfImage(file);
 
 							if (pinkTransparent) {
-								if (file.IsExtension(".bmp")) {
-									image.MakePinkTransparent();
-								}
-								else if (file.IsExtension(".png")) {
-									image.MakeTransparentPink();
-								}
+								image.MakePinkShadeTransparent();
 							}
 
 							image.Save(GrfPath.Combine(path, Path.GetFileNameWithoutExtension(file) + format.Extension), format);
@@ -308,12 +285,7 @@ namespace GRFEditor.WPF {
 				_previewFiles.AddRange(_paths);
 			}
 
-			if (GrfEditorConfiguration.PreviewSpritesWrap) {
-				_imageProvider = ImageProvider.GetFirstImage;
-			}
-			else {
-				_imageProvider = ImageProvider.GetImage;
-			}
+			_imageProvider = ImageProvider.GetFirstImage;
 
 			this.Dispatch(delegate {
 				_wrapPanel.Visibility = Visibility.Visible;

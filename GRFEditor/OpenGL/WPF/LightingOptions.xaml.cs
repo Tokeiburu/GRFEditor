@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Media;
+using ColorPicker;
 using GRFEditor.OpenGL.MapComponents;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -36,21 +37,21 @@ namespace GRFEditor.OpenGL.WPF {
 			_enableEvents = true;
 		}
 
-		private void _sliderLatitude_ValueChanged(object sender, double value) {
+		private void _sliderLatitude_ValueChanged(object sender, ValueEventArgs args) {
 			if (!_enableEvents)
 				return;
 
-			_currentRequest.Rsw.Light.Latitude = (int)(value * 90f);
+			_currentRequest.Rsw.Light.Latitude = (int)(args.Value * 90f);
 			_tbLatitude.Text = _currentRequest.Rsw.Light.Latitude + "";
 			_currentRequest.GndRenderer.ReloadLight = true;
 			_currentRequest.MapRenderer.ReloadLight = true;
 		}
 
-		private void _sliderLongitude_ValueChanged(object sender, double value) {
+		private void _sliderLongitude_ValueChanged(object sender, ValueEventArgs args) {
 			if (!_enableEvents)
 				return;
 
-			_currentRequest.Rsw.Light.Longitude = (int)(value * 360f);
+			_currentRequest.Rsw.Light.Longitude = (int)(args.Value * 360f);
 			_tbLongitude.Text = _currentRequest.Rsw.Light.Longitude + "";
 			_currentRequest.GndRenderer.ReloadLight = true;
 			_currentRequest.MapRenderer.ReloadLight = true;

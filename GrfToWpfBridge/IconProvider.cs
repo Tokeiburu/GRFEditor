@@ -59,19 +59,19 @@ namespace GrfToWpfBridge {
 				switch (extension) {
 					case ".pal":
 						buffer = ApplicationManager.GetResource("pal.png");
-						image = new GrfImage(ref buffer);
+						image = new GrfImage(buffer);
 						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
 						break;
 					case ".rsm2":
 						buffer = ApplicationManager.GetResource("file_rsm.png");
-						image = new GrfImage(ref buffer);
+						image = new GrfImage(buffer);
 						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
 						break;
 					default:
 						buffer = ApplicationManager.GetResource("file_" + extension.Substring(1) + ".png");
 
 						if (buffer != null) {
-							image = new GrfImage(ref buffer);
+							image = new GrfImage(buffer);
 							_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
 							break;
 						}
@@ -85,14 +85,14 @@ namespace GrfToWpfBridge {
 							buffer = stream.GetBuffer();
 						}
 
-						image = new GrfImage(ref buffer);
+						image = new GrfImage(buffer);
 						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
 						break;
 				}
 			}
 			catch {
 				buffer = ApplicationManager.GetResource("pal.png");
-				image = new GrfImage(ref buffer);
+				image = new GrfImage(buffer);
 				_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
 			}
 		}
@@ -113,14 +113,14 @@ namespace GrfToWpfBridge {
 							buffer = stream.GetBuffer();
 						}
 
-						image = new GrfImage(ref buffer);
+						image = new GrfImage(buffer);
 						_associatedLargeExtensions.Add(extension, image.Cast<BitmapSource>());
 						break;
 				}
 			}
 			catch {
 				buffer = ApplicationManager.GetResource("pal.png");
-				image = new GrfImage(ref buffer);
+				image = new GrfImage(buffer);
 				_associatedLargeExtensions.Add(extension, image.Cast<BitmapSource>());
 			}
 		}

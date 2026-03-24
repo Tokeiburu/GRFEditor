@@ -266,7 +266,7 @@ namespace GRF.FileFormats.SprFormat.Builder {
 
 		internal void SetPalette(byte[] palette) {
 			for (int i = 0; i < _imagesIndexed8.Count; i++) {
-				_imagesIndexed8[i].Image.SetPalette(ref palette);
+				_imagesIndexed8[i].Image.SetPalette(palette);
 				_imagesIndexed8[i].Update();
 			}
 

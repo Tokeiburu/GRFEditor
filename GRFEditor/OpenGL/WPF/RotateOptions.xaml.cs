@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using ColorPicker;
 using GRFEditor.OpenGL.MapComponents;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -45,11 +46,11 @@ namespace GRFEditor.OpenGL.WPF {
 			_enableEvents = true;
 		}
 
-		private void _sliderLatitude_ValueChanged(object sender, double value) {
+		private void _sliderLatitude_ValueChanged(object sender, ValueEventArgs args) {
 			if (!_enableEvents)
 				return;
 
-			_viewport.RenderOptions.RotateSpeed = Math.Round((value * _totalLength - _halfTotalLength) * 2d, MidpointRounding.AwayFromZero) / 2d;
+			_viewport.RenderOptions.RotateSpeed = Math.Round((args.Value * _totalLength - _halfTotalLength) * 2d, MidpointRounding.AwayFromZero) / 2d;
 			_sliderLatitude.SetPosition((_viewport.RenderOptions.RotateSpeed + _halfTotalLength) / _totalLength, true);
 			_tbLatitude.Text = String.Format("{0:0.0}", _viewport.RenderOptions.RotateSpeed);
 		}

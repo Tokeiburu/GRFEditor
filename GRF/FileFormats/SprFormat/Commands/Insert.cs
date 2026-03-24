@@ -43,8 +43,7 @@ namespace GRF.FileFormats.SprFormat.Commands {
 				}
 				else {
 					if (!Methods.ByteArrayCompare(act.Sprite.Palette.BytePalette, _image.Palette)) {
-						byte[] palette = act.Sprite.Palette.BytePalette;
-						_image.SetPalette(ref palette);
+						_image.SetPalette(act.Sprite.Palette.BytePalette);
 					}
 				}
 			}

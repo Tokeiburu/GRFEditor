@@ -40,20 +40,20 @@ namespace GRFEditor.OpenGL.WPF {
 			};
 
 			_tbWalk_Color.SetPosition(viewport.RenderOptions.MinimapWalkColor[0], true);
-			_tbWalk_Color.ValueChanged += (s, value) => {
-				viewport.RenderOptions.MinimapWalkColor[0] = (float)value;
-				viewport.RenderOptions.MinimapWalkColor[1] = (float)value;
-				viewport.RenderOptions.MinimapWalkColor[2] = (float)value;
+			_tbWalk_Color.ValueChanged += (s, args) => {
+				viewport.RenderOptions.MinimapWalkColor[0] = (float)args.Value;
+				viewport.RenderOptions.MinimapWalkColor[1] = (float)args.Value;
+				viewport.RenderOptions.MinimapWalkColor[2] = (float)args.Value;
 			};
 
 			_tbNonWalk_Color.SetPosition(viewport.RenderOptions.MinimapNonWalkColor[3], true);
-			_tbNonWalk_Color.ValueChanged += (s, value) => {
-				viewport.RenderOptions.MinimapNonWalkColor[3] = (float)value;
+			_tbNonWalk_Color.ValueChanged += (s, args) => {
+				viewport.RenderOptions.MinimapNonWalkColor[3] = (float)args.Value;
 			};
 
 			_tbBorderCut.SetPosition(GrfEditorConfiguration.MapRendererMinimapBorderCut / 20f, true);
-			_tbBorderCut.ValueChanged += (s, value) => {
-				GrfEditorConfiguration.MapRendererMinimapBorderCut = (int)Math.Round((value * 20f), MidpointRounding.AwayFromZero);
+			_tbBorderCut.ValueChanged += (s, args) => {
+				GrfEditorConfiguration.MapRendererMinimapBorderCut = (int)Math.Round((args.Value * 20f), MidpointRounding.AwayFromZero);
 				_tbBorderCut.SetPosition(GrfEditorConfiguration.MapRendererMinimapBorderCut / 20f, true);
 
 				int removeEdge = GrfEditorConfiguration.MapRendererMinimapBorderCut;

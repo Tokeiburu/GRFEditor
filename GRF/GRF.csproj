@@ -8,6 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Image\GrfColor - Copy.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Files\comp_x64.dll" />
     <Content Remove="Files\cps.dll" />
     <Content Remove="Files\lzma.dll" />

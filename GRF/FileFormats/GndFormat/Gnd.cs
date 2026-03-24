@@ -723,7 +723,7 @@ namespace GRF.FileFormats.GndFormat {
 				}
 			}
 
-			return new GrfImage(ref data, shadowmapSize, shadowmapSize, GrfImageType.Bgra32);
+			return new GrfImage(data, shadowmapSize, shadowmapSize, GrfImageType.Bgra32);
 		}
 	}
 }

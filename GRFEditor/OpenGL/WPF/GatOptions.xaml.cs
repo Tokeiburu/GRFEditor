@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using ColorPicker;
 using GRFEditor.OpenGL.MapComponents;
 
 namespace GRFEditor.OpenGL.WPF {
@@ -46,20 +47,20 @@ namespace GRFEditor.OpenGL.WPF {
 			_enableEvents = true;
 		}
 
-		private void _slider_ValueChanged(object sender, double value) {
+		private void _slider_ValueChanged(object sender, ValueEventArgs args) {
 			if (!_enableEvents)
 				return;
 
-			_viewport.RenderOptions.GatAlpha = (float)value;
+			_viewport.RenderOptions.GatAlpha = (float)args.Value;
 			_slider.SetPosition(_viewport.RenderOptions.GatAlpha, true);
 			_tbAlpha.Text = String.Format("{0:0.00}", _viewport.RenderOptions.GatAlpha);
 		}
 
-		private void _sliderZBias_ValueChanged(object sender, double value) {
+		private void _sliderZBias_ValueChanged(object sender, ValueEventArgs args) {
 			if (!_enableEvents)
 				return;
 
-			_viewport.RenderOptions.GatZBias = (float)value * 6f - 3f;
+			_viewport.RenderOptions.GatZBias = (float)args.Value * 6f - 3f;
 			_sliderZBias.SetPosition((_viewport.RenderOptions.GatZBias + 3f) / 6f, true);
 			_tbZBias.Text = String.Format("{0:0.00}", _viewport.RenderOptions.GatZBias);
 		}

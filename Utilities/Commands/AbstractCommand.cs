@@ -8,7 +8,7 @@ namespace Utilities.Commands {
 	/// Defines an object with Undo and Redo operations.
 	/// </summary>
 	/// <typeparam name="T">The object type on which the commands are being executed</typeparam>
-	public abstract class AbstractCommand<T> : IDisposable {
+	public abstract class AbstractCommand<T> {
 		/// <summary>
 		/// Gets a value indicating whether a command is being executed (locked).
 		/// </summary>
@@ -77,10 +77,6 @@ namespace Utilities.Commands {
 		public event AbstractCommandsEventHandler CommandRedo;
 		public event AbstractCommandsEventHandler ModifiedStateChanged;
 		public event AbstractCommandsEventHandler SaveCommandChanged;
-
-		~AbstractCommand() {
-			Dispose(false);
-		}
 
 		protected virtual void OnCommandIndexChanged(T command) {
 			CommandIndexChanged?.Invoke(this, command);
@@ -588,17 +584,6 @@ namespace Utilities.Commands {
 
 		public virtual void ClearDelayedCommands() {
 			_delayedCommands?.Clear();
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				Debug.Ignore(ClearCommands);
-			}
-		}
-
-		public virtual void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
 		}
 
 		/// <summary>

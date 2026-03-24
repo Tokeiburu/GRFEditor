@@ -293,19 +293,6 @@ namespace GRFEditor.Tools.GrfValidation {
 													if (act != null)
 														_validateAct(act, errors, entry, metaGrfLocalCopy);
 													break;
-												case ".spr":
-													Spr spr = _init<Spr>((MultiType) entryData);
-													_reportNullReference(spr);
-													_toImage(entryData, Path.GetExtension(entry.RelativePath));
-
-													if (GrfEditorConfiguration.VcSpriteIssues) {
-														if (GrfEditorConfiguration.VcSpriteIssuesRle) {
-															if (spr.GetEarlyEndingEncoding().Cast<object>().Any()) {
-																errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(ValidationTypes.VcSpriteIssuesRle, entry.RelativePath, "Early ending RLE encoding (usually not an issue)."));
-															}
-														}
-													}
-													break;
 												case ".tga":
 													Tga tga = _init<Tga>((MultiType)entryData);
 													_reportNullReference(tga);

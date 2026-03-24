@@ -94,6 +94,11 @@ namespace GRF.FileFormats.ActFormat {
 			}
 		}
 
+		public int Angle {
+			get => Rotation;
+			set => Rotation = value;
+		}
+
 		public double RotationRadian {
 			get { return _rotation * Math.PI / 180d; }
 			set { Rotation = (int) (value * 180d / Math.PI); }
@@ -207,7 +212,7 @@ namespace GRF.FileFormats.ActFormat {
 			SetColor(new GrfColor(color));
 		}
 
-		public void SetColor(GrfColor color) {
+		public void SetColor(in GrfColor color) {
 			Color = color;
 		}
 

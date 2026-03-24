@@ -1006,6 +1006,18 @@ namespace GRF.Graphics {
 			return !left.Equals(right);
 		}
 
+		/// <summary>
+		/// Multiplies the specified instance by a scalar.
+		/// </summary>
+		/// <param name="vec1">Left operand.</param>
+		/// <param name="vec2">Right operand.</param>
+		/// <returns>Result of multiplication.</returns>
+		public static TkVector2 operator *(TkVector2 vec1, TkVector2 vec2) {
+			vec1.X *= vec2.X;
+			vec1.Y *= vec2.Y;
+			return vec1;
+		}
+
 		#endregion
 
 		#region Overrides

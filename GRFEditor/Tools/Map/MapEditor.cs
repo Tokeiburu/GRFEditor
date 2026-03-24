@@ -752,7 +752,7 @@ namespace GRFEditor.Tools.Map {
 			img.SetPixels(0, 32, 32, 32, GetPixels(cellTypes[3]));
 
 			if (isQuadrant) {
-				img.ApplyColorChannel(_mapConfig.BitmapQuadrantFactor);
+				img.Multiply(_mapConfig.BitmapQuadrantFactor);
 			}
 
 			img.Save(Path.Combine(OutputTexturePath, textureName));

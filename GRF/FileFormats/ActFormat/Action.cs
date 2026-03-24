@@ -178,11 +178,11 @@ namespace GRF.FileFormats.ActFormat {
 			AllLayers(p => p.Color = color);
 		}
 
-		public void SetColor(int frameIndex, GrfColor color) {
+		public void SetColor(int frameIndex, in GrfColor color) {
 			this[frameIndex].SetColor(color);
 		}
 
-		public void SetColor(int frameIndex, int layerIndex, GrfColor color) {
+		public void SetColor(int frameIndex, int layerIndex, in GrfColor color) {
 			this[frameIndex, layerIndex].Color = color;
 		}
 

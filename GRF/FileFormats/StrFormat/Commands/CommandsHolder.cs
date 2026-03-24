@@ -28,7 +28,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			_str.Commands.StoreAndExecute(new ColorCommand(layerIndex, keyIndex, r, g, b, a));
 		}
 
-		public void ChangeColor(int layerIndex, int keyIndex, GrfColor color) {
+		public void ChangeColor(int layerIndex, int keyIndex, in GrfColor color) {
 			_str.Commands.StoreAndExecute(new ColorCommand(layerIndex, keyIndex, color.R, color.G, color.B, color.A));
 		}
 

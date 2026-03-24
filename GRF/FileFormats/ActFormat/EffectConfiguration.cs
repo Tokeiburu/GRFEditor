@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using GRF.Graphics;
 using GRF.Image;
 using Utilities;
 
@@ -66,6 +67,10 @@ namespace GRF.FileFormats.ActFormat {
 					}
 					else if (typeof(T) == typeof(string)) {
 						property.Value = ConfigAsker[property.SettingName];
+					}
+					else if (typeof(T) == typeof(TkVector2)) {
+						var data = ConfigAsker[property.SettingName].Trim('(', ')').Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
+						property.Value = new TkVector2(FormatConverters.SingleConverterNoThrow(data[0]), FormatConverters.SingleConverterNoThrow(data[1]));
 					}
 					else {
 						property.Value = defValue;

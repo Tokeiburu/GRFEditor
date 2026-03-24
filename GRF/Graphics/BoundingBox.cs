@@ -52,6 +52,16 @@ namespace GRF.Graphics {
 			}
 		}
 
+		public void Add(Plane p) {
+			for (int c = 0; c < p.Points.Length; c++) {
+				Min.X = Math.Min(Min.X, p.Points[c].X);
+				Min.Y = Math.Min(Min.Y, p.Points[c].Y);
+
+				Max.X = Math.Max(Max.X, p.Points[c].X);
+				Max.Y = Math.Max(Max.Y, p.Points[c].Y);
+			}
+		}
+
 		public TkVector3 Max;
 		public TkVector3 Min;
 		public TkVector3 Offset;

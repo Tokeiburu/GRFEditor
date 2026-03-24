@@ -23,13 +23,17 @@ namespace GRF.Graphics {
 			}
 		}
 
-		public Plane(int width, int height) : this() {
+		public Plane(int width, int height) : this(width, height, true) {
+		}
+
+		public Plane(int width, int height, bool translateToCenter) : this() {
 			Points[0].Y = height;
 			Points[2].X = width;
 			Points[3].X = width;
 			Points[3].Y = height;
 
-			Translate(-width / 2, -(height + 1) / 2);
+			if (translateToCenter)
+				Translate(-(width + 1) / 2, -(height + 1) / 2);
 		}
 
 		public void Translate(float x, float y) {
@@ -37,6 +41,10 @@ namespace GRF.Graphics {
 				Points[i].X += x;
 				Points[i].Y += y;
 			}
+		}
+
+		public void Translate(double x, double y) {
+			Translate((float)x, (float)y);
 		}
 
 		public void ScaleX(float x) {
@@ -63,6 +71,12 @@ namespace GRF.Graphics {
 			}
 		}
 
+		public void RotateZ(float angle, float centerX, float centerY) {
+			Translate(-centerX, -centerY);
+			RotateZ(angle);
+			Translate(centerX, centerY);
+		}
+
 		public void Margin(float left, float top, float right, float bottom) {
 			Points[0].X -= left;
 			Points[1].X -= left;
@@ -81,16 +95,25 @@ namespace GRF.Graphics {
 			Margin(-left, -top, -right, -bottom);
 		}
 
+		public void Scale(int sx, int sy, float centerX, float centerY) {
+			Translate(-centerX, -centerY);
+			ScaleX(sx);
+			ScaleY(sy);
+			Translate(centerX, centerY);
+		}
+
 		public static Plane FromLayer(Act act, Layer layer) {
 			if (layer.SpriteIndex < 0) return null;
 			var image = layer.GetImage(act.Sprite);
 
 			Plane plane = new Plane(image.Width, image.Height);
 
-			plane.Translate(layer.Mirror ? -(image.Width + 1) % 2 : 0, 0);
-			plane.ScaleX(layer.ScaleX * (layer.Mirror ? -1f : 1f));
+			//if (layer.Mirror)
+			//	plane.Scale(-1, 1, plane.Center.X, plane.Center.Y);
+
+			plane.ScaleX(layer.ScaleX);
 			plane.ScaleY(layer.ScaleY);
-			plane.RotateZ(-layer.Rotation);
+			plane.RotateZ(-layer.Rotation, image.Width % 2 == 1 ? -0.5f * layer.ScaleX : 0.0f, image.Height % 2 == 1 ? -0.5f * layer.ScaleY: 0.0f);
 			plane.Translate(layer.OffsetX, layer.OffsetY);
 			return plane;
 		}

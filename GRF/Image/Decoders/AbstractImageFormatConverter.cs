@@ -1,6 +1,6 @@
 ﻿namespace GRF.Image.Decoders {
 	public abstract class AbstractImageFormatConverter {
-		private GrfColor _backgroundColor = GrfColor.White;
+		private GrfColor _backgroundColor = GrfColors.White;
 		private bool _keepFullyTransparentBackground = true;
 
 		public GrfColor BackgroundColor {
@@ -30,39 +30,49 @@
 			return pal;
 		}
 
-		protected virtual void _applyBackgroundColor(GrfImage image, GrfColor backgroundColor) {
-			int bgB = backgroundColor.B;
-			int bgG = backgroundColor.G;
-			int bgR = backgroundColor.R;
+		protected virtual void _applyBackgroundColor(GrfImage image, in GrfColor backgroundColor) {
+			uint bgB = backgroundColor.B;
+			uint bgG = backgroundColor.G;
+			uint bgR = backgroundColor.R;
 
 			unsafe {
 				fixed (byte* pBase = image.Pixels) {
-					byte* p = pBase;
-					byte* pEnd = pBase + image.Pixels.Length;
+					uint* p = (uint*)pBase;
+					uint* pEnd = p + image.Pixels.Length / 4;
 
 					if (KeepFullyTransparentBackground) {
 						while (p < pEnd) {
-							byte a = p[3];
-							int invA = 255 - a;
-							if (a != 0) {
-								p[0] = (byte)((invA * bgB + a * p[0]) / 255);
-								p[1] = (byte)((invA * bgG + a * p[1]) / 255);
-								p[2] = (byte)((invA * bgR + a * p[2]) / 255);
-								p[3] = 255;
+							uint a = *p >> 24;
+
+							if (a > 0) {
+								uint pixel = *p;
+
+								if (a == 255) {
+									*p = pixel | 0xFF000000;
+								}
+								else {
+									uint newB = ((((pixel & 0xFF) - bgB) * a) >> 8) + bgB;
+									uint newG = (((((pixel >> 8) & 0xFF) - bgG) * a) >> 8) + bgG;
+									uint newR = (((((pixel >> 16) & 0xFF) - bgR) * a) >> 8) + bgR;
+
+									*p = 0xFF000000 | (newR << 16) | (newG << 8) | newB;
+								}
 							}
 
-							p += 4;
+							p++;
 						}
 					}
 					else {
 						while (p < pEnd) {
-							byte a = p[3];
-							int invA = 255 - a;
-							p[0] = (byte)((invA * bgB + a * p[0]) / 255);
-							p[1] = (byte)((invA * bgG + a * p[1]) / 255);
-							p[2] = (byte)((invA * bgR + a * p[2]) / 255);
-							p[3] = 255;
-							p += 4;
+							uint a = *p >> 24;
+							uint pixel = *p;
+
+							uint newB = ((((pixel & 0xFF) - bgB) * a) >> 8) + bgB;
+							uint newG = (((((pixel >> 8) & 0xFF) - bgG) * a) >> 8) + bgG;
+							uint newR = (((((pixel >> 16) & 0xFF) - bgR) * a) >> 8) + bgR;
+
+							*p = 0xFF000000 | (newR << 16) | (newG << 8) | newB;
+							p++;
 						}
 					}
 				}

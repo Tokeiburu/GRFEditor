@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.IO.Compression;
 
 namespace GRF.Core.GrfCompression.GZip {
 	/// <summary>
@@ -981,7 +982,6 @@ namespace GRF.Core.GrfCompression.GZip {
 		/// </returns>
 		/// <remarks>
 		/// A comment is only available for entries when read via the <see cref="ZipFile"/> class.
-		/// The <see cref="ZipInputStream"/> class doesnt have the comment data available.
 		/// </remarks>
 		public string Comment {
 			get { return comment; }

@@ -8,6 +8,7 @@ using GRF.FileFormats.ActFormat;
 using GRF.FileFormats.PalFormat;
 using GRF.IO;
 using GRF.Image;
+using Utilities;
 
 namespace GRF.FileFormats.SprFormat {
 	/// <summary>
@@ -24,7 +25,6 @@ namespace GRF.FileFormats.SprFormat {
 		/// </summary>
 		public Spr() {
 			Header = new SprHeader();
-			RleImages = new List<Rle>();
 			Images = new List<GrfImage>();
 		}
 
@@ -63,7 +63,6 @@ namespace GRF.FileFormats.SprFormat {
 		private Spr(byte[] dataDecompressed, bool loadFirstImageOnly) {
 			ByteReader reader = new ByteReader(dataDecompressed);
 			Header = new SprHeader(reader);
-			RleImages = new List<Rle>();
 			
 			if (Header.IsCompatibleWith(3, 2)) {
 				NumberOfBgra32Images = reader.Int32();
@@ -82,8 +81,6 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		public string LoadedPath { get; set; }
-
-		internal List<Rle> RleImages { get; set; }
 
 		public Pal Palette {
 			get { return _pal; }
@@ -152,15 +149,14 @@ namespace GRF.FileFormats.SprFormat {
 		private void _pal_PaletteChanged(object sender) {
 			for (int i = 0; i < NumberOfIndexed8Images; i++) {
 				GrfImage image = Images[i];
-				byte[] paletteData = _pal.BytePalette;
-				image.SetPalette(ref paletteData);
+				image.SetPalette(_pal.BytePalette);
 			}
 		}
 
 		private void _generateOneImage(List<GrfImage> imageSources) {
 			if (imageSources == null || imageSources.Count <= 0) {
 				byte[] pixels = new byte[4];
-				Image = new GrfImage(ref pixels, 1, 1, GrfImageType.Bgra32);
+				Image = new GrfImage(pixels, 1, 1, GrfImageType.Bgra32);
 				return;
 			}
 
@@ -187,7 +183,7 @@ namespace GRF.FileFormats.SprFormat {
 				}
 
 				byte[] palette = imageSources[0].Palette;
-				Image = new GrfImage(ref realColors, bitWidth, bitHeight, GrfImageType.Indexed8, ref palette);
+				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Indexed8, palette);
 			}
 			else if (imageSources.All(p => p.GrfImageType == GrfImageType.Bgra32)) {
 				int bitWidth = imageSources.Sum(p => p.Width);
@@ -211,7 +207,7 @@ namespace GRF.FileFormats.SprFormat {
 					currentXPosition += stride;
 				}
 
-				Image = new GrfImage(ref realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
+				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
 			}
 			else {
 				// Converting all images to Bgra32
@@ -256,7 +252,7 @@ namespace GRF.FileFormats.SprFormat {
 					currentXPosition += stride;
 				}
 
-				Image = new GrfImage(ref realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
+				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
 			}
 		}
 
@@ -487,9 +483,7 @@ namespace GRF.FileFormats.SprFormat {
 					Palette = new Pal(image.Palette);
 				}
 				else {
-					byte[] palette = new byte[1024];
-					Buffer.BlockCopy(Palette.BytePalette, 0, palette, 0, 1024);
-					image.SetPalette(ref palette);
+					image.SetPalette(Palette.BytePalette);
 				}
 			}
 			else if (image.GrfImageType == GrfImageType.Bgra32) {
@@ -668,20 +662,12 @@ namespace GRF.FileFormats.SprFormat {
 
 		public void RemoveSimilarImages(GrfImage image, float tolerance, Act act, EditOption edit) {
 			GrfExceptions.IfOutOfRangeThrow(tolerance, "tolerance", 0, 1);
-			GrfImage.ClearBufferedData();
+			GrfImageAnalysis.ClearBufferedData();
 
 			for (int i = Images.Count - 1; i >= 0; i--) {
-				if (image.SimilarityWith(Images[i]) >= tolerance) {
+				if (GrfImageAnalysis.SimilarityWith(image, Images[i]) >= tolerance) {
 					Remove(i, act, edit);
 				}
-			}
-		}
-
-		public IEnumerable GetEarlyEndingEncoding() {
-			for (int index = 0; index < RleImages.Count; index++) {
-				var rle = RleImages[index];
-				if (rle.EarlyEndingEncoding == true)
-					yield return index;
 			}
 		}
 
@@ -709,6 +695,12 @@ namespace GRF.FileFormats.SprFormat {
 			}
 			
 			return new SpriteIndex(-1, GrfImageType.Indexed8);
+		}
+
+		public void SetPalette(byte[] palette) {
+			palette = Methods.Copy(palette);
+			palette[3] = 0;
+			Palette.SetPalette(palette);
 		}
 	}
 

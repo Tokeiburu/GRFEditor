@@ -12,6 +12,7 @@ using GRF.Image;
 using GRF.Image.Decoders;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
+using Utilities;
 
 namespace GRFEditor.Tools.SpriteEditor {
 	/// <summary>
@@ -183,7 +184,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 
 		private GrfImage _loadFromOriginalPalette() {
 			GrfImage image = _image.Copy();
-			image.SetPalette(ref _originalPalette);
+			image.SetPalette(Methods.Copy(_originalPalette));
 			return image;
 		}
 
@@ -196,7 +197,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 			}
 
 			conv.ExistingPalette = _originalPalette;
-			conv.BackgroundColor = GrfColor.White;
+			conv.BackgroundColor = GrfColors.White;
 
 			newImage.Convert(conv);
 			return newImage;
@@ -365,7 +366,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 			else {
 				GrfImage imTemp = im.Copy();
 				Bgr32FormatConverter tconv = new Bgr32FormatConverter();
-				tconv.BackgroundColor = GrfColor.White;
+				tconv.BackgroundColor = GrfColors.White;
 				imTemp.Convert(tconv);
 
 				List<int> colors = new List<int>(imTemp.Pixels.Length / 4);

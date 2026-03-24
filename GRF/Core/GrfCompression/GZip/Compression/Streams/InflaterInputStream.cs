@@ -283,7 +283,7 @@ namespace GRF.Core.GrfCompression.GZip.Compression.Streams {
 	/// format. The "deflate" format is described in RFC 1951.
 	///
 	/// This stream may form the basis for other decompression filters, such
-	/// as the <see cref="ICSharpCode.SharpZipLib.GZip.GZipInputStream">GZipInputStream</see>.
+	/// as the <see cref="GZipInputStream">GZipInputStream</see>.
 	///
 	/// Author of the original java version : John Leuner.
 	/// </summary>

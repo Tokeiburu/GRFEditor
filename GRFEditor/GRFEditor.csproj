@@ -206,6 +206,9 @@
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewPalette.xaml.cs">
+      <DependentUpon>PreviewPalette.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewImageItem.xaml.cs">
       <DependentUpon>PreviewImageItem.xaml</DependentUpon>
     </Compile>
@@ -433,6 +436,10 @@
     <Page Include="WPF\PreviewTabs\OpenGLViewport.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewPalette.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="WPF\PreviewTabs\PreviewImageItem.xaml">
       <SubType>Designer</SubType>
@@ -1066,7 +1073,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

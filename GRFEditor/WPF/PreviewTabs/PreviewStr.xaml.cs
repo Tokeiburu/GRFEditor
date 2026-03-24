@@ -4,6 +4,7 @@ using System.IO;
 using System.Threading;
 using System.Windows;
 using System.Windows.Media;
+using ColorPicker;
 using ColorPicker.Sliders;
 using ErrorManager;
 using GRF.Core;
@@ -55,7 +56,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public PreviewStr() {
 			InitializeComponent();
 
-			_sliderAnimation.ValueChanged += new SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
+			_sliderAnimation.ValueChanged += _sliderAnimation_ValueChanged;
 
 			Dispatcher.ShutdownStarted += delegate {
 				_isRunning = false;
@@ -96,13 +97,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _sliderAnimation_ValueChanged(object sender, double value) {
+		private void _sliderAnimation_ValueChanged(object sender, ValueEventArgs args) {
 			try {
 				if (_str.KeyFrameCount > 0) {
 					_enableAnimationThread = false;
 					_playAnimation.IsPressed = false;
 
-					int v = (int)Math.Round((value * _str.MaxKeyFrame), MidpointRounding.AwayFromZero);
+					int v = (int)Math.Round((args.Value * _str.MaxKeyFrame), MidpointRounding.AwayFromZero);
 
 					_sliderAnimation.SetPosition((float)v / Math.Max(_str.MaxKeyFrame, 1), true);
 

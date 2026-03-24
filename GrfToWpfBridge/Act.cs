@@ -48,7 +48,7 @@ namespace GrfToWpfBridge {
 				byte[] imData = new byte[stream.Length];
 				stream.Read(imData, 0, imData.Length);
 
-				return new GrfImage(ref imData);
+				return new GrfImage(imData);
 			}
 		}
 	}

@@ -30,4 +30,11 @@ namespace GRF.Image {
 		NearestNeighbor,
 		LinearScaling
 	}
+
+	public enum GrayscaleMode {
+		MaxValue,
+		Luminosity,
+		Average,
+		Lightness,
+	}
 }

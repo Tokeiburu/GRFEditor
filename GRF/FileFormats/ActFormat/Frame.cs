@@ -183,13 +183,13 @@ namespace GRF.FileFormats.ActFormat {
 			SetColor(layerIndex, new GrfColor(color));
 		}
 
-		public void SetColor(GrfColor color) {
+		public void SetColor(in GrfColor color) {
 			foreach (var layer in this) {
 				layer.Color = color;
 			}
 		}
 
-		public void SetColor(int layerIndex, GrfColor color) {
+		public void SetColor(int layerIndex, in GrfColor color) {
 			this[layerIndex].Color = color;
 		}
 

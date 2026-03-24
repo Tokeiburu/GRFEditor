@@ -15,6 +15,7 @@ using GRF.Image;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using Utilities;
+using static ColorPicker.ColorChangedDelegate;
 using Point = System.Windows.Point;
 
 namespace GRFEditor.WPF {
@@ -59,7 +60,7 @@ namespace GRFEditor.WPF {
 				}
 
 				_previewPanelBg.Fill = new SolidColorBrush(lastColor);
-				SliderGradient.GradientPickerColorEventHandler handler = PreviewColorChanged;
+				ColorChangedEventHandler_Old handler = PreviewColorChanged;
 				if (handler != null) handler(this, lastColor);
 			}
 
@@ -164,8 +165,8 @@ namespace GRFEditor.WPF {
 			}
 		}
 
-		public event SliderGradient.GradientPickerColorEventHandler ColorChanged;
-		public event SliderGradient.GradientPickerColorEventHandler PreviewColorChanged;
+		public event ColorChangedEventHandler_Old ColorChanged;
+		public event ColorChangedEventHandler_Old PreviewColorChanged;
 
 		public void OnPreviewColorChanged(Color value) {
 			if (PreviewUpdateInterval > 0) {
@@ -182,19 +183,19 @@ namespace GRFEditor.WPF {
 				}
 
 				_previewPanelBg.Fill = new SolidColorBrush(value);
-				SliderGradient.GradientPickerColorEventHandler handler = PreviewColorChanged;
+				ColorChangedEventHandler_Old handler = PreviewColorChanged;
 				if (handler != null) handler(this, value);
 			}
 		}
 
 		public void OnColorChanged(Color value) {
-			SliderGradient.GradientPickerColorEventHandler handler = ColorChanged;
+			ColorChangedEventHandler_Old handler = ColorChanged;
 			if (handler != null) handler(this, value);
 		}
 
 		private void _quickColorSelector_Drop(object sender, DragEventArgs e) {
 			if (e.Data.GetData("GrfColor") != null) {
-				GrfColor color = e.Data.GetData("GrfColor") as GrfColor;
+				GrfColor color = (GrfColor)e.Data.GetData("GrfColor");
 
 				if (color != null) {
 					InitialColor = Color.ToGrfColor();
@@ -276,11 +277,11 @@ namespace GRFEditor.WPF {
 			_oldPosition = e.GetPosition(this);
 		}
 
-		public void SetColor(Color color) {
+		public void SetColor(in Color color) {
 			_previewPanelBg.Fill = new SolidColorBrush(color);
 		}
 
-		public void SetColor(GrfColor color) {
+		public void SetColor(in GrfColor color) {
 			_previewPanelBg.Fill = new SolidColorBrush(color.ToColor());
 		}
 
@@ -308,8 +309,8 @@ namespace GRFEditor.WPF {
 			dialog.Owner = WpfUtilities.TopWindow;
 			InitialColor = Color.ToGrfColor();
 
-			dialog.PickerControl.ColorChanged += delegate(object s, Color newColor) {
-				OnPreviewColorChanged(newColor);
+			dialog.PickerControl.ColorChanged += delegate(object s, ColorEventArgs args) {
+				OnPreviewColorChanged(args.Value);
 			};
 
 			dialog.Closed += delegate {

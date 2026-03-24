@@ -246,7 +246,7 @@ namespace GRF.Core.GrfCompression.GZip {
 		/// </summary>
 		/// <remarks>
 		/// This is also the Zip version for the library when comparing against the version required to extract
-		/// for an entry.  See <see cref="ZipInputStream.CanDecompressEntry">ZipInputStream.CanDecompressEntry</see>.
+		/// for an entry.
 		/// </remarks>
 		[Obsolete("Use VersionMadeBy instead")] public const int VERSION_MADE_BY = 51;
 

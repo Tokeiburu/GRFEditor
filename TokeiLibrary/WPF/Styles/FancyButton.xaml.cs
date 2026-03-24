@@ -145,7 +145,6 @@ namespace TokeiLibrary.WPF.Styles {
 			}
 		}
 
-		
 		public string ImagePath {
 			get { return (string)GetValue(ImagePathProperty); }
 			set { SetValue(ImagePathProperty, value); }
@@ -160,6 +159,8 @@ namespace TokeiLibrary.WPF.Styles {
 				//fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
 				fb._imageIcon.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
 				fb._imageIcon.Stretch = Stretch.None;
+				fb._imageIcon.Width = img.PixelWidth;
+				fb._imageIcon.Height = img.PixelHeight;
 				fb._imageIcon.Source = img;
 			}
 		}

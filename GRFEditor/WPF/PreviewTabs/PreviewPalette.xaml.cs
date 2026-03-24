@@ -3,20 +3,15 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.Core;
-using GRF.FileFormats;
 using GRF.FileFormats.PalFormat;
 using GRF.FileFormats.SprFormat;
 using GRF.Image;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
-using GRFEditor.Core.Services;
-using GRFEditor.Tools.SpriteEditor;
 using GrfToWpfBridge;
 using TokeiLibrary;
-using TokeiLibrary.Paths;
 using Utilities;
 using Utilities.Extension;
 
@@ -24,20 +19,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
 	/// Interaction logic for PreviewImage.xaml
 	/// </summary>
-	public partial class PreviewImage : FilePreviewTab {
+	public partial class PreviewPalette : FilePreviewTab {
 		private readonly GrfImageWrapper _wrapper = new GrfImageWrapper();
-		private readonly GrfImageWrapper _wrapper2 = new GrfImageWrapper();
 		private TransformGroup _regularTransformGroup = new TransformGroup();
-		private string _sprFilePath;
 
-		public PreviewImage() {
+		public PreviewPalette() {
 			InitializeComponent();
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
 			_loadOtherTransformGroup();
 			_imagePreview.RenderTransform = _regularTransformGroup;
 			_isInvisibleResult = () => _imagePreview.Dispatch(p => p.Visibility = Visibility.Hidden);
 			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
-			VirtualFileDataObject.SetDraggable(_imagePreviewSprite, _wrapper2);
 			WpfUtilities.AddFocus(_tbEase);
 
 			bool eventsEnabled = true;
@@ -115,48 +107,41 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected override void _load(FileEntry entry) {
 			string fileName = entry.RelativePath;
 
-			_buttonSelectSprite.Dispatch(delegate {
-				if (fileName.GetExtension() == ".pal") {
-					_buttonSelectSprite.Visibility = Visibility.Visible;
-					_imagePreviewSprite.Visibility = Visibility.Visible;
-					_loadSpr();
-				}
-				else {
-					_buttonSelectSprite.Visibility = Visibility.Collapsed;
-					_imagePreviewSprite.Visibility = Visibility.Collapsed;
-				}
-			});
-
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
-			_labelHeader.Dispatch(p => p.Text = "Image preview : " + Path.GetFileName(fileName));
-
-			_buttonGroupImage.Dispatch(p => p.Visibility = PreviewService.IsImageCutable(entry.RelativePath, _grfData) ? Visibility.Visible : Visibility.Collapsed);
+			_labelHeader.Dispatch(p => p.Text = "Palette preview : " + Path.GetFileName(fileName));
 
 			try {
-				_wrapper.Image = ImageProvider.GetImage(_grfData.FileTable[fileName].GetDecompressedData(), Path.GetExtension(fileName).ToLower());
+				GrfImage paletteImage;
 
-				if (_wrapper.Image != null) {
-					_tbFileInfo.Dispatch(p => p.Text =
-						"Type: " + entry.FileType + "\r\n" +
-						"Format: " + _wrapper.Image.GrfImageType + "\r\n" +
-						"Size: " + _wrapper.Image.Width + "x" + _wrapper.Image.Height);
+				if (fileName.IsExtension(".spr")) {
+					paletteImage = new Spr(_grfData.FileTable[fileName]).Palette.Image;
+					_wrapper.Image = paletteImage;
+				}
+				else {
+					GrfImage image = new GrfImage(_grfData.FileTable[fileName]);
+
+					if (image.GrfImageType == GrfImageType.Indexed8) {
+						image = new Pal(image.Palette).Image;
+						_wrapper.Image = image;
+					}
+					else {
+						_labelHeader.Dispatch(p => p.Text = "Image has no palette.");
+					
+						_imagePreview.Dispatch(delegate {
+							_imagePreview.Source = null;
+							_updateZoom();
+						});
+					}
 				}
 			}
-			catch (GrfException err) {
-				if (err == GrfExceptions.__CorruptedOrEncryptedEntry) {
-					_imagePreview.Dispatch(delegate {
-						_imagePreview.Source = null;
-						_updateZoom();
-					});
-
-					_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
-					return;
-				}
-
-				if (err == GrfExceptions.__ContainerBusy)
-					return;
-
-				throw;
+			catch {
+				_imagePreview.Dispatch(delegate {
+					_imagePreview.Source = null;
+					_updateZoom();
+				});
+				
+				_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
+				return;
 			}
 
 			_imagePreview.Dispatch(delegate {
@@ -167,64 +152,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 		}
 
-		private void _loadSpr() {
-			if (_sprFilePath != null) {
-				_imagePreviewSprite.Visibility = Visibility.Visible;
-
-				if (File.Exists(_sprFilePath)) {
-					try {
-						byte[] data = File.ReadAllBytes(_sprFilePath);
-						Spr spr = new Spr(data);
-						byte[] palette = new Pal(_entry.GetDecompressedData()).BytePalette;
-						palette[3] = 0;
-
-						if (spr.Palette == null)
-							spr.Palette = new Pal(palette);
-
-						spr.Palette.SetPalette(palette);
-
-						for (int i = 0; i < spr.NumberOfIndexed8Images; i++) {
-							spr.Images[i].SetPalette(palette);
-						}
-
-						_wrapper2.Image = spr.Image;
-						_imagePreviewSprite.Source = _wrapper2.Image.Cast<BitmapSource>();
-						_imagePreviewSprite.Tag = _sprFilePath.ReplaceExtension(".bmp");
-					}
-					catch {
-					}
-				}
-			}
-		}
-
-		private void _buttonGroupImage_Click(object sender, RoutedEventArgs e) {
-			try {
-				PreviewService.RebuildSelectedImage(_entry.RelativePath, _grfData, _imagePreview);
-				BitmapSource bitmap = (BitmapSource) _imagePreview.Source;
-
-				byte[] pixels = WpfImaging.GetData(bitmap);
-				_wrapper.Image = new GrfImage(pixels, bitmap.PixelWidth, bitmap.PixelHeight, GrfImageType.Bgra32);
-				_imagePreview.Width = _wrapper.Image.Width;
-				_imagePreview.Height = _wrapper.Image.Height;
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
 		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) {
 			if (_wrapper.Image != null)
 				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
-		}
-
-		private void _buttonSelectSprite_Click(object sender, RoutedEventArgs e) {
-			_sprFilePath = TkPathRequest.OpenFile<SpriteEditorConfiguration>("AppLastPath", "filter", FileFormat.MergeFilters(Format.Spr));
-			_loadSpr();
-		}
-
-		private void _menuItemImageExport2_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper2.Image != null)
-				_wrapper2.Image.SaveTo(_imagePreviewSprite.Tag.ToString(), PathRequest.ExtractSetting);
 		}
 	}
 }

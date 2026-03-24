@@ -45,25 +45,25 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		public void Execute(Act act) {
 			switch(_mode) {
 				case 0:
-					_applyFlip(act[_actionIndex, _frameIndex, _layerIndex]);
+					_applyFlip(act, act[_actionIndex, _frameIndex, _layerIndex]);
 					break;
 				case 1:
 					foreach (var layer in act[_actionIndex, _frameIndex]) {
-						_applyFlip(layer);
+						_applyFlip(act, layer);
 					}
 
 					break;
 				case 2:
 					foreach (var frame in act[_actionIndex]) {
 						foreach (var layer in frame.Layers) {
-							_applyFlip(layer);
+							_applyFlip(act, layer);
 						}
 					}
 
 					break;
 				case 3:
 					foreach (var layer in act.GetAllLayers()) {
-						_applyFlip(layer);
+						_applyFlip(act, layer);
 					}
 
 					break;
@@ -74,9 +74,17 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			Execute(act);
 		}
 
-		private void _applyFlip(Layer layer) {
+		private void _applyFlip(Act act, Layer layer) {
 			if (_direction == FlipDirection.Vertical) {
+				var image = layer.GetImage(act.Sprite);
+				int mirrorOffset = 0;
+
+				if (image != null && image.Width % 2 == 1) {
+					mirrorOffset--;
+				}
+
 				layer.OffsetX -= _offset;
+				layer.OffsetX += mirrorOffset;
 				layer.OffsetX *= -1;
 				int rotation = 360 - layer.Rotation;
 				layer.Rotation = rotation < 0 ? rotation + 360 : rotation;

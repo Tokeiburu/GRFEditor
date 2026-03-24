@@ -220,75 +220,21 @@ namespace GRFEditor.OpenGL.MapComponents {
 				Faces[i] = face;
 			}
 
+			if (Rsm.ForceShadeType > 0) {
+				Model.ShadeType = Rsm.ForceShadeType;
+			}
+
 			CalculateNormals();
 
 			if (TextureVertices.Length == 0 && Faces.Length > 0) {
 				int max = Faces.Max(p => p.TextureVertexIds.Max(g => g));
 				TextureVertices = new Vector2[max + 1];
-
+			
 				for (int i = 0; i <= max; i++)
 					TextureVertices[i] = new Vector2(0, 0);
 			}
-
-			if (Rsm.ForceShadeType > 0) {
-				Model.ShadeType = Rsm.ForceShadeType;
-			}
-
-			if (Model.ShadeType == 1) {
-				foreach (var face in Faces) {
-					for (int ii = 0; ii < 3; ii++) {
-						face.VertexNormals[ii] = face.Normal;
-					}
-				}
-			}
-			else if (Model.ShadeType == 2) {
-				Dictionary<int, Dictionary<int, Vector3>> groups = new Dictionary<int, Dictionary<int, Vector3>>();
-				
-				foreach (var face in Faces) {
-					for (int i = 0; i < 3; i++) {
-						for (int ii = 0; ii < 3; ii++) {
-							Dictionary<int, Vector3> groupNormals;
-				
-							if (!groups.TryGetValue(face.SmoothGroup[ii], out groupNormals)) {
-								groupNormals = new Dictionary<int, Vector3>();
-								groups[face.SmoothGroup[ii]] = groupNormals;
-							}
-				
-							if (!groupNormals.ContainsKey(face.VertexIds[i])) {
-								groupNormals[face.VertexIds[i]] = new Vector3();
-							}
-				
-							groupNormals[face.VertexIds[i]] += face.Normal;
-						}
-					}
-				}
-				
-				foreach (var face in Faces) {
-					for (int i = 0; i < 3; i++) {
-						face.VertexNormals[i] = Vector3.NormalizeFast(groups[face.SmoothGroup[0]][face.VertexIds[i]]);
-					}
-				}
-			}
-			else if (Model.ShadeType == 5) {
-				var groups = TextureIndexes.Select(texture => new Dictionary<int, Vector3>()).ToList();
-
-				foreach (var face in Faces) {
-					for (int i = 0; i < 3; i++) {
-						if (!groups[face.TextureId].ContainsKey(face.VertexIds[i]))
-							groups[face.TextureId][face.VertexIds[i]] = new Vector3(0);
-
-						groups[face.TextureId][face.VertexIds[i]] += face.Normal;
-					}
-				}
-
-				foreach (var face in Faces) {
-					for (int i = 0; i < 3; i++) {
-						face.VertexNormals[i] = Vector3.NormalizeFast(groups[face.TextureId][face.VertexIds[i]]);
-					}
-				}
-			}
-
-			if (version >= 1.6 && version < 1.7) {
+			
+			if ((version >= 1.6 && version < 1.7) || version >= 2.0) {
 				ScaleKeyFrames.Capacity = count = reader.Int32();
 
 				for (int i = 0; i < count; i++) {
@@ -348,12 +294,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 				}
 			}
 
-			if (version >= 1.7) {
+			if (version >= 1.7 && version < 2.0) {
 				count = reader.Int32();
-
-				if (count > 0) {
-					Z.F();
-				}
 			}
 		}
 

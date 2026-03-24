@@ -15,6 +15,7 @@ namespace GRF.FileFormats.TgaFormat {
 		/// Initializes a new instance of the <see cref="Tga" /> class.
 		/// </summary>
 		/// <param name="anyData">The data.</param>
+		/// <param name="flipImage">Whether to flip the data vertically or not.</param>
 		public Tga(MultiType anyData, bool flipImage) {
 			var dataDecompressed = anyData.Data;
 

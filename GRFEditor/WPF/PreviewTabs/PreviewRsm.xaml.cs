@@ -10,6 +10,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using ColorPicker;
 using ColorPicker.Sliders;
 using ErrorManager;
 using GRF.Core;
@@ -84,7 +85,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				GrfEditorConfiguration.UIPanelPreviewBackgroundMap = new SolidColorBrush(value);
 			};
 
-			_sliderAnimation.ValueChanged += new SliderGradient.GradientPickerEventHandler(_sliderAnimation_ValueChanged);
+			_sliderAnimation.ValueChanged += _sliderAnimation_ValueChanged;
 			WpfUtilities.AddMouseInOutUnderline(_checkBoxRotateCamera, _checkBoxUseGlobalLighting, _checkBoxEnableMipmap);
 			
 			IsVisibleChanged += new DependencyPropertyChangedEventHandler(_previewRsm_IsVisibleChanged);
@@ -398,13 +399,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _sliderAnimation_ValueChanged(object sender, double value) {
+		private void _sliderAnimation_ValueChanged(object sender, ValueEventArgs args) {
 			try {
 				if (_rsm.AnimationLength > 0) {
 					_enableAnimationThread = false;
 					_playAnimation.IsPressed = false;
 
-					int v = (int)Math.Round((value * _rsm.AnimationLength), MidpointRounding.AwayFromZero);
+					int v = (int)Math.Round((args.Value * _rsm.AnimationLength), MidpointRounding.AwayFromZero);
 					_sliderAnimation.SetPosition((float)v / _rsm.AnimationLength, true);
 					_sliderPosition.Text = v + "";
 

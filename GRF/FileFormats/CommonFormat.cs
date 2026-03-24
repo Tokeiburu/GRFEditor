@@ -13,7 +13,7 @@ namespace GRF.FileFormats {
 		#endregion
 
 		private void _loadImage(byte[] data) {
-			Image = new GrfImage(ref data);
+			Image = new GrfImage(data);
 		}
 	}
 }

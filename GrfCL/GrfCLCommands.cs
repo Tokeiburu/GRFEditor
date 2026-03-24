@@ -113,7 +113,7 @@ namespace GrfCL {
 						}
 
 						if (makePinkTransparent) {
-							imageSource.MakePinkTransparent();
+							imageSource.MakePinkShadeTransparent();
 						}
 
 						var format = PixelFormatInfo.GetFormatFromAssembly(clOption.Args[2]);

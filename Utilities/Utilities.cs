@@ -932,8 +932,11 @@ namespace Utilities {
 			return size % 8 > 0 ? (8 - size % 8) + size : size;
 		}
 
-		public static byte[] Copy(byte[] input) {
-			byte[] data = new byte[input.Length];
+		public static T[] Copy<T>(T[] input) {
+			if (input == null)
+				return null;
+
+			T[] data = new T[input.Length];
 			Buffer.BlockCopy(input, 0, data, 0, data.Length);
 			return data;
 		}

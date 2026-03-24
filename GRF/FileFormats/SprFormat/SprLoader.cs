@@ -34,7 +34,7 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		protected List<GrfImage> _getImages(IBinaryReader reader, bool loadFirstImageOnly) {
-			RleImages = new List<Rle>(NumberOfIndexed8Images);
+			List<Rle> readImages = new List<Rle>(NumberOfIndexed8Images);
 
 			if (Header.Version >= 2.0) {
 				reader.Position = 8;
@@ -50,7 +50,7 @@ namespace GRF.FileFormats.SprFormat {
 
 			for (int i = 0; i < NumberOfIndexed8Images; i++) {
 				if (reader.Position < palOffset) {
-					_readAsIndexed8(RleImages, reader);
+					_readAsIndexed8(readImages, reader);
 				}
 				else {
 					NumberOfIndexed8Images = i;
@@ -60,7 +60,7 @@ namespace GRF.FileFormats.SprFormat {
 
 			for (int i = 0; i < NumberOfBgra32Images; i++) {
 				if (reader.Position < palOffset) {
-					_readAsBgra32(RleImages, reader);
+					_readAsBgra32(readImages, reader);
 				}
 				else {
 					NumberOfBgra32Images = i;
@@ -74,7 +74,7 @@ namespace GRF.FileFormats.SprFormat {
 				byte[] pal = _loadPalette(reader);
 
 				for (int i = 0; i < NumberOfIndexed8Images; i++) {
-					imageSources.Add(_loadIndexed8Image(RleImages[i], pal));
+					imageSources.Add(_loadIndexed8Image(readImages[i], pal));
 
 					if (loadFirstImageOnly)
 						return imageSources;
@@ -82,12 +82,13 @@ namespace GRF.FileFormats.SprFormat {
 			}
 
 			for (int i = 0; i < NumberOfBgra32Images; i++) {
-				imageSources.Add(_loadBgra32Image(RleImages[NumberOfIndexed8Images + i]));
+				imageSources.Add(_loadBgra32Image(readImages[NumberOfIndexed8Images + i]));
 
 				if (loadFirstImageOnly)
 					return imageSources;
 			}
 
+			readImages.Clear();
 			return imageSources;
 		}
 
@@ -108,7 +109,6 @@ namespace GRF.FileFormats.SprFormat {
 			}
 
 			palette[3] = 0;
-
 			Palette = new Pal(palette, false);
 
 			return palette;
@@ -149,7 +149,7 @@ namespace GRF.FileFormats.SprFormat {
 
 		protected GrfImage _loadBgra32Image(Rle rleImage) {
 			if (Header.IsCompatibleWith(3, 2)) {
-				return new GrfImage(ref rleImage.FrameData, rleImage.Width, rleImage.Height, GrfImageType.Bgra32);
+				return new GrfImage(rleImage.FrameData, rleImage.Width, rleImage.Height, GrfImageType.Bgra32);
 			}
 
 			byte[] realData = new byte[rleImage.Width * rleImage.Height * 4];
@@ -171,17 +171,15 @@ namespace GRF.FileFormats.SprFormat {
 				}
 			}
 
-			return new GrfImage(ref realData, width, height, GrfImageType.Bgra32);
+			return new GrfImage(realData, width, height, GrfImageType.Bgra32);
 		}
 
 		protected GrfImage _loadIndexed8Image(Rle rleImage, byte[] pal) {
 			if (Header.Version >= 2.1) {
-				byte[] realData = rleImage.Decompress();
-				return new GrfImage(ref realData, rleImage.Width, rleImage.Height, GrfImageType.Indexed8, ref pal);
+				return new GrfImage(rleImage.Decompress(), rleImage.Width, rleImage.Height, GrfImageType.Indexed8, pal);
 			}
 
-			byte[] realDataArray = rleImage.FrameData;
-			return new GrfImage(ref realDataArray, rleImage.Width, rleImage.Height, GrfImageType.Indexed8, ref pal);
+			return new GrfImage(rleImage.FrameData, rleImage.Width, rleImage.Height, GrfImageType.Indexed8, pal);
 		}
 	}
 }

@@ -15,6 +15,16 @@ namespace Utilities {
 			return float.Parse(arg.Replace(",", "."), CultureInfo.InvariantCulture);
 		}
 
+		public static int IntConverterNoThrow(string arg) {
+			int value;
+
+			if (int.TryParse(arg, out value)) {
+				return value;
+			}
+
+			return 0;
+		}
+
 		public static float SingleConverterNoThrow(string arg) {
 			float value;
 

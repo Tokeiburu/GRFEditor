@@ -9,59 +9,14 @@ using Utilities;
 namespace TokeiLibrary.WPF.Styles {
 	public class TkMenuItem : MenuItem {
 		public TkMenuItem() {
-			// Ideally open we want the event to trigger from the parent's context menu
-			var contextMenu = WpfUtilities.FindDirectParentControl<ContextMenu>(this);
-
-			if (contextMenu != null) {
-				contextMenu.Opened += _menuOpened;
-			}
-			else {
-				this.Loaded += _menuOpened;
-			}
+			this.IsVisibleChanged += _contextMenu_IsVisibleChanged;
 		}
 
-		private bool _assigned;
-
-		private void _setDummyInputGesture() {
-			if (this.InputGestureText == "") {
-				this.InputGestureText = Shortcut;
-			}
-		}
-
-		private void _loadInputGestureText() {
-			if (String.IsNullOrEmpty(Shortcut) && String.IsNullOrEmpty(ShortcutCmd))
+		private void _contextMenu_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+			if (!(bool)e.NewValue)
 				return;
 
-			var parent = WpfUtilities.FindDirectParentControl<Window>(this) ?? WpfUtilities.TopWindow;
-
-			if (parent != null) {
-				var name = this.HeaderText;
-				if (String.IsNullOrEmpty(name)) {
-					name = (this.Header ?? "").ToString();
-				}
-
-				if (String.IsNullOrEmpty(name)) {
-					name = this.Name;
-				}
-
-				string gestureCmd = String.IsNullOrEmpty(ShortcutCmd) ? (name ?? "") : ShortcutCmd;
-
-				if (!_assigned) {
-					ApplicationShortcut.Link(ApplicationShortcut.FromString(String.IsNullOrEmpty(Shortcut) ? "NULL" : Shortcut, gestureCmd), delegate {
-						RoutedEventArgs arg = new RoutedEventArgs(ClickEvent, this);
-						this.RaiseEvent(arg);
-					}, parent);
-					_assigned = true;
-				}
-
-				var gesture = ApplicationShortcut.GetGesture(gestureCmd);
-				//var oldDisplayIGT = this.InputGestureText;
-				this.InputGestureText = ApplicationShortcut.FindDislayNameMenuItem(gesture);
-			}
-		}
-
-		private void _menuOpened(object sender, RoutedEventArgs e) {
-			if (String.IsNullOrEmpty(Shortcut) && String.IsNullOrEmpty(ShortcutCmd))
+			if (String.IsNullOrEmpty(ShortcutCmd))
 				return;
 
 			_loadInputGestureText();
@@ -87,13 +42,12 @@ namespace TokeiLibrary.WPF.Styles {
 					this._isInputStyleSet = true;
 				}
 			}
+		}
 
-			//var contextMenu = WpfUtilities.FindDirectParentControl<ContextMenu>(this);
-			//
-			//if (contextMenu != null) {
-			//	RoutedEventArgs arg = new RoutedEventArgs(SizeChangedEvent, contextMenu);
-			//	contextMenu.RaiseEvent(arg);
-			//}
+		private void _loadInputGestureText() {
+			string gestureCmd = ShortcutCmd;
+			var command = ApplicationShortcut.GetGesture(gestureCmd);
+			InputGestureText = command == null ? "" : command.InputGestureText;
 		}
 
 		public Func<bool> CanExecute {
@@ -121,12 +75,6 @@ namespace TokeiLibrary.WPF.Styles {
 				};
 			}
 		}
-
-		public string Shortcut {
-			get { return (string)GetValue(ShortcutProperty); }
-			set { SetValue(ShortcutProperty, value); }
-		}
-		public static DependencyProperty ShortcutProperty = DependencyProperty.Register("Shortcut", typeof(string), typeof(TkMenuItem), null);
 
 		public string ShortcutCmd {
 			get { return (string)GetValue(ShortcutCmdProperty); }

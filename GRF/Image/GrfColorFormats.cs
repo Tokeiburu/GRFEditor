@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace GRF.Image {
@@ -7,18 +8,21 @@ namespace GRF.Image {
 		public double A;
 		public double B;
 
+		private static double[] _srgb = new double[256];
+
+		static _GrfColorLab() {
+			for (int i = 0; i < 256; i++) {
+				double v = i / 255.0;
+				_srgb[i] = v <= 0.04045 ? v / 12.92 : Math.Pow((v + 0.055) / 1.055, 2.4);
+			}
+		}
+
 		public static _GrfColorLab From(byte cr, byte cg, byte cb) {
 			_GrfColorLab ret = new _GrfColorLab();
 
-			// RGB (0-255) -> normalized [0,1]
-			double r = cr / 255.0;
-			double g = cg / 255.0;
-			double b = cb / 255.0;
-
-			// sRGB gamma correction
-			r = r <= 0.04045 ? r / 12.92 : Math.Pow((r + 0.055) / 1.055, 2.4);
-			g = g <= 0.04045 ? g / 12.92 : Math.Pow((g + 0.055) / 1.055, 2.4);
-			b = b <= 0.04045 ? b / 12.92 : Math.Pow((b + 0.055) / 1.055, 2.4);
+			double r = _srgb[cr];
+			double g = _srgb[cg];
+			double b = _srgb[cb];
 
 			// RGB -> XYZ
 			double x = r * 0.4124 + g * 0.3576 + b * 0.1805;
@@ -30,12 +34,15 @@ namespace GRF.Image {
 			double yr = y / 1.00000;
 			double zr = z / 1.08883;
 
-			Func<double, double> f = t => t > 0.008856 ? Math.Pow(t, 1.0 / 3) : 7.787 * t + 16 / 116.0;
-
-			ret.L = 116 * f(yr) - 16;
-			ret.A = 500 * (f(xr) - f(yr));
-			ret.B = 200 * (f(yr) - f(zr));
+			ret.L = 116 * F(yr) - 16;
+			ret.A = 500 * (F(xr) - F(yr));
+			ret.B = 200 * (F(yr) - F(zr));
 			return ret;
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static double F(double t) {
+			return t > 0.008856 ? Math.Pow(t, 1.0 / 3) : 7.787 * t + 16.0 / 116.0;
 		}
 
 		public static _GrfColorLab From(_GrfColorXyz c) {

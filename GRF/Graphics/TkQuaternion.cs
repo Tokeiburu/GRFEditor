@@ -57,7 +57,7 @@ namespace GRF.Graphics {
 		//}
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="Quaternion"/> struct from given Euler angles in radians.
+        /// Initializes a new instance of the <see cref="TkQuaternion"/> struct from given Euler angles in radians.
         /// The rotations will get applied in following order:
         /// 1. around X axis, 2. around Y axis, 3. around Z axis.
         /// </summary>

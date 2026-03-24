@@ -330,11 +330,11 @@ namespace GRFEditor {
 		}
 
 		private void _items_KeyDown(object sender, KeyEventArgs e) {
-			if (ApplicationShortcut.Is(ApplicationShortcut.Delete))
+			if (ApplicationShortcut.Delete.IsMatch())
 				_menuItemsDelete_Click(_items, null);
-			else if (ApplicationShortcut.Is(ApplicationShortcut.Rename))
+			else if (ApplicationShortcut.Rename.IsMatch())
 				_menuItemsRename_Click(_items, null);
-			else if (ApplicationShortcut.Is(ApplicationShortcut.Copy)) {
+			else if (ApplicationShortcut.Copy.IsMatch()) {
 				if (_items.SelectedItems.Count > 0) {
 					Clipboard.SetDataObject(String.Join("\r\n", _items.SelectedItems.Cast<FileEntry>().Select(p => p.DisplayRelativePath).ToArray()));
 				}

@@ -333,16 +333,25 @@ namespace ActImaging {
 			return box;
 		}
 
-		public static BoundingBox GenerateBoundingBox(Act act, int actionIndex, int margin = 0) {
+		public static BoundingBox GenerateBoundingBox(Act act, int actionIndex, int margin = 0, bool enableScaling = true) {
 			List<Plane> planes = new List<Plane>();
 			BoundingBox box = new BoundingBox();
 
 			foreach (Frame frame in act[actionIndex].Frames) {
-				foreach (Layer layer in frame.Layers) {
+				foreach (Layer layerF in frame.Layers) {
+					var layer = layerF;
+
 					if (layer.SpriteIndex < 0)
 						continue;
 
 					GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
+
+					if (!enableScaling) {
+						layer = new Layer(layer);
+						layer.ScaleX = 1;
+						layer.ScaleY = 1;
+					}
+
 					Plane plane = layer.ToPlane(act);
 					planes.Add(plane);
 				}
@@ -424,7 +433,7 @@ namespace ActImaging {
 					dc.PushTransform(transformGroup);
 
 					img = img.Copy();
-					img.ApplyChannelColor(layer.Color);
+					img.Multiply(layer.Color);
 					dc.DrawImage(img.Cast<BitmapSource>(), new Rect(0, 0, img.Width, img.Height));
 					
 					dc.Pop();

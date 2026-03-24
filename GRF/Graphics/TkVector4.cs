@@ -22,6 +22,7 @@ SOFTWARE.
  */
 #endregion
 
+using GRF.Image;
 using System;
 using System.Runtime.InteropServices;
 
@@ -1232,5 +1233,15 @@ namespace GRF.Graphics {
 		}
 
 		#endregion
+	}
+
+	public static class TkVector4Helper {
+		public static GrfColor ToGrfColor(this TkVector4 v) {
+			return new GrfColor(v.W, v.X, v.Y, v.Z);
+		}
+
+		public static TkVector4 ToTkVector4(this GrfColor c) {
+			return new TkVector4(c.R / 255f, c.G / 255f, c.B / 255f, c.A / 255f);
+		}
 	}
 }

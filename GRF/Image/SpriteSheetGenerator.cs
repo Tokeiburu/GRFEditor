@@ -1,20 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using GRF.FileFormats.ActFormat;
 using GRF.Graphics;
+using Utilities;
 using Utilities.IndexProviders;
 using Action = GRF.FileFormats.ActFormat.Action;
 
 namespace GRF.Image {
-	public class Margin {
+	public struct Margin {
 		public double Left { get; set; }
 		public double Right { get; set; }
 		public double Top { get; set; }
 		public double Bottom { get; set; }
-
-		public Margin() {
-		}
 
 		public Margin(double value) {
 			Left = value;
@@ -74,25 +73,29 @@ namespace GRF.Image {
 
 			// Copy the inputs
 			Act body = new Act(bodySource);
-			Act head = new Act(headSource);
+			Act head = headSource == null ? null : new Act(headSource);
 			Act shadowAct = new Act();
-
-			var x = 0;
-			var y = 0;
 
 			shadowAct.Actions.Add(new Action());
 			shadowAct[0].Frames.Add(new Frame());
-			shadowAct[0, 0].Layers.Add(new Layer());
-			shadowAct[0, 0, 0].SpriteIndex = 0;
-			shadowAct.Sprite.AddImage(settings.Shadow);
+			shadowAct[0, 0].Layers.Add(new Layer(new GRF.FileFormats.SprFormat.SpriteIndex(0, GrfImageType.Indexed8)));
+			shadowAct.Sprite.InsertAny(settings.Shadow);
 
-			head[actionIndex, 0].Layers = head[actionIndex, 0].Layers.Where(p => p.SpriteIndex >= 0).ToList();
+			if (head != null)
+				head[actionIndex, 0].Layers = head[actionIndex, 0].Layers.Where(p => p.SpriteIndex >= 0).ToList();
 
-			var headLayer = _getVisibleHead(head, settings.ActionIndex);
-			headLayer.OffsetX = headLayer.OffsetX + body[settings.ActionIndex, 0].Anchors[0].OffsetX - head[settings.ActionIndex, 0].Anchors[0].OffsetX;
-			headLayer.OffsetY = headLayer.OffsetY + body[settings.ActionIndex, 0].Anchors[0].OffsetY - head[settings.ActionIndex, 0].Anchors[0].OffsetY;
+			Layer headLayer = null;
 
-			Plane planeHead = settings.ShowHead ? head[settings.ActionIndex, 0, 0].ToPlane(head) : null;
+			if (head != null) {
+				headLayer = _getVisibleHead(head, settings.ActionIndex);
+
+				var bodyFrame = body[settings.ActionIndex, 0];
+
+				headLayer.OffsetX = headLayer.OffsetX + (bodyFrame.Anchors.Count > 0 ? bodyFrame.Anchors[0].OffsetX : 0) - head[settings.ActionIndex, 0].Anchors[0].OffsetX;
+				headLayer.OffsetY = headLayer.OffsetY + (bodyFrame.Anchors.Count > 0 ? bodyFrame.Anchors[0].OffsetY : 0) - head[settings.ActionIndex, 0].Anchors[0].OffsetY;
+			}
+
+			Plane planeHead = (settings.ShowHead && head != null) ? head[settings.ActionIndex, 0, 0].ToPlane(head) : null;
 			Plane planeBody = settings.ShowBody ? body[settings.ActionIndex, 0, 0].ToPlane(body) : null;
 			Plane planeShadow = settings.ShowShadow ? shadowAct[0, 0, 0].ToPlane(shadowAct) : null;
 
@@ -108,7 +111,7 @@ namespace GRF.Image {
 			Layer bodyLayer = body[actionIndex, 0, 0];
 
 			GrfImage bodyImage = bodyLayer.GetImage(body.Sprite);
-			GrfImage headImage = headLayer.GetImage(head.Sprite);
+			GrfImage headImage = head != null ? headLayer.GetImage(head.Sprite) : null;
 			GrfImage font = settings.Font;
 			GrfImage shadow = settings.Shadow;
 
@@ -116,7 +119,7 @@ namespace GRF.Image {
 				bodyImage.Flip(FlipDirection.Horizontal);
 			}
 
-			if (head[settings.ActionIndex, 0, 0].Mirror) {
+			if (head != null && head[settings.ActionIndex, 0, 0].Mirror) {
 				headImage.Flip(FlipDirection.Horizontal);
 			}
 
@@ -130,112 +133,141 @@ namespace GRF.Image {
 				}
 			}
 
-			int fSize = font.Width / 10;
+			List<int> fSizes = new List<int>();
 			int fHeight = font.Height;
 
-			int height = (int)(settings.ShowBody ? borderBody.Top + borderBody.Bottom + bodyImage.Height : borderHead.Top + borderHead.Bottom + headImage.Height);
-			int width = (int)(settings.ShowBody ? borderBody.Left + borderBody.Right + bodyImage.Width : borderHead.Left + borderHead.Right + headImage.Width);
+			int height = (int)(settings.ShowBody ? borderBody.Top + borderBody.Bottom + bodyImage.Height : borderHead.Top + borderHead.Bottom + headImage?.Height);
+			int width = (int)(settings.ShowBody ? borderBody.Left + borderBody.Right + bodyImage.Width : borderHead.Left + borderHead.Right + headImage?.Width);
 			int total = 0;
 
 			List<GrfImage> palIds = new List<GrfImage>();
 
-			for (int i = 0; i < 10; i++) {
-				palIds.Add(font.Extract(fSize * i, 0, fSize, fHeight));
+			if (font.GetColor(0) == new GrfColor(255, 255, 0, 255)) {
+				GrfColor lastColor = new GrfColor(255, 255, 0, 255);
+				int startX = 0;
+
+				for (int xx = 0; xx < font.Width; xx++) {
+					var current = font.GetColor(xx);
+					font.SetPixelTransparent(xx, 0);
+
+					if (current != lastColor) {
+						palIds.Add(font.Extract(startX, 0, xx - startX, fHeight));
+						fSizes.Add(xx - startX);
+						lastColor = current;
+						startX = xx;
+					}
+
+					if (palIds.Count == 10)
+						break;
+				}
+			}
+			else {
+				int fSize = font.Width / 10;
+
+				for (int i = 0; i < 10; i++) {
+					palIds.Add(font.Extract(fSize * i, 0, fSize, fHeight));
+					fSizes.Add(fSize);
+				}
 			}
 
 			int imWidth = 1;
 			int imHeight = 1;
 			int indexesCount = indexProvider.GetIndexes().Count;
 
-			{
-				if (max > indexesCount)
-					max = indexesCount;
+			if (max > indexesCount)
+				max = indexesCount;
 
-				imWidth = max * (width + settings.Margin) - ((max > 1) ? settings.Margin : 0);
+			imWidth = max * (width + settings.Margin) - ((max > 1) ? settings.Margin : 0);
 
-				int rows = (int)Math.Ceiling(indexesCount / (double)max);
-				int heightGap = settings.ShowPalIndex ? fHeight + 1 + (settings.Margin - fHeight) : settings.Margin;
-				imHeight = rows * height + (rows + (settings.ShowPalIndex ? 0 : -1)) * heightGap;
-			}
+			int rows = (int)Math.Ceiling(indexesCount / (double)max);
+			int palIdHeight = settings.ShowPalIndex ? Math.Max(fHeight + 1, settings.Margin) : settings.Margin;
+			int palIdHeightLast = settings.ShowPalIndex ? fHeight : 0;
+			imHeight = rows * height + (rows - 1) * palIdHeight + palIdHeightLast;
 
 			byte[] image = new byte[imWidth * imHeight * 4];
-			GrfImage mega = new GrfImage(ref image, imWidth, imHeight, GrfImageType.Bgra32);
+			GrfImage mega = new GrfImage(image, imWidth, imHeight, GrfImageType.Bgra32);
+			List<int> indexes = indexProvider.GetIndexes().ToList();
 
-			foreach (var i in indexProvider.GetIndexes()) {
-				if (total % max == 0 && total != 0) {
-					x = 0;
+			Dictionary<int, byte[]> bytePalette = new Dictionary<int, byte[]>();
 
-					if (settings.ShowPalIndex) {
-						//y = mega.Height + 1 + (settings.Margin - 5);
-						y = y + height + fHeight + 1 + (settings.Margin - fHeight);
-					}
-					else {
-						//y = mega.Height + settings.Margin;
-						y = y + height + settings.Margin;
-					}
-				}
+			for (int i = 0; i < indexes.Count; i++) {
+				int idx = indexes[i];
 
-				byte[] p;
-
-				if (i == 0) {
-					p = body.Sprite.Palette.BytePalette;
-				}
+				if (idx == 0)
+					bytePalette[idx] = body.Sprite.Palette.BytePalette;
 				else {
-					p = palMethod(i);
+					bytePalette[idx] = palMethod(idx);
 				}
+			}
+
+
+			if (!settings.TransparentBackground) {
+				mega.Fill(255);
+			}
+
+			Parallel.For(0, indexes.Count, ii => {
+				int x = (ii % max) * (width + settings.Margin);
+				int y = (ii / max) * (height + palIdHeight);
+
+				int palIndex = indexes[ii];
+				byte[] p = bytePalette[palIndex];
+
+				if (p == null)
+					return;
+
+				if (p.Length == 1024) {
+					unsafe {
+						fixed (byte* pPalette = p) {
+							byte* pDst = pPalette + 7;
+							byte* pEnd = pPalette + p.Length;
+
+							while (pDst < pEnd) {
+								*pDst = 255;
+								pDst += 4;
+							}
+						}
+					}
+				}
+
+				var cBodyImage = bodyImage;
 
 				if (settings.BodyAffected) {
-					bodyImage.SetPalette(p);
-					for (int k = 4; k < 1024; k += 4) {
-						bodyImage.Palette[k + 3] = 255;
-					}
+					cBodyImage = bodyImage.Copy();
+					cBodyImage.SetPalette(p);
+					cBodyImage.Convert(GrfImageType.Bgra32);
 				}
 
-				if (settings.HeadAffected) {
-					headImage.SetPalette(p);
-					for (int k = 4; k < 1024; k += 4) {
-						headImage.Palette[k + 3] = 255;
-					}
+				var cHeadImage = headImage;
+
+				if (settings.HeadAffected && head != null) {
+					cHeadImage = headImage.Copy();
+					cHeadImage.SetPalette(p);
+					cHeadImage.Convert(GrfImageType.Bgra32);
 				}
 
 				if (settings.ShowShadow)
 					mega.SetPixelsUnrestricted((int)(x + borderBody.Left - bodyLayer.OffsetX + bodyImage.Width / 2f - shadow.Width / 2f), (int)(y + borderBody.Top - bodyLayer.OffsetY + bodyImage.Height / 2f - shadow.Height / 2f), shadow, true);
 
 				if (settings.ShowBody)
-					mega.SetPixelsUnrestricted((int)(x + borderBody.Left), (int)(y + borderBody.Top), bodyImage, true);
+					mega.SetPixelsUnrestricted((int)(x + borderBody.Left), (int)(y + borderBody.Top), cBodyImage, true);
 
-				if (settings.ShowHead)
-					mega.SetPixelsUnrestricted((int)(x + borderHead.Left), (int)(y + borderHead.Top), headImage, true);
+				if (settings.ShowHead && cHeadImage != null)
+					mega.SetPixelsUnrestricted((int)(x + borderHead.Left), (int)(y + borderHead.Top), cHeadImage, true);
 
 				if (settings.ShowPalIndex) {
-					string pid = String.Format(settings.PalIndexFormat, i);
-					int startOffset = (width - pid.Length * fSize) / 2;
+					string pid = String.Format(settings.PalIndexFormat, palIndex);
+					int startOffset = (width - pid.Length * fSizes[0]) / 2;
+					int offset = startOffset;
 
 					for (int j = 0; j < pid.Length; j++) {
-						mega.SetPixelsUnrestricted(x + j * fSize + startOffset, y + height, palIds[(pid[j] - '0')]);
+						mega.SetPixelsUnrestricted(x + offset, y + height, palIds[pid[j] - '0'], true);
+
+						offset += fSizes[pid[j] - '0'];
 					}
 				}
 
-				x += width + settings.Margin;
 				total++;
-			}
-
-			if (!settings.TransparentBackground) {
-				int bpp = mega.GetBpp();
-				int index2 = 0;
-				int length = mega.Pixels.Length;
-
-				while (index2 < length) {
-					if (mega.Pixels[index2 + 3] == 0) {
-						mega.Pixels[index2] = byte.MaxValue;
-						mega.Pixels[index2 + 1] = byte.MaxValue;
-						mega.Pixels[index2 + 2] = byte.MaxValue;
-						mega.Pixels[index2 + 3] = byte.MaxValue;
-					}
-
-					index2 += bpp;
-				}
-			}
+			});
 
 			return mega;
 		}

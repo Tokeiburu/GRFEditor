@@ -127,13 +127,13 @@ namespace GRF.Core.GrfCompression {
 			int ptrLength = (int)uncompressedLength;
 			byte[] decompressed = new byte[ptrLength];
 
-			int result = _decompress(decompressed, ref ptrLength, compressed, (int)compressedLength);
+			var result = (ZLibErrors)_decompress(decompressed, ref ptrLength, compressed, (int)compressedLength);
 
-			if (result != 0) {
+			if (result != ZLibErrors.Z_OK) {
 				// Fix : 2015-07-21
 				// Allow badly formed entry only if DotNet allows it.
 				// The DotNet decompression doesn't look at the checksum.
-				if (result == -3) {
+				if (result == ZLibErrors.Z_DATA_ERROR || result == ZLibErrors.Z_BUF_ERROR) {
 					if (Compression.EnsureChecksum) {
 						bool error = false;
 

@@ -45,8 +45,8 @@ namespace GrfToWpfBridge.MultiGrf {
 			_loadResourcesInfo();
 			WpfUtilities.AddDragDropEffects(_itemsResources);
 
-			ApplicationShortcut.Link(ApplicationShortcut.Delete, "MultiGrf.Delete", () => _menuItemsDelete_Click(null, null), _itemsResources);
-			ApplicationShortcut.Link(ApplicationShortcut.Confirm, "MultiGrf.Select in explorer", () => _menuItemsSelectInExplorer_Click(null, null), _itemsResources);
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("Delete", "MultiGrf.Delete"), () => _menuItemsDelete_Click(null, null), _itemsResources);
+			ApplicationShortcut.Link(ApplicationShortcut.FromString("Enter", "MultiGrf.SelectInExplorer"), () => _menuItemsSelectInExplorer_Click(null, null), _itemsResources);
 
 			Setting = new Setting(v => { Configuration.ConfigAsker["[GRFEditor - Application latest file name]"] = v.ToString(); }, () => Configuration.ConfigAsker["[GRFEditor - Application latest file name]", Configuration.ApplicationPath]);
 		}

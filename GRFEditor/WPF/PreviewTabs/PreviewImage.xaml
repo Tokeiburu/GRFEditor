@@ -37,6 +37,9 @@
                         <TextBox TextAlignment="Right" BorderThickness="0" x:Name="_tbEase" VerticalAlignment="Center" Width="50" />
                     </Border>
                 </DockPanel>
+				<StackPanel>
+					<TextBlock x:Name="_tbFileInfo" TextAlignment="Left" VerticalAlignment="Center" />
+				</StackPanel>
                 <Styles:FancyButton x:Name="_buttonSelectSprite" Click="_buttonSelectSprite_Click" Grid.Row="0" Grid.Column="0" TextHeader="Select sprite" TextDescription="Select a sprite from a file" Margin="2" HorizontalAlignment="Left" />
             </WrapPanel>
             <!--<Grid>

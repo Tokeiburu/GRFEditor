@@ -180,7 +180,6 @@ namespace GRF.ContainerFormat {
 				}
 
 				if (Commands != null) {
-					Commands.Dispose();
 					Commands = null;
 				}
 

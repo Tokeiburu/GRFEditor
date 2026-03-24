@@ -32,7 +32,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 	/// <summary>
 	/// Interaction logic for SpriteEditorTab.xaml
 	/// </summary>
-	public partial class SpriteEditorTab : TabItem, IDisposable {
+	public partial class SpriteEditorTab : TabItem {
 		#region Delegates
 
 		public delegate void TabEventHandler(object sender, string spriteName);
@@ -150,15 +150,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 		}
 
 		public bool FoundErrors { get; set; }
-
-		#region IDisposable Members
-
-		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		#endregion
 
 		public event TabEventHandler Close;
 		public event TabEventHandler PaletteUpdated;
@@ -457,7 +448,7 @@ namespace GRFEditor.Tools.SpriteEditor {
 								try {
 									byte[] pixels = WpfImaging.GetData(dec.Frames[0]);
 									byte[] pal = Imaging.Get256BytePaletteRGBA(dec.Frames[0].Palette);
-									GrfImage image = new GrfImage(ref pixels, dec.Frames[0].PixelWidth, dec.Frames[0].PixelHeight, GrfImageType.Indexed8, ref pal);
+									GrfImage image = new GrfImage(pixels, dec.Frames[0].PixelWidth, dec.Frames[0].PixelHeight, GrfImageType.Indexed8, pal);
 
 									_sprBuilder.StoreAndExecute(new Insert(new SprBuilderImageView { Image = image, DisplayID = currentIndex, OriginalName = Path.GetFileNameWithoutExtension(file) }));
 
@@ -869,13 +860,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 
 		public void SetPalette(byte[] pal) {
 			_sprBuilder.StoreAndExecute(new ChangePalette(pal));
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (disposing) {
-				if (_sprBuilder != null)
-					_sprBuilder.Dispose();
-			}
 		}
 
 		#region Key and mouse events

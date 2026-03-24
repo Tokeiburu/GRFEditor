@@ -11,12 +11,12 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		private CopyStructureAct _copy;
 		private GrfColor _oldColor;
 
-		public ColorCommand(GrfColor color) {
+		public ColorCommand(in GrfColor color) {
 			_color = color;
 			_mode = 1;
 		}
 
-		public ColorCommand(int actionIndex, int frameIndex, int layerIndex, GrfColor color) {
+		public ColorCommand(int actionIndex, int frameIndex, int layerIndex, in GrfColor color) {
 			_actionIndex = actionIndex;
 			_frameIndex = frameIndex;
 			_layerIndex = layerIndex;

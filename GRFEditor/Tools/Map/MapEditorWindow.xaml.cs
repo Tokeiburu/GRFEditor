@@ -307,7 +307,7 @@ namespace GRFEditor.Tools.Map {
 
 		private void _setCellPreviewImage(Image img, string fileName) {
 			byte[] imageData = File.ReadAllBytes(Path.Combine(_mapEditor.InputTexturePath, fileName));
-			GrfImage im = new GrfImage(ref imageData);
+			GrfImage im = new GrfImage(imageData);
 			img.Source = im.Cast<BitmapSource>();
 		}
 
@@ -360,7 +360,7 @@ namespace GRFEditor.Tools.Map {
 				_generateTexture("cx.bmp", GrfEditorConfiguration.FlatMapsMakerCx);
 
 				byte[] cWater = ApplicationManager.GetResource("c8w.bmp");
-				GrfImage image = new GrfImage(ref cWater);
+				GrfImage image = new GrfImage(cWater);
 				int cellWidth = GrfEditorConfiguration.FlatMapsCellWidth2;
 
 				for (int x = 0; x < 32; x++) {

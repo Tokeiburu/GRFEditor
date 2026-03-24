@@ -289,6 +289,11 @@ namespace GRFEditor.Core.Services {
 												}
 
 												_readAsImage(node);
+
+												if (extension == ".bmp" || extension == ".spr") {
+													previewDisplayConfiguration.ShowPaletteImagePreview = true;
+													_readAsPaletteImage(node);
+												}
 												break;
 											case ".db":
 												previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowDb = true };
@@ -410,6 +415,7 @@ namespace GRFEditor.Core.Services {
 			if (res.HasValueChanged(new { conf.ShowGrfProperties })) _tabItemGrfPropertiesPreview.Dispatch(p => p.Visibility = conf.ShowGrfProperties ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowRawStructureTextEditor })) _tabItemRawStructurePreview.Dispatch(p => p.Visibility = conf.ShowRawStructureTextEditor ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowImagePreview })) _tabItemImagePreview.Dispatch(p => p.Visibility = conf.ShowImagePreview ? Visibility.Visible : Visibility.Collapsed);
+			if (res.HasValueChanged(new { conf.ShowPaletteImagePreview })) _tabItemPalettePreview.Dispatch(p => p.Visibility = conf.ShowPaletteImagePreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowMapExtractor })) _tabItemMapExtractorPreview.Dispatch(p => p.Visibility = conf.ShowMapExtractor ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowDb })) _tabItemDbPreview.Dispatch(p => p.Visibility = conf.ShowDb ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowEditSprite })) _tabItemEditSpritePreview.Dispatch(p => p.Visibility = conf.ShowEditSprite ? Visibility.Visible : Visibility.Collapsed);

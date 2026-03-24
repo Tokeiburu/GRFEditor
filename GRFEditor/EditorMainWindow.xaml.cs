@@ -470,7 +470,6 @@ namespace GRFEditor {
 
 		public void Undo() {
 			try {
-				Console.WriteLine("Undo");
 				if (_grfHolder.Commands.Undo()) {
 					_update(false);
 				}
@@ -482,7 +481,6 @@ namespace GRFEditor {
 
 		public void Redo() {
 			try {
-				Console.WriteLine("Redo");
 				if (_grfHolder.Commands.Redo()) {
 					_update(false);
 				}

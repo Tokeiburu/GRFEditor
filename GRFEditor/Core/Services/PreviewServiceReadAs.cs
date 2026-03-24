@@ -24,6 +24,7 @@ namespace GRFEditor.Core.Services {
 		private TabItem _tabItemGndPreview;
 		private TabItem _tabItemGrfPropertiesPreview;
 		private TabItem _tabItemImagePreview;
+		private TabItem _tabItemPalettePreview;
 		private TabItem _tabItemLubPreview;
 		private TabItem _tabItemMapExtractorPreview;
 		private TabItem _tabItemMapGatPreview;
@@ -33,13 +34,6 @@ namespace GRFEditor.Core.Services {
 		private TabItem _tabItemStrPreview;
 		private TabItem _tabItemTextPreview;
 		private TabItem _tabItemWavPreview;
-
-		//private void _readAsFolder(string path) {
-		//	_tabFolderPreview.Dispatcher.BeginInvoke(new Action(delegate {
-		//		if (_tabFolderPreview.Content == null) _tabFolderPreview.Content = new PreviewFolderItems(_treeView, _items, _previewItems);
-		//		((IFolderPreviewTab) _tabFolderPreview.Content).Load(_grfData, new TkPath { FilePath = _grfData.FileName, RelativePath = path });
-		//	}));
-		//}
 
 		private Dictionary<TabItem, IFolderPreviewTab> _tab2IPreviewTab = new Dictionary<TabItem, IFolderPreviewTab>();
 
@@ -126,6 +120,10 @@ namespace GRFEditor.Core.Services {
 			_readAs<PreviewImage>(node, _tabItemImagePreview);
 		}
 
+		private void _readAsPaletteImage(FileEntry node) {
+			_readAs<PreviewPalette>(node, _tabItemPalettePreview);
+		}
+
 		private void _readAsDb(FileEntry node) {
 			_readAs<PreviewThumbDb>(node, _tabItemDbPreview);
 		}
@@ -174,6 +172,7 @@ namespace GRFEditor.Core.Services {
 			_tabItemMapGatPreview = new TabItem { Header = "Minimap preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemResourcePreview = new TabItem { Header = "Resource preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemImagePreview = new TabItem { Header = "Image preview", Style = tabStyle, Visibility = Visibility.Collapsed };
+			_tabItemPalettePreview = new TabItem { Header = "Palette preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemDbPreview = new TabItem { Header = "Thumbnail preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemEditSpritePreview = new TabItem { Header = "Sprite editor", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabContainerPreview = new TabItem { Header = "Container options", Style = tabStyle, Visibility = Visibility.Collapsed };
@@ -195,6 +194,7 @@ namespace GRFEditor.Core.Services {
 			_tabControlPreview.Items.Add(_tabItemStrPreview);
 			_tabControlPreview.Items.Add(_tabItemActPreview);
 			_tabControlPreview.Items.Add(_tabItemImagePreview);
+			_tabControlPreview.Items.Add(_tabItemPalettePreview);
 			_tabControlPreview.Items.Add(_tabItemEditSpritePreview);
 			_tabControlPreview.Items.Add(_tabItemDbPreview);
 			_tabControlPreview.Items.Add(_tabItemResourcePreview);

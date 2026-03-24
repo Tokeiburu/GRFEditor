@@ -88,7 +88,7 @@ namespace GRF.FileFormats.DbFormat {
 			if (null == thumbData) {
 				return null;
 			}
-			return new GrfImage(ref thumbData, -1, -1, GrfImageType.NotEvaluatedJpg);
+			return new GrfImage(thumbData, -1, -1, GrfImageType.NotEvaluatedJpg);
 		}
 
 		private void _loadCatalog() {

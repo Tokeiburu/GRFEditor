@@ -32,6 +32,9 @@ namespace Utilities {
 		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
 		public static extern int memcmp(byte[] b1, byte[] b2, long count);
 
+		[DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+		public static extern int memset(IntPtr dest, int value, UIntPtr count);
+
 		[DllImport("shlwapi.dll", CharSet = CharSet.Auto)]
 		public static extern bool PathCompactPathEx([Out] StringBuilder pszOut, string szPath, int cchMax, int dwFlags);
 

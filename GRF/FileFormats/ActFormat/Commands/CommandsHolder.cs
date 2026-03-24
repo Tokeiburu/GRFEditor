@@ -780,7 +780,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// Sets the color of all layers.
 		/// </summary>
 		/// <param name="color">The color.</param>
-		public void SetColor(GrfColor color) {
+		public void SetColor(in GrfColor color) {
 			if (_act.GetAllLayers().Count == 0)
 				return;
 
@@ -794,7 +794,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="frameIndex">Index of the frame.</param>
 		/// <param name="layerIndex">Index of the layer.</param>
 		/// <param name="color">The color.</param>
-		public void SetColor(int actionIndex, int frameIndex, int layerIndex, GrfColor color) {
+		public void SetColor(int actionIndex, int frameIndex, int layerIndex, in GrfColor color) {
 			if (Equals(_act[actionIndex, frameIndex, layerIndex].Color, color))
 				return;
 

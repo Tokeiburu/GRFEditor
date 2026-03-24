@@ -15,7 +15,7 @@ using Utilities.Extension;
 
 namespace GRF.FileFormats.ActFormat {
 	// ACT files only load the animation when required, otherwise the data isn't processed
-	public class Act : IEnumerable<Action>, IDisposable {
+	public class Act : IEnumerable<Action> {
 		#region Delegates
 
 		public delegate void InvalidateVisualDelegate(object sender);
@@ -25,7 +25,6 @@ namespace GRF.FileFormats.ActFormat {
 		private readonly List<string> _soundFiles = new List<string>();
 
 		private List<Action> _actions = new List<Action>();
-		private bool _disposed; // IDisposable member
 
 		public Act() : this(new Spr()) {
 		}
@@ -134,14 +133,6 @@ namespace GRF.FileFormats.ActFormat {
 			get { return _soundFiles; }
 		}
 
-		#region IDisposable Members
-
-		public void Dispose() {
-			Dispose(true);
-		}
-
-		#endregion
-
 		#region IEnumerable<Action> Members
 
 		public IEnumerator<Action> GetEnumerator() {
@@ -229,15 +220,6 @@ namespace GRF.FileFormats.ActFormat {
 
 		public void SetSprite(Spr spr) {
 			Sprite = spr;
-		}
-
-		protected virtual void Dispose(bool disposing) {
-			if (!_disposed) {
-				if (disposing) {
-				}
-
-				_disposed = true;
-			}
 		}
 
 		public void RemoveLayer(int action, int frame, int layer) {

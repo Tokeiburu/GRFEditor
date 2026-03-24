@@ -111,7 +111,7 @@ namespace GRF.FileFormats.GatFormat {
 			return _colorMult(GrfColor.FromArgb(255, 255, 255, 255), Average);
 		}
 
-		private GrfColor _colorMult(GrfColor color, float mult) {
+		private GrfColor _colorMult(in GrfColor color, float mult) {
 			return GrfColor.FromArgb(255, (byte) (255 - color.R * mult), (byte) (255 - color.G * mult), (byte) (255 - color.B * mult));
 		}
 

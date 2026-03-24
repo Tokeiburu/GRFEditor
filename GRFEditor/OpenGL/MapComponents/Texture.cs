@@ -413,7 +413,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 			byte gT = (byte)(255 - rT);
 			byte bT = rT;
 
-			//image.ChangePinkToBlack(rT, gT, bT);
 			image.DitherAndChangePinkToBlack(rT, gT, bT, ditherDividerShift, ditherMultiplier);
 			IsDithered = true;
 		}

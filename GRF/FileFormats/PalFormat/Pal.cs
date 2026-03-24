@@ -115,7 +115,7 @@ namespace GRF.FileFormats.PalFormat {
 		#region IImageable Members
 
 		public GrfImage Image {
-			get { return new GrfImage(ref PixelsPalette, 256, 256, GrfImageType.Indexed8, ref _palette); }
+			get { return new GrfImage(PixelsPalette, 256, 256, GrfImageType.Indexed8, _palette); }
 			set { }
 		}
 
@@ -126,7 +126,7 @@ namespace GRF.FileFormats.PalFormat {
 		}
 
 		public void MakeFirstColorUnique() {
-			GrfColor color = new GrfColor(this[0, 0], 0);
+			GrfColor color = GrfColor.FromByteArray(_palette, 0, GrfImageType.Indexed8);
 			color.A = 255;
 
 			while (Colors.Skip(1).Contains(color)) {
@@ -136,7 +136,7 @@ namespace GRF.FileFormats.PalFormat {
 			this[0, 0] = color.ToRgbaBytes();
 		}
 
-		public bool Contains(GrfColor color) {
+		public bool Contains(in GrfColor color) {
 			return Colors.Contains(color);
 		}
 
@@ -169,7 +169,7 @@ namespace GRF.FileFormats.PalFormat {
 			return new GrfColor(_palette[baseIndex + 3], _palette[baseIndex], _palette[baseIndex + 1], _palette[baseIndex + 2]);
 		}
 
-		public void SetColor(int index256, GrfColor color) {
+		public void SetColor(int index256, in GrfColor color) {
 			if (index256 >= 256)
 				throw new Exception("Palette index is invalid, index must be below 256.");
 

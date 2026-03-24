@@ -110,7 +110,7 @@ namespace GRF.FileFormats.GatFormat {
 			var pixels = new byte[header.Width * header.Height];
 			var palette = new byte[1024];
 			Buffer.BlockCopy(PaletteTransparentMinimap, 0, palette, 0, 1024);
-			GrfImage image = new GrfImage(ref pixels, header.Width, header.Height, GrfImageType.Indexed8, ref palette);
+			GrfImage image = new GrfImage(pixels, header.Width, header.Height, GrfImageType.Indexed8, palette);
 
 			int offset = 0;
 			// We need to reverse the image vertically
@@ -157,15 +157,17 @@ namespace GRF.FileFormats.GatFormat {
 			}
 
 			if (options.HasFlags(GatPreviewOptions.Rescale)) {
-				//double multipler = (double) MapSize / Math.Max(gatSource.Width, gatSource.Height);
-				//gatSource.Image.Scale((float) multipler);
-
-				if (previewFormat < GatPreviewFormat.LightAndShadow)
-					gatSource.Image.Redim(MapSize, MapSize);
+				if (previewFormat < GatPreviewFormat.LightAndShadow) {
+					int pHorizontal = MapSize - gatSource.Image.Width;
+					int pVertical = MapSize - gatSource.Image.Height;
+					gatSource.Image.Margin(pHorizontal / 2, pVertical / 2, pHorizontal - (pHorizontal / 2), pVertical - (pVertical / 2));
+				}
 				else {
 					double multipler = (double) MapSize / Math.Max(gatSource.Image.Width, gatSource.Image.Height);
 					gatSource.Image.Scale((float) multipler, GrfScalingMode.LinearScaling);
-					gatSource.Image.Redim(MapSize, MapSize, 0);
+					int pHorizontal = MapSize - gatSource.Image.Width;
+					int pVertical = MapSize - gatSource.Image.Height;
+					gatSource.Image.Margin(pHorizontal / 2, pVertical / 2, pHorizontal - (pHorizontal / 2), pVertical - (pVertical / 2));
 				}
 			}
 		}
@@ -201,7 +203,7 @@ namespace GRF.FileFormats.GatFormat {
 				}
 			}
 
-			gatSource.Image = new GrfImage(ref pixels, gatSource.Width, gatSource.Height, GrfImageType.Indexed8, ref palette);
+			gatSource.Image = new GrfImage(pixels, gatSource.Width, gatSource.Height, GrfImageType.Indexed8, palette);
 		}
 
 		private static void _generateHeightMapImage(Gat gatSource) {
@@ -234,7 +236,7 @@ namespace GRF.FileFormats.GatFormat {
 				}
 			}
 
-			gatSource.Image = new GrfImage(ref pixels, gatSource.Width, gatSource.Height, GrfImageType.Indexed8, ref palette);
+			gatSource.Image = new GrfImage(pixels, gatSource.Width, gatSource.Height, GrfImageType.Indexed8, palette);
 		}
 
 		public static void Rescale(Gat gatSource, int size) {

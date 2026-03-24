@@ -200,7 +200,7 @@ namespace GRF.Image.Decoders {
 								_reader.Forward(padding);
 						}
 
-						return new GrfImage(ref pixels, Dib.Width, Math.Abs(Dib.Height), type, ref palette);
+						return new GrfImage(pixels, Dib.Width, Math.Abs(Dib.Height), type, palette);
 					}
 
 					for (int y = 0; y < Dib.Height; y++) {
@@ -210,7 +210,7 @@ namespace GRF.Image.Decoders {
 							_reader.Forward(padding);
 					}
 
-					return new GrfImage(ref pixels, Dib.Width, Math.Abs(Dib.Height), type, ref palette);
+					return new GrfImage(pixels, Dib.Width, Math.Abs(Dib.Height), type, palette);
 				default:
 					throw GrfExceptions.__InvalidImageFormat.Create();
 			}

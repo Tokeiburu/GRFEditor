@@ -29,6 +29,7 @@ namespace GRF.FileFormats.SprFormat.Commands {
 
 				_oldPalette = new byte[1024];
 				Buffer.BlockCopy(act.Sprite.Palette.BytePalette, 0, _oldPalette, 0, 1024);
+				_oldPalette[3] = 0;
 			}
 
 			if (act.Sprite.Palette == null) {
@@ -40,7 +41,7 @@ namespace GRF.FileFormats.SprFormat.Commands {
 			act.Sprite.Palette.SetPalette(palette);
 
 			for (int i = 0; i < act.Sprite.NumberOfIndexed8Images; i++) {
-				act.Sprite.Images[i].SetPalette(ref palette);
+				act.Sprite.Images[i].SetPalette(palette);
 			}
 		}
 
@@ -54,7 +55,7 @@ namespace GRF.FileFormats.SprFormat.Commands {
 			}
 
 			for (int i = 0; i < act.Sprite.NumberOfIndexed8Images; i++) {
-				act.Sprite.Images[i].SetPalette(ref _oldPalette);
+				act.Sprite.Images[i].SetPalette(_oldPalette);
 			}
 		}
 
