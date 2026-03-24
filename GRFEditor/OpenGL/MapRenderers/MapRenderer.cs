@@ -52,7 +52,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		public static Vector3 LookAt = new Vector3(0);
 
 		private List<ModelRsm> _modelsToLoad = new List<ModelRsm>();
-		private Shader _computerShader;
+		private Shader _computeShader;
 		private int _ssbo;
 
 		static MapRenderer() {
@@ -327,11 +327,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			Stopwatch watch = new Stopwatch();
 			watch.Start();
 
-			if (_computerShader == null) {
-				_computerShader = new Shader("rsm_load.comp");
+			if (_computeShader == null) {
+				_computeShader = new Shader("rsm_load.comp");
 			}
 
-			_computerShader.Use();
+			_computeShader.Use();
 
 			while (_modelsToLoad.Count > 0) {
 				var model = _modelsToLoad[0];
@@ -491,10 +491,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 					var scale = model.Model.Scale.X * model.Model.Scale.Y * model.Model.Scale.Z * (model.Rsm.Version >= 2.2 ? -1 : 1) < 0 ? -1 : 0;
 					GL.BufferSubData(BufferTarget.ShaderStorageBuffer, (IntPtr)(_vboOffsets[ri.Vbo.Id] * VertexStructSize * sizeof(float)), bufferSize, vertKeyValue.Value);
-					_computerShader.SetInt("baseVertex", _vboOffsets[ri.Vbo.Id]);
-					_computerShader.SetInt("vertexCount", vertexCount);
-					_computerShader.SetFloat("scale", scale);
-					_computerShader.SetMatrix4("model", ref m);
+					_computeShader.SetInt("baseVertex", _vboOffsets[ri.Vbo.Id]);
+					_computeShader.SetInt("vertexCount", vertexCount);
+					_computeShader.SetFloat("scale", scale);
+					_computeShader.SetMatrix4("model", ref m);
 					_vboOffsets[ri.Vbo.Id] += vertexCount;
 
 					GL.BindBufferBase(BufferRangeTarget.ShaderStorageBuffer, 0, ri.Vbo.Id);
