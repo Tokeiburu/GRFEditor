@@ -234,10 +234,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Point);
 
 			if (viewport.RenderOptions.ShowWireframeView || viewport.RenderOptions.ShowPointView) {
-				Shader.SetBool("fixedColor", true);
+				Shader.SetVector4("wireframeColor", new Vector4(0f, 0f, 0f, 1));
+				Shader.SetBool("wireframe", true);
 			}
 			else {
-				Shader.SetBool("fixedColor", false);
+				Shader.SetBool("wireframe", false);
 			}
 
 			switch(viewport.RenderPass) {

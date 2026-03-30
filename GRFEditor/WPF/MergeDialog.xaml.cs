@@ -149,8 +149,7 @@ namespace GRFEditor.WPF {
 			_buttonOK.Dispatch(p => p.IsEnabled = true);
 
 			if (_fileNameOriginal == _grfSource.FileName) {
-				_editor._grfLoadingSettings.FileName = _editor._grfHolder.FileName;
-				_editor.Load();
+				_editor.Load(_fileNameOriginal);
 
 				// This is necessary because the encrypted GRFs add commands
 				((GrfHolder)grfSource).Commands.ClearCommands();
@@ -158,7 +157,7 @@ namespace GRFEditor.WPF {
 			else {
 				// This is necessary because the encrypted GRFs add commands
 				((GrfHolder)grfSource).Commands.ClearCommands();
-				((GrfHolder) grfSource).Close();
+				((GrfHolder)grfSource).Close();
 			}
 		}
 

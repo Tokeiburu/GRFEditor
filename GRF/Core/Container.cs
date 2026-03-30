@@ -111,7 +111,7 @@ namespace GRF.Core {
 		public bool IsNewGrf { get; set; }
 
 		/// <summary>
-		/// Gets or sets a value indicating whether reloading this file should be reloaded after saving.
+		/// Gets or sets a value indicating whether this file should be reloaded after saving.
 		/// </summary>
 		internal bool CancelReload { get; set; }
 
@@ -141,11 +141,12 @@ namespace GRF.Core {
 		internal T GetAttachedProperty<T>(string key) {
 			object value;
 
-			if (_attached.TryGetValue(key, out value)) {
-				return (T)value;
+			if (!_attached.TryGetValue(key, out value)) {
+				value = default(T);
+				_attached[key] = value;
 			}
 
-			return default(T);
+			return (T)value;
 		}
 
 		/// <summary>
@@ -209,7 +210,15 @@ namespace GRF.Core {
 				Reader.Close();
 		}
 
-		public void Save(string fileName, Container mergeGrf, SavingMode mode, SyncMode syncMode) {
+		public ContainerSaveResult Save(string fileName, Container mergeGrf, SavingMode mode, SyncMode syncMode) {
+			ContainerSaveResult result = new ContainerSaveResult();
+			result.SaveModeRequested = mode;
+			result.SaveModeUsed = mode;
+			result.Success = true;
+			result.SyncMode = syncMode;
+			result.OldFileName = FileName;
+			result.NewFileName = fileName;
+
 			// Determines whether the repack should reload or not.
 			bool shouldRepackCancelReload = false;
 
@@ -257,14 +266,15 @@ namespace GRF.Core {
 					}
 				}
 
+				result.SaveModeUsed = mode;
 				IsBusy = true;
 				CancelReload = false;
 				shouldRepackCancelReload = true;
 
 				if (syncMode == SyncMode.Synchronous)
-					_save(fileName, mergeGrf, mode);
+					return _save(fileName, mergeGrf, mode, result);
 				else
-					GrfThread.Start(() => _save(fileName, mergeGrf, mode));
+					GrfThread.Start(() => _save(fileName, mergeGrf, mode, result));
 			}
 			catch (Exception err) {
 				CancelReload = true;
@@ -278,7 +288,10 @@ namespace GRF.Core {
 					throw;
 
 				ErrorHandler.HandleException(err);
+				result.Success = false;
 			}
+
+			return result;
 		}
 
 		private void _internalSave(string fileName, Container mergeGrf, SavingMode mode) {
@@ -526,7 +539,7 @@ namespace GRF.Core {
 			}
 		}
 
-		private void _save(string fileName, Container mergeGrf, SavingMode mode) {
+		private ContainerSaveResult _save(string fileName, Container mergeGrf, SavingMode mode, ContainerSaveResult result) {
 			try {
 				AProgress.Init(this);
 
@@ -564,7 +577,7 @@ namespace GRF.Core {
 					if (!CancelReload) {
 						try {
 							if (!File.Exists(tmp))
-								return;
+								return result;
 
 							if (Reader != null)
 								Reader.Close();
@@ -572,7 +585,18 @@ namespace GRF.Core {
 							File.Delete(FileName);
 							File.Move(tmp, FileName);
 
+							byte[] oldEncryptionKey = InternalHeader.EncryptionKey;
+
 							_load(FileName);
+
+							if (oldEncryptionKey != null) {
+								// Attempt to set the encryption key
+								try {
+									InternalHeader.SetKey(oldEncryptionKey, _table);
+								}
+								catch {
+								}
+							}
 						}
 						catch {
 							if (Reader != null)
@@ -593,6 +617,8 @@ namespace GRF.Core {
 				Attached["Thor.Repack"] = null;
 				AProgress.Finalize(this);
 			}
+
+			return result;
 		}
 
 		/// <summary>

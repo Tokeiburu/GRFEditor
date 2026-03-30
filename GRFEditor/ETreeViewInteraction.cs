@@ -137,13 +137,16 @@ namespace GRFEditor {
 					dialog.ShowDialog();
 
 					if (dialog.Result == MessageBoxResult.OK) {
-						Configuration.EncryptorPassword = dialog.Key;
-						_grfHolder.Header.SetKey(Configuration.EncryptorPassword, _grfHolder);
+						_grfHolder.Header.SetKey(dialog.Key, _grfHolder);
 					}
 				}
 
 				if (_grfHolder.Header.EncryptionKey != null) {
-					Load(new GrfLoadingSettings(_grfLoadingSettings) { FileName = _grfHolder.FileName, DecryptFileTable = true, ReloadKey = false, VisualReloadRequired = true });
+					GrfLoadSettings loadSettings = new GrfLoadSettings();
+					loadSettings.FileName = _grfHolder.FileName;
+					loadSettings.DecryptFileTable = true;
+					loadSettings.EncryptionKey = _grfHolder.Header.EncryptionKey;
+					Load(loadSettings);
 				}
 			}
 			catch (Exception err) {
@@ -629,56 +632,22 @@ namespace GRFEditor {
 			}
 		}
 
-		internal bool Load(GrfLoadingSettings settings = null) {
-			if (settings != null)
-				_grfLoadingSettings = settings;
+		private void _reloadContainer(string fileName) {
+			byte[] encryptionKey = _grfHolder.Header.EncryptionKey;
 
-			if (settings == null)
-				settings = _grfLoadingSettings;
+			if (_grfHolder.IsOpened)
+				_grfHolder.Close();
 
-			if (_grfHolder.IsOpened && _grfHolder.CancelReload) {
-				_grfHolder.CancelReload = false;
-				return false;
-			}
-
-			if (!_validateNewContainer()) return false;
-
-			if (settings.FileName == null) {
-				_newWithDataFolder(true);
-			}
+			GrfLoadSettings loadSettings = new GrfLoadSettings();
+			loadSettings.FileName = fileName;
 
 			_reloading = true;
 			GrfThread.Start(delegate {
 				try {
-					if (settings.FileName == null) {
-						return;
-					}
-
-					if (!File.Exists(settings.FileName)) {
-						return;
-					}
-
-					_menuItemExtractRgz.Dispatch(p => p.IsEnabled = settings.FileName.ToLower().EndsWith(".rgz"));
-
-					bool hasAKey = false;
+					_menuItemExtractRgz.Dispatch(p => p.IsEnabled = loadSettings.FileName.IsExtension(".rgz"));
 
 					_saveTreeExpansion();
 					_treeViewPathManager.SetIgnoreCase(GrfEditorConfiguration.GrfFileTableIgnoreCase);
-
-					if (settings.VisualReloadRequired) {
-						_listBoxResults.Dispatch(p => _itemSearchEntries.Clear());
-						_items.Dispatch(p => _itemEntries.Clear());
-						_treeViewPathManager.ClearAll();
-					}
-					else {
-						if (_grfHolder.IsOpened)
-							hasAKey = _grfHolder.Header.EncryptionKey != null;
-						else if (settings.ReloadKey)
-							hasAKey = true;
-					}
-
-					if (_grfLoadingSettings.VisualReloadRequired)
-						_progressBarComponent.Progress = -1;
 
 					_treeViewPathManager.ClearCommands();
 					_positions.Reset();
@@ -686,14 +655,14 @@ namespace GRFEditor {
 
 					GrfLoadData loadData = null;
 
-					if (_grfLoadingSettings.DecryptFileTable) {
+					if (_lastLoadSettings.DecryptFileTable) {
 						loadData = new GrfLoadData();
 						loadData.DecryptFileTable = true;
-						loadData.EncryptionKey = Configuration.EncryptorPassword;
-						_grfLoadingSettings.DecryptFileTable = false;
+						loadData.EncryptionKey = encryptionKey;
+						_lastLoadSettings.DecryptFileTable = false;
 					}
 
-					_grfHolder.Open(settings.FileName, 0, loadData);
+					_grfHolder.Open(loadSettings.FileName, 0, loadData);
 
 					if (_grfHolder.Header == null) {
 						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName);
@@ -702,64 +671,18 @@ namespace GRFEditor {
 						_progressBarComponent.Progress = 100;
 					}
 					else {
-						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName + " - " + Methods.CutFileName(settings.FileName));
+						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName + " - " + Methods.CutFileName(loadSettings.FileName));
 
 						if (_grfHolder.Header.IsEncrypted) {
 							_progressBarComponent.Progress = -2;
 						}
 
-						if (settings.VisualReloadRequired)
-							_checkIfEncrypted();
-						else if (hasAKey && _grfHolder.Header.IsEncrypted)
-							_grfHolder.Header.SetKey(Configuration.EncryptorPassword, _grfHolder);
+						if (encryptionKey != null)
+							_grfHolder.Header.SetKey(encryptionKey, _grfHolder);
 
-						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(), _grfHolder, 300, null, true));
+						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, 300, null, true));
 
-						if (!settings.VisualReloadRequired) {
-							_treeViewPathManager.RenamePrimaryProject(settings.FileName);
-						}
-
-						if (settings.VisualReloadRequired) {
-							_treeViewPathManager.AddPath(new TkPath { FilePath = settings.FileName, RelativePath = "" });
-							_treeViewPathManager.AddPaths(settings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);
-						}
-
-						if (settings.VisualReloadRequired) {
-							_treeViewPathManager.ExpandFirstNode();
-							_treeViewPathManager.SelectFirstNode();
-						}
-						
-						if (settings.VisualReloadRequired && Configuration.TreeBehaviorExpandSpecificFolders) {
-							List<string> paths = Methods.StringToList(Configuration.TreeBehaviorSpecificFolders);
-						
-							foreach (string path in paths) {
-								_treeViewPathManager.Expand(path);
-							}
-						}
-						
-						if (settings.VisualReloadRequired && Configuration.TreeBehaviorSaveExpansion) {
-							List<string> metaContainers = Methods.StringToList(Configuration.TreeBehaviorSaveExpansionFolders);
-						
-							if (metaContainers.Any(p => p.StartsWith(settings.FileName + ">"))) {
-								string metaContainer = metaContainers.First(p => p.StartsWith(settings.FileName));
-								List<string> paths = metaContainer.Split('>')[1].Split(':').ToList();
-						
-								foreach (string path in paths) {
-									_treeViewPathManager.Expand(new TkPath { FilePath = settings.FileName, RelativePath = path });
-								}
-							}
-						}
-						
-						if (settings.VisualReloadRequired && Configuration.TreeBehaviorSelectLatest) {
-							List<string> tkPaths = Methods.StringToList(Configuration.TreeBehaviorSelectLatestFolders);
-						
-							if (tkPaths.Any(p => p.StartsWith(settings.FileName + "?"))) {
-								string tkPath = tkPaths.First(p => p.StartsWith(settings.FileName + "?"));
-								_treeViewPathManager.Select(new TkPath(tkPath));
-							}
-						}
-
-						_recentFilesManager.AddRecentFile(settings.FileName);
+						_treeViewPathManager.RenamePrimaryProject(loadSettings.FileName);
 						_progressBarComponent.SetSpecialState(_grfHolder.Header != null && _grfHolder.Header.FoundErrors ? TkProgressBar.ProgressStatus.ErrorsDetected : TkProgressBar.ProgressStatus.Finished);
 
 						if (_grfHolder.Header != null && _grfHolder.Header.FileTableRequiresDecryption) {
@@ -777,7 +700,143 @@ namespace GRFEditor {
 					if (_progressBarComponent.Progress == -1 || _progressBarComponent.Progress == 0)
 						_progressBarComponent.Progress = 100;
 
-					_grfLoadingSettings.VisualReloadRequired = true;
+					_reloading = false;
+				}
+			}, "GrfEditor - GRF loading thread");
+		}
+
+		public bool Load(string fileName, byte[] encryptionKey = null) {
+			GrfLoadSettings loadSettings = new GrfLoadSettings();
+			loadSettings.FileName = fileName;
+			loadSettings.EncryptionKey = encryptionKey;
+			return Load(loadSettings);
+		}
+
+		public bool Load(GrfLoadSettings loadSettings) {
+			byte[] encryptionKey = loadSettings.EncryptionKey;
+			
+			_lastLoadSettings = loadSettings;
+
+			if (_grfHolder.IsOpened && _grfHolder.CancelReload) {
+				_grfHolder.CancelReload = false;
+				return false;
+			}
+
+			if (!_validateNewContainer()) return false;
+
+			if (loadSettings.FileName == null) {
+				_newWithDataFolder(true);
+			}
+
+			_reloading = true;
+			GrfThread.Start(delegate {
+				try {
+					if (loadSettings.FileName == null) {
+						return;
+					}
+
+					if (!File.Exists(loadSettings.FileName)) {
+						return;
+					}
+
+					_menuItemExtractRgz.Dispatch(p => p.IsEnabled = loadSettings.FileName.IsExtension(".rgz"));
+
+					_saveTreeExpansion();
+					_treeViewPathManager.SetIgnoreCase(GrfEditorConfiguration.GrfFileTableIgnoreCase);
+
+					_listBoxResults.Dispatch(p => _itemSearchEntries.Clear());
+					_items.Dispatch(p => _itemEntries.Clear());
+					_treeViewPathManager.ClearAll();
+					_progressBarComponent.Progress = -1;
+					_treeViewPathManager.ClearCommands();
+					_positions.Reset();
+					_grfHolder.Close();
+
+					GrfLoadData loadData = null;
+
+					if (_lastLoadSettings.DecryptFileTable) {
+						loadData = new GrfLoadData();
+						loadData.DecryptFileTable = true;
+						loadData.EncryptionKey = encryptionKey;
+						_lastLoadSettings.DecryptFileTable = false;
+					}
+
+					_grfHolder.Open(loadSettings.FileName, 0, loadData);
+
+					if (_grfHolder.Header == null) {
+						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName);
+						_treeViewPathManager.ClearAll();
+						_grfHolder.Close();
+						_progressBarComponent.Progress = 100;
+					}
+					else {
+						this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName + " - " + Methods.CutFileName(loadSettings.FileName));
+
+						if (_grfHolder.Header.IsEncrypted) {
+							_progressBarComponent.Progress = -2;
+						}
+
+						if (encryptionKey != null)
+							_grfHolder.Header.SetKey(encryptionKey, _grfHolder);
+
+						_checkIfEncrypted();
+
+						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, 300, null, true));
+
+						_treeViewPathManager.AddPath(new TkPath { FilePath = loadSettings.FileName, RelativePath = "" });
+						_treeViewPathManager.AddPaths(loadSettings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);
+
+						_treeViewPathManager.ExpandFirstNode();
+						_treeViewPathManager.SelectFirstNode();
+
+						if (Configuration.TreeBehaviorExpandSpecificFolders) {
+							List<string> paths = Methods.StringToList(Configuration.TreeBehaviorSpecificFolders);
+
+							foreach (string path in paths) {
+								_treeViewPathManager.Expand(path);
+							}
+						}
+
+						if (Configuration.TreeBehaviorSaveExpansion) {
+							List<string> metaContainers = Methods.StringToList(Configuration.TreeBehaviorSaveExpansionFolders);
+
+							if (metaContainers.Any(p => p.StartsWith(loadSettings.FileName + ">"))) {
+								string metaContainer = metaContainers.First(p => p.StartsWith(loadSettings.FileName));
+								List<string> paths = metaContainer.Split('>')[1].Split(':').ToList();
+
+								foreach (string path in paths) {
+									_treeViewPathManager.Expand(new TkPath { FilePath = loadSettings.FileName, RelativePath = path });
+								}
+							}
+						}
+
+						if (Configuration.TreeBehaviorSelectLatest) {
+							List<string> tkPaths = Methods.StringToList(Configuration.TreeBehaviorSelectLatestFolders);
+
+							if (tkPaths.Any(p => p.StartsWith(loadSettings.FileName + "?"))) {
+								string tkPath = tkPaths.First(p => p.StartsWith(loadSettings.FileName + "?"));
+								_treeViewPathManager.Select(new TkPath(tkPath));
+							}
+						}
+
+						_recentFilesManager.AddRecentFile(loadSettings.FileName);
+						_progressBarComponent.SetSpecialState(_grfHolder.Header != null && _grfHolder.Header.FoundErrors ? TkProgressBar.ProgressStatus.ErrorsDetected : TkProgressBar.ProgressStatus.Finished);
+
+						if (_grfHolder.Header != null && _grfHolder.Header.FileTableRequiresDecryption) {
+							this.Dispatch(p => _miDecryptFileTable_Click(null, null));
+						}
+
+						_search();
+						_loadListItems();
+					}
+				}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
+				}
+				finally {
+					if (_progressBarComponent.Progress == -1 || _progressBarComponent.Progress == 0)
+						_progressBarComponent.Progress = 100;
+
 					_reloading = false;
 				}
 			}, "GrfEditor - GRF loading thread");
@@ -790,7 +849,7 @@ namespace GRFEditor {
 				if (Configuration.TreeBehaviorSaveExpansion) {
 					List<string> metaContainers = Methods.StringToList(Configuration.TreeBehaviorSaveExpansionFolders);
 
-					string containerPath = _grfHolder.IsOpened ? _grfHolder.FileName : _grfLoadingSettings.FileName;
+					string containerPath = _grfHolder.IsOpened ? _grfHolder.FileName : _lastLoadSettings.FileName;
 
 					if (containerPath == null)
 						return;
@@ -835,7 +894,7 @@ namespace GRFEditor {
 		private void _reload() {
 			new Thread(new ThreadStart(delegate {
 				foreach (string pathname in _grfHolder.FileTable.Directories) {
-					_treeViewPathManager.AddPath(new TkPath { FilePath = _grfLoadingSettings.FileName, RelativePath = pathname });
+					_treeViewPathManager.AddPath(new TkPath { FilePath = _lastLoadSettings.FileName, RelativePath = pathname });
 				}
 			})) { Name = "GrfEditor - TreeView path loading thread" }.Start();
 		}

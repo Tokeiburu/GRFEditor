@@ -260,6 +260,9 @@ namespace GRF.Core {
 		public void SetEncryptionFlag(bool forceSet = false) {
 			Header.EncryptionCheckFlag = true;
 
+			if (forceSet)
+				_grf.InternalHeader.IsEncrypted = true;
+
 			if (_grf.InternalHeader.IsEncrypted || forceSet) {
 				try {
 					string file = File.GetLastWriteTimeUtc(_grf.FileName).ToFileTimeUtc() + "\\files.enc";
@@ -397,7 +400,7 @@ namespace GRF.Core {
 		/// <summary>
 		/// Saves the GRF.
 		/// </summary>
-		public void Save(SyncMode syncMode) {
+		public ContainerSaveResult Save(SyncMode syncMode) {
 			_validateOperation(Condition.Opened);
 
 			string extension = _grf.FileName.GetExtension();
@@ -416,7 +419,7 @@ namespace GRF.Core {
 					break;
 			}
 
-			_internalGrf.Save(null, null, mode, syncMode);
+			return _internalGrf.Save(null, null, mode, syncMode);
 		}
 
 		/// <summary>

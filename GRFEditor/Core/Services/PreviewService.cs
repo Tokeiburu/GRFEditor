@@ -14,6 +14,7 @@ using GRF.Core;
 using GRF.Core.Exceptions;
 using GRF.Image;
 using GRF.Image.Decoders;
+using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.Application;
@@ -21,7 +22,6 @@ using TokeiLibrary;
 using TokeiLibrary.WPF;
 using Utilities.Extension;
 using Utilities.Services;
-using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 
 namespace GRFEditor.Core.Services {
 	public partial class PreviewService {
@@ -347,7 +347,6 @@ namespace GRFEditor.Core.Services {
 								dialog.ShowDialog();
 
 								if (dialog.Result == MessageBoxResult.OK) {
-									Configuration.EncryptorPassword = dialog.Key;
 									_grfData.Header.SetKey(dialog.Key, _grfData);
 								}
 							}

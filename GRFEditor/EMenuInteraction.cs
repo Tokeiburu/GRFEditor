@@ -48,7 +48,7 @@ namespace GRFEditor {
 				if (file != null) {
 					if (File.Exists(file)) {
 						_recentFilesManager.AddRecentFile(file);
-						Load(new GrfLoadingSettings(_grfLoadingSettings) { FileName = file });
+						Load(file);
 					}
 				}
 			}
@@ -61,85 +61,114 @@ namespace GRFEditor {
 			Close();
 		}
 
-		private void _menuItemSave_Click(object sender, RoutedEventArgs e) {
+		private void _menuItemSave_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.QuickSave);
+		private void _menuItemRepack_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Repack);
+		private void _menuItemTableEncrypt_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.TableEncrypt);
+		private void _menuItemSaveAs_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.SaveAs);
+
+		public enum GrfEditorSaveMode {
+			QuickSave,
+			SaveAs,
+			Repack,
+			TableEncrypt,
+			Compress,
+			Compact,
+		};
+
+		private void _save(GrfEditorSaveMode mode, string file = null) {
 			try {
-				if (_grfHolder.IsNewGrf) {
-					_menuItemSaveAs_Click(null, null);
-				}
-				else {
-					if (_grfHolder.IsOpened && (_grfHolder.IsBusy || _asyncOperation.IsRunning)) {
-						ErrorHandler.HandleException("An opration is currently running, wait for it to finish or cancel it.");
-						return;
-					}
-
-					_grfLoadingSettings.FileName = _grfHolder.FileName;
-					_asyncOperation.ProgressBar.Progress = 0;
-					_asyncOperation.ProgressBar.Progress = -1;
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.QuickSave(), _grfHolder, 250, AsyncOperationReturnState.DoesNotRequireVisualReload), _grfSavingFinished);
-				}
-
-				if (e != null)
-					e.Handled = true;
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _menuItemRepack_Click(object sender, RoutedEventArgs e) {
-			try {
-				_grfLoadingSettings.FileName = _grfHolder.FileName;
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.Repack(), _grfHolder, 250, AsyncOperationReturnState.None), _grfSavingFinished);
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _menuItemTableEncrypt_Click(object sender, RoutedEventArgs e) {
-			try {
-				if (_grfHolder.Header.EncryptionKey == null) {
-					EncryptionService.RequestDecryptionKey(_grfHolder);
-				}
-
-				if (_grfHolder.Header.EncryptionKey == null) {
+				if (_grfHolder.IsOpened && (_grfHolder.IsBusy || _asyncOperation.IsRunning)) {
+					ErrorHandler.HandleException("An opration is currently running, wait for it to finish or cancel it.");
 					return;
 				}
 
-				_grfLoadingSettings.FileName = _grfHolder.FileName;
-				_grfHolder.Header.SetFileTableEncryption(true);
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.QuickSave(), _grfHolder, 250, AsyncOperationReturnState.DoesNotRequireVisualReload), _grfSavingFinished);
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
+				switch (mode) {
+					case GrfEditorSaveMode.Compress:
+					case GrfEditorSaveMode.Compact:
+					case GrfEditorSaveMode.QuickSave:
+						if (_grfHolder.IsNewGrf) {
+							_save(GrfEditorSaveMode.SaveAs);
+							return;
+						}
+						break;
+					case GrfEditorSaveMode.Repack:
+						break;
+					case GrfEditorSaveMode.SaveAs:
+						string extension = _grfHolder.FileName.GetExtension();
+						file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(Format.Grf | Format.Gpf | Format.Rgz | Format.Thor),
+														  "fileName", Path.GetFileName(_grfHolder.FileName),
+														  "filterIndex", (extension == ".grf" ? 1 : extension == ".gpf" ? 2 : extension == ".rgz" ? 3 : extension == ".thor" ? 4 : 1).ToString(CultureInfo.InvariantCulture));
 
-		private void _menuItemSaveAs_Click(object sender, RoutedEventArgs e) {
-			try {
-				string extension = _grfHolder.FileName.GetExtension();
-				string file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(Format.Grf | Format.Gpf | Format.Rgz | Format.Thor),
-				                                         "fileName", Path.GetFileName(_grfHolder.FileName),
-				                                         "filterIndex", (extension == ".grf" ? 1 : extension == ".gpf" ? 2 : extension == ".rgz" ? 3 : extension == ".thor" ? 4 : 1).ToString(CultureInfo.InvariantCulture));
+						if (file == null)
+							return;
 
-				if (file != null) {
-					_grfLoadingSettings.VisualReloadRequired = false;
-					extension = file.GetExtension();
+						if (file == _grfHolder.FileName) {
+							_grfHolder.IsNewGrf = false;
+							_save(GrfEditorSaveMode.QuickSave, null);
+							return;
+						}
 
-					if (file == _grfHolder.FileName) {
-						_grfHolder.IsNewGrf = false;
-						_menuItemSave_Click(null, null);
-					}
-					else {
-						if (extension == ".rgz" || _grfHolder.FileName.GetExtension() == ".rgz" ||
-						    extension == ".thor" || _grfHolder.FileName.GetExtension() == ".thor")
-							_grfLoadingSettings.VisualReloadRequired = true;
+						break;
+					case GrfEditorSaveMode.TableEncrypt:
+						if (_grfHolder.Header.EncryptionKey == null) {
+							EncryptionService.RequestDecryptionKey(_grfHolder);
+						}
 
-						_grfLoadingSettings.FileName = file;
+						if (_grfHolder.Header.EncryptionKey == null) {
+							return;
+						}
 
-						_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.Save(file), _grfHolder, 250, AsyncOperationReturnState.None), _grfSavingFinished);
-					}
+						_grfHolder.Header.SetFileTableEncryption(true);
+						mode = GrfEditorSaveMode.QuickSave;
+						break;
 				}
+
+				string oldFileName = _grfHolder.FileName;
+				string newFileName = file ?? oldFileName;
+
+				_asyncOperation.ProgressBar.Progress = 0;
+				_asyncOperation.ProgressBar.Progress = -1;
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => {
+					switch (mode) {
+						case GrfEditorSaveMode.QuickSave:
+							_grfHolder.QuickSave();
+							break;
+						case GrfEditorSaveMode.SaveAs:
+							_grfHolder.Save(file);
+							break;
+						case GrfEditorSaveMode.Compress:
+							_grfHolder.Save();
+							break;
+						case GrfEditorSaveMode.Repack:
+							_grfHolder.Repack(file);
+							break;
+						case GrfEditorSaveMode.Compact:
+							_grfHolder.Compact();
+							break;
+					}
+				}, _grfHolder, 250), delegate {
+					try {
+						// Finished saving...
+						if (_grfHolder.CancelReload) {
+							_grfHolder.CancelReload = false;
+							return;
+						}
+
+						_recentFilesManager.AddRecentFile(newFileName);
+
+						// The format changed, reload visuals
+						if (oldFileName != newFileName &&
+							oldFileName.GetExtension() != newFileName.GetExtension()) {
+							Load(newFileName, _grfHolder.Header.EncryptionKey);
+						}
+						else {
+							_reloadContainer(newFileName);
+						}
+					}
+					catch (Exception err) {
+						ErrorHandler.HandleException(err);
+					}
+				});
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -407,17 +436,9 @@ namespace GRFEditor {
 				EncodingService.SetDisplayEncoding(encoding);
 				Configuration.EncodingCodepage = encoding;
 
-				if (_grfHolder.IsOpened)
-					_grfLoadingSettings.VisualReloadRequired = false;
-
-				bool result = Load();
-
-				if (!result) {
-					ErrorHandler.HandleException("Behavior not expected, please report this error with the steps you did.", ErrorLevel.Critical);
-					return false;
-				}
-
 				if (_grfHolder.IsOpened) {
+					_reloadContainer(_grfHolder.FileName);
+
 					var ao = _asyncOperation.Begin();
 
 					GrfThread.Start(delegate {
@@ -466,8 +487,7 @@ namespace GRFEditor {
 
 				if (files != null && files.Length == 1) {
 					if (files[0].IsExtension(FileFormat.AllGrfs.Extensions)) {
-						_grfLoadingSettings.FileName = files[0];
-						Load();
+						Load(files[0]);
 						e.Handled = true;
 					}
 				}
@@ -484,7 +504,7 @@ namespace GRFEditor {
 		private void _recentFilesManager_FileClicked(string fileName) {
 			try {
 				if (File.Exists(fileName)) {
-					Load(new GrfLoadingSettings(_grfLoadingSettings) { FileName = fileName });
+					Load(fileName);
 				}
 				else {
 					ErrorHandler.HandleException("File not found : " + fileName, ErrorLevel.Low);
@@ -537,10 +557,10 @@ namespace GRFEditor {
 			_treeViewPathManager.ClearAll();
 			_items.Dispatch(p => _itemEntries.Clear());
 			_treeView.Dispatch(p => p.Items.Clear());
-			_grfLoadingSettings.FileName = _grfHolder.FileName;
+			_lastLoadSettings.FileName = _grfHolder.FileName;
 
 			_listBoxResults.Dispatch(p => _itemSearchEntries.Clear());
-			_treeViewPathManager.AddNewRgz(_grfLoadingSettings.FileName);
+			_treeViewPathManager.AddNewRgz(_lastLoadSettings.FileName);
 			_treeViewPathManager.AddPath(new TkPath { FilePath = _grfHolder.FileName, RelativePath = "root" });
 			_treeViewPathManager.AddPath(new TkPath { FilePath = _grfHolder.FileName, RelativePath = @"root\data\luafiles514\lua files\datainfo" });
 			_treeViewPathManager.AddPath(new TkPath { FilePath = _grfHolder.FileName, RelativePath = @"root\data\luafiles514\lua files\effecttool" });
@@ -592,7 +612,7 @@ namespace GRFEditor {
 
 			_treeViewPathManager.ClearAll();
 			_items.Dispatch(p => _itemEntries.Clear());
-			_grfLoadingSettings.FileName = name;
+			_lastLoadSettings.FileName = name;
 			_listBoxResults.Dispatch(p => _itemSearchEntries.Clear());
 
 			if (isSTA) {

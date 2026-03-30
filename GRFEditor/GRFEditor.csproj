@@ -84,7 +84,7 @@
     <Compile Include="Core\KnownPositionComponent.cs" />
     <Compile Include="Core\AsyncOperationReturnState.cs" />
     <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
-    <Compile Include="Core\GrfLoadingSettings.cs" />
+    <Compile Include="Core\GrfLoadSettings.cs" />
     <Compile Include="OpenGL\ClipboardBrowEdit.cs" />
     <Compile Include="OpenGL\GLHelper.cs" />
     <Compile Include="OpenGL\MapComponents\Camera.cs" />
@@ -1073,7 +1073,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

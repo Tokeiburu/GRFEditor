@@ -12,13 +12,8 @@ namespace GRFEditor.Core {
 		private readonly List<TkPath> _lastPositions = new List<TkPath>();
 		private int _currentLastPositionIndex = -1;
 
-		public bool CanUndo {
-			get { return _currentLastPositionIndex > 0; }
-		}
-
-		public bool CanRedo {
-			get { return _currentLastPositionIndex < _lastPositions.Count - 1; }
-		}
+		public bool CanUndo =>  _currentLastPositionIndex > 0;
+		public bool CanRedo => _currentLastPositionIndex < _lastPositions.Count - 1;
 
 		public event CommandEventHandler CommandExecuted;
 		public event CommandEventHandler UndoExecuted;
@@ -34,15 +29,14 @@ namespace GRFEditor.Core {
 				return;
 			}
 
-			while (_lastPositions.Count - 1 > _currentLastPositionIndex) {
-				_lastPositions.RemoveAt(_lastPositions.Count - 1);
+			if (_lastPositions.Count - 1 > _currentLastPositionIndex) {
+				_lastPositions.RemoveRange(_currentLastPositionIndex + 1, _lastPositions.Count - 1 - _currentLastPositionIndex);
 			}
 
 			_currentLastPositionIndex++;
 			_lastPositions.Add(path);
 
-			if (CommandExecuted != null)
-				CommandExecuted(this);
+			CommandExecuted?.Invoke(this);
 		}
 
 		public void RemovePath() {
@@ -59,18 +53,14 @@ namespace GRFEditor.Core {
 		public void Redo() {
 			if (CanRedo) {
 				_currentLastPositionIndex++;
-
-				if (RedoExecuted != null)
-					RedoExecuted(this);
+				RedoExecuted?.Invoke(this);
 			}
 		}
 
 		public void Undo() {
 			if (CanUndo) {
 				_currentLastPositionIndex--;
-
-				if (UndoExecuted != null)
-					UndoExecuted(this);
+				UndoExecuted?.Invoke(this);
 			}
 		}
 	}

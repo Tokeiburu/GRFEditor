@@ -29,6 +29,7 @@ using AsyncOperation = GrfToWpfBridge.Application.AsyncOperation;
 using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 using OpeningService = GRFEditor.Core.Services.OpeningService;
 using GRFEditor.ApplicationConfiguration;
+using System.Threading.Tasks;
 
 namespace GRFEditor {
 	/// <summary>
@@ -38,7 +39,7 @@ namespace GRFEditor {
 		internal readonly GrfHolder _grfHolder = new GrfHolder();
 		internal AsyncOperation _asyncOperation;
 		private ExtractingService _extractingService;
-		internal GrfLoadingSettings _grfLoadingSettings = new GrfLoadingSettings();
+		internal GrfLoadSettings _lastLoadSettings = null;
 		private double _oldGridWidth;
 		private OpeningService _openingService;
 		private PreviewResourceIndexer _previewResourceIndexer;
@@ -122,6 +123,10 @@ namespace GRFEditor {
 			_loadCpuPerformance();
 			_loadEvents();
 			_initSearchThreads();
+
+			if (_lastLoadSettings != null) {
+				Load(_lastLoadSettings);
+			}
 		}
 
 		private int _loadBasicSettings() {
@@ -134,7 +139,6 @@ namespace GRFEditor {
 			Settings.AddHashFileForThor = Configuration.AddHashFileForThor;
 			Settings.FullFileTableEncryptionSupport = Configuration.FullFileTableEncryptionSupport;
 			TemporaryFilesManager.ClearTemporaryFiles();
-			Settings.OnSavingFailed = _onSavingFailed;
 			return encoding;
 		}
 
@@ -184,9 +188,10 @@ namespace GRFEditor {
 			};
 			_loadMenus();
 
-			if (_grfLoadingSettings.FileName == null && Configuration.AlwaysReopenLatestGrf) {
+			if (_lastLoadSettings == null && Configuration.AlwaysReopenLatestGrf) {
 				if (_recentFilesManager.Files.Count > 0 && File.Exists(_recentFilesManager.Files[0])) {
-					_grfLoadingSettings.FileName = _recentFilesManager.Files[0];
+					_lastLoadSettings = new GrfLoadSettings();
+					_lastLoadSettings.FileName = _recentFilesManager.Files[0];
 				}
 			}
 
@@ -293,7 +298,8 @@ namespace GRFEditor {
 					if (option.Args.Count <= 0)
 						continue;
 
-					_grfLoadingSettings.FileName = option.Args[0];
+					_lastLoadSettings = new GrfLoadSettings();
+					_lastLoadSettings.FileName = option.Args[0];
 				}
 			}
 		}
@@ -363,59 +369,8 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _menuItemCompress_Click(object sender, RoutedEventArgs e) {
-			try {
-				if (_grfHolder.IsNewGrf) {
-					_menuItemSaveAs_Click(null, null);
-				}
-				else {
-					if (_grfHolder.IsOpened && (_grfHolder.IsBusy || _asyncOperation.IsRunning)) {
-						ErrorHandler.HandleException("An opration is currently running, wait for it to finish or cancel it.");
-						return;
-					}
-
-					_grfLoadingSettings.FileName = _grfHolder.FileName;
-					_asyncOperation.ProgressBar.Progress = 0;
-					_asyncOperation.ProgressBar.Progress = -1;
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.Save(), _grfHolder, 250, AsyncOperationReturnState.DoesNotRequireVisualReload), _grfSavingFinished);
-				}
-
-				if (e != null)
-					e.Handled = true;
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _menuItemCompact_Click(object sender, RoutedEventArgs e) {
-			try {
-				if (_grfHolder.IsNewGrf) {
-					_menuItemSaveAs_Click(null, null);
-				}
-				else {
-					if (_grfHolder.IsOpened && (_grfHolder.IsBusy || _asyncOperation.IsRunning)) {
-						ErrorHandler.HandleException("An opration is currently running, wait for it to finish or cancel it.");
-						return;
-					}
-
-					_grfLoadingSettings.FileName = _grfHolder.FileName;
-					_asyncOperation.ProgressBar.Progress = 0;
-					_asyncOperation.ProgressBar.Progress = -1;
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.Compact(), _grfHolder, 250, AsyncOperationReturnState.DoesNotRequireVisualReload), _grfSavingFinished);
-				}
-
-				if (e != null)
-					e.Handled = true;
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _onSavingFailed() {
-			
-		}
+		private void _menuItemCompress_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Compress);
+		private void _menuItemCompact_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Compact);
 
 		#region Window events
 
@@ -505,63 +460,38 @@ namespace GRFEditor {
 
 		#region Logic methods
 
-		private void _grfSavingFinished(object state) {
-			AsyncOperationReturnState op = state == null ? AsyncOperationReturnState.None : (AsyncOperationReturnState) state;
-
-			if (_grfHolder.CancelReload) {
-				return;
-			}
-
-			try {
-				_grfLoadingSettings.ReloadKey = _grfHolder.Header.EncryptionKey != null;
-
-				if (!_grfHolder.CancelReload)
-					_grfHolder.Close();
-
-				_recentFilesManager.AddRecentFile(_grfLoadingSettings.FileName);
-
-				if (op.HasFlags(AsyncOperationReturnState.DoesNotRequireVisualReload)) {
-					_grfLoadingSettings.VisualReloadRequired = false;
-					_grfLoadingSettings.ReloadKey = true;
-				}
-
-				Load(null);
-			}
-			catch (Exception ex) {
-				ErrorHandler.HandleException(ex);
-			}
-		}
-
 		private void _loadCpuPerformance() {
-			new Thread(() => CpuPerformance.GetCurrentCpuUsage()) { Name = "GrfEditor - CpuPerformance loading thread" }.Start();
+			Task.Run(() => CpuPerformance.GetCurrentCpuUsage());
 		}
 
 		private void _checkIfEncrypted(bool fromLoading = true) {
 			new Thread(new ThreadStart(delegate {
-				if ((fromLoading && _grfHolder.Header.IsEncrypted) ||
-				    (!fromLoading && _grfHolder.Header.EncryptionKey == null)) {
-					this.Dispatch(delegate {
-						try {
-							EncryptorInputKeyDialog dialog = new EncryptorInputKeyDialog((fromLoading ? "The file has been encrypted by using GRF Editor. " : "") + "Enter the encryption key to automatically decrypt the content or click cancel to ignore.");
-							dialog.Owner = this;
-							dialog.ShowDialog();
+				if (_grfHolder.Header.EncryptionKey != null)
+					return;
 
-							if (dialog.Result == MessageBoxResult.OK) {
-								Configuration.EncryptorPassword = dialog.Key;
-								_grfHolder.Header.SetKey(Configuration.EncryptorPassword, _grfHolder);
+				if (fromLoading) {
+					if (!_grfHolder.Header.IsEncrypted)
+						return;
+				}
 
-								if (!fromLoading) {
-									_grfHolder.Header.IsEncrypted = true;
-									_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(true), _grfHolder, 300, null, true));
-									//_grfHolder.SetEncryptionFlag(true);
-								}
+				this.Dispatch(delegate {
+					try {
+						EncryptorInputKeyDialog dialog = new EncryptorInputKeyDialog((fromLoading ? "The file has been encrypted by using GRF Editor. " : "") + "Enter the encryption key to automatically decrypt the content or click cancel to ignore.");
+						dialog.Owner = this;
+						dialog.ShowDialog();
+
+						if (dialog.Result == MessageBoxResult.OK) {
+							_grfHolder.Header.SetKey(dialog.Key, _grfHolder);
+
+							if (!fromLoading) {
+								_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(true), _grfHolder, 300, null, true));
 							}
 						}
-						catch (Exception err) {
-							ErrorHandler.HandleException(err);
-						}
-					});
-				}
+					}
+					catch (Exception err) {
+						ErrorHandler.HandleException(err);
+					}
+				});
 			})) { Name = "GrfEditor - Encryption validation thread" }.Start();
 		}
 

@@ -723,8 +723,6 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[Encryptor - RenameCps]"] = value.ToString(); }
 		}
 
-		public static byte[] EncryptorPassword { get; set; }
-
 		#endregion
 
 		#region FlatMapsMaker

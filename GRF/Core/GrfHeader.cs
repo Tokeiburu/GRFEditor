@@ -177,16 +177,16 @@ namespace GRF.Core {
 			FileTableRequiresDecryption = true;
 		}
 
-		public void SetKey(byte[] key, GrfHolder grf) {
+		public void SetKey(byte[] key, FileTable fileTable) {
 			try {
 				EncryptionKey = key;
 				if (key == null) return;
 
-				if (grf.FileTable.Contains(GrfStrings.EncryptionFilename) && !grf.FileTable[GrfStrings.EncryptionFilename].Added) {
-					if (grf.FileTable[GrfStrings.EncryptionFilename].SizeDecompressed == 0)
+				if (fileTable.Contains(GrfStrings.EncryptionFilename) && !fileTable[GrfStrings.EncryptionFilename].Added) {
+					if (fileTable[GrfStrings.EncryptionFilename].SizeDecompressed == 0)
 						throw GrfExceptions.__UnsupportedEncryption.Create();
 
-					if (Crc32.Compute(key) != BitConverter.ToUInt32(grf.FileTable[GrfStrings.EncryptionFilename].GetDecompressedData(), 0))
+					if (Crc32.Compute(key) != BitConverter.ToUInt32(fileTable[GrfStrings.EncryptionFilename].GetDecompressedData(), 0))
 						throw GrfExceptions.__WrongKeyFile.Create();
 				}
 			}
@@ -194,6 +194,10 @@ namespace GRF.Core {
 				EncryptionKey = null;
 				throw;
 			}
+		}
+
+		public void SetKey(byte[] key, GrfHolder grf) {
+			SetKey(key, grf.FileTable);
 		}
 
 		/// <summary>

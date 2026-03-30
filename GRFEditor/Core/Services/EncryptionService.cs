@@ -102,7 +102,6 @@ namespace GRFEditor.Core.Services {
 			dialog.ShowDialog();
 
 			if (dialog.Result == MessageBoxResult.OK) {
-				GrfEditorConfiguration.EncryptorPassword = dialog.Key;
 				grfHolder.Header.SetKey(dialog.Key, grfHolder);
 			}
 		}
