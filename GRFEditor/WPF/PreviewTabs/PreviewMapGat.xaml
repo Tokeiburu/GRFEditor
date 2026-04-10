@@ -92,5 +92,6 @@
                 </DockPanel>
             </ScrollViewer>
         </Grid>
+		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
     </Grid>
 </PreviewTabs:FilePreviewTab>

@@ -49,7 +49,7 @@ namespace GRFEditor.WPF {
 				}
 				else {
 					_recentFiles.RemoveRecentFile(file);
-					ErrorHandler.HandleException("File not found : " + file, ErrorLevel.Low);
+					ErrorHandler.HandleException("File not found: " + file, ErrorLevel.Low);
 				}
 			}
 			catch (Exception err) {

@@ -142,7 +142,7 @@ namespace GRFEditor {
 				}
 				
 				if (_registeredAssemblies.ToList().Contains(assemblyName.Name)) {
-					MessageBox.Show("Failed to load assembly : " + resourceName + "\r\n\r\nThe application will now shutdown.", "Assembly loader");
+					MessageBox.Show("Failed to load assembly: " + resourceName + "\r\n\r\nThe application will now shutdown.", "Assembly loader");
 					Process.GetCurrentProcess().Kill();
 				}
 

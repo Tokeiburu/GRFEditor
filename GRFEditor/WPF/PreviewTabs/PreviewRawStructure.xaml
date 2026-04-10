@@ -36,5 +36,6 @@
         </avalonedit:TextEditor>
             <PreviewTabs:TypeExplorer x:Name="_typeExplorer" />
         </Grid>
+		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
     </Grid>
 </PreviewTabs:FilePreviewTab>

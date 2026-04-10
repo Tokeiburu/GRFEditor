@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Forms;
 using GRF.Core;
@@ -31,6 +32,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		public OpenGLViewport() {
 			InitializeComponent();
+
+			if (DesignerProperties.GetIsInDesignMode(this))
+				return;
 
 			_primary.Load += _primary_Load;
 			_primary.Resize += _primary_Resize;

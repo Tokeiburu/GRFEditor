@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -155,14 +156,18 @@ namespace GRFEditor.Tools.MapExtractor {
 			_grf = grf;
 			_fileName = fileName;
 
-			new Thread(() => _updateMapFiles(fileName, cancelMethod)) { Name = "GrfEditor - MapExtractor map update thread" }.Start();
+			Task.Run(() => _updateMapFiles(fileName, cancelMethod));
 		}
 
-		private void _disableNode(MapExtractorTreeViewItem gndTextureNode) {
-			gndTextureNode.Dispatch(delegate {
-				gndTextureNode.CheckBoxHeaderIsEnabled = false;
-				gndTextureNode.ResourcePath = null;
-				gndTextureNode.RelativeGrfPath = null;
+		private void _disableNode(MapExtractorTreeViewItem node, string message = null) {
+			node.Dispatch(delegate {
+				node.IsChecked = false;
+				node.CheckBoxHeaderIsEnabled = false;
+				node.ResourcePath = null;
+				node.RelativeGrfPath = null;
+
+				if (message != null)
+					node.ToolTip = message;
 			});
 		}
 
@@ -257,10 +262,13 @@ namespace GRFEditor.Tools.MapExtractor {
 			}
 		}
 
-		private void _updateMapFiles(string fileName, Func<bool> cancelMethod) {
+		private void _updateMapFiles(string fileName, Func<bool> cancelToken) {
 			try {
+				if (cancelToken == null)
+					cancelToken = () => false;
+
 				lock (_lock) {
-					if (cancelMethod != null && cancelMethod()) return;
+					if (cancelToken()) return;
 
 					string mapFile = Path.GetFileNameWithoutExtension(fileName);
 					string expandExt = fileName.GetExtension();
@@ -271,31 +279,31 @@ namespace GRFEditor.Tools.MapExtractor {
 					bool isMapFile = fileName.IsExtension(".rsw", ".gat", ".gnd");
 
 					if (fileName.IsExtension(".rsm")) {
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".rsm", _grfPath, null);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".rsm", _grfPath, null);
 					}
 					else if (fileName.IsExtension(".rsm2")) {
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".rsm2", _grfPath, null);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".rsm2", _grfPath, null);
 					}
 					else if (fileName.IsExtension(".str")) {
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".str", _grfPath, null);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".str", _grfPath, null);
 					}
 					else {
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".gnd", @"data\", null, isMapFile);
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".rsw", @"data\", null, isMapFile);
-						if (cancelMethod != null && cancelMethod()) return;
-						_addNode(cancelMethod, mapFile + ".gat", @"data\", null, isMapFile);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".gnd", @"data\", null, isMapFile);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".rsw", @"data\", null, isMapFile);
+						if (cancelToken()) return;
+						_addNode(cancelToken, mapFile + ".gat", @"data\", null, isMapFile);
 
 						if (GrfEditorConfiguration.Resources.MultiGrf.Exists(@"data\luafiles514\lua files\effecttool\" + mapFile + ".lub")) {
-							_addNode(cancelMethod, mapFile + ".lub", @"data\luafiles514\lua files\effecttool\", null, isMapFile);
+							_addNode(cancelToken, mapFile + ".lub", @"data\luafiles514\lua files\effecttool\", null, isMapFile);
 						}
 					}
 
-					if (cancelMethod != null && cancelMethod()) return;
+					if (cancelToken()) return;
 					_treeViewMapExtractor.Dispatch(delegate {
 						foreach (MapExtractorTreeViewItem node in _treeViewMapExtractor.Items) {
 							if (node.HeaderText.IsExtension(expandExt)) {
@@ -315,9 +323,9 @@ namespace GRFEditor.Tools.MapExtractor {
 			}
 		}
 
-		private void _addNode(Func<bool> cancelMethod, string subRelativeFile, string relativeResourceLocation, MapExtractorTreeViewItem parent, bool isChecked = true) {
+		private void _addNode(Func<bool> cancelToken, string subRelativeFile, string relativeResourceLocation, MapExtractorTreeViewItem parent, bool isChecked = true) {
 			try {
-				if (cancelMethod != null && cancelMethod()) return;
+				if (cancelToken()) return;
 
 				MapExtractorTreeViewItem mainNode = (MapExtractorTreeViewItem)_treeViewMapExtractor.Dispatch(() => new MapExtractorTreeViewItem(_treeViewMapExtractor));
 				string relativePath = Path.Combine(relativeResourceLocation, subRelativeFile);
@@ -340,78 +348,97 @@ namespace GRFEditor.Tools.MapExtractor {
 				});
 
 				if (mainNode.ResourcePath != null) {
-					mainNode.Dispatch(p => p.IsChecked = isChecked);
 					string extension = subRelativeFile.GetExtension();
 
-					if (cancelMethod != null && cancelMethod()) return;
+					if (cancelToken()) return;
 
-					switch (extension) {
-						case ".rsm":
-						case ".rsm2":
-							var byteData = GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath);
+					try {
+						switch (extension) {
+							case ".rsm":
+							case ".rsm2":
+								var byteData = GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath);
 
-							var binaryReader = ((MultiType)byteData).GetBinaryReader();
-							RsmHeader rsmHeader = new RsmHeader(binaryReader);
+								var binaryReader = ((MultiType)byteData).GetBinaryReader();
+								RsmHeader rsmHeader = new RsmHeader(binaryReader);
 
-							if (rsmHeader.Version < 2.0) {
-								binaryReader.Forward(8);
+								if (rsmHeader.Version < 2.0) {
+									binaryReader.Forward(8);
 
-								if (rsmHeader.Version >= 1.4) {
-									binaryReader.Forward(1);
+									if (rsmHeader.Version >= 1.4) {
+										binaryReader.Forward(1);
+									}
+
+									binaryReader.Forward(16);
+									var count = binaryReader.Int32();
+
+									for (int i = 0; i < count; i++) {
+										resources.Add(binaryReader.String(40, '\0'));
+									}
+								}
+								else {
+									binaryReader.Position = 0;
+									Rsm rsm2 = new Rsm(binaryReader);
+
+									resources.AddRange(rsm2.Textures);
+
+									foreach (var mesh in rsm2.Meshes) {
+										resources.AddRange(mesh.Textures);
+									}
+
+									resources = resources.Distinct().ToList();
 								}
 
-								binaryReader.Forward(16);
-								var count = binaryReader.Int32();
-
-								for (int i = 0; i < count; i++) {
-									resources.Add(binaryReader.String(40, '\0'));
+								foreach (string texture in resources) {
+									_addNode(cancelToken, texture, @"data\texture\", mainNode, isChecked);
 								}
-							}
-							else {
-								binaryReader.Position = 0;
-								Rsm rsm2 = new Rsm(binaryReader);
+								break;
+							case ".lub":
+							case ".gat":
+								// Attempt to read file
+								if (GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath) == null) {
+									_disableNode(mainNode, "Cannot read the file. It is either encrypted or corrupted.");
+								}
+								break;
+							case ".gnd":
+								var dataEntry = ((MultiType)GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath)).GetByteReader();
+								GndHeader gndHeader = new GndHeader(dataEntry);
 
-								resources.AddRange(rsm2.Textures);
-
-								foreach (var mesh in rsm2.Meshes) {
-									resources.AddRange(mesh.Textures);
+								for (int i = 0; i < gndHeader.TextureCount; i++) {
+									resources.Add(dataEntry.String(gndHeader.TexturePathSize, '\0'));
 								}
 
-								resources = resources.Distinct().ToList();
-							}
+								foreach (string texture in resources.Distinct()) {
+									_addNode(cancelToken, texture, @"data\texture\", mainNode, isChecked);
+								}
+								break;
+							case ".rsw":
+								Rsw rsw = new Rsw(GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
 
-							foreach (string texture in resources) {
-								_addNode(cancelMethod, texture, @"data\texture\", mainNode, isChecked);
-							}
-							break;
-						case ".gnd":
-							var dataEntry = ((MultiType)GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath)).GetByteReader();
-							GndHeader gndHeader = new GndHeader(dataEntry);
-							
-							for (int i = 0; i < gndHeader.TextureCount; i++) {
-								resources.Add(dataEntry.String(gndHeader.TexturePathSize, '\0'));
-							}
+								foreach (string model in rsw.ModelResources.Distinct()) {
+									_addNode(cancelToken, model, @"data\model\", mainNode, isChecked);
+								}
+								break;
+							case ".str":
+								Str str = new Str(GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
 
-							foreach (string texture in resources.Distinct()) {
-								_addNode(cancelMethod, texture, @"data\texture\", mainNode, isChecked);
-							}
-							break;
-						case ".rsw":
-							Rsw rsw = new Rsw(GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
+								resources = str.Textures;
 
-							foreach (string model in rsw.ModelResources.Distinct()) {
-								_addNode(cancelMethod, model, @"data\model\", mainNode, isChecked);
-							}
-							break;
-						case ".str":
-							Str str = new Str(GrfEditorConfiguration.Resources.MultiGrf.GetData(relativePath));
+								foreach (string resource in resources) {
+									_addNode(cancelToken, resource, relativeResourceLocation, mainNode, isChecked);
+								}
+								break;
+						}
+					}
+					catch {
+						_disableNode(mainNode, "Cannot read the file. It is either encrypted or corrupted.");
+					}
 
-							resources = str.Textures;
-
-							foreach (string resource in resources) {
-								_addNode(cancelMethod, resource, relativeResourceLocation, mainNode, isChecked);
+					if (isChecked) {
+						mainNode.Dispatch(delegate {
+							if (mainNode.CheckBoxHeaderIsEnabled) {
+								mainNode.IsChecked = isChecked;
 							}
-							break;
+						});
 					}
 				}
 				else {

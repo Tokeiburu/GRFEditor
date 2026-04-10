@@ -507,7 +507,7 @@ namespace GRFEditor {
 					Load(fileName);
 				}
 				else {
-					ErrorHandler.HandleException("File not found : " + fileName, ErrorLevel.Low);
+					ErrorHandler.HandleException("File not found: " + fileName, ErrorLevel.Low);
 					_recentFilesManager.RemoveRecentFile(fileName);
 				}
 			}

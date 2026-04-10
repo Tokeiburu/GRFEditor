@@ -35,16 +35,18 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_textEditor.WordWrap = GrfEditorConfiguration.EnableWordWrap;
 			}, true);
 			WpfUtilities.AddMouseInOutUnderline(_cbWordWrap);
+			ErrorPanel = _errorPanel;
 		}
 
 		protected override void _load(FileEntry entry) {
-			_labelHeader.Dispatch(p => p.Text = "Text file : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "Text file: " + Path.GetFileName(entry.RelativePath));
 			_textEditor.Encoding = null;
 
 			switch (entry.RelativePath.GetExtension()) {
 				case ".ase":
 				case ".csv":
 				case ".txt":
+				case ".tsv":
 				case ".xml":
 					AvalonHelper.Select("XML", _highlightingComboBox);
 					_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "XML"));
@@ -116,6 +118,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				switch(ext) {
 					case ".txt":
+					case ".tsv":
 					case ".log":
 					case ".xml":
 					case ".lua":

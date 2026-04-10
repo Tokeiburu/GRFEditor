@@ -263,7 +263,7 @@ namespace TokeiLibrary {
 			try {
 				string crash = "\r\n\r\n\r\n" +
 							   PrettyLine(DateTime.Now.ToString(CultureInfo.InvariantCulture)) + "\r\n" +
-							   PrettyLine(8, "Loaded assemblies : ") + "\r\n" +
+							   PrettyLine(8, "Loaded assemblies: ") + "\r\n" +
 							   _writeLoadedAssemblies() + "\r\n";
 
 				crash += ErrorHandler.GenerateOutput(e.ExceptionObject as Exception);
@@ -289,7 +289,7 @@ namespace TokeiLibrary {
 			try {
 				string crash = "\r\n\r\n\r\n" +
 							   PrettyLine(DateTime.Now.ToString(CultureInfo.InvariantCulture)) + "\r\n" +
-							   PrettyLine(8, "Loaded assemblies : ") + "\r\n" +
+							   PrettyLine(8, "Loaded assemblies: ") + "\r\n" +
 							   _writeLoadedAssemblies() + "\r\n";
 
 				crash += ErrorHandler.GenerateOutput(e.Exception);
@@ -534,7 +534,7 @@ namespace TokeiLibrary {
 					File.WriteAllBytes(Path.Combine(Configuration.ProgramDataPath, extension.Substring(1, extension.Length - 1) + ".ico"), data);
 				}
 				catch {
-					throw new Exception("Couldn't find the resource : " + extension.Substring(1, extension.Length - 1) + ".ico");
+					throw new Exception("Couldn't find the resource: " + extension.Substring(1, extension.Length - 1) + ".ico");
 				}
 			}
 			else if (Methods.IsWinXPOrHigher()) {
@@ -570,7 +570,7 @@ namespace TokeiLibrary {
 					File.WriteAllBytes(Path.Combine(Configuration.ProgramDataPath, extension.Substring(1, extension.Length - 1) + ".ico"), data);
 				}
 				catch {
-					throw new Exception("Couldn't find the resource : " + extension.Substring(1, extension.Length - 1) + ".ico");
+					throw new Exception("Couldn't find the resource: " + extension.Substring(1, extension.Length - 1) + ".ico");
 				}
 			}
 

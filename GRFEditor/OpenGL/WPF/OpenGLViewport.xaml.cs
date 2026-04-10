@@ -107,6 +107,7 @@ namespace GRFEditor.OpenGL.WPF {
 			try {
 				RenderOptions = new MapRendererOptions();
 				_primary = new GLControl(new GraphicsMode(32, 24, 0, antialias));
+				//_primary.VSync = false;
 				_camera = new Camera(this);
 				_host.Child = _primary;
 

@@ -33,7 +33,7 @@ namespace GrfCL {
 				}
 			}
 
-			throw new Exception("Unable to load the following resourse : " + resourceName);
+			throw new Exception("Unable to load the following resourse: " + resourceName);
 		}
 
 		public static byte[] Decompress(byte[] data) {

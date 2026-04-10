@@ -490,7 +490,7 @@ namespace GRF.FileFormats.SprFormat {
 				AddImage(image, absoluteIndex - NumberOfIndexed8Images);
 			}
 			else {
-				throw new Exception("Invalid image format. Found : " + image.GrfImageType + ", expected Indexed8 or Bgra32.");
+				throw new Exception("Invalid image format. Found: " + image.GrfImageType + ", expected Indexed8 or Bgra32.");
 			}
 		}
 
@@ -563,7 +563,7 @@ namespace GRF.FileFormats.SprFormat {
 				return new SpriteIndex(index, image);
 			}
 
-			throw new Exception("Invalid image format. Found : " + image.GrfImageType + ", expected Indexed8 or Bgra32.");
+			throw new Exception("Invalid image format. Found: " + image.GrfImageType + ", expected Indexed8 or Bgra32.");
 		}
 
 		public GrfImage GetImage(SpriteIndex source) {

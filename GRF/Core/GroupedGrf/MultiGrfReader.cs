@@ -34,6 +34,7 @@ namespace GRF.Core.GroupedGrf {
 		public FileTable FileTable { get; private set; }
 
 		public string LatestFile { get; private set; }
+		public Exception LatestException { get; private set; }
 
 		public Dictionary<string, GrfHolder> Containers {
 			get { return _containers; }
@@ -174,6 +175,8 @@ namespace GRF.Core.GroupedGrf {
 		}
 
 		public byte[] GetData(string relativePath) {
+			LatestException = null;
+
 			try {
 				if (relativePath.StartsWith(GrfStrings.RgzRoot))
 					relativePath = relativePath.Remove(0, GrfStrings.RgzRoot.Length);
@@ -197,7 +200,8 @@ namespace GRF.Core.GroupedGrf {
 				LatestFile = null;
 				return null;
 			}
-			catch {
+			catch (Exception err) {
+				LatestException = err;
 				LatestFile = null;
 				return null;
 			}

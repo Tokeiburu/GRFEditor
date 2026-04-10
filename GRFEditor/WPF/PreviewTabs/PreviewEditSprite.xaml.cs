@@ -23,38 +23,46 @@ namespace GRFEditor.WPF.PreviewTabs {
 			InitializeComponent();
 
 			_isInvisibleResult = () => _primary.Dispatch(p => p.Items.Clear());
+
+			ErrorPanel = _errorPanel;
 		}
 
 		protected override void _load(FileEntry entry) {
+			bool res = this.Dispatch(p => {
+				if (_spriteEditorTab != null) {
+					if (!_spriteEditorTab.Closing()) {
+						return false;
+					}
+				}
+
+				return true;
+			});
+
+			if (!res)
+				return;
+
+			this.Dispatch(p => _labelHeader.Text = "Edit sprite: " + Path.GetFileName(entry.RelativePath));
+
+			var spriteData = entry.GetDecompressedData();
+
 			Dispatcher.Invoke(new Action(delegate {
 				try {
-					if (_spriteEditorTab != null) {
-						if (!_spriteEditorTab.Closing()) {
-							return;
-						}
-					}
-
-					_labelHeader.Text = "Edit sprite : " + Path.GetFileName(entry.RelativePath);
-
 					if (_spriteEditorTab != null && _primary.Items.Contains(_spriteEditorTab))
 						_primary.Items.Remove(_spriteEditorTab);
 
 
 					_spriteEditorTab = null;
 
-					if (_spriteEditorTab == null) {
-						byte[] data = entry.GetDecompressedData();
-						File.WriteAllBytes(GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), data);
+					File.WriteAllBytes(GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), spriteData);
 
-						if (_isCancelRequired()) return;
+					if (_isCancelRequired()) return;
 
-						_spriteEditorTab = new SpriteEditorTab(Path.GetFileName(entry.RelativePath), GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), true);
+					_spriteEditorTab = new SpriteEditorTab(Path.GetFileName(entry.RelativePath), GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), true);
 
-						if (_isCancelRequired()) return;
+					if (_isCancelRequired()) return;
 
-						_primary.Items.Add(_spriteEditorTab);
-						_primary.SelectedIndex = 0;
-					}
+					_primary.Items.Add(_spriteEditorTab);
+					_primary.SelectedIndex = 0;
 				}
 				catch (Exception err) {
 					ErrorHandler.HandleException(err);

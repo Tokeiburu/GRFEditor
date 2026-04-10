@@ -36,9 +36,9 @@ namespace GRF {
 		#endregion
 
 		#region Compression DLL
-		public const string DisplayGravityDll =  "Gravity Official Zlib Library";
-		public const string DisplayGrfEditorDll = "GRF Editor Custom Zlib Library";
-		public const string DisplayLzmaDll = "LZMA Library (by Curiosity)";
+		public const string DisplayGravityDll =  "Zlib (Gravity)";
+		public const string DisplayGrfEditorDll = "Zlib (GRF Editor)";
+		public const string DisplayLzmaDll = "Lzma (by Curiosity)";
 		public const string DisplayNullCompression = "No compression (debug mode)";
 		public const string RecoveryCompression = "Force decompression (Recovery)";
 		public const string CustomCompression = "Custom compression...";

@@ -57,6 +57,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 
 			_tbEase.Text = String.Format("{0:0.00}", GrfEditorConfiguration.PreviewImageZoom);
+			ErrorPanel = _errorPanel;
 		}
 
 		public Action<Brush> BackgroundBrushFunction {
@@ -108,7 +109,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			string fileName = entry.RelativePath;
 
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
-			_labelHeader.Dispatch(p => p.Text = "Palette preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Palette preview: " + Path.GetFileName(fileName));
 
 			try {
 				GrfImage paletteImage;
@@ -139,9 +140,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_imagePreview.Source = null;
 					_updateZoom();
 				});
-				
-				_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
-				return;
+
+				throw;
 			}
 
 			_imagePreview.Dispatch(delegate {

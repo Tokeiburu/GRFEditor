@@ -79,7 +79,7 @@ namespace GRFEditor.Tools.GrfValidation {
 					if (container.Header.IsMajorVersion(1)) {
 						errors.AddRange(entriesList.Where(p => p.SizeCompressedAlignment % 8 != 0)
 											.Select(p => new Utilities.Extension.Tuple<ValidationTypes, string, string>(
-								                             ValidationTypes.FeInvalidFileTable, p.RelativePath, "Invalid file alignment (misaligned bytes : " + (p.SizeCompressedAlignment % 8) + ").")));
+								                             ValidationTypes.FeInvalidFileTable, p.RelativePath, "Invalid file alignment (misaligned bytes: " + (p.SizeCompressedAlignment % 8) + ").")));
 					}
 				}
 
@@ -487,7 +487,7 @@ namespace GRFEditor.Tools.GrfValidation {
 								else {
 									if (!ignoreFiles) {
 										errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
-											           ValidationTypes.VeFileNotFound, entry.RelativePath, "File not found on the hard drive : " + fileName));
+											           ValidationTypes.VeFileNotFound, entry.RelativePath, "File not found on the hard drive: " + fileName));
 									}
 								}
 
@@ -549,7 +549,7 @@ namespace GRFEditor.Tools.GrfValidation {
 									if (!ignoreFiles) {
 										lock (_lock) {
 											errors.Add(new Utilities.Extension.Tuple<ValidationTypes, string, string>(
-												           ValidationTypes.VeFileNotFound, fileName, "File not found in the GRF : " + relativePath));
+												           ValidationTypes.VeFileNotFound, fileName, "File not found in the GRF: " + relativePath));
 										}
 									}
 								}

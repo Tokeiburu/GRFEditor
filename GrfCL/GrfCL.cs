@@ -95,8 +95,8 @@ namespace GrfCL {
 			}
 			catch (Exception err) {
 				CLHelper.Error = "An exception has been thrown";
-				CLHelper.Error = "Given command line : " + commandLine;
-				CLHelper.Error = "Command being executed : " + _clOption.CommandName + " " + _clOption.Args.Aggregate("", (current, f) => current + " <" + f + ">");
+				CLHelper.Error = "Given command line: " + commandLine;
+				CLHelper.Error = "Command being executed: " + _clOption.CommandName + " " + _clOption.Args.Aggregate("", (current, f) => current + " <" + f + ">");
 				CLHelper.Exception = err.Message;
 				if (_breakOnExceptions)
 					Break();

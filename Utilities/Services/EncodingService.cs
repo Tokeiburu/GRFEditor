@@ -186,8 +186,8 @@ namespace Utilities.Services {
 				_hasBeenAdvised = true;
 				ErrorHandler.HandleException(
 					"The file name is in the wrong encoding format. Here's the automatic translation result." +
-					"\nOriginal : " + file +
-					"\nNew : " + newFile +
+					"\nOriginal: " + file +
+					"\nNew: " + newFile +
 					"\n\nYou can undo this operation if you think it's wrong (you will not be notified about " +
 					"similar issues again).", ErrorLevel.Low);
 			}
@@ -223,8 +223,8 @@ namespace Utilities.Services {
 			if (!_hasBeenAdvised && !quiet) {
 				ErrorHandler.HandleException(
 					"The path name is in the wrong encoding format. Here's the automatic translation result." +
-					"\nOriginal : " + path +
-					"\nNew : " + newPath +
+					"\nOriginal: " + path +
+					"\nNew: " + newPath +
 					"\n\nYou can undo this operation if you think it's wrong (you will not be notified about " +
 					"similar issues again).", ErrorLevel.Low);
 				_hasBeenAdvised = true;

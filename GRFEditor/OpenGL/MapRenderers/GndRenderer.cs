@@ -407,6 +407,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			_ri.BindVao();
 
 			foreach (var vboIndex in VertIndices) {
+				if (vboIndex.Count == 0)
+					continue;
 				if (viewport.RenderPass == RenderMode.OpaqueTextures && (vboIndex.Texture >= 0 && Textures[vboIndex.Texture].IsSemiTransparent))
 					continue;
 				if (viewport.RenderPass == RenderMode.TransparentTextures && (vboIndex.Texture < 0 || !Textures[vboIndex.Texture].IsSemiTransparent))

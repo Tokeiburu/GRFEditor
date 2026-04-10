@@ -146,6 +146,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 				dialog.Load(_currentRequest);
 				_openDialog(dialog, _checkBoxRotateCamera);
 			};
+
+			ErrorPanel = _errorPanel;
 		}
 
 		public void CreateMinimap() {
@@ -424,13 +426,19 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected override void _load(FileEntry entry) {
 			_enableAnimationThread = false;
 
+			this.Dispatch(delegate {
+				if (entry.RelativePath.IsExtension(".rsm", ".rsm2"))
+					_labelHeader.Text = "Model preview: " + entry.DisplayRelativePath;
+				else
+					_labelHeader.Text = "Map preview: " + entry.DisplayRelativePath;
+			});
+
 			if (entry.RelativePath.IsExtension(".rsm", ".rsm2")) {
 				Rsm.ForceShadeType = _shading;
 				_rsm = new Rsm(entry.GetDecompressedData());
 				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = false, Rsm = _rsm, CancelRequired = _isCancelRequired, Resource = entry.RelativePath, Context = _viewport });
 
 				this.Dispatch(delegate {
-					_labelHeader.Text = "Model preview : " + entry.DisplayRelativePath;
 					_buttonShading.Visibility = Visibility.Visible;
 					_buttonLighting.Visibility = Visibility.Collapsed;
 					_buttonSkyMap.Visibility = Visibility.Collapsed;
@@ -468,12 +476,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				Rsm.ForceShadeType = -1;
 				
-				//if (_viewport._request == null || _viewport._request.Resource != mapName) {
-					_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired, Context = _viewport });
-				//}
+				_viewport.Loader.AddRequest(new RendererLoadRequest { IsMap = true, Resource = mapName, CancelRequired = _isCancelRequired, Context = _viewport });
 
 				this.Dispatch(delegate {
-					_labelHeader.Text = "Map preview : " + entry.DisplayRelativePath;
 					_buttonShading.Visibility = Visibility.Collapsed;
 					_buttonLighting.Visibility = Visibility.Visible;
 					_buttonSkyMap.Visibility = Visibility.Visible;

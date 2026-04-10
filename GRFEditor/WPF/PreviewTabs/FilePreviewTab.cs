@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Windows.Controls;
 using ErrorManager;
+using GRF.ContainerFormat;
 using GRF.Core;
 using TokeiLibrary;
 
@@ -13,6 +14,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected Action _isInvisibleResult;
 		protected FileEntry _oldEntry;
 		protected bool _requiresSTA = false;
+		protected ErrorPanel ErrorPanel;
 
 		public FilePreviewTab() {
 		}
@@ -69,13 +71,22 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 					if (_isCancelRequired()) return;
 
-					_load(entry);
+					try {
+						_load(entry);
+					}
+					finally {
+						_oldEntry = entry;
+					}
 
-					_oldEntry = entry;
+					if (ErrorPanel != null)
+						ErrorPanel.ClearError();
 				}
 			}
+			catch (GrfException err) when (ErrorPanel != null) {
+				ErrorPanel.ShowError(this, entry, err);
+			}
 			catch (ObjectDisposedException err) {
-				ErrorHandler.HandleException("If you're receiving this error while the GRF is saving, it is because the file is temporary closed.", err);
+				ErrorHandler.HandleException("If you're receiving this error while the GRF is saving, it is because the file is temporarily closed.", err);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);

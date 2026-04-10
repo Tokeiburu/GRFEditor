@@ -19,10 +19,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			Binder.Bind(_checkBoxPlayAutomatically, () => GrfEditorConfiguration.AutomaticallyPlaySoundFiles);
 			WpfUtilities.AddMouseInOutUnderline(_checkBoxPlayAutomatically);
+			ErrorPanel = _errorPanel;
 		}
 
 		protected override void _load(FileEntry entry) {
-			_labelHeader.Dispatch(p => p.Text = "Wav file : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "Wav file: " + Path.GetFileName(entry.RelativePath));
 
 			_player.Stream = new MemoryStream(entry.GetDecompressedData());
 

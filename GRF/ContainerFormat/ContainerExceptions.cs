@@ -82,7 +82,7 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __CorruptedOrEncryptedEntry = "Failed to decompress data. The following entry is either corrupted or encrypted: \r\n{0}";
 		public static readonly FormattedExceptionMessage __GrfSizeLimitReached = "Failed to save the GRF, size limit reached (4,294,967,295 bytes).";
 		public static readonly FormattedExceptionMessage __InvalidSprConvertMode = "Unexpected SprConvertMode for this function.";
-		public static readonly FormattedExceptionMessage __GravityEncryptedFile = "This file '{0}' is using a new encryption method by Gravity which is currently not supported.";
+		public static readonly FormattedExceptionMessage __GravityEncryptedFile = "The file '{0}' is using a new encryption method by Gravity which is not supported.";
 
 		internal static GrfException Create(FormattedExceptionMessage exception, params object[] items) {
 			return new GrfException(exception, String.Format(exception.Message, items));

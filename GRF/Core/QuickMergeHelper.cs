@@ -96,6 +96,7 @@ namespace GRF.Core {
 
 		public bool ShouldRepackInstead(List<FileEntry> entries, List<FileEntry> entriesAdded) {
 			if (_grf.InternalHeader.IsEncrypting || _grf.InternalHeader.IsDecrypting) return true;
+			// TODO: Why does it require a repack if encryption is enabled? Seems like a waste of time...
 			if (_grf.InternalHeader.IsEncrypted && !_grf.InternalHeader.EncryptFileTable) return true;
 			if (_grf.InternalHeader.EncryptionKey != null && !_grf.InternalHeader.EncryptFileTable) return true;
 			if (_grf.Table.Entries.Any(p => (p.Modification & Modification.Encrypt) == Modification.Encrypt || (p.Modification & Modification.Decrypt) == Modification.Decrypt)) return true;

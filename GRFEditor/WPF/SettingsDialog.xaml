@@ -7,7 +7,7 @@
         xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
         xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
         xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
-        MaxWidth="470" MinWidth="470" MinHeight="520" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
+        MaxWidth="500" MinWidth="500" MinHeight="520" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition />

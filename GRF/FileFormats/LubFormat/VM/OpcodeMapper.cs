@@ -93,7 +93,7 @@ namespace GRF.FileFormats.LubFormat.VM {
 			int opcode = codeInt & 0x3f;
 
 			if (opcode >= instructionSet.Count) {
-				LubErrorHandler.Handle("Failed to retrieve the opcode : " + opcode + ".", LubSourceError.LubReader);
+				LubErrorHandler.Handle("Failed to retrieve the opcode: " + opcode + ".", LubSourceError.LubReader);
 			}
 
 			OpCodes.AbstractInstruction instrution = instructionSet[opcode]();

@@ -9,6 +9,7 @@
 #endregion
 
 using System;
+using System.Diagnostics.Contracts;
 
 namespace GRF.Graphics {
 	/// <summary>
@@ -243,31 +244,54 @@ namespace GRF.Graphics {
 
 		#endregion
 
-		#region Swap
-
-		/// <summary>
-		/// Swaps two double values.
-		/// </summary>
-		/// <param name="a">The first value.</param>
-		/// <param name="b">The second value.</param>
-		public static void Swap(ref double a, ref double b) {
-			double temp = a;
-			a = b;
-			b = temp;
-		}
 
 		/// <summary>
 		/// Swaps two float values.
 		/// </summary>
+		/// <typeparam name="T">The type of the values to swap.</typeparam>
 		/// <param name="a">The first value.</param>
 		/// <param name="b">The second value.</param>
-		public static void Swap(ref float a, ref float b) {
-			float temp = a;
+		public static void Swap<T>(ref T a, ref T b) {
+			var temp = a;
 			a = b;
 			b = temp;
 		}
 
-		#endregion
+		/// <summary>
+		/// Clamps a number between a minimum and a maximum.
+		/// </summary>
+		/// <param name="n">The number to clamp.</param>
+		/// <param name="min">The minimum allowed value.</param>
+		/// <param name="max">The maximum allowed value.</param>
+		/// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
+		[Pure]
+		public static int Clamp(int n, int min, int max) {
+			return Math.Max(Math.Min(n, max), min);
+		}
+
+		/// <summary>
+		/// Clamps a number between a minimum and a maximum.
+		/// </summary>
+		/// <param name="n">The number to clamp.</param>
+		/// <param name="min">The minimum allowed value.</param>
+		/// <param name="max">The maximum allowed value.</param>
+		/// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
+		[Pure]
+		public static float Clamp(float n, float min, float max) {
+			return Math.Max(Math.Min(n, max), min);
+		}
+
+		/// <summary>
+		/// Clamps a number between a minimum and a maximum.
+		/// </summary>
+		/// <param name="n">The number to clamp.</param>
+		/// <param name="min">The minimum allowed value.</param>
+		/// <param name="max">The maximum allowed value.</param>
+		/// <returns>min, if n is lower than min; max, if n is higher than max; n otherwise.</returns>
+		[Pure]
+		public static double Clamp(double n, double min, double max) {
+			return Math.Max(Math.Min(n, max), min);
+		}
 
 		#endregion
 	}

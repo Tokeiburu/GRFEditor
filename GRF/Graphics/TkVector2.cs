@@ -1,5 +1,4 @@
-﻿#region --- License ---
-/*
+﻿/*
 Copyright (c) 2006 - 2008 The Open Toolkit library.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -20,57 +19,36 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
-#endregion
 
 using System;
+using System.Diagnostics.Contracts;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Serialization;
 
 namespace GRF.Graphics {
-	/// <summary>Represents a 2D vector using two single-precision floating-point numbers.</summary>
+	/// <summary>
+	/// Represents a 2D vector using two single-precision floating-point numbers.
+	/// </summary>
 	/// <remarks>
-	/// The Vector2 structure is suitable for interoperation with unmanaged code requiring two consecutive floats.
+	/// The TkVector2 structure is suitable for interoperation with unmanaged code requiring two consecutive floats.
 	/// </remarks>
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential)]
 	public struct TkVector2 : IEquatable<TkVector2> {
-		#region Fields
-
 		/// <summary>
-		/// The X component of the Vector2.
+		/// The X component of the TkVector2.
 		/// </summary>
 		public float X;
 
 		/// <summary>
-		/// The Y component of the Vector2.
+		/// The Y component of the TkVector2.
 		/// </summary>
 		public float Y;
 
-		#endregion
-
-		public float this[int index] {
-			get {
-				if (index == 0)
-					return X;
-				if (index == 1)
-					return Y;
-				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
-			}
-			set {
-				if (index == 0) {
-					X = value;
-				}
-				else {
-					if (index != 1)
-						throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
-					Y = value;
-				}
-			}
-		}
-
-		#region Constructors
-
 		/// <summary>
-		/// Constructs a new instance.
+		/// Initializes a new instance of the <see cref="TkVector2"/> struct.
 		/// </summary>
 		/// <param name="value">The value that will initialize this instance.</param>
 		public TkVector2(float value) {
@@ -79,10 +57,10 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector2.
+		/// Initializes a new instance of the <see cref="TkVector2"/> struct.
 		/// </summary>
-		/// <param name="x">The x coordinate of the net Vector2.</param>
-		/// <param name="y">The y coordinate of the net Vector2.</param>
+		/// <param name="x">The x coordinate of the net TkVector2.</param>
+		/// <param name="y">The y coordinate of the net TkVector2.</param>
 		public TkVector2(float x, float y) {
 			X = x;
 			Y = y;
@@ -109,122 +87,42 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector2 from the given Vector2.
+		/// Gets or sets the value at the index of the Vector.
 		/// </summary>
-		/// <param name="v">The Vector2 to copy components from.</param>
-		[Obsolete]
-		public TkVector2(TkVector2 v) {
-			X = v.X;
-			Y = v.Y;
+		/// <param name="index">The index of the component from the Vector.</param>
+		/// <exception cref="IndexOutOfRangeException">Thrown if the index is less than 0 or greater than 1.</exception>
+		public float this[int index] {
+			get {
+				if (index == 0) {
+					return X;
+				}
+
+				if (index == 1) {
+					return Y;
+				}
+
+				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
+			}
+
+			set {
+				if (index == 0) {
+					X = value;
+				}
+				else if (index == 1) {
+					Y = value;
+				}
+				else {
+					throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
+				}
+			}
 		}
-
-		/// <summary>
-		/// Constructs a new Vector2 from the given Vector3.
-		/// </summary>
-		/// <param name="v">The Vector3 to copy components from. Z is discarded.</param>
-		[Obsolete]
-		public TkVector2(TkVector3 v) {
-			X = v.X;
-			Y = v.Y;
-		}
-
-		///// <summary>
-		///// Constructs a new Vector2 from the given Vector4.
-		///// </summary>
-		///// <param name="v">The Vector4 to copy components from. Z and W are discarded.</param>
-		//[Obsolete]
-		//public Vector2(Vector4 v) {
-		//	X = v.X;
-		//	Y = v.Y;
-		//}
-
-		#endregion
-
-		#region Public Members
-
-		#region Instance
-
-		#region public void Add()
-
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(TkVector2 right) {
-			X += right.X;
-			Y += right.Y;
-		}
-
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(ref TkVector2 right) {
-			X += right.X;
-			Y += right.Y;
-		}
-
-		#endregion public void Add()
-
-		#region public void Sub()
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(TkVector2 right) {
-			X -= right.X;
-			Y -= right.Y;
-		}
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(ref TkVector2 right) {
-			X -= right.X;
-			Y -= right.Y;
-		}
-
-		#endregion public void Sub()
-
-		#region public void Mult()
-
-		/// <summary>Multiply this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Mult(float f) {
-			X *= f;
-			Y *= f;
-		}
-
-		#endregion public void Mult()
-
-		#region public void Div()
-
-		/// <summary>Divide this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Divide() method instead.")]
-		public void Div(float f) {
-			float mult = 1.0f / f;
-			X *= mult;
-			Y *= mult;
-		}
-
-		#endregion public void Div()
-
-		#region public float Length
 
 		/// <summary>
 		/// Gets the length (magnitude) of the vector.
 		/// </summary>
 		/// <see cref="LengthFast"/>
 		/// <seealso cref="LengthSquared"/>
-		public float Length {
-			get {
-				return (float)Math.Sqrt(X * X + Y * Y);
-			}
-		}
-
-		#endregion
-
-		#region public float LengthFast
+		public float Length => (float)Math.Sqrt((X * X) + (Y * Y));
 
 		/// <summary>
 		/// Gets an approximation of the vector length (magnitude).
@@ -235,15 +133,7 @@ namespace GRF.Graphics {
 		/// </remarks>
 		/// <see cref="Length"/>
 		/// <seealso cref="LengthSquared"/>
-		public float LengthFast {
-			get {
-				return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y);
-			}
-		}
-
-		#endregion
-
-		#region public float LengthSquared
+		public float LengthFast => 1.0f / MathHelper.InverseSqrtFast((X * X) + (Y * Y));
 
 		/// <summary>
 		/// Gets the square of the vector length (magnitude).
@@ -254,480 +144,20 @@ namespace GRF.Graphics {
 		/// </remarks>
 		/// <see cref="Length"/>
 		/// <seealso cref="LengthFast"/>
-		public float LengthSquared {
-			get {
-				return X * X + Y * Y;
-			}
-		}
-
-		#endregion
-
-		#region public Vector2 PerpendicularRight
+		public float LengthSquared => (X * X) + (Y * Y);
 
 		/// <summary>
 		/// Gets the perpendicular vector on the right side of this vector.
 		/// </summary>
-		public TkVector2 PerpendicularRight {
-			get {
-				return new TkVector2(Y, -X);
-			}
-		}
-
-		#endregion
-
-		#region public Vector2 PerpendicularLeft
+		public TkVector2 PerpendicularRight => new TkVector2(Y, -X);
 
 		/// <summary>
 		/// Gets the perpendicular vector on the left side of this vector.
 		/// </summary>
-		public TkVector2 PerpendicularLeft {
-			get {
-				return new TkVector2(-Y, X);
-			}
-		}
-
-		#endregion
-
-		#region public void Normalize()
+		public TkVector2 PerpendicularLeft => new TkVector2(-Y, X);
 
 		/// <summary>
-		/// Scales the Vector2 to unit length.
-		/// </summary>
-		public void Normalize() {
-			float scale = 1.0f / Length;
-			X *= scale;
-			Y *= scale;
-		}
-
-		#endregion
-
-		#region public void NormalizeFast()
-
-		/// <summary>
-		/// Scales the Vector2 to approximately unit length.
-		/// </summary>
-		public void NormalizeFast() {
-			float scale = MathHelper.InverseSqrtFast(X * X + Y * Y);
-			X *= scale;
-			Y *= scale;
-		}
-
-		#endregion
-
-		#region public void Scale()
-
-		/// <summary>
-		/// Scales the current Vector2 by the given amounts.
-		/// </summary>
-		/// <param name="sx">The scale of the X component.</param>
-		/// <param name="sy">The scale of the Y component.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(float sx, float sy) {
-			X = X * sx;
-			Y = Y * sy;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(TkVector2 scale) {
-			X *= scale.X;
-			Y *= scale.Y;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(ref TkVector2 scale) {
-			X *= scale.X;
-			Y *= scale.Y;
-		}
-
-		#endregion public void Scale()
-
-		#endregion
-
-		#region Static
-
-		#region Fields
-
-		/// <summary>
-		/// Defines a unit-length Vector2 that points towards the X-axis.
-		/// </summary>
-		public static readonly TkVector2 UnitX = new TkVector2(1, 0);
-
-		/// <summary>
-		/// Defines a unit-length Vector2 that points towards the Y-axis.
-		/// </summary>
-		public static readonly TkVector2 UnitY = new TkVector2(0, 1);
-
-		/// <summary>
-		/// Defines a zero-length Vector2.
-		/// </summary>
-		public static readonly TkVector2 Zero = new TkVector2(0, 0);
-
-		/// <summary>
-		/// Defines an instance with all components set to 1.
-		/// </summary>
-		public static readonly TkVector2 One = new TkVector2(1, 1);
-
-		/// <summary>
-		/// Defines the size of the Vector2 struct in bytes.
-		/// </summary>
-		public static readonly int SizeInBytes = Marshal.SizeOf(new TkVector2());
-
-		#endregion
-
-		#region Obsolete
-
-		#region Sub
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>Result of subtraction</returns>
-		[Obsolete("Use static Subtract() method instead.")]
-		public static TkVector2 Sub(TkVector2 a, TkVector2 b) {
-			a.X -= b.X;
-			a.Y -= b.Y;
-			return a;
-		}
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">Result of subtraction</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public static void Sub(ref TkVector2 a, ref TkVector2 b, out TkVector2 result) {
-			result.X = a.X - b.X;
-			result.Y = a.Y - b.Y;
-		}
-
-		#endregion
-
-		#region Mult
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the multiplication</returns>
-		[Obsolete("Use static Multiply() method instead.")]
-		public static TkVector2 Mult(TkVector2 a, float f) {
-			a.X *= f;
-			a.Y *= f;
-			return a;
-		}
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the multiplication</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public static void Mult(ref TkVector2 a, float f, out TkVector2 result) {
-			result.X = a.X * f;
-			result.Y = a.Y * f;
-		}
-
-		#endregion
-
-		#region Div
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the division</returns>
-		[Obsolete("Use static Divide() method instead.")]
-		public static TkVector2 Div(TkVector2 a, float f) {
-			float mult = 1.0f / f;
-			a.X *= mult;
-			a.Y *= mult;
-			return a;
-		}
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the division</param>
-		[Obsolete("Use static Divide() method instead.")]
-		public static void Div(ref TkVector2 a, float f, out TkVector2 result) {
-			float mult = 1.0f / f;
-			result.X = a.X * mult;
-			result.Y = a.Y * mult;
-		}
-
-		#endregion
-
-		#endregion
-
-		#region Add
-
-		/// <summary>
-		/// Adds two vectors.
-		/// </summary>
-		/// <param name="a">Left operand.</param>
-		/// <param name="b">Right operand.</param>
-		/// <returns>Result of operation.</returns>
-		public static TkVector2 Add(TkVector2 a, TkVector2 b) {
-			Add(ref a, ref b, out a);
-			return a;
-		}
-
-		/// <summary>
-		/// Adds two vectors.
-		/// </summary>
-		/// <param name="a">Left operand.</param>
-		/// <param name="b">Right operand.</param>
-		/// <param name="result">Result of operation.</param>
-		public static void Add(ref TkVector2 a, ref TkVector2 b, out TkVector2 result) {
-			result = new TkVector2(a.X + b.X, a.Y + b.Y);
-		}
-
-		#endregion
-
-		#region Subtract
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>Result of subtraction</returns>
-		public static TkVector2 Subtract(TkVector2 a, TkVector2 b) {
-			Subtract(ref a, ref b, out a);
-			return a;
-		}
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">Result of subtraction</param>
-		public static void Subtract(ref TkVector2 a, ref TkVector2 b, out TkVector2 result) {
-			result = new TkVector2(a.X - b.X, a.Y - b.Y);
-		}
-
-		#endregion
-
-		#region Multiply
-
-		/// <summary>
-		/// Multiplies a vector by a scalar.
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <returns>Result of the operation.</returns>
-		public static TkVector2 Multiply(TkVector2 vector, float scale) {
-			Multiply(ref vector, scale, out vector);
-			return vector;
-		}
-
-		/// <summary>
-		/// Multiplies a vector by a scalar.
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <param name="result">Result of the operation.</param>
-		public static void Multiply(ref TkVector2 vector, float scale, out TkVector2 result) {
-			result = new TkVector2(vector.X * scale, vector.Y * scale);
-		}
-
-		/// <summary>
-		/// Multiplies a vector by the components a vector (scale).
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <returns>Result of the operation.</returns>
-		public static TkVector2 Multiply(TkVector2 vector, TkVector2 scale) {
-			Multiply(ref vector, ref scale, out vector);
-			return vector;
-		}
-
-		/// <summary>
-		/// Multiplies a vector by the components of a vector (scale).
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <param name="result">Result of the operation.</param>
-		public static void Multiply(ref TkVector2 vector, ref TkVector2 scale, out TkVector2 result) {
-			result = new TkVector2(vector.X * scale.X, vector.Y * scale.Y);
-		}
-
-		#endregion
-
-		#region Divide
-
-		/// <summary>
-		/// Divides a vector by a scalar.
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <returns>Result of the operation.</returns>
-		public static TkVector2 Divide(TkVector2 vector, float scale) {
-			Divide(ref vector, scale, out vector);
-			return vector;
-		}
-
-		/// <summary>
-		/// Divides a vector by a scalar.
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <param name="result">Result of the operation.</param>
-		public static void Divide(ref TkVector2 vector, float scale, out TkVector2 result) {
-			Multiply(ref vector, 1 / scale, out result);
-		}
-
-		/// <summary>
-		/// Divides a vector by the components of a vector (scale).
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <returns>Result of the operation.</returns>
-		public static TkVector2 Divide(TkVector2 vector, TkVector2 scale) {
-			Divide(ref vector, ref scale, out vector);
-			return vector;
-		}
-
-		/// <summary>
-		/// Divide a vector by the components of a vector (scale).
-		/// </summary>
-		/// <param name="vector">Left operand.</param>
-		/// <param name="scale">Right operand.</param>
-		/// <param name="result">Result of the operation.</param>
-		public static void Divide(ref TkVector2 vector, ref TkVector2 scale, out TkVector2 result) {
-			result = new TkVector2(vector.X / scale.X, vector.Y / scale.Y);
-		}
-
-		#endregion
-
-		#region ComponentMin
-
-		/// <summary>
-		/// Calculate the component-wise minimum of two vectors
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>The component-wise minimum</returns>
-		public static TkVector2 ComponentMin(TkVector2 a, TkVector2 b) {
-			a.X = a.X < b.X ? a.X : b.X;
-			a.Y = a.Y < b.Y ? a.Y : b.Y;
-			return a;
-		}
-
-		/// <summary>
-		/// Calculate the component-wise minimum of two vectors
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">The component-wise minimum</param>
-		public static void ComponentMin(ref TkVector2 a, ref TkVector2 b, out TkVector2 result) {
-			result.X = a.X < b.X ? a.X : b.X;
-			result.Y = a.Y < b.Y ? a.Y : b.Y;
-		}
-
-		#endregion
-
-		#region ComponentMax
-
-		/// <summary>
-		/// Calculate the component-wise maximum of two vectors
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>The component-wise maximum</returns>
-		public static TkVector2 ComponentMax(TkVector2 a, TkVector2 b) {
-			a.X = a.X > b.X ? a.X : b.X;
-			a.Y = a.Y > b.Y ? a.Y : b.Y;
-			return a;
-		}
-
-		/// <summary>
-		/// Calculate the component-wise maximum of two vectors
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">The component-wise maximum</param>
-		public static void ComponentMax(ref TkVector2 a, ref TkVector2 b, out TkVector2 result) {
-			result.X = a.X > b.X ? a.X : b.X;
-			result.Y = a.Y > b.Y ? a.Y : b.Y;
-		}
-
-		#endregion
-
-		#region Min
-
-		/// <summary>
-		/// Returns the Vector3 with the minimum magnitude
-		/// </summary>
-		/// <param name="left">Left operand</param>
-		/// <param name="right">Right operand</param>
-		/// <returns>The minimum Vector3</returns>
-		public static TkVector2 Min(TkVector2 left, TkVector2 right) {
-			return left.LengthSquared < right.LengthSquared ? left : right;
-		}
-
-		#endregion
-
-		#region Max
-
-		/// <summary>
-		/// Returns the Vector3 with the minimum magnitude
-		/// </summary>
-		/// <param name="left">Left operand</param>
-		/// <param name="right">Right operand</param>
-		/// <returns>The minimum Vector3</returns>
-		public static TkVector2 Max(TkVector2 left, TkVector2 right) {
-			return left.LengthSquared >= right.LengthSquared ? left : right;
-		}
-
-		#endregion
-
-		#region Clamp
-
-		/// <summary>
-		/// Clamp a vector to the given minimum and maximum vectors
-		/// </summary>
-		/// <param name="vec">Input vector</param>
-		/// <param name="min">Minimum vector</param>
-		/// <param name="max">Maximum vector</param>
-		/// <returns>The clamped vector</returns>
-		public static TkVector2 Clamp(TkVector2 vec, TkVector2 min, TkVector2 max) {
-			vec.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
-			vec.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-			return vec;
-		}
-
-		/// <summary>
-		/// Clamp a vector to the given minimum and maximum vectors
-		/// </summary>
-		/// <param name="vec">Input vector</param>
-		/// <param name="min">Minimum vector</param>
-		/// <param name="max">Maximum vector</param>
-		/// <param name="result">The clamped vector</param>
-		public static void Clamp(ref TkVector2 vec, ref TkVector2 min, ref TkVector2 max, out TkVector2 result) {
-			result.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
-			result.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-		}
-
-		#endregion
-
-		#region Normalize
-
-		/// <summary>
-		/// Returns a copy of the Vector3 scaled to unit length.
+		/// Returns a copy of the TkVector2 scaled to unit length.
 		/// </summary>
 		/// <returns>The normalized copy.</returns>
 		public TkVector2 Normalized() {
@@ -737,182 +167,633 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Scale a vector to unit length
+		/// Scales the TkVector2 to unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <returns>The normalized vector</returns>
-		public static TkVector2 Normalize(TkVector2 vec) {
-			float scale = 1.0f / vec.Length;
-			vec.X *= scale;
-			vec.Y *= scale;
-			return vec;
+		public void Normalize() {
+			var scale = 1.0f / Length;
+			X *= scale;
+			Y *= scale;
 		}
 
 		/// <summary>
-		/// Scale a vector to unit length
+		/// Scales the TkVector2 to approximately unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <param name="result">The normalized vector</param>
-		public static void Normalize(ref TkVector2 vec, out TkVector2 result) {
-			float scale = 1.0f / vec.Length;
-			result.X = vec.X * scale;
-			result.Y = vec.Y * scale;
-		}
-
-		#endregion
-
-		#region NormalizeFast
-
-		/// <summary>
-		/// Scale a vector to approximately unit length
-		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <returns>The normalized vector</returns>
-		public static TkVector2 NormalizeFast(TkVector2 vec) {
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y);
-			vec.X *= scale;
-			vec.Y *= scale;
-			return vec;
+		public void NormalizeFast() {
+			var scale = MathHelper.InverseSqrtFast((X * X) + (Y * Y));
+			X *= scale;
+			Y *= scale;
 		}
 
 		/// <summary>
-		/// Scale a vector to approximately unit length
+		/// Defines a unit-length TkVector2 that points towards the X-axis.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <param name="result">The normalized vector</param>
-		public static void NormalizeFast(ref TkVector2 vec, out TkVector2 result) {
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y);
-			result.X = vec.X * scale;
-			result.Y = vec.Y * scale;
-		}
-
-		#endregion
-
-		#region Dot
+		public static readonly TkVector2 UnitX = new TkVector2(1, 0);
 
 		/// <summary>
-		/// Calculate the dot (scalar) product of two vectors
+		/// Defines a unit-length TkVector2 that points towards the Y-axis.
 		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <returns>The dot product of the two inputs</returns>
-		public static float Dot(TkVector2 left, TkVector2 right) {
-			return left.X * right.X + left.Y * right.Y;
-		}
+		public static readonly TkVector2 UnitY = new TkVector2(0, 1);
 
 		/// <summary>
-		/// Calculate the dot (scalar) product of two vectors
+		/// Defines an instance with all components set to 0.
 		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <param name="result">The dot product of the two inputs</param>
-		public static void Dot(ref TkVector2 left, ref TkVector2 right, out float result) {
-			result = left.X * right.X + left.Y * right.Y;
-		}
-
-		#endregion
-
-		#region Lerp
+		public static readonly TkVector2 Zero = new TkVector2(0, 0);
 
 		/// <summary>
-		/// Returns a new Vector that is the linear blend of the 2 given Vectors
+		/// Defines an instance with all components set to 1.
 		/// </summary>
-		/// <param name="a">First input vector</param>
-		/// <param name="b">Second input vector</param>
-		/// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
-		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
-		public static TkVector2 Lerp(TkVector2 a, TkVector2 b, float blend) {
-			a.X = blend * (b.X - a.X) + a.X;
-			a.Y = blend * (b.Y - a.Y) + a.Y;
+		public static readonly TkVector2 One = new TkVector2(1, 1);
+
+		/// <summary>
+		/// Defines an instance with all components set to positive infinity.
+		/// </summary>
+		public static readonly TkVector2 PositiveInfinity = new TkVector2(float.PositiveInfinity, float.PositiveInfinity);
+
+		/// <summary>
+		/// Defines an instance with all components set to negative infinity.
+		/// </summary>
+		public static readonly TkVector2 NegativeInfinity = new TkVector2(float.NegativeInfinity, float.NegativeInfinity);
+
+		/// <summary>
+		/// Defines the size of the TkVector2 struct in bytes.
+		/// </summary>
+		public static readonly int SizeInBytes = Marshal.SizeOf<TkVector2>();
+
+		/// <summary>
+		/// Adds two vectors.
+		/// </summary>
+		/// <param name="a">Left operand.</param>
+		/// <param name="b">Right operand.</param>
+		/// <returns>Result of operation.</returns>
+		[Pure]
+		public static TkVector2 Add(TkVector2 a, TkVector2 b) {
+			Add(in a, in b, out a);
 			return a;
 		}
 
 		/// <summary>
-		/// Returns a new Vector that is the linear blend of the 2 given Vectors
+		/// Adds two vectors.
 		/// </summary>
-		/// <param name="a">First input vector</param>
-		/// <param name="b">Second input vector</param>
-		/// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
-		/// <param name="result">a when blend=0, b when blend=1, and a linear combination otherwise</param>
-		public static void Lerp(ref TkVector2 a, ref TkVector2 b, float blend, out TkVector2 result) {
-			result.X = blend * (b.X - a.X) + a.X;
-			result.Y = blend * (b.Y - a.Y) + a.Y;
+		/// <param name="a">Left operand.</param>
+		/// <param name="b">Right operand.</param>
+		/// <param name="result">Result of operation.</param>
+		public static void Add(in TkVector2 a, in TkVector2 b, out TkVector2 result) {
+			result.X = a.X + b.X;
+			result.Y = a.Y + b.Y;
 		}
-
-		#endregion
-
-		#region Barycentric
 
 		/// <summary>
-		/// Interpolate 3 Vectors using Barycentric coordinates
+		/// Subtract one Vector from another.
 		/// </summary>
-		/// <param name="a">First input Vector</param>
-		/// <param name="b">Second input Vector</param>
-		/// <param name="c">Third input Vector</param>
-		/// <param name="u">First Barycentric Coordinate</param>
-		/// <param name="v">Second Barycentric Coordinate</param>
-		/// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</returns>
-		public static TkVector2 BaryCentric(TkVector2 a, TkVector2 b, TkVector2 c, float u, float v) {
-			return a + u * (b - a) + v * (c - a);
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>Result of subtraction.</returns>
+		[Pure]
+		public static TkVector2 Subtract(TkVector2 a, TkVector2 b) {
+			Subtract(in a, in b, out a);
+			return a;
 		}
 
-		/// <summary>Interpolate 3 Vectors using Barycentric coordinates</summary>
+		/// <summary>
+		/// Subtract one Vector from another.
+		/// </summary>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">Result of subtraction.</param>
+		public static void Subtract(in TkVector2 a, in TkVector2 b, out TkVector2 result) {
+			result.X = a.X - b.X;
+			result.Y = a.Y - b.Y;
+		}
+
+		/// <summary>
+		/// Multiplies a vector by a scalar.
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <returns>Result of the operation.</returns>
+		[Pure]
+		public static TkVector2 Multiply(TkVector2 vector, float scale) {
+			Multiply(in vector, scale, out vector);
+			return vector;
+		}
+
+		/// <summary>
+		/// Multiplies a vector by a scalar.
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <param name="result">Result of the operation.</param>
+		public static void Multiply(in TkVector2 vector, float scale, out TkVector2 result) {
+			result.X = vector.X * scale;
+			result.Y = vector.Y * scale;
+		}
+
+		/// <summary>
+		/// Multiplies a vector by the components a vector (scale).
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <returns>Result of the operation.</returns>
+		[Pure]
+		public static TkVector2 Multiply(TkVector2 vector, TkVector2 scale) {
+			Multiply(in vector, in scale, out vector);
+			return vector;
+		}
+
+		/// <summary>
+		/// Multiplies a vector by the components of a vector (scale).
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <param name="result">Result of the operation.</param>
+		public static void Multiply(in TkVector2 vector, in TkVector2 scale, out TkVector2 result) {
+			result.X = vector.X * scale.X;
+			result.Y = vector.Y * scale.Y;
+		}
+
+		/// <summary>
+		/// Divides a vector by a scalar.
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <returns>Result of the operation.</returns>
+		[Pure]
+		public static TkVector2 Divide(TkVector2 vector, float scale) {
+			Divide(in vector, scale, out vector);
+			return vector;
+		}
+
+		/// <summary>
+		/// Divides a vector by a scalar.
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <param name="result">Result of the operation.</param>
+		public static void Divide(in TkVector2 vector, float scale, out TkVector2 result) {
+			result.X = vector.X / scale;
+			result.Y = vector.Y / scale;
+		}
+
+		/// <summary>
+		/// Divides a vector by the components of a vector (scale).
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <returns>Result of the operation.</returns>
+		[Pure]
+		public static TkVector2 Divide(TkVector2 vector, TkVector2 scale) {
+			Divide(in vector, in scale, out vector);
+			return vector;
+		}
+
+		/// <summary>
+		/// Divide a vector by the components of a vector (scale).
+		/// </summary>
+		/// <param name="vector">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <param name="result">Result of the operation.</param>
+		public static void Divide(in TkVector2 vector, in TkVector2 scale, out TkVector2 result) {
+			result.X = vector.X / scale.X;
+			result.Y = vector.Y / scale.Y;
+		}
+
+		/// <summary>
+		/// Returns a vector created from the smallest of the corresponding components of the given vectors.
+		/// </summary>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>The component-wise minimum.</returns>
+		[Pure]
+		public static TkVector2 ComponentMin(TkVector2 a, TkVector2 b) {
+			a.X = a.X < b.X ? a.X : b.X;
+			a.Y = a.Y < b.Y ? a.Y : b.Y;
+			return a;
+		}
+
+		/// <summary>
+		/// Returns a vector created from the smallest of the corresponding components of the given vectors.
+		/// </summary>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">The component-wise minimum.</param>
+		public static void ComponentMin(in TkVector2 a, in TkVector2 b, out TkVector2 result) {
+			result.X = a.X < b.X ? a.X : b.X;
+			result.Y = a.Y < b.Y ? a.Y : b.Y;
+		}
+
+		/// <summary>
+		/// Returns a vector created from the largest of the corresponding components of the given vectors.
+		/// </summary>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>The component-wise maximum.</returns>
+		[Pure]
+		public static TkVector2 ComponentMax(TkVector2 a, TkVector2 b) {
+			a.X = a.X > b.X ? a.X : b.X;
+			a.Y = a.Y > b.Y ? a.Y : b.Y;
+			return a;
+		}
+
+		/// <summary>
+		/// Returns a vector created from the largest of the corresponding components of the given vectors.
+		/// </summary>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">The component-wise maximum.</param>
+		public static void ComponentMax(in TkVector2 a, in TkVector2 b, out TkVector2 result) {
+			result.X = a.X > b.X ? a.X : b.X;
+			result.Y = a.Y > b.Y ? a.Y : b.Y;
+		}
+
+		/// <summary>
+		/// Returns the TkVector2 with the minimum magnitude. If the magnitudes are equal, the second vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <returns>The minimum TkVector2.</returns>
+		[Pure]
+		public static TkVector2 MagnitudeMin(TkVector2 left, TkVector2 right) {
+			return left.LengthSquared < right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Returns the TkVector2 with the minimum magnitude. If the magnitudes are equal, the second vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <param name="result">The magnitude-wise minimum.</param>
+		public static void MagnitudeMin(in TkVector2 left, in TkVector2 right, out TkVector2 result) {
+			result = left.LengthSquared < right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Returns the TkVector2 with the maximum magnitude. If the magnitudes are equal, the first vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <returns>The maximum TkVector2.</returns>
+		[Pure]
+		public static TkVector2 MagnitudeMax(TkVector2 left, TkVector2 right) {
+			return left.LengthSquared >= right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Returns the TkVector2 with the maximum magnitude. If the magnitudes are equal, the first vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <param name="result">The magnitude-wise maximum.</param>
+		public static void MagnitudeMax(in TkVector2 left, in TkVector2 right, out TkVector2 result) {
+			result = left.LengthSquared >= right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Clamp a vector to the given minimum and maximum vectors.
+		/// </summary>
+		/// <param name="vec">Input vector.</param>
+		/// <param name="min">Minimum vector.</param>
+		/// <param name="max">Maximum vector.</param>
+		/// <returns>The clamped vector.</returns>
+		[Pure]
+		public static TkVector2 Clamp(TkVector2 vec, TkVector2 min, TkVector2 max) {
+			vec.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
+			vec.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
+			return vec;
+		}
+
+		/// <summary>
+		/// Clamp a vector to the given minimum and maximum vectors.
+		/// </summary>
+		/// <param name="vec">Input vector.</param>
+		/// <param name="min">Minimum vector.</param>
+		/// <param name="max">Maximum vector.</param>
+		/// <param name="result">The clamped vector.</param>
+		public static void Clamp(in TkVector2 vec, in TkVector2 min, in TkVector2 max, out TkVector2 result) {
+			result.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
+			result.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
+		}
+
+		/// <summary>
+		/// Compute the euclidean distance between two vectors.
+		/// </summary>
+		/// <param name="vec1">The first vector.</param>
+		/// <param name="vec2">The second vector.</param>
+		/// <returns>The distance.</returns>
+		[Pure]
+		public static float Distance(TkVector2 vec1, TkVector2 vec2) {
+			Distance(in vec1, in vec2, out float result);
+			return result;
+		}
+
+		/// <summary>
+		/// Compute the euclidean distance between two vectors.
+		/// </summary>
+		/// <param name="vec1">The first vector.</param>
+		/// <param name="vec2">The second vector.</param>
+		/// <param name="result">The distance.</param>
+		public static void Distance(in TkVector2 vec1, in TkVector2 vec2, out float result) {
+			result = (float)Math.Sqrt(((vec2.X - vec1.X) * (vec2.X - vec1.X)) + ((vec2.Y - vec1.Y) * (vec2.Y - vec1.Y)));
+		}
+
+		/// <summary>
+		/// Compute the squared euclidean distance between two vectors.
+		/// </summary>
+		/// <param name="vec1">The first vector.</param>
+		/// <param name="vec2">The second vector.</param>
+		/// <returns>The squared distance.</returns>
+		[Pure]
+		public static float DistanceSquared(TkVector2 vec1, TkVector2 vec2) {
+			DistanceSquared(in vec1, in vec2, out float result);
+			return result;
+		}
+
+		/// <summary>
+		/// Compute the squared euclidean distance between two vectors.
+		/// </summary>
+		/// <param name="vec1">The first vector.</param>
+		/// <param name="vec2">The second vector.</param>
+		/// <param name="result">The squared distance.</param>
+		public static void DistanceSquared(in TkVector2 vec1, in TkVector2 vec2, out float result) {
+			result = ((vec2.X - vec1.X) * (vec2.X - vec1.X)) + ((vec2.Y - vec1.Y) * (vec2.Y - vec1.Y));
+		}
+
+		/// <summary>
+		/// Scale a vector to unit length.
+		/// </summary>
+		/// <param name="vec">The input vector.</param>
+		/// <returns>The normalized copy.</returns>
+		[Pure]
+		public static TkVector2 Normalize(TkVector2 vec) {
+			var scale = 1.0f / vec.Length;
+			vec.X *= scale;
+			vec.Y *= scale;
+			return vec;
+		}
+
+		/// <summary>
+		/// Scale a vector to unit length.
+		/// </summary>
+		/// <param name="vec">The input vector.</param>
+		/// <param name="result">The normalized vector.</param>
+		public static void Normalize(in TkVector2 vec, out TkVector2 result) {
+			var scale = 1.0f / vec.Length;
+			result.X = vec.X * scale;
+			result.Y = vec.Y * scale;
+		}
+
+		/// <summary>
+		/// Scale a vector to approximately unit length.
+		/// </summary>
+		/// <param name="vec">The input vector.</param>
+		/// <returns>The normalized copy.</returns>
+		[Pure]
+		public static TkVector2 NormalizeFast(TkVector2 vec) {
+			var scale = MathHelper.InverseSqrtFast((vec.X * vec.X) + (vec.Y * vec.Y));
+			vec.X *= scale;
+			vec.Y *= scale;
+			return vec;
+		}
+
+		/// <summary>
+		/// Scale a vector to approximately unit length.
+		/// </summary>
+		/// <param name="vec">The input vector.</param>
+		/// <param name="result">The normalized vector.</param>
+		public static void NormalizeFast(in TkVector2 vec, out TkVector2 result) {
+			var scale = MathHelper.InverseSqrtFast((vec.X * vec.X) + (vec.Y * vec.Y));
+			result.X = vec.X * scale;
+			result.Y = vec.Y * scale;
+		}
+
+		/// <summary>
+		/// Calculate the dot (scalar) product of two vectors.
+		/// </summary>
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <returns>The dot product of the two inputs.</returns>
+		[Pure]
+		public static float Dot(TkVector2 left, TkVector2 right) {
+			return (left.X * right.X) + (left.Y * right.Y);
+		}
+
+		/// <summary>
+		/// Calculate the dot (scalar) product of two vectors.
+		/// </summary>
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <param name="result">The dot product of the two inputs.</param>
+		public static void Dot(in TkVector2 left, in TkVector2 right, out float result) {
+			result = (left.X * right.X) + (left.Y * right.Y);
+		}
+
+		/// <summary>
+		/// Calculate the perpendicular dot (scalar) product of two vectors.
+		/// </summary>
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <returns>The perpendicular dot product of the two inputs.</returns>
+		[Pure]
+		public static float PerpDot(TkVector2 left, TkVector2 right) {
+			return (left.X * right.Y) - (left.Y * right.X);
+		}
+
+		/// <summary>
+		/// Calculate the perpendicular dot (scalar) product of two vectors.
+		/// </summary>
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <param name="result">The perpendicular dot product of the two inputs.</param>
+		public static void PerpDot(in TkVector2 left, in TkVector2 right, out float result) {
+			result = (left.X * right.Y) - (left.Y * right.X);
+		}
+
+		/// <summary>
+		/// Returns a new vector that is the linear blend of the 2 given vectors.
+		/// </summary>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise.</returns>
+		[Pure]
+		public static TkVector2 Lerp(TkVector2 a, TkVector2 b, float blend) {
+			a.X = (blend * (b.X - a.X)) + a.X;
+			a.Y = (blend * (b.Y - a.Y)) + a.Y;
+			return a;
+		}
+
+		/// <summary>
+		/// Returns a new vector that is the linear blend of the 2 given vectors.
+		/// </summary>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <param name="result">a when blend=0, b when blend=1, and a linear combination otherwise.</param>
+		public static void Lerp(in TkVector2 a, in TkVector2 b, float blend, out TkVector2 result) {
+			result.X = (blend * (b.X - a.X)) + a.X;
+			result.Y = (blend * (b.Y - a.Y)) + a.Y;
+		}
+
+		/// <summary>
+		/// Returns a new vector that is the component-wise linear blend of the 2 given vectors.
+		/// </summary>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <returns>a when blend=0, b when blend=1, and a component-wise linear combination otherwise.</returns>
+		[Pure]
+		public static TkVector2 Lerp(TkVector2 a, TkVector2 b, TkVector2 blend) {
+			a.X = (blend.X * (b.X - a.X)) + a.X;
+			a.Y = (blend.Y * (b.Y - a.Y)) + a.Y;
+			return a;
+		}
+
+		/// <summary>
+		/// Returns a new vector that is the component-wise linear blend of the 2 given vectors.
+		/// </summary>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <param name="result">a when blend=0, b when blend=1, and a component-wise linear combination otherwise.</param>
+		public static void Lerp(in TkVector2 a, in TkVector2 b, TkVector2 blend, out TkVector2 result) {
+			result.X = (blend.X * (b.X - a.X)) + a.X;
+			result.Y = (blend.Y * (b.Y - a.Y)) + a.Y;
+		}
+
+		/// <summary>
+		/// Interpolate 3 Vectors using Barycentric coordinates.
+		/// </summary>
 		/// <param name="a">First input Vector.</param>
 		/// <param name="b">Second input Vector.</param>
 		/// <param name="c">Third input Vector.</param>
 		/// <param name="u">First Barycentric Coordinate.</param>
 		/// <param name="v">Second Barycentric Coordinate.</param>
-		/// <param name="result">Output Vector. a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</param>
-		public static void BaryCentric(ref TkVector2 a, ref TkVector2 b, ref TkVector2 c, float u, float v, out TkVector2 result) {
-			result = a; // copy
-
-			TkVector2 temp = b; // copy
-			Subtract(ref temp, ref a, out temp);
-			Multiply(ref temp, u, out temp);
-			Add(ref result, ref temp, out result);
-
-			temp = c; // copy
-			Subtract(ref temp, ref a, out temp);
-			Multiply(ref temp, v, out temp);
-			Add(ref result, ref temp, out result);
+		/// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise.</returns>
+		[Pure]
+		public static TkVector2 BaryCentric(TkVector2 a, TkVector2 b, TkVector2 c, float u, float v) {
+			BaryCentric(in a, in b, in c, u, v, out var result);
+			return result;
 		}
 
-		#endregion
+		/// <summary>
+		/// Interpolate 3 Vectors using Barycentric coordinates.
+		/// </summary>
+		/// <param name="a">First input Vector.</param>
+		/// <param name="b">Second input Vector.</param>
+		/// <param name="c">Third input Vector.</param>
+		/// <param name="u">First Barycentric Coordinate.</param>
+		/// <param name="v">Second Barycentric Coordinate.</param>
+		/// <param name="result">
+		/// Output Vector. a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c
+		/// otherwise.
+		/// </param>
+		public static void BaryCentric
+		(
+			in TkVector2 a,
+			in TkVector2 b,
+			in TkVector2 c,
+			float u,
+			float v,
+			out TkVector2 result
+		) {
+			Subtract(in b, in a, out var ab);
+			Multiply(in ab, u, out var abU);
+			Add(in a, in abU, out var uPos);
 
-		#region Transform
+			Subtract(in c, in a, out var ac);
+			Multiply(in ac, v, out var acV);
+			Add(in uPos, in acV, out result);
+		}
 
-		///// <summary>
-		///// Transforms a vector by a quaternion rotation.
-		///// </summary>
-		///// <param name="vec">The vector to transform.</param>
-		///// <param name="quat">The quaternion to rotate the vector by.</param>
-		///// <returns>The result of the operation.</returns>
-		//public static Vector2 Transform(Vector2 vec, Quaternion quat) {
-		//	Vector2 result;
-		//	Transform(ref vec, ref quat, out result);
-		//	return result;
-		//}
-		//
-		///// <summary>
-		///// Transforms a vector by a quaternion rotation.
-		///// </summary>
-		///// <param name="vec">The vector to transform.</param>
-		///// <param name="quat">The quaternion to rotate the vector by.</param>
-		///// <param name="result">The result of the operation.</param>
-		//public static void Transform(ref Vector2 vec, ref Quaternion quat, out Vector2 result) {
-		//	Quaternion v = new Quaternion(vec.X, vec.Y, 0, 0), i, t;
-		//	Quaternion.Invert(ref quat, out i);
-		//	Quaternion.Multiply(ref quat, ref v, out t);
-		//	Quaternion.Multiply(ref t, ref i, out v);
-		//
-		//	result = new Vector2(v.X, v.Y);
-		//}
+		/// <summary>
+		/// Transform a Vector by the given Matrix.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="mat">The desired transformation.</param>
+		/// <returns>The transformed vector.</returns>
+		[Pure]
+		public static TkVector2 TransformRow(TkVector2 vec, TkMatrix2 mat) {
+			TransformRow(in vec, in mat, out TkVector2 result);
+			return result;
+		}
 
-		#endregion
+		/// <summary>
+		/// Transform a Vector by the given Matrix.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="result">The transformed vector.</param>
+		public static void TransformRow(in TkVector2 vec, in TkMatrix2 mat, out TkVector2 result) {
+			result = new TkVector2(
+				(vec.X * mat.Row0.X) + (vec.Y * mat.Row1.X),
+				(vec.X * mat.Row0.Y) + (vec.Y * mat.Row1.Y));
+		}
 
-		#endregion
+		/// <summary>
+		/// Transforms a vector by a quaternion rotation.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="quat">The quaternion to rotate the vector by.</param>
+		/// <returns>The result of the operation.</returns>
+		[Pure]
+		public static TkVector2 Transform(TkVector2 vec, TkQuaternion quat) {
+			Transform(in vec, in quat, out TkVector2 result);
+			return result;
+		}
 
-		#region Operators
+		/// <summary>
+		/// Transforms a vector by a quaternion rotation.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="quat">The quaternion to rotate the vector by.</param>
+		/// <param name="result">The result of the operation.</param>
+		public static void Transform(in TkVector2 vec, in TkQuaternion quat, out TkVector2 result) {
+			TkQuaternion v = new TkQuaternion(vec.X, vec.Y, 0, 0);
+			TkQuaternion.Invert(in quat, out TkQuaternion i);
+			TkQuaternion.Multiply(in quat, in v, out TkQuaternion t);
+			TkQuaternion.Multiply(in t, in i, out v);
+
+			result.X = v.X;
+			result.Y = v.Y;
+		}
+
+		/// <summary>
+		/// Transform a Vector by the given Matrix using right-handed notation.
+		/// </summary>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="vec">The vector to transform.</param>
+		/// <returns>The transformed vector.</returns>
+		[Pure]
+		public static TkVector2 TransformColumn(TkMatrix2 mat, TkVector2 vec) {
+			TransformColumn(in mat, in vec, out TkVector2 result);
+			return result;
+		}
+
+		/// <summary>
+		/// Transform a Vector by the given Matrix using right-handed notation.
+		/// </summary>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="result">The transformed vector.</param>
+		public static void TransformColumn(in TkMatrix2 mat, in TkVector2 vec, out TkVector2 result) {
+			result.X = (mat.Row0.X * vec.X) + (mat.Row0.Y * vec.Y);
+			result.Y = (mat.Row1.X * vec.X) + (mat.Row1.Y * vec.Y);
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Y and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Yx {
+			get => new TkVector2(Y, X);
+			set {
+				Y = value.X;
+				X = value.Y;
+			}
+		}
 
 		/// <summary>
 		/// Adds the specified instances.
@@ -920,6 +801,7 @@ namespace GRF.Graphics {
 		/// <param name="left">Left operand.</param>
 		/// <param name="right">Right operand.</param>
 		/// <returns>Result of addition.</returns>
+		[Pure]
 		public static TkVector2 operator +(TkVector2 left, TkVector2 right) {
 			left.X += right.X;
 			left.Y += right.Y;
@@ -932,6 +814,7 @@ namespace GRF.Graphics {
 		/// <param name="left">Left operand.</param>
 		/// <param name="right">Right operand.</param>
 		/// <returns>Result of subtraction.</returns>
+		[Pure]
 		public static TkVector2 operator -(TkVector2 left, TkVector2 right) {
 			left.X -= right.X;
 			left.Y -= right.Y;
@@ -943,6 +826,7 @@ namespace GRF.Graphics {
 		/// </summary>
 		/// <param name="vec">Operand.</param>
 		/// <returns>Result of negation.</returns>
+		[Pure]
 		public static TkVector2 operator -(TkVector2 vec) {
 			vec.X = -vec.X;
 			vec.Y = -vec.Y;
@@ -955,6 +839,7 @@ namespace GRF.Graphics {
 		/// <param name="vec">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of multiplication.</returns>
+		[Pure]
 		public static TkVector2 operator *(TkVector2 vec, float scale) {
 			vec.X *= scale;
 			vec.Y *= scale;
@@ -967,6 +852,7 @@ namespace GRF.Graphics {
 		/// <param name="scale">Left operand.</param>
 		/// <param name="vec">Right operand.</param>
 		/// <returns>Result of multiplication.</returns>
+		[Pure]
 		public static TkVector2 operator *(float scale, TkVector2 vec) {
 			vec.X *= scale;
 			vec.Y *= scale;
@@ -974,15 +860,77 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
+		/// Component-wise multiplication between the specified instance by a scale vector.
+		/// </summary>
+		/// <param name="scale">Left operand.</param>
+		/// <param name="vec">Right operand.</param>
+		/// <returns>Result of multiplication.</returns>
+		[Pure]
+		public static TkVector2 operator *(TkVector2 vec, TkVector2 scale) {
+			vec.X *= scale.X;
+			vec.Y *= scale.Y;
+			return vec;
+		}
+
+		/// <summary>
+		/// Transform a Vector by the given Matrix.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="mat">The desired transformation.</param>
+		/// <returns>The transformed vector.</returns>
+		[Pure]
+		public static TkVector2 operator *(TkVector2 vec, TkMatrix2 mat) {
+			TransformRow(in vec, in mat, out TkVector2 result);
+			return result;
+		}
+
+		/// <summary>
+		/// Transform a Vector by the given Matrix using right-handed notation.
+		/// </summary>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="vec">The vector to transform.</param>
+		/// <returns>The transformed vector.</returns>
+		[Pure]
+		public static TkVector2 operator *(TkMatrix2 mat, TkVector2 vec) {
+			TransformColumn(in mat, in vec, out TkVector2 result);
+			return result;
+		}
+
+		/// <summary>
+		/// Transforms a vector by a quaternion rotation.
+		/// </summary>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="quat">The quaternion to rotate the vector by.</param>
+		/// <returns>The multiplied vector.</returns>
+		[Pure]
+		public static TkVector2 operator *(TkQuaternion quat, TkVector2 vec) {
+			Transform(in vec, in quat, out TkVector2 result);
+			return result;
+		}
+
+		/// <summary>
 		/// Divides the specified instance by a scalar.
 		/// </summary>
-		/// <param name="vec">Left operand</param>
-		/// <param name="scale">Right operand</param>
+		/// <param name="vec">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the division.</returns>
+		[Pure]
 		public static TkVector2 operator /(TkVector2 vec, float scale) {
-			float mult = 1.0f / scale;
-			vec.X *= mult;
-			vec.Y *= mult;
+			vec.X /= scale;
+			vec.Y /= scale;
+			return vec;
+		}
+
+		/// <summary>
+		/// Component-wise division between the specified instance by a scale vector.
+		/// </summary>
+		/// <param name="vec">Left operand.</param>
+		/// <param name="scale">Right operand.</param>
+		/// <returns>Result of the division.</returns>
+		[Pure]
+		public static TkVector2 operator /(TkVector2 vec, TkVector2 scale) {
+			vec.X /= scale.X;
+			vec.Y /= scale.Y;
 			return vec;
 		}
 
@@ -1003,84 +951,51 @@ namespace GRF.Graphics {
 		/// <param name="right">Right operand.</param>
 		/// <returns>True if both instances are not equal; false otherwise.</returns>
 		public static bool operator !=(TkVector2 left, TkVector2 right) {
-			return !left.Equals(right);
+			return !(left == right);
 		}
 
 		/// <summary>
-		/// Multiplies the specified instance by a scalar.
+		/// Initializes a new instance of the <see cref="TkVector2"/> struct using a tuple containing the component
+		/// values.
 		/// </summary>
-		/// <param name="vec1">Left operand.</param>
-		/// <param name="vec2">Right operand.</param>
-		/// <returns>Result of multiplication.</returns>
-		public static TkVector2 operator *(TkVector2 vec1, TkVector2 vec2) {
-			vec1.X *= vec2.X;
-			vec1.Y *= vec2.Y;
-			return vec1;
+		/// <param name="values">A tuple containing the component values.</param>
+		/// <returns>A new instance of the <see cref="TkVector2"/> struct with the given component values.</returns>
+		[Pure]
+		public static implicit operator TkVector2((float X, float Y) values) {
+			return new TkVector2(values.X, values.Y);
 		}
 
-		#endregion
-
-		#region Overrides
-
-		#region public override string ToString()
-
-		/// <summary>
-		/// Returns a System.String that represents the current Vector2.
-		/// </summary>
-		/// <returns></returns>
+		/// <inheritdoc/>
 		public override string ToString() {
 			return String.Format("({0}, {1})", X, Y);
 		}
 
-		#endregion
+		/// <inheritdoc/>
+		public override bool Equals(object obj) {
+			return obj is TkVector2 && Equals((TkVector2)obj);
+		}
 
-		#region public override int GetHashCode()
+		/// <inheritdoc/>
+		public bool Equals(TkVector2 other) {
+			return X == other.X &&
+				   Y == other.Y;
+		}
 
-		/// <summary>
-		/// Returns the hashcode for this instance.
-		/// </summary>
-		/// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
+		/// <inheritdoc/>
 		public override int GetHashCode() {
-// ReSharper disable NonReadonlyFieldInGetHashCode
 			return X.GetHashCode() ^ Y.GetHashCode();
 		}
 
-		#endregion
-
-		#region public override bool Equals(object obj)
-
 		/// <summary>
-		/// Indicates whether this instance and a specified object are equal.
+		/// Deconstructs the vector into it's individual components.
 		/// </summary>
-		/// <param name="obj">The object to compare to.</param>
-		/// <returns>True if the instances are equal; false otherwise.</returns>
-		public override bool Equals(object obj) {
-			if (!(obj is TkVector2))
-				return false;
-
-			return Equals((TkVector2)obj);
+		/// <param name="x">The X component of the vector.</param>
+		/// <param name="y">The Y component of the vector.</param>
+		[Pure]
+		public void Deconstruct(out float x, out float y) {
+			x = X;
+			y = Y;
 		}
-
-		#endregion
-
-		#endregion
-
-		#endregion
-
-		#region IEquatable<Vector2> Members
-
-		/// <summary>Indicates whether the current vector is equal to another vector.</summary>
-		/// <param name="other">A vector to compare with this vector.</param>
-		/// <returns>true if the current vector is equal to the vector parameter; otherwise, false.</returns>
-		public bool Equals(TkVector2 other) {
-			return
-// ReSharper disable CompareOfFloatsByEqualityOperator
-				X == other.X &&
-				Y == other.Y;
-		}
-
-		#endregion
-
 
 		public static double CalculateAngle(TkVector2 u, TkVector2 v) {
 			return Math.Acos(((u.X * v.X) + (u.Y * v.Y)) / (Math.Pow(u.X * u.X + u.Y * u.Y, 0.5) * Math.Pow(v.X * v.X + v.Y * v.Y, 0.5)));
@@ -1093,8 +1008,6 @@ namespace GRF.Graphics {
 		public static double CalculateDistance(TkVector2 u, TkVector2 v) {
 			return (u - v).Length;
 		}
-
-
 
 		public void RotateZ(float angle) {
 			double sin = Math.Sin(angle * Math.PI / 180f);

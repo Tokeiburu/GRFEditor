@@ -1,5 +1,4 @@
-﻿#region --- License ---
-/*
+﻿/*
 Copyright (c) 2006 - 2008 The Open Toolkit library.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
@@ -20,66 +19,69 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
  */
-#endregion
 
 using GRF.Image;
 using System;
+using System.Diagnostics.Contracts;
+using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Xml.Serialization;
 
 namespace GRF.Graphics {
-	/// <summary>Represents a 4D vector using four single-precision floating-point numbers.</summary>
+	/// <summary>
+	/// Represents a 4D vector using four single-precision floating-point numbers.
+	/// </summary>
 	/// <remarks>
-	/// The Vector4 structure is suitable for interoperation with unmanaged code requiring four consecutive floats.
+	/// The TkVector4 structure is suitable for interoperation with unmanaged code requiring four consecutive floats.
 	/// </remarks>
 	[Serializable]
 	[StructLayout(LayoutKind.Sequential)]
 	public struct TkVector4 : IEquatable<TkVector4> {
-		#region Fields
-
 		/// <summary>
-		/// The X component of the Vector4.
+		/// The X component of the TkVector4.
 		/// </summary>
 		public float X;
 
 		/// <summary>
-		/// The Y component of the Vector4.
+		/// The Y component of the TkVector4.
 		/// </summary>
 		public float Y;
 
 		/// <summary>
-		/// The Z component of the Vector4.
+		/// The Z component of the TkVector4.
 		/// </summary>
 		public float Z;
 
 		/// <summary>
-		/// The W component of the Vector4.
+		/// The W component of the TkVector4.
 		/// </summary>
 		public float W;
 
 		/// <summary>
-		/// Defines a unit-length Vector4 that points towards the X-axis.
+		/// Defines a unit-length TkVector4 that points towards the X-axis.
 		/// </summary>
-		public static TkVector4 UnitX = new TkVector4(1, 0, 0, 0);
+		public static readonly TkVector4 UnitX = new TkVector4(1, 0, 0, 0);
 
 		/// <summary>
-		/// Defines a unit-length Vector4 that points towards the Y-axis.
+		/// Defines a unit-length TkVector4 that points towards the Y-axis.
 		/// </summary>
-		public static TkVector4 UnitY = new TkVector4(0, 1, 0, 0);
+		public static readonly TkVector4 UnitY = new TkVector4(0, 1, 0, 0);
 
 		/// <summary>
-		/// Defines a unit-length Vector4 that points towards the Z-axis.
+		/// Defines a unit-length TkVector4 that points towards the Z-axis.
 		/// </summary>
-		public static TkVector4 UnitZ = new TkVector4(0, 0, 1, 0);
+		public static readonly TkVector4 UnitZ = new TkVector4(0, 0, 1, 0);
 
 		/// <summary>
-		/// Defines a unit-length Vector4 that points towards the W-axis.
+		/// Defines a unit-length TkVector4 that points towards the W-axis.
 		/// </summary>
-		public static TkVector4 UnitW = new TkVector4(0, 0, 0, 1);
+		public static readonly TkVector4 UnitW = new TkVector4(0, 0, 0, 1);
 
 		/// <summary>
-		/// Defines a zero-length Vector4.
+		/// Defines an instance with all components set to 0.
 		/// </summary>
-		public static TkVector4 Zero = new TkVector4(0, 0, 0, 0);
+		public static readonly TkVector4 Zero = new TkVector4(0, 0, 0, 0);
 
 		/// <summary>
 		/// Defines an instance with all components set to 1.
@@ -87,16 +89,22 @@ namespace GRF.Graphics {
 		public static readonly TkVector4 One = new TkVector4(1, 1, 1, 1);
 
 		/// <summary>
-		/// Defines the size of the Vector4 struct in bytes.
+		/// Defines an instance with all components set to positive infinity.
+		/// </summary>
+		public static readonly TkVector4 PositiveInfinity = new TkVector4(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
+
+		/// <summary>
+		/// Defines an instance with all components set to negative infinity.
+		/// </summary>
+		public static readonly TkVector4 NegativeInfinity = new TkVector4(float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity, float.NegativeInfinity);
+
+		/// <summary>
+		/// Defines the size of the TkVector4 struct in bytes.
 		/// </summary>
 		public static readonly int SizeInBytes = Marshal.SizeOf(new TkVector4());
 
-		#endregion
-
-		#region Constructors
-
 		/// <summary>
-		/// Constructs a new instance.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
 		/// <param name="value">The value that will initialize this instance.</param>
 		public TkVector4(float value) {
@@ -107,12 +115,12 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector4.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
-		/// <param name="x">The x component of the Vector4.</param>
-		/// <param name="y">The y component of the Vector4.</param>
-		/// <param name="z">The z component of the Vector4.</param>
-		/// <param name="w">The w component of the Vector4.</param>
+		/// <param name="x">The x component of the TkVector4.</param>
+		/// <param name="y">The y component of the TkVector4.</param>
+		/// <param name="z">The z component of the TkVector4.</param>
+		/// <param name="w">The w component of the TkVector4.</param>
 		public TkVector4(float x, float y, float z, float w) {
 			X = x;
 			Y = y;
@@ -121,7 +129,7 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector4 from the given TkVector2.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
 		/// <param name="v">The TkVector2 to copy components from.</param>
 		public TkVector4(TkVector2 v) {
@@ -132,11 +140,12 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector4 from the given TkVector3.
-		/// The w component is initialized to 0.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
 		/// <param name="v">The TkVector3 to copy components from.</param>
-		/// <remarks><seealso cref="TkVector4(TkVector3, float)"/></remarks>
+		/// <remarks>
+		///  .<seealso cref="TkVector4(TkVector3, float)"/>
+		/// </remarks>
 		public TkVector4(TkVector3 v) {
 			X = v.X;
 			Y = v.Y;
@@ -145,10 +154,10 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector4 from the specified TkVector3 and w component.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
 		/// <param name="v">The TkVector3 to copy components from.</param>
-		/// <param name="w">The w component of the new Vector4.</param>
+		/// <param name="w">The w component of the new TkVector4.</param>
 		public TkVector4(TkVector3 v, float w) {
 			X = v.X;
 			Y = v.Y;
@@ -157,9 +166,9 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Constructs a new Vector4 from the given Vector4.
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct.
 		/// </summary>
-		/// <param name="v">The Vector4 to copy components from.</param>
+		/// <param name="v">The TkVector4 to copy components from.</param>
 		public TkVector4(TkVector4 v) {
 			X = v.X;
 			Y = v.Y;
@@ -167,105 +176,57 @@ namespace GRF.Graphics {
 			W = v.W;
 		}
 
-		#endregion
+		/// <summary>
+		/// Gets or sets the value at the index of the Vector.
+		/// </summary>
+		/// <param name="index">The index of the component from the Vector.</param>
+		/// <exception cref="IndexOutOfRangeException">Thrown if the index is less than 0 or greater than 3.</exception>
+		public float this[int index] {
+			get {
+				if (index == 0) {
+					return X;
+				}
 
-		#region Public Members
+				if (index == 1) {
+					return Y;
+				}
 
-		#region Instance
+				if (index == 2) {
+					return Z;
+				}
 
-		#region public void Add()
+				if (index == 3) {
+					return W;
+				}
 
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(TkVector4 right) {
-			X += right.X;
-			Y += right.Y;
-			Z += right.Z;
-			W += right.W;
+				throw new IndexOutOfRangeException("You tried to access this vector at index: " + index);
+			}
+
+			set {
+				if (index == 0) {
+					X = value;
+				}
+				else if (index == 1) {
+					Y = value;
+				}
+				else if (index == 2) {
+					Z = value;
+				}
+				else if (index == 3) {
+					W = value;
+				}
+				else {
+					throw new IndexOutOfRangeException("You tried to set this vector at index: " + index);
+				}
+			}
 		}
-
-		/// <summary>Add the Vector passed as parameter to this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Add() method instead.")]
-		public void Add(ref TkVector4 right) {
-			X += right.X;
-			Y += right.Y;
-			Z += right.Z;
-			W += right.W;
-		}
-
-		#endregion public void Add()
-
-		#region public void Sub()
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(TkVector4 right) {
-			X -= right.X;
-			Y -= right.Y;
-			Z -= right.Z;
-			W -= right.W;
-		}
-
-		/// <summary>Subtract the Vector passed as parameter from this instance.</summary>
-		/// <param name="right">Right operand. This parameter is only read from.</param>
-		[Obsolete("Use static Subtract() method instead.")]
-		public void Sub(ref TkVector4 right) {
-			X -= right.X;
-			Y -= right.Y;
-			Z -= right.Z;
-			W -= right.W;
-		}
-
-		#endregion public void Sub()
-
-		#region public void Mult()
-
-		/// <summary>Multiply this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Mult(float f) {
-			X *= f;
-			Y *= f;
-			Z *= f;
-			W *= f;
-		}
-
-		#endregion public void Mult()
-
-		#region public void Div()
-
-		/// <summary>Divide this instance by a scalar.</summary>
-		/// <param name="f">Scalar operand.</param>
-		[Obsolete("Use static Divide() method instead.")]
-		public void Div(float f) {
-			float mult = 1.0f / f;
-			X *= mult;
-			Y *= mult;
-			Z *= mult;
-			W *= mult;
-		}
-
-		#endregion public void Div()
-
-		#region public float Length
 
 		/// <summary>
 		/// Gets the length (magnitude) of the vector.
 		/// </summary>
 		/// <see cref="LengthFast"/>
 		/// <seealso cref="LengthSquared"/>
-		public float Length {
-			get {
-				return (float)Math.Sqrt(X * X + Y * Y + Z * Z + W * W);
-			}
-		}
-
-		#endregion
-
-		#region public float LengthFast
+		public float Length => (float)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
 
 		/// <summary>
 		/// Gets an approximation of the vector length (magnitude).
@@ -276,15 +237,7 @@ namespace GRF.Graphics {
 		/// </remarks>
 		/// <see cref="Length"/>
 		/// <seealso cref="LengthSquared"/>
-		public float LengthFast {
-			get {
-				return 1.0f / MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z + W * W);
-			}
-		}
-
-		#endregion
-
-		#region public float LengthSquared
+		public float LengthFast => 1.0f / MathHelper.InverseSqrtFast((X * X) + (Y * Y) + (Z * Z) + (W * W));
 
 		/// <summary>
 		/// Gets the square of the vector length (magnitude).
@@ -295,18 +248,10 @@ namespace GRF.Graphics {
 		/// </remarks>
 		/// <see cref="Length"/>
 		/// <seealso cref="LengthFast"/>
-		public float LengthSquared {
-			get {
-				return X * X + Y * Y + Z * Z + W * W;
-			}
-		}
-
-		#endregion
-
-		#region public void Normalize()
+		public float LengthSquared => (X * X) + (Y * Y) + (Z * Z) + (W * W);
 
 		/// <summary>
-		/// Returns a copy of the Vector3 scaled to unit length.
+		/// Returns a copy of the TkVector4 scaled to unit length.
 		/// </summary>
 		/// <returns>The normalized copy.</returns>
 		public TkVector4 Normalized() {
@@ -316,176 +261,26 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Scales the Vector4 to unit length.
+		/// Scales the TkVector4 to unit length.
 		/// </summary>
 		public void Normalize() {
-			float scale = 1.0f / Length;
+			var scale = 1.0f / Length;
 			X *= scale;
 			Y *= scale;
 			Z *= scale;
 			W *= scale;
 		}
 
-		#endregion
-
-		#region public void NormalizeFast()
-
 		/// <summary>
-		/// Scales the Vector4 to approximately unit length.
+		/// Scales the TkVector4 to approximately unit length.
 		/// </summary>
 		public void NormalizeFast() {
-			float scale = MathHelper.InverseSqrtFast(X * X + Y * Y + Z * Z + W * W);
+			var scale = MathHelper.InverseSqrtFast((X * X) + (Y * Y) + (Z * Z) + (W * W));
 			X *= scale;
 			Y *= scale;
 			Z *= scale;
 			W *= scale;
 		}
-
-		#endregion
-
-		#region public void Scale()
-
-		/// <summary>
-		/// Scales the current Vector4 by the given amounts.
-		/// </summary>
-		/// <param name="sx">The scale of the X component.</param>
-		/// <param name="sy">The scale of the Y component.</param>
-		/// <param name="sz">The scale of the Z component.</param>
-		/// <param name="sw">The scale of the Z component.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(float sx, float sy, float sz, float sw) {
-			X = X * sx;
-			Y = Y * sy;
-			Z = Z * sz;
-			W = W * sw;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(TkVector4 scale) {
-			X *= scale.X;
-			Y *= scale.Y;
-			Z *= scale.Z;
-			W *= scale.W;
-		}
-
-		/// <summary>Scales this instance by the given parameter.</summary>
-		/// <param name="scale">The scaling of the individual components.</param>
-		[Obsolete("Use static Multiply() method instead.")]
-		public void Scale(ref TkVector4 scale) {
-			X *= scale.X;
-			Y *= scale.Y;
-			Z *= scale.Z;
-			W *= scale.W;
-		}
-
-		#endregion public void Scale()
-
-		#endregion
-
-		#region Static
-
-		#region Obsolete
-
-		#region Sub
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>Result of subtraction</returns>
-		public static TkVector4 Sub(TkVector4 a, TkVector4 b) {
-			a.X -= b.X;
-			a.Y -= b.Y;
-			a.Z -= b.Z;
-			a.W -= b.W;
-			return a;
-		}
-
-		/// <summary>
-		/// Subtract one Vector from another
-		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">Result of subtraction</param>
-		public static void Sub(ref TkVector4 a, ref TkVector4 b, out TkVector4 result) {
-			result.X = a.X - b.X;
-			result.Y = a.Y - b.Y;
-			result.Z = a.Z - b.Z;
-			result.W = a.W - b.W;
-		}
-
-		#endregion
-
-		#region Mult
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the multiplication</returns>
-		public static TkVector4 Mult(TkVector4 a, float f) {
-			a.X *= f;
-			a.Y *= f;
-			a.Z *= f;
-			a.W *= f;
-			return a;
-		}
-
-		/// <summary>
-		/// Multiply a vector and a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the multiplication</param>
-		public static void Mult(ref TkVector4 a, float f, out TkVector4 result) {
-			result.X = a.X * f;
-			result.Y = a.Y * f;
-			result.Z = a.Z * f;
-			result.W = a.W * f;
-		}
-
-		#endregion
-
-		#region Div
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <returns>Result of the division</returns>
-		public static TkVector4 Div(TkVector4 a, float f) {
-			float mult = 1.0f / f;
-			a.X *= mult;
-			a.Y *= mult;
-			a.Z *= mult;
-			a.W *= mult;
-			return a;
-		}
-
-		/// <summary>
-		/// Divide a vector by a scalar
-		/// </summary>
-		/// <param name="a">Vector operand</param>
-		/// <param name="f">Scalar operand</param>
-		/// <param name="result">Result of the division</param>
-		public static void Div(ref TkVector4 a, float f, out TkVector4 result) {
-			float mult = 1.0f / f;
-			result.X = a.X * mult;
-			result.Y = a.Y * mult;
-			result.Z = a.Z * mult;
-			result.W = a.W * mult;
-		}
-
-		#endregion
-
-		#endregion
-
-		#region Add
 
 		/// <summary>
 		/// Adds two vectors.
@@ -493,8 +288,9 @@ namespace GRF.Graphics {
 		/// <param name="a">Left operand.</param>
 		/// <param name="b">Right operand.</param>
 		/// <returns>Result of operation.</returns>
+		[Pure]
 		public static TkVector4 Add(TkVector4 a, TkVector4 b) {
-			Add(ref a, ref b, out a);
+			Add(in a, in b, out a);
 			return a;
 		}
 
@@ -504,38 +300,37 @@ namespace GRF.Graphics {
 		/// <param name="a">Left operand.</param>
 		/// <param name="b">Right operand.</param>
 		/// <param name="result">Result of operation.</param>
-		public static void Add(ref TkVector4 a, ref TkVector4 b, out TkVector4 result) {
-			result = new TkVector4(a.X + b.X, a.Y + b.Y, a.Z + b.Z, a.W + b.W);
+		public static void Add(in TkVector4 a, in TkVector4 b, out TkVector4 result) {
+			result.X = a.X + b.X;
+			result.Y = a.Y + b.Y;
+			result.Z = a.Z + b.Z;
+			result.W = a.W + b.W;
 		}
 
-		#endregion
-
-		#region Subtract
-
 		/// <summary>
-		/// Subtract one Vector from another
+		/// Subtract one Vector from another.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>Result of subtraction</returns>
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>Result of subtraction.</returns>
+		[Pure]
 		public static TkVector4 Subtract(TkVector4 a, TkVector4 b) {
-			Subtract(ref a, ref b, out a);
+			Subtract(in a, in b, out a);
 			return a;
 		}
 
 		/// <summary>
-		/// Subtract one Vector from another
+		/// Subtract one Vector from another.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">Result of subtraction</param>
-		public static void Subtract(ref TkVector4 a, ref TkVector4 b, out TkVector4 result) {
-			result = new TkVector4(a.X - b.X, a.Y - b.Y, a.Z - b.Z, a.W - b.W);
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">Result of subtraction.</param>
+		public static void Subtract(in TkVector4 a, in TkVector4 b, out TkVector4 result) {
+			result.X = a.X - b.X;
+			result.Y = a.Y - b.Y;
+			result.Z = a.Z - b.Z;
+			result.W = a.W - b.W;
 		}
-
-		#endregion
-
-		#region Multiply
 
 		/// <summary>
 		/// Multiplies a vector by a scalar.
@@ -543,8 +338,9 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the operation.</returns>
+		[Pure]
 		public static TkVector4 Multiply(TkVector4 vector, float scale) {
-			Multiply(ref vector, scale, out vector);
+			Multiply(in vector, scale, out vector);
 			return vector;
 		}
 
@@ -554,8 +350,11 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <param name="result">Result of the operation.</param>
-		public static void Multiply(ref TkVector4 vector, float scale, out TkVector4 result) {
-			result = new TkVector4(vector.X * scale, vector.Y * scale, vector.Z * scale, vector.W * scale);
+		public static void Multiply(in TkVector4 vector, float scale, out TkVector4 result) {
+			result.X = vector.X * scale;
+			result.Y = vector.Y * scale;
+			result.Z = vector.Z * scale;
+			result.W = vector.W * scale;
 		}
 
 		/// <summary>
@@ -564,8 +363,9 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the operation.</returns>
+		[Pure]
 		public static TkVector4 Multiply(TkVector4 vector, TkVector4 scale) {
-			Multiply(ref vector, ref scale, out vector);
+			Multiply(in vector, in scale, out vector);
 			return vector;
 		}
 
@@ -575,13 +375,12 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <param name="result">Result of the operation.</param>
-		public static void Multiply(ref TkVector4 vector, ref TkVector4 scale, out TkVector4 result) {
-			result = new TkVector4(vector.X * scale.X, vector.Y * scale.Y, vector.Z * scale.Z, vector.W * scale.W);
+		public static void Multiply(in TkVector4 vector, in TkVector4 scale, out TkVector4 result) {
+			result.X = vector.X * scale.X;
+			result.Y = vector.Y * scale.Y;
+			result.Z = vector.Z * scale.Z;
+			result.W = vector.W * scale.W;
 		}
-
-		#endregion
-
-		#region Divide
 
 		/// <summary>
 		/// Divides a vector by a scalar.
@@ -589,8 +388,9 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the operation.</returns>
+		[Pure]
 		public static TkVector4 Divide(TkVector4 vector, float scale) {
-			Divide(ref vector, scale, out vector);
+			Divide(in vector, scale, out vector);
 			return vector;
 		}
 
@@ -600,8 +400,11 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <param name="result">Result of the operation.</param>
-		public static void Divide(ref TkVector4 vector, float scale, out TkVector4 result) {
-			Multiply(ref vector, 1 / scale, out result);
+		public static void Divide(in TkVector4 vector, float scale, out TkVector4 result) {
+			result.X = vector.X / scale;
+			result.Y = vector.Y / scale;
+			result.Z = vector.Z / scale;
+			result.W = vector.W / scale;
 		}
 
 		/// <summary>
@@ -610,8 +413,9 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the operation.</returns>
+		[Pure]
 		public static TkVector4 Divide(TkVector4 vector, TkVector4 scale) {
-			Divide(ref vector, ref scale, out vector);
+			Divide(in vector, in scale, out vector);
 			return vector;
 		}
 
@@ -621,21 +425,21 @@ namespace GRF.Graphics {
 		/// <param name="vector">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <param name="result">Result of the operation.</param>
-		public static void Divide(ref TkVector4 vector, ref TkVector4 scale, out TkVector4 result) {
-			result = new TkVector4(vector.X / scale.X, vector.Y / scale.Y, vector.Z / scale.Z, vector.W / scale.W);
+		public static void Divide(in TkVector4 vector, in TkVector4 scale, out TkVector4 result) {
+			result.X = vector.X / scale.X;
+			result.Y = vector.Y / scale.Y;
+			result.Z = vector.Z / scale.Z;
+			result.W = vector.W / scale.W;
 		}
 
-		#endregion
-
-		#region Min
-
 		/// <summary>
-		/// Calculate the component-wise minimum of two vectors
+		/// Returns a vector created from the smallest of the corresponding components of the given vectors.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>The component-wise minimum</returns>
-		public static TkVector4 Min(TkVector4 a, TkVector4 b) {
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>The component-wise minimum.</returns>
+		[Pure]
+		public static TkVector4 ComponentMin(TkVector4 a, TkVector4 b) {
 			a.X = a.X < b.X ? a.X : b.X;
 			a.Y = a.Y < b.Y ? a.Y : b.Y;
 			a.Z = a.Z < b.Z ? a.Z : b.Z;
@@ -644,29 +448,26 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Calculate the component-wise minimum of two vectors
+		/// Returns a vector created from the smallest of the corresponding components of the given vectors.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">The component-wise minimum</param>
-		public static void Min(ref TkVector4 a, ref TkVector4 b, out TkVector4 result) {
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">The component-wise minimum.</param>
+		public static void ComponentMin(in TkVector4 a, in TkVector4 b, out TkVector4 result) {
 			result.X = a.X < b.X ? a.X : b.X;
 			result.Y = a.Y < b.Y ? a.Y : b.Y;
 			result.Z = a.Z < b.Z ? a.Z : b.Z;
 			result.W = a.W < b.W ? a.W : b.W;
 		}
 
-		#endregion
-
-		#region Max
-
 		/// <summary>
-		/// Calculate the component-wise maximum of two vectors
+		/// Returns a vector created from the largest of the corresponding components of the given vectors.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <returns>The component-wise maximum</returns>
-		public static TkVector4 Max(TkVector4 a, TkVector4 b) {
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <returns>The component-wise maximum.</returns>
+		[Pure]
+		public static TkVector4 ComponentMax(TkVector4 a, TkVector4 b) {
 			a.X = a.X > b.X ? a.X : b.X;
 			a.Y = a.Y > b.Y ? a.Y : b.Y;
 			a.Z = a.Z > b.Z ? a.Z : b.Z;
@@ -675,62 +476,102 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Calculate the component-wise maximum of two vectors
+		/// Returns a vector created from the largest of the corresponding components of the given vectors.
 		/// </summary>
-		/// <param name="a">First operand</param>
-		/// <param name="b">Second operand</param>
-		/// <param name="result">The component-wise maximum</param>
-		public static void Max(ref TkVector4 a, ref TkVector4 b, out TkVector4 result) {
+		/// <param name="a">First operand.</param>
+		/// <param name="b">Second operand.</param>
+		/// <param name="result">The component-wise maximum.</param>
+		public static void ComponentMax(in TkVector4 a, in TkVector4 b, out TkVector4 result) {
 			result.X = a.X > b.X ? a.X : b.X;
 			result.Y = a.Y > b.Y ? a.Y : b.Y;
 			result.Z = a.Z > b.Z ? a.Z : b.Z;
 			result.W = a.W > b.W ? a.W : b.W;
 		}
 
-		#endregion
-
-		#region Clamp
+		/// <summary>
+		/// Returns the TkVector4 with the minimum magnitude. If the magnitudes are equal, the second vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <returns>The minimum TkVector4.</returns>
+		[Pure]
+		public static TkVector4 MagnitudeMin(TkVector4 left, TkVector4 right) {
+			return left.LengthSquared < right.LengthSquared ? left : right;
+		}
 
 		/// <summary>
-		/// Clamp a vector to the given minimum and maximum vectors
+		/// Returns the TkVector4 with the minimum magnitude. If the magnitudes are equal, the second vector
+		/// is selected.
 		/// </summary>
-		/// <param name="vec">Input vector</param>
-		/// <param name="min">Minimum vector</param>
-		/// <param name="max">Maximum vector</param>
-		/// <returns>The clamped vector</returns>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <param name="result">The magnitude-wise minimum.</param>
+		public static void MagnitudeMin(in TkVector4 left, in TkVector4 right, out TkVector4 result) {
+			result = left.LengthSquared < right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Returns the TkVector4 with the maximum magnitude. If the magnitudes are equal, the first vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <returns>The maximum TkVector4.</returns>
+		[Pure]
+		public static TkVector4 MagnitudeMax(TkVector4 left, TkVector4 right) {
+			return left.LengthSquared >= right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Returns the TkVector4 with the maximum magnitude. If the magnitudes are equal, the first vector
+		/// is selected.
+		/// </summary>
+		/// <param name="left">Left operand.</param>
+		/// <param name="right">Right operand.</param>
+		/// <param name="result">The magnitude-wise maximum.</param>
+		public static void MagnitudeMax(in TkVector4 left, in TkVector4 right, out TkVector4 result) {
+			result = left.LengthSquared >= right.LengthSquared ? left : right;
+		}
+
+		/// <summary>
+		/// Clamp a vector to the given minimum and maximum vectors.
+		/// </summary>
+		/// <param name="vec">Input vector.</param>
+		/// <param name="min">Minimum vector.</param>
+		/// <param name="max">Maximum vector.</param>
+		/// <returns>The clamped vector.</returns>
+		[Pure]
 		public static TkVector4 Clamp(TkVector4 vec, TkVector4 min, TkVector4 max) {
 			vec.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
 			vec.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-			vec.Z = vec.X < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
-			vec.W = vec.Y < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
+			vec.Z = vec.Z < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+			vec.W = vec.W < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
 			return vec;
 		}
 
 		/// <summary>
-		/// Clamp a vector to the given minimum and maximum vectors
+		/// Clamp a vector to the given minimum and maximum vectors.
 		/// </summary>
-		/// <param name="vec">Input vector</param>
-		/// <param name="min">Minimum vector</param>
-		/// <param name="max">Maximum vector</param>
-		/// <param name="result">The clamped vector</param>
-		public static void Clamp(ref TkVector4 vec, ref TkVector4 min, ref TkVector4 max, out TkVector4 result) {
+		/// <param name="vec">Input vector.</param>
+		/// <param name="min">Minimum vector.</param>
+		/// <param name="max">Maximum vector.</param>
+		/// <param name="result">The clamped vector.</param>
+		public static void Clamp(in TkVector4 vec, in TkVector4 min, in TkVector4 max, out TkVector4 result) {
 			result.X = vec.X < min.X ? min.X : vec.X > max.X ? max.X : vec.X;
 			result.Y = vec.Y < min.Y ? min.Y : vec.Y > max.Y ? max.Y : vec.Y;
-			result.Z = vec.X < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
-			result.W = vec.Y < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
+			result.Z = vec.Z < min.Z ? min.Z : vec.Z > max.Z ? max.Z : vec.Z;
+			result.W = vec.W < min.W ? min.W : vec.W > max.W ? max.W : vec.W;
 		}
 
-		#endregion
-
-		#region Normalize
-
 		/// <summary>
-		/// Scale a vector to unit length
+		/// Scale a vector to unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <returns>The normalized vector</returns>
+		/// <param name="vec">The input vector.</param>
+		/// <returns>The normalized copy.</returns>
+		[Pure]
 		public static TkVector4 Normalize(TkVector4 vec) {
-			float scale = 1.0f / vec.Length;
+			var scale = 1.0f / vec.Length;
 			vec.X *= scale;
 			vec.Y *= scale;
 			vec.Z *= scale;
@@ -739,29 +580,26 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Scale a vector to unit length
+		/// Scale a vector to unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <param name="result">The normalized vector</param>
-		public static void Normalize(ref TkVector4 vec, out TkVector4 result) {
-			float scale = 1.0f / vec.Length;
+		/// <param name="vec">The input vector.</param>
+		/// <param name="result">The normalized vector.</param>
+		public static void Normalize(in TkVector4 vec, out TkVector4 result) {
+			var scale = 1.0f / vec.Length;
 			result.X = vec.X * scale;
 			result.Y = vec.Y * scale;
 			result.Z = vec.Z * scale;
 			result.W = vec.W * scale;
 		}
 
-		#endregion
-
-		#region NormalizeFast
-
 		/// <summary>
-		/// Scale a vector to approximately unit length
+		/// Scale a vector to approximately unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <returns>The normalized vector</returns>
+		/// <param name="vec">The input vector.</param>
+		/// <returns>The normalized copy.</returns>
+		[Pure]
 		public static TkVector4 NormalizeFast(TkVector4 vec) {
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z + vec.W * vec.W);
+			var scale = MathHelper.InverseSqrtFast((vec.X * vec.X) + (vec.Y * vec.Y) + (vec.Z * vec.Z) + (vec.W * vec.W));
 			vec.X *= scale;
 			vec.Y *= scale;
 			vec.Z *= scale;
@@ -770,116 +608,143 @@ namespace GRF.Graphics {
 		}
 
 		/// <summary>
-		/// Scale a vector to approximately unit length
+		/// Scale a vector to approximately unit length.
 		/// </summary>
-		/// <param name="vec">The input vector</param>
-		/// <param name="result">The normalized vector</param>
-		public static void NormalizeFast(ref TkVector4 vec, out TkVector4 result) {
-			float scale = MathHelper.InverseSqrtFast(vec.X * vec.X + vec.Y * vec.Y + vec.Z * vec.Z + vec.W * vec.W);
+		/// <param name="vec">The input vector.</param>
+		/// <param name="result">The normalized copy.</param>
+		public static void NormalizeFast(in TkVector4 vec, out TkVector4 result) {
+			var scale = MathHelper.InverseSqrtFast((vec.X * vec.X) + (vec.Y * vec.Y) + (vec.Z * vec.Z) + (vec.W * vec.W));
 			result.X = vec.X * scale;
 			result.Y = vec.Y * scale;
 			result.Z = vec.Z * scale;
 			result.W = vec.W * scale;
 		}
 
-		#endregion
-
-		#region Dot
-
 		/// <summary>
-		/// Calculate the dot product of two vectors
+		/// Calculate the dot product of two vectors.
 		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <returns>The dot product of the two inputs</returns>
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <returns>The dot product of the two inputs.</returns>
+		[Pure]
 		public static float Dot(TkVector4 left, TkVector4 right) {
-			return left.X * right.X + left.Y * right.Y + left.Z * right.Z + left.W * right.W;
+			return (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
 		}
 
 		/// <summary>
-		/// Calculate the dot product of two vectors
+		/// Calculate the dot product of two vectors.
 		/// </summary>
-		/// <param name="left">First operand</param>
-		/// <param name="right">Second operand</param>
-		/// <param name="result">The dot product of the two inputs</param>
-		public static void Dot(ref TkVector4 left, ref TkVector4 right, out float result) {
-			result = left.X * right.X + left.Y * right.Y + left.Z * right.Z + left.W * right.W;
+		/// <param name="left">First operand.</param>
+		/// <param name="right">Second operand.</param>
+		/// <param name="result">The dot product of the two inputs.</param>
+		public static void Dot(in TkVector4 left, in TkVector4 right, out float result) {
+			result = (left.X * right.X) + (left.Y * right.Y) + (left.Z * right.Z) + (left.W * right.W);
 		}
 
-		#endregion
-
-		#region Lerp
-
 		/// <summary>
-		/// Returns a new Vector that is the linear blend of the 2 given Vectors
+		/// Returns a new vector that is the linear blend of the 2 given vectors.
 		/// </summary>
-		/// <param name="a">First input vector</param>
-		/// <param name="b">Second input vector</param>
-		/// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
-		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise</returns>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise.</returns>
+		[Pure]
 		public static TkVector4 Lerp(TkVector4 a, TkVector4 b, float blend) {
-			a.X = blend * (b.X - a.X) + a.X;
-			a.Y = blend * (b.Y - a.Y) + a.Y;
-			a.Z = blend * (b.Z - a.Z) + a.Z;
-			a.W = blend * (b.W - a.W) + a.W;
+			a.X = (blend * (b.X - a.X)) + a.X;
+			a.Y = (blend * (b.Y - a.Y)) + a.Y;
+			a.Z = (blend * (b.Z - a.Z)) + a.Z;
+			a.W = (blend * (b.W - a.W)) + a.W;
 			return a;
 		}
 
 		/// <summary>
-		/// Returns a new Vector that is the linear blend of the 2 given Vectors
+		/// Returns a new vector that is the linear blend of the 2 given vectors.
 		/// </summary>
-		/// <param name="a">First input vector</param>
-		/// <param name="b">Second input vector</param>
-		/// <param name="blend">The blend factor. a when blend=0, b when blend=1.</param>
-		/// <param name="result">a when blend=0, b when blend=1, and a linear combination otherwise</param>
-		public static void Lerp(ref TkVector4 a, ref TkVector4 b, float blend, out TkVector4 result) {
-			result.X = blend * (b.X - a.X) + a.X;
-			result.Y = blend * (b.Y - a.Y) + a.Y;
-			result.Z = blend * (b.Z - a.Z) + a.Z;
-			result.W = blend * (b.W - a.W) + a.W;
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <param name="result">a when blend=0, b when blend=1, and a linear combination otherwise.</param>
+		public static void Lerp(in TkVector4 a, in TkVector4 b, float blend, out TkVector4 result) {
+			result.X = (blend * (b.X - a.X)) + a.X;
+			result.Y = (blend * (b.Y - a.Y)) + a.Y;
+			result.Z = (blend * (b.Z - a.Z)) + a.Z;
+			result.W = (blend * (b.W - a.W)) + a.W;
 		}
-
-		#endregion
-
-		#region Barycentric
 
 		/// <summary>
-		/// Interpolate 3 Vectors using Barycentric coordinates
+		/// Returns a new vector that is the component-wise linear blend of the 2 given vectors.
 		/// </summary>
-		/// <param name="a">First input Vector</param>
-		/// <param name="b">Second input Vector</param>
-		/// <param name="c">Third input Vector</param>
-		/// <param name="u">First Barycentric Coordinate</param>
-		/// <param name="v">Second Barycentric Coordinate</param>
-		/// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</returns>
-		public static TkVector4 BaryCentric(TkVector4 a, TkVector4 b, TkVector4 c, float u, float v) {
-			return a + u * (b - a) + v * (c - a);
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <returns>a when blend=0, b when blend=1, and a component-wise linear combination otherwise.</returns>
+		[Pure]
+		public static TkVector4 Lerp(TkVector4 a, TkVector4 b, TkVector4 blend) {
+			a.X = (blend.X * (b.X - a.X)) + a.X;
+			a.Y = (blend.Y * (b.Y - a.Y)) + a.Y;
+			a.Z = (blend.Z * (b.Z - a.Z)) + a.Z;
+			a.W = (blend.W * (b.W - a.W)) + a.W;
+			return a;
 		}
 
-		/// <summary>Interpolate 3 Vectors using Barycentric coordinates</summary>
+		/// <summary>
+		/// Returns a new vector that is the component-wise linear blend of the 2 given vectors.
+		/// </summary>
+		/// <param name="a">First input vector.</param>
+		/// <param name="b">Second input vector.</param>
+		/// <param name="blend">The blend factor.</param>
+		/// <param name="result">a when blend=0, b when blend=1, and a component-wise linear combination otherwise.</param>
+		public static void Lerp(in TkVector4 a, in TkVector4 b, TkVector4 blend, out TkVector4 result) {
+			result.X = (blend.X * (b.X - a.X)) + a.X;
+			result.Y = (blend.Y * (b.Y - a.Y)) + a.Y;
+			result.Z = (blend.Z * (b.Z - a.Z)) + a.Z;
+			result.W = (blend.W * (b.W - a.W)) + a.W;
+		}
+
+		/// <summary>
+		/// Interpolate 3 Vectors using Barycentric coordinates.
+		/// </summary>
 		/// <param name="a">First input Vector.</param>
 		/// <param name="b">Second input Vector.</param>
 		/// <param name="c">Third input Vector.</param>
 		/// <param name="u">First Barycentric Coordinate.</param>
 		/// <param name="v">Second Barycentric Coordinate.</param>
-		/// <param name="result">Output Vector. a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise</param>
-		public static void BaryCentric(ref TkVector4 a, ref TkVector4 b, ref TkVector4 c, float u, float v, out TkVector4 result) {
-			result = a; // copy
-
-			TkVector4 temp = b; // copy
-			Subtract(ref temp, ref a, out temp);
-			Multiply(ref temp, u, out temp);
-			Add(ref result, ref temp, out result);
-
-			temp = c; // copy
-			Subtract(ref temp, ref a, out temp);
-			Multiply(ref temp, v, out temp);
-			Add(ref result, ref temp, out result);
+		/// <returns>a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c otherwise.</returns>
+		[Pure]
+		public static TkVector4 BaryCentric(TkVector4 a, TkVector4 b, TkVector4 c, float u, float v) {
+			BaryCentric(in a, in b, in c, u, v, out var result);
+			return result;
 		}
 
-		#endregion
+		/// <summary>
+		/// Interpolate 3 Vectors using Barycentric coordinates.
+		/// </summary>
+		/// <param name="a">First input Vector.</param>
+		/// <param name="b">Second input Vector.</param>
+		/// <param name="c">Third input Vector.</param>
+		/// <param name="u">First Barycentric Coordinate.</param>
+		/// <param name="v">Second Barycentric Coordinate.</param>
+		/// <param name="result">
+		/// Output Vector. a when u=v=0, b when u=1,v=0, c when u=0,v=1, and a linear combination of a,b,c
+		/// otherwise.
+		/// </param>
+		public static void BaryCentric
+		(
+			in TkVector4 a,
+			in TkVector4 b,
+			in TkVector4 c,
+			float u,
+			float v,
+			out TkVector4 result
+		) {
+			Subtract(in b, in a, out var ab);
+			Multiply(in ab, u, out var abU);
+			Add(in a, in abU, out var uPos);
 
-		#region Transform
+			Subtract(in c, in a, out var ac);
+			Multiply(in ac, v, out var acV);
+			Add(in uPos, in acV, out result);
+		}
 
 		/// <summary>
 		/// Transform a Vector by the given Matrix.
@@ -887,11 +752,11 @@ namespace GRF.Graphics {
 		/// <param name="vec">The vector to transform.</param>
 		/// <param name="mat">The desired transformation.</param>
 		/// <returns>The transformed vector.</returns>
+		[Pure]
 		public static TkVector4 TransformRow(TkVector4 vec, TkMatrix4 mat) {
-			var result = new TkVector4();
-            TransformRow(ref vec, ref mat, ref result);
-            return result;
-        }
+			TransformRow(in vec, in mat, out TkVector4 result);
+			return result;
+		}
 
 		/// <summary>
 		/// Transform a Vector by the given Matrix.
@@ -899,7 +764,7 @@ namespace GRF.Graphics {
 		/// <param name="vec">The vector to transform.</param>
 		/// <param name="mat">The desired transformation.</param>
 		/// <param name="result">The transformed vector.</param>
-		public static void TransformRow(ref TkVector4 vec, ref TkMatrix4 mat, ref TkVector4 result) {
+		public static void TransformRow(in TkVector4 vec, in TkMatrix4 mat, out TkVector4 result) {
 			result = new TkVector4(
 				(vec.X * mat.Row0.X) + (vec.Y * mat.Row1.X) + (vec.Z * mat.Row2.X) + (vec.W * mat.Row3.X),
 				(vec.X * mat.Row0.Y) + (vec.Y * mat.Row1.Y) + (vec.Z * mat.Row2.Y) + (vec.W * mat.Row3.Y),
@@ -907,64 +772,15 @@ namespace GRF.Graphics {
 				(vec.X * mat.Row0.W) + (vec.Y * mat.Row1.W) + (vec.Z * mat.Row2.W) + (vec.W * mat.Row3.W));
 		}
 
-        /// <summary>
-        /// Transform a Vector by the given Matrix using right-handed notation.
-        /// </summary>
-        /// <param name="mat">The desired transformation.</param>
-        /// <param name="vec">The vector to transform.</param>
-        /// <returns>The transformed vector.</returns>
-        public static TkVector4 TransformColumn(TkMatrix4 mat, TkVector4 vec) {
-	        var result = new TkVector4();
-            TransformColumn(ref mat, ref vec, ref result);
-            return result;
-        }
-
-        /// <summary>
-        /// Transform a Vector by the given Matrix using right-handed notation.
-        /// </summary>
-        /// <param name="mat">The desired transformation.</param>
-        /// <param name="vec">The vector to transform.</param>
-        /// <param name="result">The transformed vector.</param>
-        public static void TransformColumn(ref TkMatrix4 mat, ref TkVector4 vec, ref TkVector4 result)
-        {
-            result = new TkVector4(
-                (mat.Row0.X * vec.X) + (mat.Row0.Y * vec.Y) + (mat.Row0.Z * vec.Z) + (mat.Row0.W * vec.W),
-                (mat.Row1.X * vec.X) + (mat.Row1.Y * vec.Y) + (mat.Row1.Z * vec.Z) + (mat.Row1.W * vec.W),
-                (mat.Row2.X * vec.X) + (mat.Row2.Y * vec.Y) + (mat.Row2.Z * vec.Z) + (mat.Row2.W * vec.W),
-                (mat.Row3.X * vec.X) + (mat.Row3.Y * vec.Y) + (mat.Row3.Z * vec.Z) + (mat.Row3.W * vec.W));
-        }
-
-		/// <summary>Transform a Vector by the given Matrix</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <returns>The transformed vector</returns>
-		public static TkVector4 Transform(TkVector4 vec, TkMatrix4 mat) {
-			TkVector4 result = new TkVector4();
-			Transform(ref vec, ref mat, ref result);
-			return result;
-		}
-
-		/// <summary>Transform a Vector by the given Matrix</summary>
-		/// <param name="vec">The vector to transform</param>
-		/// <param name="mat">The desired transformation</param>
-		/// <param name="result">The transformed vector</param>
-		public static void Transform(ref TkVector4 vec, ref TkMatrix4 mat, ref TkVector4 result) {
-			result = new TkVector4(
-				vec.X * mat.Row0.X + vec.Y * mat.Row1.X + vec.Z * mat.Row2.X + vec.W * mat.Row3.X,
-				vec.X * mat.Row0.Y + vec.Y * mat.Row1.Y + vec.Z * mat.Row2.Y + vec.W * mat.Row3.Y,
-				vec.X * mat.Row0.Z + vec.Y * mat.Row1.Z + vec.Z * mat.Row2.Z + vec.W * mat.Row3.Z,
-				vec.X * mat.Row0.W + vec.Y * mat.Row1.W + vec.Z * mat.Row2.W + vec.W * mat.Row3.W);
-		}
-		
 		/// <summary>
 		/// Transforms a vector by a quaternion rotation.
 		/// </summary>
 		/// <param name="vec">The vector to transform.</param>
 		/// <param name="quat">The quaternion to rotate the vector by.</param>
 		/// <returns>The result of the operation.</returns>
+		[Pure]
 		public static TkVector4 Transform(TkVector4 vec, TkQuaternion quat) {
-			TkVector4 result = new TkVector4();
-			Transform(ref vec, ref quat, ref result);
+			Transform(in vec, in quat, out TkVector4 result);
 			return result;
 		}
 
@@ -974,34 +790,877 @@ namespace GRF.Graphics {
 		/// <param name="vec">The vector to transform.</param>
 		/// <param name="quat">The quaternion to rotate the vector by.</param>
 		/// <param name="result">The result of the operation.</param>
-		public static void Transform(ref TkVector4 vec, ref TkQuaternion quat, ref TkVector4 result) {
-			TkQuaternion v = new TkQuaternion(vec.X, vec.Y, vec.Z, vec.W), i, t;
-			TkQuaternion.Invert(ref quat, out i);
-			TkQuaternion.Multiply(ref quat, ref v, out t);
-			TkQuaternion.Multiply(ref t, ref i, out v);
+		public static void Transform(in TkVector4 vec, in TkQuaternion quat, out TkVector4 result) {
+			TkQuaternion v = new TkQuaternion(vec.X, vec.Y, vec.Z, vec.W);
+			TkQuaternion.Invert(in quat, out TkQuaternion i);
+			TkQuaternion.Multiply(in quat, in v, out TkQuaternion t);
+			TkQuaternion.Multiply(in t, in i, out v);
 
-			result = new TkVector4(v.X, v.Y, v.Z, v.W);
+			result.X = v.X;
+			result.Y = v.Y;
+			result.Z = v.Z;
+			result.W = v.W;
 		}
 
-		#endregion
+		/// <summary>
+		/// Transform a Vector by the given Matrix using right-handed notation.
+		/// </summary>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="vec">The vector to transform.</param>
+		/// <returns>The transformed vector.</returns>
+		[Pure]
+		public static TkVector4 TransformColumn(TkMatrix4 mat, TkVector4 vec) {
+			TransformColumn(in mat, in vec, out TkVector4 result);
+			return result;
+		}
 
-		#endregion
-
-		#region Swizzle
+		/// <summary>
+		/// Transform a Vector by the given Matrix using right-handed notation.
+		/// </summary>
+		/// <param name="mat">The desired transformation.</param>
+		/// <param name="vec">The vector to transform.</param>
+		/// <param name="result">The transformed vector.</param>
+		public static void TransformColumn(in TkMatrix4 mat, in TkVector4 vec, out TkVector4 result) {
+			result = new TkVector4(
+				(mat.Row0.X * vec.X) + (mat.Row0.Y * vec.Y) + (mat.Row0.Z * vec.Z) + (mat.Row0.W * vec.W),
+				(mat.Row1.X * vec.X) + (mat.Row1.Y * vec.Y) + (mat.Row1.Z * vec.Z) + (mat.Row1.W * vec.W),
+				(mat.Row2.X * vec.X) + (mat.Row2.Y * vec.Y) + (mat.Row2.Z * vec.Z) + (mat.Row2.W * vec.W),
+				(mat.Row3.X * vec.X) + (mat.Row3.Y * vec.Y) + (mat.Row3.Z * vec.Z) + (mat.Row3.W * vec.W));
+		}
 
 		/// <summary>
 		/// Gets or sets an OpenTK.TkVector2 with the X and Y components of this instance.
 		/// </summary>
-		public TkVector2 Xy { get { return new TkVector2(X, Y); } set { X = value.X; Y = value.Y; } }
+		[XmlIgnore]
+		public TkVector2 Xy {
+			get => new TkVector2(X, Y);
+			set {
+				X = value.X;
+				Y = value.Y;
+			}
+		}
 
 		/// <summary>
-		/// Gets or sets an OpenTK.TkVector3 with the X, Y and Z components of this instance.
+		/// Gets or sets an OpenTK.TkVector2 with the X and Z components of this instance.
 		/// </summary>
-		public TkVector3 Xyz { get { return new TkVector3(X, Y, Z); } set { X = value.X; Y = value.Y; Z = value.Z; } }
+		[XmlIgnore]
+		public TkVector2 Xz {
+			get => new TkVector2(X, Z);
+			set {
+				X = value.X;
+				Z = value.Y;
+			}
+		}
 
-		#endregion
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the X and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Xw {
+			get => new TkVector2(X, W);
+			set {
+				X = value.X;
+				W = value.Y;
+			}
+		}
 
-		#region Operators
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Y and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Yx {
+			get => new TkVector2(Y, X);
+			set {
+				Y = value.X;
+				X = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Y and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Yz {
+			get => new TkVector2(Y, Z);
+			set {
+				Y = value.X;
+				Z = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Y and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Yw {
+			get => new TkVector2(Y, W);
+			set {
+				Y = value.X;
+				W = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Z and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Zx {
+			get => new TkVector2(Z, X);
+			set {
+				Z = value.X;
+				X = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Z and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Zy {
+			get => new TkVector2(Z, Y);
+			set {
+				Z = value.X;
+				Y = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the Z and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Zw {
+			get => new TkVector2(Z, W);
+			set {
+				Z = value.X;
+				W = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the W and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Wx {
+			get => new TkVector2(W, X);
+			set {
+				W = value.X;
+				X = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the W and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Wy {
+			get => new TkVector2(W, Y);
+			set {
+				W = value.X;
+				Y = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector2 with the W and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector2 Wz {
+			get => new TkVector2(W, Z);
+			set {
+				W = value.X;
+				Z = value.Y;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xyz { 
+			get => new TkVector3(X, Y, Z);
+			set { 
+				X = value.X; 
+				Y = value.Y; 
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xyw {
+			get => new TkVector3(X, Y, W);
+			set {
+				X = value.X;
+				Y = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, Z, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xzy {
+			get => new TkVector3(X, Z, Y);
+			set {
+				X = value.X;
+				Z = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, Z, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xzw {
+			get => new TkVector3(X, Z, W);
+			set {
+				X = value.X;
+				Z = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, W, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xwy {
+			get => new TkVector3(X, W, Y);
+			set {
+				X = value.X;
+				W = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the X, W, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Xwz {
+			get => new TkVector3(X, W, Z);
+			set {
+				X = value.X;
+				W = value.Y;
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, X, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Yxz {
+			get => new TkVector3(Y, X, Z);
+			set {
+				Y = value.X;
+				X = value.Y;
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, X, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Yxw {
+			get => new TkVector3(Y, X, W);
+			set {
+				Y = value.X;
+				X = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, Z, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Yzx {
+			get => new TkVector3(Y, Z, X);
+			set {
+				Y = value.X;
+				Z = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, Z, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Yzw {
+			get => new TkVector3(Y, Z, W);
+			set {
+				Y = value.X;
+				Z = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, W, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Ywx {
+			get => new TkVector3(Y, W, X);
+			set {
+				Y = value.X;
+				W = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Y, W, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Ywz {
+			get => new TkVector3(Y, W, Z);
+			set {
+				Y = value.X;
+				W = value.Y;
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, X, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zxy {
+			get => new TkVector3(Z, X, Y);
+			set {
+				Z = value.X;
+				X = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, X, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zxw {
+			get => new TkVector3(Z, X, W);
+			set {
+				Z = value.X;
+				X = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, Y, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zyx {
+			get => new TkVector3(Z, Y, X);
+			set {
+				Z = value.X;
+				Y = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, Y, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zyw {
+			get => new TkVector3(Z, Y, W);
+			set {
+				Z = value.X;
+				Y = value.Y;
+				W = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, W, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zwx {
+			get => new TkVector3(Z, W, X);
+			set {
+				Z = value.X;
+				W = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the Z, W, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Zwy {
+			get => new TkVector3(Z, W, Y);
+			set {
+				Z = value.X;
+				W = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, X, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wxy {
+			get => new TkVector3(W, X, Y);
+			set {
+				W = value.X;
+				X = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, X, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wxz {
+			get => new TkVector3(W, X, Z);
+			set {
+				W = value.X;
+				X = value.Y;
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, Y, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wyx {
+			get => new TkVector3(W, Y, X);
+			set {
+				W = value.X;
+				Y = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wyz {
+			get => new TkVector3(W, Y, Z);
+			set {
+				W = value.X;
+				Y = value.Y;
+				Z = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, Z, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wzx {
+			get => new TkVector3(W, Z, X);
+			set {
+				W = value.X;
+				Z = value.Y;
+				X = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector3 with the W, Z, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector3 Wzy {
+			get => new TkVector3(W, Z, Y);
+			set {
+				W = value.X;
+				Z = value.Y;
+				Y = value.Z;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the X, Y, W, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Xywz {
+			get => new TkVector4(X, Y, W, Z);
+			set {
+				X = value.X;
+				Y = value.Y;
+				W = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the X, Z, Y, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Xzyw {
+			get => new TkVector4(X, Z, Y, W);
+			set {
+				X = value.X;
+				Z = value.Y;
+				Y = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the X, Z, W, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Xzwy {
+			get => new TkVector4(X, Z, W, Y);
+			set {
+				X = value.X;
+				Z = value.Y;
+				W = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the X, W, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Xwyz {
+			get => new TkVector4(X, W, Y, Z);
+			set {
+				X = value.X;
+				W = value.Y;
+				Y = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the X, W, Z, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Xwzy {
+			get => new TkVector4(X, W, Z, Y);
+			set {
+				X = value.X;
+				W = value.Y;
+				Z = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, X, Z, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yxzw {
+			get => new TkVector4(Y, X, Z, W);
+			set {
+				Y = value.X;
+				X = value.Y;
+				Z = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, X, W, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yxwz {
+			get => new TkVector4(Y, X, W, Z);
+			set {
+				Y = value.X;
+				X = value.Y;
+				W = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, Y, Z, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yyzw {
+			get => new TkVector4(Y, Y, Z, W);
+			set {
+				X = value.X;
+				Y = value.Y;
+				Z = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, Y, W, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yywz {
+			get => new TkVector4(Y, Y, W, Z);
+			set {
+				X = value.X;
+				Y = value.Y;
+				W = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, Z, X, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yzxw {
+			get => new TkVector4(Y, Z, X, W);
+			set {
+				Y = value.X;
+				Z = value.Y;
+				X = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, Z, W, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Yzwx {
+			get => new TkVector4(Y, Z, W, X);
+			set {
+				Y = value.X;
+				Z = value.Y;
+				W = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, W, X, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Ywxz {
+			get => new TkVector4(Y, W, X, Z);
+			set {
+				Y = value.X;
+				W = value.Y;
+				X = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Y, W, Z, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Ywzx {
+			get => new TkVector4(Y, W, Z, X);
+			set {
+				Y = value.X;
+				W = value.Y;
+				Z = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, X, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zxyw {
+			get => new TkVector4(Z, X, Y, W);
+			set {
+				Z = value.X;
+				X = value.Y;
+				Y = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, X, W, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zxwy {
+			get => new TkVector4(Z, X, W, Y);
+			set {
+				Z = value.X;
+				X = value.Y;
+				W = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, Y, X, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zyxw {
+			get => new TkVector4(Z, Y, X, W);
+			set {
+				Z = value.X;
+				Y = value.Y;
+				X = value.Z;
+				W = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, Y, W, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zywx {
+			get => new TkVector4(Z, Y, W, X);
+			set {
+				Z = value.X;
+				Y = value.Y;
+				W = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, W, X, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zwxy {
+			get => new TkVector4(Z, W, X, Y);
+			set {
+				Z = value.X;
+				W = value.Y;
+				X = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, W, Y, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zwyx {
+			get => new TkVector4(Z, W, Y, X);
+			set {
+				Z = value.X;
+				W = value.Y;
+				Y = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the Z, W, Z, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Zwzy {
+			get => new TkVector4(Z, W, Z, Y);
+			set {
+				X = value.X;
+				W = value.Y;
+				Z = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, X, Y, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wxyz {
+			get => new TkVector4(W, X, Y, Z);
+			set {
+				W = value.X;
+				X = value.Y;
+				Y = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, X, Z, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wxzy {
+			get => new TkVector4(W, X, Z, Y);
+			set {
+				W = value.X;
+				X = value.Y;
+				Z = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, Y, X, and Z components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wyxz {
+			get => new TkVector4(W, Y, X, Z);
+			set {
+				W = value.X;
+				Y = value.Y;
+				X = value.Z;
+				Z = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, Y, Z, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wyzx {
+			get => new TkVector4(W, Y, Z, X);
+			set {
+				W = value.X;
+				Y = value.Y;
+				Z = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, Z, X, and Y components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wzxy {
+			get => new TkVector4(W, Z, X, Y);
+			set {
+				W = value.X;
+				Z = value.Y;
+				X = value.Z;
+				Y = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, Z, Y, and X components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wzyx {
+			get => new TkVector4(W, Z, Y, X);
+			set {
+				W = value.X;
+				Z = value.Y;
+				Y = value.Z;
+				X = value.W;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets an OpenTK.TkVector4 with the W, Z, Y, and W components of this instance.
+		/// </summary>
+		[XmlIgnore]
+		public TkVector4 Wzyw {
+			get => new TkVector4(W, Z, Y, W);
+			set {
+				X = value.X;
+				Z = value.Y;
+				Y = value.Z;
+				W = value.W;
+			}
+		}
 
 		/// <summary>
 		/// Adds two instances.
@@ -1009,6 +1668,7 @@ namespace GRF.Graphics {
 		/// <param name="left">The first instance.</param>
 		/// <param name="right">The second instance.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator +(TkVector4 left, TkVector4 right) {
 			left.X += right.X;
 			left.Y += right.Y;
@@ -1023,6 +1683,7 @@ namespace GRF.Graphics {
 		/// <param name="left">The first instance.</param>
 		/// <param name="right">The second instance.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator -(TkVector4 left, TkVector4 right) {
 			left.X -= right.X;
 			left.Y -= right.Y;
@@ -1036,6 +1697,7 @@ namespace GRF.Graphics {
 		/// </summary>
 		/// <param name="vec">The instance.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator -(TkVector4 vec) {
 			vec.X = -vec.X;
 			vec.Y = -vec.Y;
@@ -1050,6 +1712,7 @@ namespace GRF.Graphics {
 		/// <param name="vec">The instance.</param>
 		/// <param name="scale">The scalar.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator *(TkVector4 vec, float scale) {
 			vec.X *= scale;
 			vec.Y *= scale;
@@ -1064,6 +1727,7 @@ namespace GRF.Graphics {
 		/// <param name="scale">The scalar.</param>
 		/// <param name="vec">The instance.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator *(float scale, TkVector4 vec) {
 			vec.X *= scale;
 			vec.Y *= scale;
@@ -1078,6 +1742,7 @@ namespace GRF.Graphics {
 		/// <param name="scale">Left operand.</param>
 		/// <param name="vec">Right operand.</param>
 		/// <returns>Result of multiplication.</returns>
+		[Pure]
 		public static TkVector4 operator *(TkVector4 vec, TkVector4 scale) {
 			vec.X *= scale.X;
 			vec.Y *= scale.Y;
@@ -1092,11 +1757,11 @@ namespace GRF.Graphics {
 		/// <param name="vec">The vector to transform.</param>
 		/// <param name="mat">The desired transformation.</param>
 		/// <returns>The transformed vector.</returns>
+		[Pure]
 		public static TkVector4 operator *(TkVector4 vec, TkMatrix4 mat) {
-			var result = new TkVector4();
-            TransformRow(ref vec, ref mat, ref result);
-            return result;
-        }
+			TransformRow(in vec, in mat, out TkVector4 result);
+			return result;
+		}
 
 		/// <summary>
 		/// Transform a Vector by the given Matrix using right-handed notation.
@@ -1104,9 +1769,9 @@ namespace GRF.Graphics {
 		/// <param name="mat">The desired transformation.</param>
 		/// <param name="vec">The vector to transform.</param>
 		/// <returns>The transformed vector.</returns>
+		[Pure]
 		public static TkVector4 operator *(TkMatrix4 mat, TkVector4 vec) {
-			var result = new TkVector4();
-			TransformColumn(ref mat, ref vec, ref result);
+			TransformColumn(in mat, in vec, out TkVector4 result);
 			return result;
 		}
 
@@ -1116,12 +1781,11 @@ namespace GRF.Graphics {
 		/// <param name="quat">The quaternion to rotate the vector by.</param>
 		/// <param name="vec">The vector to transform.</param>
 		/// <returns>The transformed vector.</returns>
-		public static TkVector4 operator *(TkQuaternion quat, TkVector4 vec)
-        {
-			var result = new TkVector4();
-            Transform(ref vec, ref quat, ref result);
-            return result;
-        }
+		[Pure]
+		public static TkVector4 operator *(TkQuaternion quat, TkVector4 vec) {
+			Transform(in vec, in quat, out TkVector4 result);
+			return result;
+		}
 
 		/// <summary>
 		/// Divides an instance by a scalar.
@@ -1129,6 +1793,7 @@ namespace GRF.Graphics {
 		/// <param name="vec">The instance.</param>
 		/// <param name="scale">The scalar.</param>
 		/// <returns>The result of the calculation.</returns>
+		[Pure]
 		public static TkVector4 operator /(TkVector4 vec, float scale) {
 			vec.X /= scale;
 			vec.Y /= scale;
@@ -1143,6 +1808,7 @@ namespace GRF.Graphics {
 		/// <param name="vec">Left operand.</param>
 		/// <param name="scale">Right operand.</param>
 		/// <returns>Result of the division.</returns>
+		[Pure]
 		public static TkVector4 operator /(TkVector4 vec, TkVector4 scale) {
 			vec.X /= scale.X;
 			vec.Y /= scale.Y;
@@ -1168,71 +1834,79 @@ namespace GRF.Graphics {
 		/// <param name="right">The second instance.</param>
 		/// <returns>True, if left does not equa lright; false otherwise.</returns>
 		public static bool operator !=(TkVector4 left, TkVector4 right) {
-			return !left.Equals(right);
+			return !(left == right);
 		}
 
-		#endregion
-
-		#region Overrides
-
-		#region public override string ToString()
+		/// <summary>
+		/// Returns a pointer to the first element of the specified instance.
+		/// </summary>
+		/// <param name="v">The instance.</param>
+		/// <returns>A pointer to the first element of v.</returns>
+		[Pure]
+		public static unsafe explicit operator float*(TkVector4 v) {
+			return &v.X;
+		}
 
 		/// <summary>
-		/// Returns a System.String that represents the current Vector4.
+		/// Returns a pointer to the first element of the specified instance.
 		/// </summary>
-		/// <returns></returns>
+		/// <param name="v">The instance.</param>
+		/// <returns>A pointer to the first element of v.</returns>
+		[Pure]
+		public static explicit operator IntPtr(TkVector4 v) {
+			unsafe {
+				return (IntPtr)(&v.X);
+			}
+		}
+
+		/// <summary>
+		/// Initializes a new instance of the <see cref="TkVector4"/> struct using a tuple containing the component
+		/// values.
+		/// </summary>
+		/// <param name="values">A tuple containing the component values.</param>
+		/// <returns>A new instance of the <see cref="TkVector4"/> struct with the given component values.</returns>
+		[Pure]
+		public static implicit operator TkVector4((float X, float Y, float Z, float W) values) {
+			return new TkVector4(values.X, values.Y, values.Z, values.W);
+		}
+
+		/// <inheritdoc/>
 		public override string ToString() {
 			return String.Format("({0}, {1}, {2}, {3})", X, Y, Z, W);
 		}
 
-		#endregion
+		/// <inheritdoc />
+		public override bool Equals(object obj) {
+			return obj is TkVector4 && Equals((TkVector4)obj);
+		}
 
-		#region public override int GetHashCode()
+		/// <inheritdoc />
+		public bool Equals(TkVector4 other) {
+			return X == other.X &&
+				   Y == other.Y &&
+				   Z == other.Z &&
+				   W == other.W;
+		}
 
-		/// <summary>
-		/// Returns the hashcode for this instance.
-		/// </summary>
-		/// <returns>A System.Int32 containing the unique hashcode for this instance.</returns>
+		/// <inheritdoc />
 		public override int GetHashCode() {
 			return X.GetHashCode() ^ Y.GetHashCode() ^ Z.GetHashCode() ^ W.GetHashCode();
 		}
 
-		#endregion
-
-		#region public override bool Equals(object obj)
-
 		/// <summary>
-		/// Indicates whether this instance and a specified object are equal.
+		/// Deconstructs the vector into it's individual components.
 		/// </summary>
-		/// <param name="obj">The object to compare to.</param>
-		/// <returns>True if the instances are equal; false otherwise.</returns>
-		public override bool Equals(object obj) {
-			if (!(obj is TkVector4))
-				return false;
-
-			return Equals((TkVector4)obj);
+		/// <param name="x">The X component of the vector.</param>
+		/// <param name="y">The Y component of the vector.</param>
+		/// <param name="z">The Z component of the vector.</param>
+		/// <param name="w">The W component of the vector.</param>
+		[Pure]
+		public void Deconstruct(out float x, out float y, out float z, out float w) {
+			x = X;
+			y = Y;
+			z = Z;
+			w = W;
 		}
-
-		#endregion
-
-		#endregion
-
-		#endregion
-
-		#region IEquatable<Vector4> Members
-
-		/// <summary>Indicates whether the current vector is equal to another vector.</summary>
-		/// <param name="other">A vector to compare with this vector.</param>
-		/// <returns>true if the current vector is equal to the vector parameter; otherwise, false.</returns>
-		public bool Equals(TkVector4 other) {
-			return
-				X == other.X &&
-				Y == other.Y &&
-				Z == other.Z &&
-				W == other.W;
-		}
-
-		#endregion
 	}
 
 	public static class TkVector4Helper {

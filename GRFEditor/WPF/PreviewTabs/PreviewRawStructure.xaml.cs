@@ -74,12 +74,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 				catch {
 				}
 			};
+			ErrorPanel = _errorPanel;
 		}
 
 		protected override void _load(FileEntry entry) {
 			_isLua = false;
 			_isBson = false;
-			_labelHeader.Dispatch(p => p.Text = "File info : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Text = "File info: " + Path.GetFileName(entry.RelativePath));
 			_textEditor.Encoding = null;
 			_buttonSave.Dispatch(delegate {
 				_textEditor.IsReadOnly = true;
@@ -163,25 +164,16 @@ namespace GRFEditor.WPF.PreviewTabs {
 						case ".fna":
 							Fna fna = new Fna(entry.GetDecompressedData());
 
-							//if (GrfEditorConfiguration.PreviewRawFileStructure) {
-								_showTextEditor(fna.GetInformation());
-							//}
-							//else {
-							//	_showTypeExplorer(fna);
-							//}
+							_showTextEditor(fna.GetInformation());
 							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							break;
 						case ".imf":
 							Imf imf = new Imf(entry.GetDecompressedData());
 
-							//if (GrfEditorConfiguration.PreviewRawFileStructure) {
-								AvalonHelper.Select("Imf", _highlightingComboBox);
-								_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Imf"));
-								_showTextEditor(imf.GetInformation());
-							//}
-							//else {
-							//	_showTypeExplorer(imf);
-							//}
+							AvalonHelper.Select("Imf", _highlightingComboBox);
+							_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Imf"));
+							_showTextEditor(imf.GetInformation());
+
 							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							break;
 						case ".act":
@@ -218,35 +210,29 @@ namespace GRFEditor.WPF.PreviewTabs {
 							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Visible);
 							break;
 						case ".lub":
-							try {
-								_isLua = true;
-								AvalonHelper.Select("Lua", _highlightingComboBox);
-								_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Lua"));
+							_isLua = true;
+							AvalonHelper.Select("Lua", _highlightingComboBox);
+							_textEditor.Dispatch(p => AvalonHelper.SetSyntax(_textEditor, "Lua"));
 
-								byte[] data = entry.GetDecompressedData();
+							byte[] data = entry.GetDecompressedData();
 
-								if (Methods.ByteArrayCompare(data, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
-									Lub lub = new Lub(entry.GetDecompressedData());
+							if (Methods.ByteArrayCompare(data, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
+								Lub lub = new Lub(entry.GetDecompressedData());
 
-									//if (GrfEditorConfiguration.PreviewRawFileStructure) {
-										text = lub.Decompile();
-										text = "-- Using GRF Editor Decompiler (beta 1.1.0)\r\n\r\n" + text;
-										_showTextEditor(text);
-									//}
-									//else {
-									//	_showTypeExplorer(new Lub(data));
-									//}
-								}
-								else {
-									text = EncodingService.DisplayEncoding.GetString(data);
+								//if (GrfEditorConfiguration.PreviewRawFileStructure) {
+									text = lub.Decompile();
+									text = "-- Using GRF Editor Decompiler (beta 1.1.0)\r\n\r\n" + text;
 									_showTextEditor(text);
-								}
-								_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
+								//}
+								//else {
+								//	_showTypeExplorer(new Lub(data));
+								//}
 							}
-							catch (Exception err) {
-								text = "-- An unhandled exception has been caught : " + err.Message;
+							else {
+								text = EncodingService.DisplayEncoding.GetString(data);
 								_showTextEditor(text);
 							}
+							_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							break;
 						case ".bson":
 							try {
@@ -272,10 +258,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 								//	_showTypeExplorer(bson);
 								//}
 							}
-							catch (Exception err) {
-								text = "-- An unhandled exception has been caught : " + err.Message;
-								_showTextEditor(text);
-							}
 							finally {
 								_buttonRawView.Dispatch(p => p.Visibility = Visibility.Collapsed);
 							}
@@ -283,15 +265,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 					}
 				}
 				catch (GrfException grfErr) {
-					if (grfErr == GrfExceptions.__CorruptedOrEncryptedEntry) {
-						text = "-- An unhandled exception has been caught : " + grfErr.Message;
-						_showTextEditor(text);
+					if (grfErr == GrfExceptions.__ContainerBusy) {
+						// Ignore this exception
 					}
-					else if (grfErr == GrfExceptions.__ContainerBusy) {
-					}
-					else {
+					else
 						throw;
-					}
 				}
 			}
 		}

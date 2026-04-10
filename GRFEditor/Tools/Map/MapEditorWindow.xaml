@@ -235,7 +235,7 @@
                                             </RadioButton.ToolTip>
                                         </RadioButton>
                                         <DockPanel>
-                                            <Label Content="Maps unique ID : ">
+                                            <Label Content="Maps unique ID: ">
                                                 <Label.ToolTip>
                                                     <TextBlock>
                                                         Adds an identifier for the textures, which allows maps to use different 

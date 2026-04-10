@@ -680,14 +680,14 @@
                             <Setter TargetName="_tviHeaderBorder" Property="BorderBrush" Value="{DynamicResource UITreeViewDragEnterBorderBrush}" />
                             <Setter TargetName="_tbDisplay" Property="Foreground" Value="{DynamicResource UITreeViewMouseOverForegroundBrush}" />
                         </DataTrigger>
-                        <DataTrigger Binding="{Binding Path=IsUnableItem, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Value="True">
-                            <Setter TargetName="_tviHeaderBorder" Property="Background" Value="{DynamicResource UITreeViewUnableBackgroundBrush}" />
-                            <Setter TargetName="_tviHeaderBorder" Property="BorderBrush" Value="{DynamicResource UITreeViewUnableBorderBrush}" />
-                            <Setter TargetName="_tbDisplay" Property="Foreground" Value="{DynamicResource UITreeViewMouseOverForegroundBrush}" />
-                        </DataTrigger>
-                        <DataTrigger Binding="{Binding Path=CheckBoxHeaderIsEnabled, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Value="False">
-                            <Setter TargetName="_tbDisplay" Property="Foreground" Value="Red" />
-                            <Setter TargetName="_checkBox" Property="IsEnabled" Value="False" />
+						<DataTrigger Binding="{Binding Path=IsUnableItem, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Value="True">
+							<Setter TargetName="_tviHeaderBorder" Property="Background" Value="{DynamicResource UITreeViewUnableBackgroundBrush}" />
+							<Setter TargetName="_tviHeaderBorder" Property="BorderBrush" Value="{DynamicResource UITreeViewUnableBorderBrush}" />
+							<Setter TargetName="_tbDisplay" Property="Foreground" Value="{DynamicResource UITreeViewMouseOverForegroundBrush}" />
+						</DataTrigger>
+						<DataTrigger Binding="{Binding Path=CheckBoxHeaderIsEnabled, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Value="False">
+							<Setter TargetName="_tbDisplay" Property="Foreground" Value="Red" />
+							<Setter TargetName="_checkBox" Property="IsEnabled" Value="False" />
                         </DataTrigger>
                         <DataTrigger Binding="{Binding Path=UseCheckBox, RelativeSource={RelativeSource AncestorType={x:Type WPF:TkTreeViewItem}}}" Value="True">
                             <Setter TargetName="_checkBox" Property="Visibility" Value="Visible" />

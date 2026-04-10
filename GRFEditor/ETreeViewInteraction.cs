@@ -83,7 +83,7 @@ namespace GRFEditor {
 
 		private void _menuItemNewFolder_Click(object sender, RoutedEventArgs e) {
 			try {
-				InputDialog input = WindowProvider.ShowWindow<InputDialog>(new InputDialog("Enter the new folder name : ", "New folder", "", true), this);
+				InputDialog input = WindowProvider.ShowWindow<InputDialog>(new InputDialog("Enter the new folder name: ", "New folder", "", true), this);
 
 				if (input.DialogResult == true) {
 					if (String.IsNullOrEmpty(input.Input))

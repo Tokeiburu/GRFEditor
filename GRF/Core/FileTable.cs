@@ -326,7 +326,7 @@ namespace GRF.Core {
 					}
 				}
 
-				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile)) > 0) {
+				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
 					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out FileEntry conflict)) {
 						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
 							_indexedEntries[fileEntry.RelativePath] = fileEntry;

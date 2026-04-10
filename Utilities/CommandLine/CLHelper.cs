@@ -8,32 +8,32 @@ namespace Utilities.CommandLine {
 		private static bool _logState = true;
 
 		public static string Log {
-			set { if (_logState) Console.WriteLine("#Log : " + value); }
+			set { if (_logState) Console.WriteLine("#Log: " + value); }
 		}
 
 		public static string Warning {
-			set { Console.WriteLine("#Warning : " + value); }
+			set { Console.WriteLine("#Warning: " + value); }
 		}
 
 		public static string Error {
-			set { Console.WriteLine("#Error : " + value); }
+			set { Console.WriteLine("#Error: " + value); }
 		}
 
 		public static string Exception {
-			set { Console.WriteLine("#Exception : " + value); }
+			set { Console.WriteLine("#Exception: " + value); }
 		}
 
 		public static float Progress {
 			set {
 				Console.SetCursorPosition(0, Console.CursorTop);
-				Console.Write("Progress : " + String.Format("{0:0.0} %   ", value < 0 ? 0 : value));
+				Console.Write("Progress: " + String.Format("{0:0.0} %   ", value < 0 ? 0 : value));
 			}
 		}
 
 		public static string StringProgress {
 			set {
 				Console.SetCursorPosition(0, Console.CursorTop);
-				Console.Write("{0,-" + (Console.WindowWidth - 1) + "}", "Progress : " + value);
+				Console.Write("{0,-" + (Console.WindowWidth - 1) + "}", "Progress: " + value);
 			}
 		}
 

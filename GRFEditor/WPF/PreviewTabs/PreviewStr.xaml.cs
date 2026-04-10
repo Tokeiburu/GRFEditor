@@ -71,6 +71,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			WpfUtilities.AddMouseInOutUnderline(_checkBoxShowGrid);
 
 			new Thread(_animationThread) { Name = "GrfEditor - Str animation update thread" }.Start();
+			ErrorPanel = _errorPanel;
 		}
 
 		private void UIPanelPreviewBackgroundStrPick(QuickColorSelector selector) {
@@ -146,7 +147,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			if (_isCancelRequired()) return;
 
-			_labelHeader.Dispatch(p => p.Content = "Str preview : " + Path.GetFileName(entry.RelativePath));
+			_labelHeader.Dispatch(p => p.Content = "Str preview: " + Path.GetFileName(entry.RelativePath));
 
 			if (_isCancelRequired()) return;
 

@@ -77,7 +77,7 @@
                     </VisualBrush.Visual>
                 </VisualBrush>
             </Grid.Background>
-            <ScrollViewer Visibility="Hidden" Background="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" Name="_scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Row="1" FocusVisualStyle="{x:Null}">
+            <ScrollViewer Background="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" Name="_scrollViewer" VerticalScrollBarVisibility="Visible" HorizontalScrollBarVisibility="Visible" Grid.Row="1" FocusVisualStyle="{x:Null}">
                 <DockPanel Name="_dockPanelImages" FocusVisualStyle="{x:Null}">
                     <DockPanel DockPanel.Dock="Top" FocusVisualStyle="{x:Null}"/>
                     <Image Margin="10" Visibility="Hidden"  HorizontalAlignment="Left" VerticalAlignment="Top" SnapsToDevicePixels="True" Name="_imagePreview" Stretch="None" RenderTransformOrigin="0.5,0.5">
@@ -97,6 +97,7 @@
                     </Image>
                 </DockPanel>
             </ScrollViewer>
-        </Grid>
-    </Grid>
+		</Grid>
+		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
+	</Grid>
 </PreviewTabs:FilePreviewTab>

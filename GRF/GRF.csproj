@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Graphics\TkVector3 - Copy.cs" />
     <Compile Remove="Image\GrfColor - Copy.cs" />
   </ItemGroup>
 

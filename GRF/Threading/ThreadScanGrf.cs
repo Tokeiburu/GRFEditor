@@ -85,7 +85,7 @@ namespace GRF.Threading {
 								Hashes[_relativePath + entry.RelativePath] = _hash.Error;
 								throw new Exception("Bad file.");
 								//Console.SetCursorPosition(0, Console.CursorTop);
-								//CLHelper.Warning = "Failed to read file : " + entry.RelativePath;
+								//CLHelper.Warning = "Failed to read file: " + entry.RelativePath;
 							}
 
 							NumberOfFilesProcessed++;
@@ -100,7 +100,7 @@ namespace GRF.Threading {
 							Hashes[_relativePath + entryCopy.RelativePath] = _hash.Error;
 
 							Console.SetCursorPosition(0, Console.CursorTop);
-							CLHelper.Warning = "Failed to read file : " + entryCopy.RelativePath;
+							CLHelper.Warning = "Failed to read file: " + entryCopy.RelativePath;
 						}
 
 						NumberOfFilesProcessed++;

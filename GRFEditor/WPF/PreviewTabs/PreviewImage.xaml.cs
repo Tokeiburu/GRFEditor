@@ -65,6 +65,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 
 			_tbEase.Text = String.Format("{0:0.00}", GrfEditorConfiguration.PreviewImageZoom);
+			ErrorPanel = _errorPanel;
 		}
 
 		public Action<Brush> BackgroundBrushFunction {
@@ -128,7 +129,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			});
 
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
-			_labelHeader.Dispatch(p => p.Text = "Image preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Image preview: " + Path.GetFileName(fileName));
 
 			_buttonGroupImage.Dispatch(p => p.Visibility = PreviewService.IsImageCutable(entry.RelativePath, _grfData) ? Visibility.Visible : Visibility.Collapsed);
 
@@ -143,14 +144,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 				}
 			}
 			catch (GrfException err) {
-				if (err == GrfExceptions.__CorruptedOrEncryptedEntry) {
+				if (err == GrfExceptions.__CorruptedOrEncryptedEntry || err == GrfExceptions.__GravityEncryptedFile) {
 					_imagePreview.Dispatch(delegate {
 						_imagePreview.Source = null;
 						_updateZoom();
 					});
 
-					_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
-					return;
+					throw;
 				}
 
 				if (err == GrfExceptions.__ContainerBusy)

@@ -11,7 +11,6 @@ namespace GrfToWpfBridge.TreeViewManager {
 		public MapExtractorTreeViewItem(TkView parent) : base(parent, false) {
 			CanBeDragged = true;
 			UseCheckBox = true;
-			CheckBoxHeaderIsEnabled = true;
 
 			Style = (Style)FindResource("MapExtractorTreeViewItemStyle");
 		}

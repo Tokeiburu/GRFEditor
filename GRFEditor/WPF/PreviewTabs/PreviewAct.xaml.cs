@@ -88,6 +88,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			};
 
 			new Thread(_actAnimationThread) { Name = "GrfEditor - Sprite animation update thread" }.Start();
+			ErrorPanel = _errorPanel;
 		}
 
 		private bool _enableActThread {
@@ -143,15 +144,15 @@ namespace GRFEditor.WPF.PreviewTabs {
 			byte[] dataDecompressSpr;
 
 			string actRelativePath = entry.RelativePath;
+			_labelHeader.Dispatch(p => p.Text = "Animation: " + Path.GetFileName(actRelativePath));
 
 			try {
 				dataDecompress = entry.GetDecompressedData();
 			}
 			catch (GrfException err) {
-				if (err == GrfExceptions.__CorruptedOrEncryptedEntry) {
+				if (err == GrfExceptions.__CorruptedOrEncryptedEntry || err == GrfExceptions.__GravityEncryptedFile) {
 					_cancelAnimation();
-					_labelHeader.Dispatch(p => p.Text = "Failed to decompressed data. Corrupted or encrypted entry.");
-					return;
+					throw;
 				}
 
 				if (err == GrfExceptions.__ContainerBusy)
@@ -159,8 +160,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				throw;
 			}
-
-			_labelHeader.Dispatch(p => p.Text = "Animation : " + Path.GetFileName(actRelativePath));
 
 			try {
 				var sprEntry = _grfData.FileTable.TryGet(actRelativePath.ReplaceExtension(".spr"));
@@ -228,7 +227,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_comboBoxActionIndex.Dispatch(p => p.Visibility = Visibility.Visible);
 			_comboBoxAnimationIndex.Dispatch(p => p.SelectedIndex = oldActionIndex / 8);
 			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
-			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 
 			int actionIndex = (int) _comboBoxActionIndex.Dispatch(() => _comboBoxActionIndex.SelectedIndex);
 

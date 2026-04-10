@@ -204,7 +204,7 @@ namespace GrfToWpfBridge {
 				Bind(element, () => FormatConverters.BooleanConverter(Configuration.ConfigAsker[prop, defaultValue ?? false.ToString()]), v => Configuration.ConfigAsker[prop] = v.ToString(), extra, execute);
 			}
 			else {
-				throw new Exception("Unsupported type : " + typeof (TElement));
+				throw new Exception("Unsupported type: " + typeof (TElement));
 			}
 		}
 		#endregion

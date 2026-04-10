@@ -13,7 +13,7 @@ namespace GRF.Image.Decoders {
 				case GrfImageType.Indexed8:
 					return new Indexed8FormatConverter();
 				default:
-					throw new Exception("No format converter was found for this format : " + type);
+					throw new Exception("No format converter was found for this format: " + type);
 			}
 		}
 	}

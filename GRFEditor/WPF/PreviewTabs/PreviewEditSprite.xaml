@@ -24,6 +24,7 @@
             <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
         <TabControl Name="_primary" Grid.Row="1" Style="{DynamicResource TabControlStyled2}" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
-        </TabControl>
-    </Grid>
+		</TabControl>
+		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
+	</Grid>
 </PreviewTabs:FilePreviewTab>

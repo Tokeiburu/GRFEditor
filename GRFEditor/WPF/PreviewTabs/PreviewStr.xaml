@@ -59,5 +59,6 @@
             </Grid>
         </Grid>
 		<previewTabs:OpenGLViewport x:Name="_viewport" Grid.Row="2" />
+		<previewTabs:ErrorPanel x:Name="_errorPanel" />
     </Grid>
 </previewTabs:FilePreviewTab>

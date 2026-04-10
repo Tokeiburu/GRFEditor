@@ -9,7 +9,7 @@ namespace ExampleProject.ErrorHandlers {
 		}
 
 		public void Handle(string exception, ErrorLevel errorLevel) {
-			MessageBox.Show("An exception has been caught : \n\n" + exception + "\n\nException level : " + errorLevel);
+			MessageBox.Show("An exception has been caught: \n\n" + exception + "\n\nException level: " + errorLevel);
 		}
 
 		public bool YesNoRequest(string message, string caption) {

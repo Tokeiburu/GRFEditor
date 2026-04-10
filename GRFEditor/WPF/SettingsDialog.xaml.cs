@@ -67,17 +67,22 @@ namespace GRFEditor.WPF {
 			}
 
 			if (grfData.IsOpened) {
-				if (grfData.Header.Is(3, 0)) {
-					_comboBoxFormat.SelectedIndex = 0;
+				try {
+					if (grfData.Header.Is(3, 0)) {
+						_comboBoxFormat.SelectedIndex = 0;
+					}
+					else if (grfData.Header.Is(2, 0)) {
+						_comboBoxFormat.SelectedIndex = 1;
+					}
+					else if (grfData.Header.Is(1, 3)) {
+						_comboBoxFormat.SelectedIndex = 2;
+					}
+					else if (grfData.Header.Is(1, 2)) {
+						_comboBoxFormat.SelectedIndex = 3;
+					}
 				}
-				else if (grfData.Header.Is(2, 0)) {
-					_comboBoxFormat.SelectedIndex = 1;
-				}
-				else if (grfData.Header.Is(1, 3)) {
-					_comboBoxFormat.SelectedIndex = 2;
-				}
-				else if (grfData.Header.Is(1, 2)) {
-					_comboBoxFormat.SelectedIndex = 3;
+				catch {
+					_comboBoxFormat.SelectedIndex = -1;
 				}
 			}
 			else {

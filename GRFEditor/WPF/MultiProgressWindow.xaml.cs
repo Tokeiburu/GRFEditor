@@ -159,7 +159,7 @@ namespace GRFEditor.WPF {
 					Title = "Launching GrfCL...";
 
 					if (!File.Exists(Path.Combine(Methods.ApplicationPath, "GrfCL.exe"))) {
-						_multiInit.Exception = "GrfCL couldn't be located : " + Path.Combine(Methods.ApplicationPath, "GrfCL.exe");
+						_multiInit.Exception = "GrfCL couldn't be located: " + Path.Combine(Methods.ApplicationPath, "GrfCL.exe");
 						_multiInit.OperationAborted = true;
 					}
 					else {
@@ -326,7 +326,7 @@ namespace GRFEditor.WPF {
 					}
 					break;
 				default:
-					_multiInit.Exception = "Command unrecognized : " + _option.Args[0];
+					_multiInit.Exception = "Command unrecognized: " + _option.Args[0];
 					_multiInit.OperationAborted = true;
 					break;
 			}

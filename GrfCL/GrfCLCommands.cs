@@ -311,8 +311,8 @@ namespace GrfCL {
 				byte[] fileLength = new byte[4];
 				Buffer.BlockCopy(dll, dll.Length - 524, fileLength, 0, 4);
 
-				CLHelper.WriteLine = "Executable name : " + EncodingService.DisplayEncoding.GetString(executableName).TrimEnd('\0');
-				CLHelper.WriteLine = "Executable length : " + BitConverter.ToInt32(fileLength, 0) + " bytes";
+				CLHelper.WriteLine = "Executable name: " + EncodingService.DisplayEncoding.GetString(executableName).TrimEnd('\0');
+				CLHelper.WriteLine = "Executable length: " + BitConverter.ToInt32(fileLength, 0) + " bytes";
 				CLHelper.WriteLine = "Key file : key.dat";
 
 				byte[] keyId = new byte[4];
@@ -375,7 +375,7 @@ namespace GrfCL {
 					throw new Exception("-encoding cannot be used while a GRF is opened.");
 
 				EncodingService.DisplayEncoding = Encoding.GetEncoding(Int32.Parse(clOption.Args[0]));
-				CLHelper.Log = CLHelper.Indent("Extraction and files added will now use this encoding : " + EncodingService.DisplayEncoding.WebName, 7, true);
+				CLHelper.Log = CLHelper.Indent("Extraction and files added will now use this encoding: " + EncodingService.DisplayEncoding.WebName, 7, true);
 			}
 			else if (clOption == CommandLineOptions.Tree) {
 				if (clOption.Args.Count == 0)
@@ -431,7 +431,7 @@ namespace GrfCL {
 			}
 			else if (clOption == CommandLineOptions.ExitOnExceptions) {
 				BasicErrorHandler.ExitOnExceptions = Boolean.Parse(clOption.Args[0]);
-				CLHelper.Log = "Exiting on exceptions : " + Boolean.Parse(clOption.Args[0]);
+				CLHelper.Log = "Exiting on exceptions: " + Boolean.Parse(clOption.Args[0]);
 			}
 			else if (clOption == CommandLineOptions.Log) {
 				CLHelper.SetLogState(Boolean.Parse(clOption.Args[0]));
@@ -494,7 +494,7 @@ namespace GrfCL {
 				FolderHash hashFolder = new FolderHash();
 				HashObject obj = hashFolder.HashFolder(String.IsNullOrEmpty(clOption.Args[0]) ? Directory.GetCurrentDirectory() : clOption.Args[0], String.IsNullOrEmpty(clOption.Args[1]) ? "*" : "", clOption.Args[2], HashStrategy.Quick);
 				CLHelper.Log = obj.NumberOfFilesHashed + " files hashed";
-				CLHelper.Log = "Data output file : " + clOption.Args[2];
+				CLHelper.Log = "Data output file: " + clOption.Args[2];
 			}
 			else if (clOption == CommandLineOptions.HashCompare) {
 				HashObject master = new HashObject(clOption.Args[0]);
@@ -502,7 +502,7 @@ namespace GrfCL {
 
 				var issues = HashObjectComparer.GetIssues(master, client, false);
 
-				CLHelper.Log = "Start of issues : ";
+				CLHelper.Log = "Start of issues: ";
 				foreach (var issue in issues) {
 					CLHelper.WL = issue.ErrorToolTip;
 				}
@@ -531,13 +531,13 @@ namespace GrfCL {
 					if (clOption.Option.OptionalArgs[clOption.FullOptionIds[6]] != null && Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[6]])) {
 						if (path.RelativePath == null) {
 							if (!File.Exists(path.FilePath.ReplaceExtension(".spr"))) {
-								CLHelper.Warning = "File skipped (no SPR matching file) : " + fullPath;
+								CLHelper.Warning = "File skipped (no SPR matching file): " + fullPath;
 								continue;
 							}
 						}
 						else {
 							if (!_grf.FileTable.ContainsFile(path.RelativePath.ReplaceExtension(".spr"))) {
-								CLHelper.Warning = "File skipped (no SPR matching file) : " + fullPath;
+								CLHelper.Warning = "File skipped (no SPR matching file): " + fullPath;
 								continue;
 							}
 						}
@@ -666,7 +666,7 @@ namespace GrfCL {
 				while (dataReader.CanRead) {
 					char entryType = dataReader.Char();
 
-					Console.Write("Entry type : " + entryType);
+					Console.Write("Entry type: " + entryType);
 
 					switch(entryType) {
 						case 'f':
@@ -703,7 +703,7 @@ namespace GrfCL {
 				Rsw rsw = new Rsw(File.ReadAllBytes(filename));
 				rsw.Header.SetVersion(1, 9);
 				rsw.Save(Path.Combine(folder, Path.GetFileName(filename)));
-				CLHelper.Log = "Map has been downgraded to 0x109 : " + Path.GetFileName(filename);
+				CLHelper.Log = "Map has been downgraded to 0x109: " + Path.GetFileName(filename);
 			}
 			else if (clOption == CommandLineOptions.GzipCompression) {
 				string fileToCompress = new FileInfo(clOption.Args[0]).FullName;

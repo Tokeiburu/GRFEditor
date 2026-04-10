@@ -166,7 +166,7 @@ namespace GRF.Core {
 				grf.IsBusy = false;
 				originalStream.Close();
 				grf.Reader.SetStream(grf.GetSharedStream());
-
+				
 				grf.Save(null, grfAdd, SavingMode.GrfSave, SyncMode.Synchronous);
 				throw GrfExceptions.__RepackInstead.Create();
 			}
@@ -223,6 +223,16 @@ namespace GRF.Core {
 					Progress = (index + 1f) / totalEntriesCount * 100f + currentProgress;
 					//Progress = (index + 1f) / totalEntriesCount * 100f;
 				}
+
+				//// 
+				//bool hasEncryption = false;
+				//if (_grf.InternalHeader.IsEncrypted && !_grf.InternalHeader.EncryptFileTable) hasEncryption = true;
+				//if (_grf.InternalHeader.EncryptionKey != null && !_grf.InternalHeader.EncryptFileTable) hasEncryption = true;
+				//if (_grf.Table.Entries.Any(p => (p.Modification & Modification.Encrypt) == Modification.Encrypt || (p.Modification & Modification.Decrypt) == Modification.Decrypt)) hasEncryption = true;
+				//
+				//if (hasEncryption) {
+				//
+				//}
 			}
 
 			return endStreamOffset;

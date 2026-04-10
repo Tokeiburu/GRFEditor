@@ -40,7 +40,7 @@
                         <RowDefinition Height="auto" />
                         <RowDefinition />
                     </Grid.RowDefinitions>
-                    <Label Grid.Row="0" Content="Usages : " />
+                    <Label Grid.Row="0" Content="Usages: " />
                     <WPF:TkView MouseRightButtonUp="_tree_MouseRightButtonUp" BorderThickness="0" MultiSelection="True" SelectedItemChanged="_tree_SelectedItemChanged"  x:Name="_tree" Grid.Row="1">
                         <WPF:TkView.ContextMenu>
                             <ContextMenu>

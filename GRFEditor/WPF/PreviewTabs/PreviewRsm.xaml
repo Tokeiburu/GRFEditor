@@ -90,6 +90,7 @@
         </Grid>
         <Grid Name="_viewportGrid" Grid.Row="2">
             <wpf:OpenGLViewport x:Name="_viewport" FocusVisualStyle="{x:Null}" Focusable="False" />
-        </Grid>
-    </Grid>
+		</Grid>
+		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
+	</Grid>
 </PreviewTabs:FilePreviewTab>

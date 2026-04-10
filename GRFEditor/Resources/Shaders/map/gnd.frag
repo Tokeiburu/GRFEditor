@@ -29,7 +29,7 @@ void main()
 	vec4 texColor = texture2D(s_texture, texCoord);
 	texture = texColor;
 	
-	if(texture.a < 0.1)
+	if (texture.a < 0.1)
 		discard;
 		
 	if (wireframe) {
@@ -45,7 +45,7 @@ void main()
 	else {
 		texture.rgb *= mult;
 		
-		// Tile color is renderer before lightmap
+		// Tile color is rendered before lightmap
 		texture.rgb *= max(color.rgb, 1.0 - showLightmap);
 		// Shadowmap
 		texture.rgb *= max(texture2D(s_lighting, texCoord2).a, 1.0 - showShadowmap);

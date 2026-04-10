@@ -367,7 +367,7 @@ namespace GRFEditor.WPF {
 					if (_searchTextBox != null) {
 						var error = Validation.GetErrors(_searchTextBox).FirstOrDefault();
 						if (error != null) {
-							_messageView.Content = "Found errors : " + " " + error.ErrorContent;
+							_messageView.Content = "Found errors: " + " " + error.ErrorContent;
 							_messageView.PlacementTarget = _searchTextBox;
 							_messageView.IsOpen = true;
 						}

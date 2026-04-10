@@ -127,7 +127,7 @@ namespace GrfToWpfBridge {
 				newImage.Convert(converter);
 			}
 			else {
-				throw new Exception("No converter was found for this format : " + format.Format);
+				throw new Exception("No converter was found for this format: " + format.Format);
 			}
 
 			return newImage;
@@ -139,7 +139,7 @@ namespace GrfToWpfBridge {
 			if (format == PixelFormats.Bgra32) return GrfImageType.Bgra32;
 			if (format == PixelFormats.Indexed8) return GrfImageType.Indexed8;
 
-			throw new Exception("Invalid image format : " + format);
+			throw new Exception("Invalid image format: " + format);
 		}
 
 		private static string _validatePath(string path, GrfImageType type) {
@@ -251,7 +251,7 @@ namespace GrfToWpfBridge {
 			if (format == GrfImageType.Bgra32) return PixelFormats.Bgra32;
 			if (format == GrfImageType.Indexed8) return PixelFormats.Indexed8;
 
-			throw new Exception("Invalid image format : " + format);
+			throw new Exception("Invalid image format: " + format);
 		}
 
 		public static WriteableBitmap ConvertToBgra32(BitmapSource image) {

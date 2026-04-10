@@ -18,6 +18,7 @@ using GrfToWpfBridge;
 using TokeiLibrary;
 using Utilities.Extension;
 using Utilities.Services;
+using GRF.ContainerFormat;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -42,6 +43,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
 			WpfUtilities.AddMouseInOutUnderline(_cbHideBorders, _cbRescale, _cbTransparent);
+			ErrorPanel = _errorPanel;
 		}
 
 		public Action<Brush> BackgroundBrushFunction {
@@ -58,13 +60,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected override void _load(FileEntry entry) {
+			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 			ImageSource source = null;
 			string fileName = entry.RelativePath;
-			_labelHeader.Dispatch(p => p.Text = "Map preview : " + Path.GetFileName(fileName));
+			_labelHeader.Dispatch(p => p.Text = "Map preview: " + Path.GetFileName(fileName));
 			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
 
 			Gat gat = new Gat(entry.GetDecompressedData());
-			GatPreviewFormat preview = (GatPreviewFormat) _cbPreviewMode.Dispatch(p => p.SelectedIndex);
+			GatPreviewFormat preview = (GatPreviewFormat)_cbPreviewMode.Dispatch(p => p.SelectedIndex);
 
 			GatPreviewOptions options = 0;
 
@@ -82,13 +85,17 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_imagePreview.Dispatch(p => p.Source = source);
 			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
-			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 		}
 
 		private void _buttonSaveInGrf_Click(object sender, RoutedEventArgs e) {
 			try {
 				string tempImage = TemporaryFilesManager.GetTemporaryFilePath("img_{0:0000}.bmp");
 				string root = (_grfData.FileName.IsExtension(".thor") ? GrfStrings.RgzRoot : "");
+
+				if (_wrapper.Image == null) {
+					throw new Exception("No image loaded. This usually happens if the file is corrupted or encrypted.");
+				}
+
 				_wrapper.Image.Convert(GrfImageType.Indexed8);
 				_wrapper.Image.Save(tempImage);
 				_grfData.Commands.AddFile(GrfPath.Combine(EncodingService.FromAnyToDisplayEncoding(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\map\"), _entry.DisplayRelativePath.ReplaceExtension(".bmp")), File.ReadAllBytes(tempImage), _replaceFileCallback);

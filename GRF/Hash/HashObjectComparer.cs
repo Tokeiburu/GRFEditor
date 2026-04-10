@@ -124,7 +124,7 @@ namespace GRF.Hash {
 						if (!Methods.ByteArrayCompare(hMasterPair.Value, hUser[dataPath])) {
 							errors.Add(new HashObjectComparerView(
 										   HashObjectValidationTypes.HoPathOverride,
-										   "Master : " + hMasterPair.Key + "; User : " + dataPath, hMasterPair.Key + ">" + dataPath,
+										   "Master: " + hMasterPair.Key + "; User: " + dataPath, hMasterPair.Key + ">" + dataPath,
 										   hMasterPair.Value, hUser[dataPath]));
 						}
 

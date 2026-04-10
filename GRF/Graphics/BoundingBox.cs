@@ -45,7 +45,7 @@ namespace GRF.Graphics {
 			Min.Y += -Min.Y;
 		}
 
-		public void AddVertex(TkVector3 v) {
+		public void AddVertex(in TkVector3 v) {
 			for (int c = 0; c < 3; c++) {
 				Min[c] = Math.Min(Min[c], v[c]);
 				Max[c] = Math.Max(Max[c], v[c]);
@@ -68,7 +68,7 @@ namespace GRF.Graphics {
 		public TkVector3 Range;
 		public TkVector3 Center;
 
-		public void Multiply(TkMatrix4 matrix) {
+		public void Multiply(in TkMatrix4 matrix) {
 			Max = new TkVector3(matrix * new TkVector4(Max, 1));
 			Min = new TkVector3(matrix * new TkVector4(Min, 1));
 			Center = new TkVector3(matrix * new TkVector4(Center, 1));

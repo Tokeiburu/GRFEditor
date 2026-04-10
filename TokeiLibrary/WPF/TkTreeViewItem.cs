@@ -140,7 +140,12 @@ namespace TokeiLibrary.WPF {
 			get { return !UseCheckBox; }
 		}
 
-		public bool CheckBoxHeaderIsEnabled { get; set; }
+		public static DependencyProperty CheckBoxHeaderIsEnabledProperty = DependencyProperty.Register("CheckBoxHeaderIsEnabled", typeof(bool), typeof(TkTreeViewItem), new PropertyMetadata(true));
+
+		public bool CheckBoxHeaderIsEnabled {
+			get => (bool)GetValue(CheckBoxHeaderIsEnabledProperty);
+			set => SetValue(CheckBoxHeaderIsEnabledProperty, value);
+		}
 
 		public bool? IsChecked {
 			get { return (bool?)GetValue(IsCheckedProperty); }
@@ -327,7 +332,7 @@ namespace TokeiLibrary.WPF {
 		#endregion
 
 		public override string ToString() {
-			return HeaderText + "; Number of items : " + Items.Count;
+			return HeaderText + "; Number of items: " + Items.Count;
 		}
 
 		private Dictionary<string, object> _loadedElements;
