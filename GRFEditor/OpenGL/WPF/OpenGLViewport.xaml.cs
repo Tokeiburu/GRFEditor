@@ -17,6 +17,7 @@ using GRFEditor.OpenGL.MapRenderers;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Input;
 using TokeiLibrary;
 using Utilities;
 using Key = System.Windows.Input.Key;
@@ -51,9 +52,6 @@ namespace GRFEditor.OpenGL.WPF {
 		public List<Renderer> Renderers {
 			get { return _renderers; }
 		}
-
-		// Mouse input settings
-		private Point _oldPosition;
 
 		// Animation settings
 		private readonly ManualResetEvent _renderThreadHandle = new ManualResetEvent(false);
@@ -120,9 +118,8 @@ namespace GRFEditor.OpenGL.WPF {
 				_primary.Load += _primary_Load;
 				_primary.Resize += _primary_Resize;
 
-				_primary.MouseMove += _primary_MouseMove;
 				_primary.MouseDown += _primary_MouseDown;
-				_primary.MouseWheel += _primary_MouseWheel;
+				_primary.MouseUp += _primary_MouseUp;
 				_primary.KeyDown += _primary_KeyDown;
 
 				IsVisibleChanged += delegate {
@@ -135,10 +132,6 @@ namespace GRFEditor.OpenGL.WPF {
 						wasVisible = nowVisible;
 
 						EnableRenderThread = nowVisible;
-						//if (nowVisible)
-						//	OnBecameVisible();
-						//else
-						//	OnBecameHidden();
 					}
 				};
 
@@ -235,47 +228,6 @@ namespace GRFEditor.OpenGL.WPF {
 			}
 		}
 
-		private void _primary_MouseWheel(object sender, MouseEventArgs e) {
-			_camera.Zoom(e.Delta < 0 ? 1.1f : 0.9f);
-			IsRotatingCamera = false;
-		}
-
-		private void _primary_MouseDown(object sender, MouseEventArgs e) {
-			_oldPosition = new Point(e.Location.X, e.Location.Y);
-
-			if (e.Button == MouseButtons.Left) {
-				_primary.Capture = true;
-			}
-			else if (e.Button == MouseButtons.Right) {
-				_primary.Capture = true;
-			}
-		}
-
-		private void _primary_MouseMove(object sender, MouseEventArgs e) {
-			if (!_primary.Capture)
-				return;
-
-			var newMousePosition = new Point(e.Location.X, e.Location.Y);
-
-			if (e.Button == MouseButtons.Left) {
-				if (Keyboard.IsKeyDown(Key.LeftShift) && _request != null && _request.IsMap) {
-					_camera.CancelMovement();
-					return;
-				}
-
-				_selectingTiles = false;
-				_camera.RotateXY(newMousePosition.X - _oldPosition.X, newMousePosition.Y - _oldPosition.Y);
-			}
-			else if (e.Button == MouseButtons.Right) {
-				if (Keyboard.IsKeyDown(Key.LeftCtrl))
-					_camera.TranslateY(newMousePosition.Y - _oldPosition.Y);
-				else
-					_camera.TranslateXZ(newMousePosition.X - _oldPosition.X, newMousePosition.Y - _oldPosition.Y);
-			}
-
-			_oldPosition = new Point(e.Location.X, e.Location.Y);
-		}
-
 		private void _render() {
 			if (_crashState)
 				return;
@@ -356,8 +308,6 @@ namespace GRFEditor.OpenGL.WPF {
 
 			try {	
 				lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
-				//lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"C:\Games\NovaRO - 4th - NewClient\data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
-				//lubRenderer.Load(this);
 			}
 			catch {
 				lubRenderer = null;
@@ -471,6 +421,8 @@ namespace GRFEditor.OpenGL.WPF {
 
 				OpenGLMemoryManager.MakeCurrent(this);
 				_primary.MakeCurrent();
+
+				_processMouseInputs();
 
 				GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 				GL.Disable(EnableCap.CullFace);
@@ -608,6 +560,81 @@ namespace GRFEditor.OpenGL.WPF {
 					if (!_renderThreadEnabled)
 						_renderThreadEnabled = true;
 				}
+			}
+		}
+		#endregion
+
+		#region Mouse inputs
+		// Mouse input settings
+		private MouseState _previousState;
+		private bool _isCaptured;
+		private System.Drawing.Point _previousMousePosition;
+
+		private void _primary_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e) => _primary.Capture = false;
+		private void _primary_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e) => _primary.Capture = true;
+
+		private void _processMouseInputs() {
+			var mouseState = Mouse.GetState();
+			var currentMousePosition = System.Windows.Forms.Control.MousePosition;
+
+			try {
+				if (_previousState == null || FrameRenderTime > 1000) {
+					return;
+				}
+
+				// Mouse wheel
+				float deltaWheel = mouseState.WheelPrecise - _previousState.WheelPrecise;
+
+				if (deltaWheel != 0) {
+					var clientPos = _primary.PointToClient(currentMousePosition);
+					bool isInside = _primary.ClientRectangle.Contains(clientPos);
+
+					if (isInside) {
+						_camera.Zoom(deltaWheel < 0 ? 1.1f : 0.9f);
+						IsRotatingCamera = false;
+					}
+				}
+
+				// Mouse capture check, handled through WinForms events
+				if (_primary.Capture && !_isCaptured) {
+					_isCaptured = true;
+				}
+				else if (!_primary.Capture && _isCaptured) {
+					_isCaptured = false;
+				}
+
+				// Mouse is captured, which means a button is being held down
+				if (_isCaptured) {
+					var mousePosition = System.Windows.Forms.Control.MousePosition;
+
+					float dx = currentMousePosition.X - _previousMousePosition.X;
+					float dy = currentMousePosition.Y - _previousMousePosition.Y;
+
+					bool hasMoved = dx != 0 || dy != 0;
+
+					// There was actual movement
+					if (hasMoved) {
+						if (mouseState.LeftButton == OpenTK.Input.ButtonState.Pressed) {
+							if (Keyboard.IsKeyDown(Key.LeftShift) && _request != null && _request.IsMap) {
+								_camera.CancelMovement();
+								return;
+							}
+
+							_selectingTiles = false;
+							_camera.RotateXY(dx, dy);
+						}
+						else if (mouseState.RightButton == OpenTK.Input.ButtonState.Pressed) {
+							if (Keyboard.IsKeyDown(Key.LeftCtrl))
+								_camera.TranslateY(dy);
+							else
+								_camera.TranslateXZ(dx, dy);
+						}
+					}
+				}
+			}
+			finally {
+				_previousState = mouseState;
+				_previousMousePosition = currentMousePosition;
 			}
 		}
 		#endregion

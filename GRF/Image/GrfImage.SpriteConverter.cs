@@ -81,17 +81,13 @@ namespace GRF.Image {
 
 					return bgra32;
 				case SprConvertMode.BestMatch:
-					Z.Start(2003);
 					GrfImage match = imageSource.Copy();
 					Indexed8FormatConverter conv = new Indexed8FormatConverter();
-					Z.Stop(2003);
 
-					Z.Start(2004);
 					// PixelIndexZero is done automatically
 					if (transparencyColor != null && transparency != SprTransparencyMode.PixelIndexZero) {
 						match.MakeColorTransparent(transparencyColor.Value);
 					}
-					Z.Stop(2004);
 
 					if (useDithering) {
 						conv.Options |= Indexed8FormatConverter.PaletteOptions.UseDithering | Indexed8FormatConverter.PaletteOptions.UseExistingPalette;
@@ -100,11 +96,8 @@ namespace GRF.Image {
 					conv.ExistingPalette = originalPalette;
 					conv.BackgroundColor = GrfColors.White;
 
-					Z.Start(2005);
 					match.Convert(conv);
-					Z.Stop(2005);
 
-					Z.Start(2006);
 					switch (transparency) {
 						case SprTransparencyMode.PixelIndexZero:
 							match = _sprGetImageUsingPixelZero(originalPalette, imageSource, match);
@@ -115,7 +108,6 @@ namespace GRF.Image {
 							match = _sprGetImageUsingPixel(originalPalette, match, transparencyColor.Value);
 							break;
 					}
-					Z.Stop(2006);
 
 					match.MakeFirstPixelTransparent();
 					return match;
