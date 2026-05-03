@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
+using GRF.Image;
 using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -14,20 +15,20 @@ namespace GRFEditor.WPF.PreviewTabs {
 	public partial class GrfClusterView : UserControl {
 		private const int _numberOfLines = 20;
 		private readonly List<Color> _colorsList = new List<Color>();
-		private readonly List<int[]> _lengthsList = new List<int[]>();
-		private readonly List<long[]> _offsetsList = new List<long[]>();
-		private int[] _lengths;
-		private long[] _offsets;
+		private readonly List<List<int>> _lengthsList = new List<List<int>>();
+		private readonly List<List<long>> _offsetsList = new List<List<long>>();
+		private List<int> _lengths;
+		private List<long> _offsets;
 
 		private int _physicalX;
 		private int _physicalY;
-		private byte[] _pixels;
 		private List<Color> _palette = new List<Color>();
 		private long _totalSize;
+		private GrfImage _image;
 
 		public GrfClusterView() {
 			InitializeComponent();
-			_canvas.SizeChanged += new SizeChangedEventHandler(_canvas_SizeChanged);
+			_canvas.SizeChanged += _canvas_SizeChanged;
 		}
 
 		private void _canvas_SizeChanged(object sender, SizeChangedEventArgs e) {
@@ -35,8 +36,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_offsets == null || _lengths == null)
 					return;
 
-				List<long[]> offsets = new List<long[]>(_offsetsList);
-				List<int[]> lengths = new List<int[]>(_lengthsList);
+				List<List<long>> offsets = new List<List<long>>(_offsetsList);
+				List<List<int>> lengths = new List<List<int>>(_lengthsList);
 				List<Color> colors = new List<Color>(_colorsList);
 
 				DrawBackground();
@@ -64,9 +65,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_physicalX <= 0)
 					return;
 
-				byte[] background = new byte[] { 229, 165, 155 };
-
-				_pixels = new byte[_physicalX * _physicalY];
+				_image = new GrfImage(new byte[_physicalX * _physicalY], _physicalX, _physicalY, GrfImageType.Indexed8);
 				_palette.Clear();
 				_palette.Add(Color.FromArgb(255, 155, 165, 229));
 			}
@@ -75,7 +74,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		public void Draw(long totalSize, long[] offsets, int[] lengths, Color colorToDrawOffsets) {
+		public void Draw(long totalSize, List<long> offsets, List<int> lengths, in Color colorToDrawOffsets) {
 			try {
 				_offsetsList.Add(offsets);
 				_lengthsList.Add(lengths);
@@ -94,14 +93,12 @@ namespace GRFEditor.WPF.PreviewTabs {
 				int totalImageLength = _physicalX * _numberOfLines;
 				int positionX;
 
-				for (int i = 0; i < offsets.Length; i++) {
+				for (int i = 0; i < offsets.Count; i++) {
 					positionX = (int) ((float) offsets[i] / totalSize * totalImageLength);
 					int lengthToDraw = (int) Math.Ceiling(((float) lengths[i] / totalSize * totalImageLength));
 					lengthToDraw = lengthToDraw == 0 ? 1 : lengthToDraw;
 
-					for (int x = positionX; x < positionX + lengthToDraw; x++) {
-						_pixels[x] = paletteIdx;
-					}
+					_image.Fill(positionX, lengthToDraw, paletteIdx);
 				}
 			}
 			catch {
@@ -114,16 +111,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 				if (_physicalX <= 0)
 					return;
 
-				BitmapPalette palette = new BitmapPalette(_palette);
-				WriteableBitmap bitmap = new WriteableBitmap(_physicalX, _physicalY, 96, 96, PixelFormats.Indexed8, palette);
-				bitmap.WritePixels(new Int32Rect(0, 0, _physicalX, _physicalY), _pixels, _physicalX, 0);
+				var bitmap = BitmapSource.Create(_physicalX, _physicalY, 96, 96, PixelFormats.Indexed8, new BitmapPalette(_palette), _image.Pixels, _physicalX);
 				bitmap.Freeze();
 				_drawImage.Source = bitmap;
 				_drawImage.Height = _numberOfLines * 7;
 				_drawImage.Width = _physicalX;
 			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
+			catch {
+				//ErrorHandler.HandleException(err);
 			}
 		}
 	}

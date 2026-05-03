@@ -13,6 +13,7 @@ namespace GRF.Core {
 	public class GrfHeader : FileHeader {
 		public const int DataByteSize = 46;
 		private readonly List<string> _errors = new List<string>();
+		private object _errorLock = new object();
 
 		internal GrfHeader(ByteReaderStream reader, Container container) {
 			Container = container;
@@ -26,8 +27,8 @@ namespace GRF.Core {
 			Key = Encoding.ASCII.GetString(data, 16, 14);
 
 			int version = BitConverter.ToInt32(data, 42);
-			MajorVersion = (byte) (version >> 8);
-			MinorVersion = (byte) (version & 0x000000FF);
+			MajorVersion = (byte)(version >> 8);
+			MinorVersion = (byte)(version & 0x000000FF);
 
 			// Fix : 2024-10-25
 			// Added support for int64 size GRFs
@@ -45,8 +46,8 @@ namespace GRF.Core {
 
 			// This is a GRF header, don't check further
 			if (this.Is(1, 2) ||
-			    this.Is(1, 3) ||
-			    this.Is(2, 0) ||
+				this.Is(1, 3) ||
+				this.Is(2, 0) ||
 				this.Is(3, 0)) {
 				return;
 			}
@@ -82,7 +83,7 @@ namespace GRF.Core {
 		internal GrfHeader(Container container) {
 			Container = container;
 			Magic = GrfStrings.MasterOfMagic;
-			Key = Encoding.ASCII.GetString(new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14}); // Enable encryption
+			Key = Encoding.ASCII.GetString(new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }); // Enable encryption
 			Seed = 0;
 			FileTableOffset = DataByteSize;
 			MajorVersion = 2;
@@ -99,6 +100,7 @@ namespace GRF.Core {
 		public int Seed { get; set; }
 		private int _filesCount { get; set; }
 		internal int RealFilesCount { get; set; }
+		public GrfFormatView FormatView => GrfFormatViews.Get(MajorVersion, MinorVersion);
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the GrfWriter should encrypt all data using the assigned encryption key.
@@ -161,7 +163,9 @@ namespace GRF.Core {
 		}
 
 		internal void SetError(string error, params object[] args) {
-			_errors.Add(String.Format(error, args));
+			lock (_errorLock) {
+				_errors.Add(String.Format(error, args));
+			}
 		}
 
 		public override sealed void SetVersion(byte major, byte minor) {

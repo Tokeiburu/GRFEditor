@@ -69,11 +69,9 @@ namespace GRF.Image.Decoders {
 		public void Convert(GrfImage image) {
 			if (image.GrfImageType != GrfImageType.Bgra32) throw new Exception("Expected pixel format is Bgra32, found " + image.GrfImageType);
 
-			Z.Start(3000);
 			if (UseBackgroundColor) {
 				_applyBackgroundColor(image, BackgroundColor);
 			}
-			Z.Stop(3000);
 
 			byte[] newPixels = new byte[image.Width * image.Height];
 
@@ -179,7 +177,6 @@ namespace GRF.Image.Decoders {
 					}
 
 					// Parallel
-					Z.Start(1000);
 					ConcurrentDictionary<int, int> matches2 = new ConcurrentDictionary<int, int>();
 
 					unsafe {
@@ -196,7 +193,6 @@ namespace GRF.Image.Decoders {
 							});
 						}
 					}
-					Z.Stop(1000);
 
 					// Linear
 					//unsafe {
@@ -237,7 +233,6 @@ namespace GRF.Image.Decoders {
 					//}
 
 					// Parallel
-					Z.Start(1001);
 					ConcurrentDictionary<int, int> matches2 = new ConcurrentDictionary<int, int>();
 
 					unsafe {
@@ -250,11 +245,10 @@ namespace GRF.Image.Decoders {
 							byte* pPalette = pPaletteBase;
 
 							Parallel.For(0, image.Width * image.Height, idx => {
-								pNewPixels[idx] = _findClosetMatch(matches2, pPixels + 4 * idx, pPalette);
+								pNewPixels[idx] = FindClosetMatch(matches2, pPixels + 4 * idx, pPalette);
 							});
 						}
 					}
-					Z.Stop(1001);
 
 					// Linear
 					//unsafe {
@@ -300,7 +294,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				double bestDist = double.MaxValue;
 				double* pPal = pPaletteBase + 3;
-				double* pPalEnd = pPal + palLength;
+				double* pPalEnd = pPaletteBase + palLength;
 
 				while (pPal < pPalEnd) {
 					double dL = lab.L - pPal[0];
@@ -335,7 +329,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				double bestDist = double.MaxValue;
 				double* pPal = pPaletteBase + 3;
-				double* pPalEnd = pPal + palLength;
+				double* pPalEnd = pPaletteBase + palLength;
 
 				while (pPal < pPalEnd) {
 					double dL = lab.L - pPal[0];
@@ -369,7 +363,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				int bestDist = int.MaxValue;
 				byte* pPal = pPaletteBase + 4;
-				byte* pPalEnd = pPal + ExistingPalette.Length;
+				byte* pPalEnd = pPaletteBase + ExistingPalette.Length;
 
 				while (pPal < pPalEnd) {
 					int dr = Math.Abs(pPixels[2] - pPal[0]);
@@ -393,7 +387,7 @@ namespace GRF.Image.Decoders {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private unsafe byte _findClosetMatch(ConcurrentDictionary<int, int> matches, byte* pPixels, byte* pPaletteBase) {
+		public unsafe byte FindClosetMatch(ConcurrentDictionary<int, int> matches, byte* pPixels, byte* pPaletteBase) {
 			if (pPixels[3] == 0)
 				return 0;
 
@@ -403,7 +397,7 @@ namespace GRF.Image.Decoders {
 			if (!matches.TryGetValue(pPixels[2] << 16 | pPixels[1] << 8 | pPixels[0], out bestIndex)) {
 				int bestDist = int.MaxValue;
 				byte* pPal = pPaletteBase + 4;
-				byte* pPalEnd = pPal + ExistingPalette.Length;
+				byte* pPalEnd = pPaletteBase + ExistingPalette.Length;
 
 				while (pPal < pPalEnd) {
 					int dr = Math.Abs(pPixels[2] - pPal[0]);
@@ -427,27 +421,31 @@ namespace GRF.Image.Decoders {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private unsafe byte _findClosetMatch(byte r, byte g, byte b, byte* pPaletteBase) {
+		public unsafe byte FindClosetMatch(ConcurrentDictionary<int, int> matches, byte r, byte g, byte b, byte* pPaletteBase, int startIndex256 = 1) {
 			int bestIndex = 0;
-			int l = 1;
+			int l = startIndex256;
 
-			int bestDist = int.MaxValue;
-			byte* pPal = pPaletteBase + 4;
-			byte* pPalEnd = pPal + ExistingPalette.Length;
+			if (!matches.TryGetValue(r << 16 | g << 8 | b, out bestIndex)) {
+				int bestDist = int.MaxValue;
+				byte* pPal = pPaletteBase + startIndex256 * 4;
+				byte* pPalEnd = pPaletteBase + ExistingPalette.Length;
 
-			while (pPal < pPalEnd) {
-				int dr = Math.Abs(r - pPal[0]);
-				int dg = Math.Abs(g - pPal[1]);
-				int db = Math.Abs(b - pPal[2]);
-				int dist = _preSquared[dr] + _preSquared[dg] + _preSquared[db];
+				while (pPal < pPalEnd) {
+					int dr = Math.Abs(r - pPal[0]);
+					int dg = Math.Abs(g - pPal[1]);
+					int db = Math.Abs(b - pPal[2]);
+					int dist = _preSquared[dr] + _preSquared[dg] + _preSquared[db];
 
-				if (dist < bestDist) {
-					bestDist = dist;
-					bestIndex = l;
+					if (dist < bestDist) {
+						bestDist = dist;
+						bestIndex = l;
+					}
+
+					pPal += 4;
+					l++;
 				}
 
-				pPal += 4;
-				l++;
+				matches[r << 16 | g << 8 | b] = bestIndex;
 			}
 
 			return (byte)bestIndex;

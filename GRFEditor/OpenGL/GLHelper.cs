@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using GRF.Image;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
-using Utilities;
 using Matrix3 = OpenTK.Matrix3;
 using Matrix4 = OpenTK.Matrix4;
 using Vertex = GRFEditor.OpenGL.MapComponents.Vertex;
@@ -409,7 +408,6 @@ namespace GRFEditor.OpenGL {
 			var err = GL.GetError();
 			if (err != ErrorCode.NoError) {
 				Console.WriteLine(err);
-				Z.F(err);
 			}
 
 			return err;

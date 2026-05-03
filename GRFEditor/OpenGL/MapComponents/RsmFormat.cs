@@ -7,7 +7,6 @@ using GRF.FileFormats.RsmFormat;
 using GRF.IO;
 using OpenTK;
 using Matrix4 = OpenTK.Matrix4;
-using Utilities;
 using GRFEditor.ApplicationConfiguration;
 
 namespace GRFEditor.OpenGL.MapComponents {

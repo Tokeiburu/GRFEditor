@@ -259,6 +259,10 @@ namespace GRF.FileFormats.RsmFormat {
 				face.VertexIds = reader.ArrayUInt16(3);
 				face.TextureVertexIds = reader.ArrayUInt16(3);
 				face.TextureId = reader.UInt16();
+
+				if (face.TextureId >= _textureIndexes.Count)
+					face.TextureId = 0;
+
 				face.Padding = reader.UInt16();
 				face.TwoSide = reader.Int32() > 0 ? 1 : 0;
 

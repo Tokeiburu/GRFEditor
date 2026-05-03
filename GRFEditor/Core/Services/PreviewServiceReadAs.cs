@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Controls;
 using GRF.Core;
 using GRFEditor.WPF.PreviewTabs;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using Utilities;
 
@@ -43,7 +44,7 @@ namespace GRFEditor.Core.Services {
 
 			if (!_tab2IPreviewTab.TryGetValue(tabItem, out previewTab)) {
 				tabItem.Dispatch(delegate {
-					previewTab = new PreviewContainer(_previewItems, _editor);
+					previewTab = new PreviewContainer(this, _editor);
 					tabItem.Content = previewTab;
 					_tab2IPreviewTab[tabItem] = previewTab;
 				});
@@ -73,7 +74,7 @@ namespace GRFEditor.Core.Services {
 
 			if (!_tab2IPreviewTab.TryGetValue(tabItem, out previewTab)) {
 				tabItem.Dispatch(delegate {
-					previewTab = new PreviewFolderStructure(_previewItems);
+					previewTab = new PreviewFolderStructure(this);
 					tabItem.Content = previewTab;
 					_tab2IPreviewTab[tabItem] = previewTab;
 				});
@@ -220,7 +221,7 @@ namespace GRFEditor.Core.Services {
 			_preferredOptions[".gnd"] = _tabControlPreview.Items.IndexOf(_tabItemGndPreview);
 			_preferredOptions[".rsw"] = _tabControlPreview.Items.IndexOf(_tabItemRsmPreview);
 
-			_tabControlPreview.SelectionChanged += new SelectionChangedEventHandler(_tabControlPreview_SelectionChanged);
+			_tabControlPreview.SelectionChanged += _tabControlPreview_SelectionChanged;
 			_hasBeenLoaded = true;
 		}
 

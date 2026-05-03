@@ -4,8 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-             xmlns:WPF="clr-namespace:GRFEditor.WPF" xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
-                    mc:Ignorable="d" 
+             xmlns:WPF="clr-namespace:GRFEditor.WPF"
+			 xmlns:PreviewTabs="clr-namespace:GrfToWpfBridge.PreviewTabs;assembly=GrfToWpfBridge" xmlns:spriteeditor="clr-namespace:GRFEditor.Tools.SpriteEditor"
+							mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
@@ -23,8 +24,8 @@
             </DockPanel>
             <Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
-        <TabControl Name="_primary" Grid.Row="1" Style="{DynamicResource TabControlStyled2}" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
-		</TabControl>
+		<spriteeditor:SpriteEditorControl x:Name="_spriteEditorControl" Grid.Row="1" ListWidth="200" />
+
 		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
 	</Grid>
 </PreviewTabs:FilePreviewTab>

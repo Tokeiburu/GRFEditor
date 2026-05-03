@@ -6,6 +6,7 @@ using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {

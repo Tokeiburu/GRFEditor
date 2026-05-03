@@ -16,9 +16,11 @@ namespace GRF.Threading {
 		public static bool IgnoreUnreadableFiles { get; set; }
 		public static bool Cancelling { get; set; }
 		private Action<FileEntry, byte[]> _function;
+		private Func<bool> _isCancelling;
 
-		public void Init(Action<FileEntry, byte[]> function) {
+		public void Init(Action<FileEntry, byte[]> function, Func<bool> isCancelling) {
 			_function = function;
+			_isCancelling = isCancelling;
 		}
 
 		public override void Start() {
@@ -49,7 +51,7 @@ namespace GRF.Threading {
 						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value);
 
 						for (int i = fromIndex; i < toIndex; i++) {
-							if (Cancelling)
+							if ((_isCancelling != null && _isCancelling()) || Cancelling)
 								return;
 
 							if (IsPaused)

@@ -19,7 +19,6 @@ using GRF.Image;
 using GRF.IO;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GRFEditor.OpenGL.WPF;
 using GRFEditor.Tools.GrfValidation;
@@ -44,7 +43,7 @@ namespace GRFEditor {
 
 		private void _menuItemOpenFrom_Click(object sender, RoutedEventArgs e) {
 			try {
-				string file = PathRequest.OpenFileEditor("filter", FileFormat.MergeFilters(Format.AllContainers | Format.Grf | Format.Gpf | Format.Rgz | Format.Thor));
+				string file = PathRequest.OpenFileEditor("filter", FileFormat.MergeFilters(FileFormat.AllContainers, FileFormat.Grf, FileFormat.Gpf, FileFormat.Rgz, FileFormat.Thor));
 				if (file != null) {
 					if (File.Exists(file)) {
 						_recentFilesManager.AddRecentFile(file);
@@ -95,7 +94,7 @@ namespace GRFEditor {
 						break;
 					case GrfEditorSaveMode.SaveAs:
 						string extension = _grfHolder.FileName.GetExtension();
-						file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(Format.Grf | Format.Gpf | Format.Rgz | Format.Thor),
+						file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(FileFormat.Grf, FileFormat.Gpf, FileFormat.Rgz, FileFormat.Thor),
 														  "fileName", Path.GetFileName(_grfHolder.FileName),
 														  "filterIndex", (extension == ".grf" ? 1 : extension == ".gpf" ? 2 : extension == ".rgz" ? 3 : extension == ".thor" ? 4 : 1).ToString(CultureInfo.InvariantCulture));
 
@@ -210,7 +209,7 @@ namespace GRFEditor {
 
 		private void _menuItemSoustract_Click(object sender, RoutedEventArgs e) {
 			try {
-				WindowProvider.ShowWindow<SubtractDialogCustom>(new SubtractDialogCustom(this, _grfHolder), this);
+				WindowProvider.ShowWindow<SubtractDialogCustom>(new SubtractDialogCustom(_grfHolder), this);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -295,22 +294,22 @@ namespace GRFEditor {
 					}
 
 					if (female[0] != null)
-						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\¿©\¿©_" + name + ".act", female[0], _replaceFilesCallback);
+						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\¿©\¿©_" + name + ".act", female[0], ReplaceFilesCallback);
 
 					if (female[1] != null)
-						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\¿©\¿©_" + name + ".spr", female[1], _replaceFilesCallback);
+						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\¿©\¿©_" + name + ".spr", female[1], ReplaceFilesCallback);
 
 					if (male[0] != null)
-						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\³²\³²_" + name + ".act", male[0], _replaceFilesCallback);
+						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\³²\³²_" + name + ".act", male[0], ReplaceFilesCallback);
 
 					if (male[1] != null)
-						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\³²\³²_" + name + ".spr", male[1], _replaceFilesCallback);
+						_grfHolder.Commands.AddFile(root + @"data\sprite\¾Ç¼¼»ç¸®\³²\³²_" + name + ".spr", male[1], ReplaceFilesCallback);
 
-					_grfHolder.Commands.AddFile(root + @"data\sprite\¾ÆÀÌÅÛ\" + name + ".act", common[2], _replaceFilesCallback);
-					_grfHolder.Commands.AddFile(root + @"data\sprite\¾ÆÀÌÅÛ\" + name + ".spr", common[3], _replaceFilesCallback);
+					_grfHolder.Commands.AddFile(root + @"data\sprite\¾ÆÀÌÅÛ\" + name + ".act", common[2], ReplaceFilesCallback);
+					_grfHolder.Commands.AddFile(root + @"data\sprite\¾ÆÀÌÅÛ\" + name + ".spr", common[3], ReplaceFilesCallback);
 
-					_grfHolder.Commands.AddFile(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\collection\" + name + ".bmp", common[0], _replaceFilesCallback);
-					_grfHolder.Commands.AddFile(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\item\" + name + ".bmp", common[1], _replaceFilesCallback);
+					_grfHolder.Commands.AddFile(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\collection\" + name + ".bmp", common[0], ReplaceFilesCallback);
+					_grfHolder.Commands.AddFile(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\item\" + name + ".bmp", common[1], ReplaceFilesCallback);
 				}
 			}
 			catch (Exception err) {
@@ -486,7 +485,7 @@ namespace GRFEditor {
 				string[] files = e.Data.GetData(DataFormats.FileDrop, true) as string[];
 
 				if (files != null && files.Length == 1) {
-					if (files[0].IsExtension(FileFormat.AllGrfs.Extensions)) {
+					if (files[0].IsExtension(FileFormat.AllContainers.Extensions)) {
 						Load(files[0]);
 						e.Handled = true;
 					}
@@ -635,27 +634,27 @@ namespace GRFEditor {
 		}
 
 		private void _loadMenus() {
-			_miOpen.Click += new RoutedEventHandler(_menuItemsOpen_Click);
-			_miOpenExplorer.Click += new RoutedEventHandler(_menuItemsOpenExplorer_Click);
-			_miExtract.Click += new RoutedEventHandler(_menuItemsExtract_Click);
-			_miExtractAt.Click += new RoutedEventHandler(_menuItemsExtractAt_Click);
-			_miExportMapFiles.Click += new RoutedEventHandler(_menuItemsExportMapFiles_Click);
-			_miDelete.Click += new RoutedEventHandler(_menuItemsDelete_Click);
-			_miRename.Click += new RoutedEventHandler(_menuItemsRename_Click);
-			_miSaveMapAs.Click += new RoutedEventHandler(_menuItemsSaveMapAs_Click);
-			_miConvertRsw_Anim.Click += new RoutedEventHandler(_miConvertRsw_Anim_Click);
-			_miConvertRsw_AnimTo.Click += new RoutedEventHandler(_miConvertRsw_AnimTo_Click);
-			_miConvertRsm_Anim.Click += new RoutedEventHandler(_miConvertRsm_Anim_Click);
-			_miConvertRsm_Flat.Click += new RoutedEventHandler(_miConvertRsm_Flat_Click);
-			_miEncrypt.Click += new RoutedEventHandler(_menuItemsEncrypt_Click);
-			_miDecrypt.Click += new RoutedEventHandler(_menuItemsDecrypt_Click);
-			_miProperties.Click += new RoutedEventHandler(_menuItemsProperties_Click);
-			_miSelect.Click += new RoutedEventHandler(_menuItemsSelect_Click);
-			_miUsage.Click += new RoutedEventHandler(_menuItemsUsage_Click);
-			_miToNpc.Click += new RoutedEventHandler(_miToNpc_Click);
-			_miExportAsThor.Click += new RoutedEventHandler(_miExportAsThor_Click);
-			_miSetEncryptionKey.Click += new RoutedEventHandler(_menuItemSetEncryptionKey_Click);
-			_miFlagRemove.Click += new RoutedEventHandler(_menuItemsFlagRemove_Click);
+			_miOpen.Click += _menuItemsOpen_Click;
+			_miOpenExplorer.Click += _menuItemsOpenExplorer_Click;
+			_miExtract.Click += _menuItemsExtract_Click;
+			_miExtractAt.Click += _menuItemsExtractAt_Click;
+			_miExportMapFiles.Click += _menuItemsExportMapFiles_Click;
+			_miDelete.Click += _menuItemsDelete_Click;
+			_miRename.Click += _menuItemsRename_Click;
+			_miSaveMapAs.Click += _menuItemsSaveMapAs_Click;
+			_miConvertRsw_Anim.Click += _miConvertRsw_Anim_Click;
+			_miConvertRsw_AnimTo.Click += _miConvertRsw_AnimTo_Click;
+			_miConvertRsm_Anim.Click += _miConvertRsm_Anim_Click;
+			_miConvertRsm_Flat.Click += _miConvertRsm_Flat_Click;
+			_miEncrypt.Click += _menuItemsEncrypt_Click;
+			_miDecrypt.Click += _menuItemsDecrypt_Click;
+			_miProperties.Click += _menuItemsProperties_Click;
+			_miSelect.Click += _menuItemsSelect_Click;
+			_miUsage.Click += _menuItemsUsage_Click;
+			_miToNpc.Click += _miToNpc_Click;
+			_miExportAsThor.Click += _miExportAsThor_Click;
+			_miSetEncryptionKey.Click += _menuItemSetEncryptionKey_Click;
+			_miFlagRemove.Click += _menuItemsFlagRemove_Click;
 
 			_contextMenuEntries.Items.Add(_miOpen);
 			_contextMenuEntries.Items.Add(_miOpenExplorer);

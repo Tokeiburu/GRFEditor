@@ -39,14 +39,14 @@ namespace Utilities {
 			return double.Parse(arg.Replace(",", "."), CultureInfo.InvariantCulture);
 		}
 
-		public static double DoubleConverterNoThrow(string arg) {
+		public static double DoubleConverterNoThrow(string arg, double defaultValue = 0d) {
 			double value;
 
 			if (double.TryParse(arg.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out value)) {
 				return value;
 			}
 
-			return 0;
+			return defaultValue;
 		}
 
 		public static int IntOrHexConverter(string text) {

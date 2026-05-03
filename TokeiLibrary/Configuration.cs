@@ -4,7 +4,6 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using ErrorManager;
 using Utilities;
@@ -16,8 +15,6 @@ namespace TokeiLibrary {
 	public static class Configuration {
 		#region Settings
 		private static ConfigAsker _configAsker;
-		private static BitmapScalingMode _availableScaleMode;
-		private static bool _availableScaleModeFound;
 		private static string _programDataPath;
 
 		public static ConfigAsker ConfigAsker {
@@ -47,7 +44,7 @@ namespace TokeiLibrary {
 		}
 
 		public static BitmapScalingMode UIImageRendering {
-			get { return BestAvailableScaleMode; }
+			get { return BitmapScalingMode.NearestNeighbor; }
 		}
 
 		public static bool TreeBehaviorUseAlt {
@@ -92,35 +89,6 @@ namespace TokeiLibrary {
 				return _programDataPath;
 			}
 			set { _programDataPath = value; }
-		}
-
-		public static BitmapScalingMode BestAvailableScaleMode {
-			get {
-				if (!_availableScaleModeFound) {
-					try {
-						try {
-							Image image = new Image();
-							image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.NearestNeighbor);
-							_availableScaleMode = BitmapScalingMode.NearestNeighbor;
-						}
-						catch {
-							try {
-								Image image = new Image();
-								image.SetValue(RenderOptions.BitmapScalingModeProperty, BitmapScalingMode.HighQuality);
-								_availableScaleMode = BitmapScalingMode.HighQuality;
-							}
-							catch {
-								_availableScaleMode = BitmapScalingMode.Unspecified;
-							}
-						}
-					}
-					finally {
-						_availableScaleModeFound = true;
-					}
-				}
-
-				return _availableScaleMode;
-			}
 		}
 
 		#endregion

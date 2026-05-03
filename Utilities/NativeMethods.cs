@@ -376,6 +376,7 @@ namespace Utilities {
 		public const int OLE_E_ADVISENOTSUPPORTED = -2147221501;
 		public const int S_OK = 0;
 		public const int S_FALSE = 1;
+		public const int S_CANNOT_EXTRACT = 2;
 		public const int VARIANT_FALSE = 0;
 		public const int VARIANT_TRUE = -1;
 

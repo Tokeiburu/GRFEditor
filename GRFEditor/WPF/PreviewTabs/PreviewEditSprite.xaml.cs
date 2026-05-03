@@ -3,12 +3,10 @@ using System.IO;
 using System.Windows;
 using ErrorManager;
 using GRF.Core;
-using GRF.IO;
-using GRF.GrfSystem;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
-using GRFEditor.Tools.SpriteEditor;
 using TokeiLibrary;
+using GrfToWpfBridge.PreviewTabs;
+using GRF.FileFormats.SprFormat;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -16,70 +14,67 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// </summary>
 	public partial class PreviewEditSprite : FilePreviewTab {
 		private readonly PreviewService _previewService;
-		private SpriteEditorTab _spriteEditorTab;
+		private string _currentlyLoadedSpr;
 
 		public PreviewEditSprite(PreviewService previewService) : base(true) {
 			_previewService = previewService;
 			InitializeComponent();
-
-			_isInvisibleResult = () => _primary.Dispatch(p => p.Items.Clear());
-
 			ErrorPanel = _errorPanel;
 		}
 
 		protected override void _load(FileEntry entry) {
-			bool res = this.Dispatch(p => {
-				if (_spriteEditorTab != null) {
-					if (!_spriteEditorTab.Closing()) {
-						return false;
-					}
-				}
-
-				return true;
-			});
-
-			if (!res)
+			if (entry.RelativePath == _currentlyLoadedSpr)
 				return;
 
-			this.Dispatch(p => _labelHeader.Text = "Edit sprite: " + Path.GetFileName(entry.RelativePath));
+			bool closed = _closeCurrentTab();
+
+			if (!closed)
+				return;
+
+			_setupUI(entry);
 
 			var spriteData = entry.GetDecompressedData();
 
-			Dispatcher.Invoke(new Action(delegate {
+			_loadSprite(entry, new Spr(spriteData));
+		}
+
+		private void _loadSprite(FileEntry entry, Spr spr) {
+			this.Dispatch(delegate {
 				try {
-					if (_spriteEditorTab != null && _primary.Items.Contains(_spriteEditorTab))
-						_primary.Items.Remove(_spriteEditorTab);
-
-
-					_spriteEditorTab = null;
-
-					File.WriteAllBytes(GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), spriteData);
-
 					if (_isCancelRequired()) return;
 
-					_spriteEditorTab = new SpriteEditorTab(Path.GetFileName(entry.RelativePath), GrfPath.Combine(GrfEditorConfiguration.TempPath, Path.GetFileName(entry.RelativePath)), true);
-
-					if (_isCancelRequired()) return;
-
-					_primary.Items.Add(_spriteEditorTab);
-					_primary.SelectedIndex = 0;
+					_spriteEditorControl.Load(spr, entry.RelativePath);
+					_currentlyLoadedSpr = entry.RelativePath;
 				}
 				catch (Exception err) {
 					ErrorHandler.HandleException(err);
 				}
-			}));
+			});
+		}
+
+		private void _setupUI(FileEntry entry) {
+			this.Dispatch(delegate {
+				_labelHeader.Text = "Edit sprite: " + entry.DisplayRelativePath;
+			});
+		}
+
+		private bool _closeCurrentTab() {
+			return this.Dispatch(() => _spriteEditorControl.Close());
 		}
 
 		private void _buttonSave_Click(object sender, RoutedEventArgs e) {
 			try {
-				_spriteEditorTab.Save();
+				byte[] data;
 
-				string baseFileName = _spriteEditorTab.OpenedSprite;
-				string outputFile = TemporaryFilesManager.GetTemporaryFilePath(baseFileName + "_{0:000000}.spr");
+				using (MemoryStream stream = new MemoryStream()) {
+					_spriteEditorControl.Spr.Save(stream);
+					_spriteEditorControl.SaveCommandIndex();	// Marks the command stack as being not modified
+					data = stream.ToArray();
+				}
 
-				File.Copy(_spriteEditorTab.OpenedSprite, outputFile);
-				_grfData.Commands.AddFile(_entry.RelativePath, outputFile);
-				_entry = _grfData.FileTable[_entry.RelativePath];
+				_grfData.Commands.AddFile(_entry.RelativePath, data);
+
+				// Ensure the other tabs use the updated SPR entry
 				_previewService.InvalidateAllVisiblePreviewTabs(_grfData);
 				ErrorHandler.HandleException("File successfully saved.", ErrorLevel.Low);
 			}
@@ -88,12 +83,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _buttonSaveTo_Click(object sender, RoutedEventArgs e) {
-			_spriteEditorTab.SaveAs();
-		}
-
-		private void _buttonExportAll_Click(object sender, RoutedEventArgs e) {
-			_spriteEditorTab.ExportAll();
-		}
+		private void _buttonSaveTo_Click(object sender, RoutedEventArgs e) => _spriteEditorControl.SaveAs();
+		private void _buttonExportAll_Click(object sender, RoutedEventArgs e) => _spriteEditorControl.ExportAll();
 	}
 }

@@ -89,12 +89,12 @@ namespace GRFEditor.WPF {
 
 			if (result == MessageBoxResult.Yes) {
 				GrfThread thread = new GrfThread(() => _newerGrf.Patch(_olderGrf, Path.Combine(GrfEditorConfiguration.ProgramDataPath, Path.GetFileName(fileName))), _olderGrf, 200, fileName);
-				thread.Finished += new GrfThread.GrfThreadEventHandler(_thread_Finished);
+				thread.Finished += _thread_Finished;
 				_asyncOperation.SetAndRunOperation(thread);
 			}
 			else {
 				GrfThread thread = new GrfThread(() => _olderGrf.Patch(_newerGrf, Path.Combine(GrfEditorConfiguration.ProgramDataPath, Path.GetFileName(fileName))), _newerGrf, 200, fileName);
-				thread.Finished += new GrfThread.GrfThreadEventHandler(_thread_Finished);
+				thread.Finished += _thread_Finished;
 				_asyncOperation.SetAndRunOperation(thread);
 			}
 		}

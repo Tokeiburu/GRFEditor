@@ -5,9 +5,6 @@ using GRF.IO;
 using Utilities.Extension;
 using Utilities.Services;
 
-// ReSharper disable AccessToModifiedClosure
-// ReSharper disable ImplicitlyCapturedClosure
-
 namespace GRF.ContainerFormat.Commands {
 	internal class AddFiles<TEntry> : IContainerCommand<TEntry> where TEntry : ContainerEntry {
 		private readonly CCallbacks.AddFilesCallback _callback;
@@ -37,7 +34,7 @@ namespace GRF.ContainerFormat.Commands {
 				}
 
 				foreach (string directory in _files.Where(Directory.Exists)) {
-					string toReplace = Path.GetDirectoryName(directory) + "\\";
+					string toReplace = Path.GetDirectoryName(directory).TrimEnd('\\') + "\\";
 					_foldersFilesPath.AddRange(Directory.GetFiles(directory, "*", SearchOption.AllDirectories).Select(p => new Tuple<string, string>(EncodingService.CorrectPathExplode(Path.Combine(_grfPath, p.ReplaceFirst(toReplace, ""))), p)));
 				}
 
@@ -90,9 +87,7 @@ namespace GRF.ContainerFormat.Commands {
 		#region Nested type: TupleComparer
 
 		public sealed class TupleComparer : IEqualityComparer<Tuple<string, string>> {
-// ReSharper disable StaticFieldInGenericType
 			private static readonly TupleComparer _instance = new TupleComparer();
-// ReSharper restore StaticFieldInGenericType
 
 			public static TupleComparer Default {
 				get { return _instance; }

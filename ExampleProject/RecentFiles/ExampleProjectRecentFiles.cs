@@ -24,7 +24,7 @@ namespace ExampleProject.RecentFiles {
 				ToolStripMenuItem item = new ToolStripMenuItem();
 				item.Text = (i + 1) + ".  " + cutNames[i];
 				int fileIndex = i;
-				item.Click += new EventHandler((s, e) => OnFileClicked(fullFileNames[fileIndex]));
+				item.Click += (s, e) => OnFileClicked(fullFileNames[fileIndex]);
 				_menuItem.DropDownItems.Add(item);
 			}
 		}

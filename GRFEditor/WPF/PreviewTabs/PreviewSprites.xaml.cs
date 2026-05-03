@@ -284,13 +284,23 @@ namespace GRFEditor.WPF.PreviewTabs {
 						}
 						else {
 							var entry = _previewFiles[previewItemIndex];
-							GrfImage image = _imageProvider(entry);
+							GrfImage image;
+
+							try {
+								image = _imageProvider(entry);
+							}
+							catch {
+								image = null;
+							}
 
 							if (image != null)
 								bitmap = image.Cast<BitmapSource>();
 
 							_images[previewItemIndex] = bitmap;
 						}
+
+						//if (_images.Count > 200)
+						//	_images.Clear();
 
 						if (_currentPath.GetFullPath() != previousHash.GetFullPath())
 							continue;
@@ -303,7 +313,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 								previewItem._image.Source = bitmap;
 							}
 							catch {
-								Z.F();
 							}
 						});
 					}

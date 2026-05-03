@@ -14,10 +14,10 @@ using GRF.Core;
 using GRF.Core.Exceptions;
 using GRF.Image;
 using GRF.Image.Decoders;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF;
 using GRFEditor.WPF.PreviewTabs;
 using GrfToWpfBridge.Application;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
 using Utilities.Extension;
@@ -32,11 +32,14 @@ namespace GRFEditor.Core.Services {
 		private readonly ListView _items;
 
 		private readonly Queue<PreviewItem> _previewItems = new Queue<PreviewItem>();
+		private Queue<PreviewItem> PreviewItems {
+			get => _previewItems;
+		}
 		private readonly object _previewLock = new object();
 		private readonly object _previewLockQuick = new object();
 		private readonly string[] _rawStructureTextEditorExtensions = new string[] { ".fna", ".imf", ".rsm", ".rsm2", ".lub", ".str", ".bson" };
 		private readonly TabControl _tabControlPreview;
-		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".tsv", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json", ".csv", ".ase" };
+		private readonly string[] _textEditorExtensions = new string[] { ".txt", ".tsv", ".log", ".xml", ".lua", ".ezv", ".ini", ".inf", ".conf", ".js", ".c", ".cpp", ".integrity", ".json", ".csv", ".ase", ".scp", ".bat", ".layout", ".font", ".imageset" };
 		private readonly TreeView _treeView;
 		private PreviewDisplayConfiguration _currentConf = new PreviewDisplayConfiguration();
 		private string _currentPath;
@@ -80,7 +83,8 @@ namespace GRFEditor.Core.Services {
 				if (_tabItemMapGatPreview.Content != null) scrolls.Add(((PreviewMapGat)_tabItemMapGatPreview.Content).BackgroundBrushFunction);
 				if (_tabItemImagePreview.Content != null) scrolls.Add(((PreviewImage)_tabItemImagePreview.Content).BackgroundBrushFunction);
 				if (_tabItemActPreview.Content != null) scrolls.Add(((PreviewAct)_tabItemActPreview.Content).BackgroundBrushFunction);
-				if (_tabItemMapExtractorPreview.Content != null) scrolls.Add(((PreviewMapExtractor) _tabItemMapExtractorPreview.Content).BackgroundBrushFunction);
+				if (_tabItemMapExtractorPreview.Content != null) scrolls.Add(((PreviewMapExtractor)_tabItemMapExtractorPreview.Content).BackgroundBrushFunction);
+				if (_tabItemPalettePreview.Content != null) scrolls.Add(((PreviewPalette)_tabItemPalettePreview.Content).BackgroundBrushFunction);
 				
 				return scrolls.ToArray();
 			};
@@ -209,6 +213,11 @@ namespace GRFEditor.Core.Services {
 								case ".ezv":
 								case ".csv":
 								case ".ase":
+								case ".scp":
+								case ".bat":
+								case ".layout":
+								case ".imageset":
+								case ".font":
 									_readAsTxt(node);
 									break;
 								default:
@@ -268,6 +277,7 @@ namespace GRFEditor.Core.Services {
 											case ".pal":
 											case ".spr":
 											case ".bmp":
+											case ".gif":
 												if (extension == ".spr") {
 													previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowEditSprite = true, ShowImagePreview = true, ShowRawStructureTextEditor = true };
 													_readAsEditSprite(node);
@@ -291,7 +301,7 @@ namespace GRFEditor.Core.Services {
 
 												_readAsImage(node);
 
-												if (extension == ".bmp" || extension == ".spr") {
+												if (extension == ".bmp" || extension == ".spr" || extension == ".gif") {
 													previewDisplayConfiguration.ShowPaletteImagePreview = true;
 													_readAsPaletteImage(node);
 												}

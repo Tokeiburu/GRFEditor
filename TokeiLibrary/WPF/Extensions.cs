@@ -8,6 +8,9 @@ using System.Windows.Threading;
 namespace TokeiLibrary.WPF {
 	public static class Extensions {
 		public static void ScrollToCenterOfView(this ItemsControl itemsControl, object item) {
+			if (item == null)
+				return;
+
 			// Scroll immediately if possible
 			if (!itemsControl.TryScrollToCenterOfView(item)) {
 				// Otherwise wait until everything is loaded, then scroll
@@ -19,6 +22,11 @@ namespace TokeiLibrary.WPF {
 		private static bool TryScrollToCenterOfView(this ItemsControl itemsControl, object item) {
 			// Find the container
 			var container = itemsControl.ItemContainerGenerator.ContainerFromItem(item) as UIElement;
+
+			if (container == null) {
+				container = item as UIElement;
+			}
+
 			if (container == null) return false;
 
 			// Find the ScrollContentPresenter

@@ -40,5 +40,9 @@ namespace GRF.Graphics {
 			writer.Write(U);
 			writer.Write(V);
 		}
+
+		public override string ToString() {
+			return $"(U = {U}; V = {V}; C = {Color})";
+		}
 	}
 }

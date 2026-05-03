@@ -837,6 +837,9 @@ namespace Utilities {
 			return b1.Length == b2.Length && NativeMethods.memcmp(b1, b2, b1.Length) == 0;
 		}
 		public static bool ByteArrayCompare(byte[] b1, int offset1, int length, byte[] b2, int offset2) {
+			if (offset1 + length > b1.Length || offset2 + length > b2.Length)
+				return false;
+
 			byte[] a1 = new byte[length];
 			byte[] a2 = new byte[length];
 
@@ -984,6 +987,25 @@ namespace Utilities {
 		public static string StringLimit(string text, int count) {
 			if (text.Length <= count) return text;
 			return text.Substring(0, count);
+		}
+
+		private static Regex _cleanPropertyNameReges = new Regex(@"([A-Z]+(?=[A-Z][a-z]|$)|[A-Z][a-z]*)");
+
+		public static string CleanPropertyName(string propertyName) {
+			// [A-Z]+(?=[A-Z][a-z]|$)  -> Matches acronyms (e.g., 'GRF' in 'GRFFile')
+			// |                       -> OR
+			// [A-Z][a-z]*             -> Matches standard words (e.g., 'File')
+			var matches = _cleanPropertyNameReges.Matches(propertyName).Cast<Match>().Select(m => m.Value).ToList();
+
+			if (matches.Count == 0) return propertyName;
+
+			var s = string.Join(" ", matches.Select(p => p.Length > 1 ? p.ToLower() : p));
+
+			if (s.Length > 0) {
+				s = char.ToUpper(s[0]) + s.Substring(1);
+			}
+
+			return s;
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]

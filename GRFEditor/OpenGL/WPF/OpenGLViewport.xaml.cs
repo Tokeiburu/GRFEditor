@@ -120,10 +120,10 @@ namespace GRFEditor.OpenGL.WPF {
 				_primary.Load += _primary_Load;
 				_primary.Resize += _primary_Resize;
 
-				_primary.MouseMove += new MouseEventHandler(_primary_MouseMove);
-				_primary.MouseDown += new MouseEventHandler(_primary_MouseDown);
-				_primary.MouseWheel += new MouseEventHandler(_primary_MouseWheel);
-				_primary.KeyDown += new KeyEventHandler(_primary_KeyDown);
+				_primary.MouseMove += _primary_MouseMove;
+				_primary.MouseDown += _primary_MouseDown;
+				_primary.MouseWheel += _primary_MouseWheel;
+				_primary.KeyDown += _primary_KeyDown;
 
 				IsVisibleChanged += delegate {
 					//EnableRenderThread = IsVisible && Visibility == Visibility.Visible;

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using ErrorManager;
@@ -11,14 +9,14 @@ using GRF.Core;
 using GRF.FileFormats.GatFormat;
 using GRF.IO;
 using GRF.Image;
-using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using Utilities.Extension;
 using Utilities.Services;
-using GRF.ContainerFormat;
+using GrfToWpfBridge.PreviewTabs;
+using GRFEditor.WPF.PreviewTabs.Controls;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>
@@ -27,7 +25,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 	public partial class PreviewMapGat : FilePreviewTab {
 		private readonly EditorMainWindow _editor;
 		//private readonly List<FancyButton> _buttons = new List<FancyButton>();
-		private readonly GrfImageWrapper _wrapper = new GrfImageWrapper();
+		private readonly GrfImageWrapper _primaryImage = new GrfImageWrapper();
 
 		public PreviewMapGat(EditorMainWindow editor) {
 			_editor = editor;
@@ -38,9 +36,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 			Binder.Bind(_cbHideBorders, () => GrfEditorConfiguration.GatPreviewHideBorders, () => Update(true));
 
 			_cbPreviewMode.SelectedIndex = GrfEditorConfiguration.GatPreviewMode;
-			_cbPreviewMode.SelectionChanged += new SelectionChangedEventHandler(_cbPreviewMode_SelectionChanged);
-			_isInvisibleResult = () => _imagePreview.Dispatch(p => p.Visibility = Visibility.Hidden);
-			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
+			_cbPreviewMode.SelectionChanged += (s, e) => Update(true);
+			VirtualFileDataObject.SetDraggable(_imagePreview, _primaryImage);
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
 			WpfUtilities.AddMouseInOutUnderline(_cbHideBorders, _cbRescale, _cbTransparent);
 			ErrorPanel = _errorPanel;
@@ -50,69 +47,73 @@ namespace GRFEditor.WPF.PreviewTabs {
 			get { return v => this.Dispatch(p => _scrollViewer.Background = v); }
 		}
 
-		private void _cbPreviewMode_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			Update(true);
-		}
-
-		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper.Image != null)
-				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
-		}
-
 		protected override void _load(FileEntry entry) {
-			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
+			_setupUI(entry);
+
+			_primaryImage.Image = _tryLoadImage(entry);
+			_primaryImage.ExportFileName = Path.GetFileNameWithoutExtension(entry.RelativePath);
+
+			if (_isCancelRequired()) return;
+
+			_displayImage();
+		}
+
+		private void _displayImage() {
 			ImageSource source = null;
-			string fileName = entry.RelativePath;
-			_labelHeader.Dispatch(p => p.Text = "Map preview: " + Path.GetFileName(fileName));
-			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
 
-			Gat gat = new Gat(entry.GetDecompressedData());
-			GatPreviewFormat preview = (GatPreviewFormat)_cbPreviewMode.Dispatch(p => p.SelectedIndex);
+			if (_primaryImage.Image != null)
+				source = _primaryImage.Image.Cast<BitmapSource>();
 
-			GatPreviewOptions options = 0;
+			_imagePreview.Dispatch(p => p.Source = source);
+		}
 
+		private GrfImage _tryLoadImage(FileEntry entry) {
+			Gat gat = new Gat(entry);
+			GatPreviewFormat previewFormat = (GatPreviewFormat)_cbPreviewMode.Dispatch(p => p.SelectedIndex);
+
+			GatPreviewOptions options = GatPreviewOptions.None;
 			if (GrfEditorConfiguration.GatPreviewRescale) options |= GatPreviewOptions.Rescale;
 			if (GrfEditorConfiguration.GatPreviewHideBorders) options |= GatPreviewOptions.HideBorders;
 			if (GrfEditorConfiguration.GatPreviewTransparent) options |= GatPreviewOptions.Transparent;
 
-			gat.LoadImage(preview, options, fileName, _grfData);
-			_wrapper.Image = gat.Image;
+			gat.LoadImage(previewFormat, options, entry.RelativePath, _grfData);
+			return gat.Image;
+		}
 
-			if (_wrapper.Image != null)
-				source = _wrapper.Image.Cast<BitmapSource>();
-
-			if (_isCancelRequired()) return;
-
-			_imagePreview.Dispatch(p => p.Source = source);
-			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
+		private void _setupUI(FileEntry entry) {
+			this.Dispatch(delegate {
+				_labelHeader.Text = "Map preview: " + entry.DisplayRelativePath;
+			});
 		}
 
 		private void _buttonSaveInGrf_Click(object sender, RoutedEventArgs e) {
 			try {
-				string tempImage = TemporaryFilesManager.GetTemporaryFilePath("img_{0:0000}.bmp");
-				string root = (_grfData.FileName.IsExtension(".thor") ? GrfStrings.RgzRoot : "");
-
-				if (_wrapper.Image == null) {
+				if (_primaryImage.Image == null)
 					throw new Exception("No image loaded. This usually happens if the file is corrupted or encrypted.");
-				}
 
-				_wrapper.Image.Convert(GrfImageType.Indexed8);
-				_wrapper.Image.Save(tempImage);
-				_grfData.Commands.AddFile(GrfPath.Combine(EncodingService.FromAnyToDisplayEncoding(root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\map\"), _entry.DisplayRelativePath.ReplaceExtension(".bmp")), File.ReadAllBytes(tempImage), _replaceFileCallback);
-				//WindowProvider.ShowDialog("Map added.");
+				var image = _primaryImage.Image.Clone();
+				image.Convert(GrfImageType.Indexed8);
+
+				using (MemoryStream stream = new MemoryStream()) {
+					image.Save(stream);
+					_grfData.Commands.AddFile(_getTargetPath(), stream.ToArray(), _editor.ReplaceFilesCallback);
+				}
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 		}
 
-		private void _replaceFileCallback(string grfpath, string filename, string filepath, bool isExecuted) {
-			if (isExecuted) {
-				_editor._treeViewPathManager.AddFolders(_grfData.FileName, new List<string> { grfpath });
-			}
-			else {
-				_editor._treeViewPathManager.AddFoldersUndo(_grfData.FileName);
-			}
+		private string _getTargetPath() {
+			string root = _grfData.FileName.IsExtension(".thor") ? GrfStrings.RgzRoot : "";
+			string basePath = root + @"data\texture\À¯ÀúÀÎÅÍÆäÀÌ½º\map\";
+
+			return GrfPath.Combine(
+				EncodingService.FromAnyToDisplayEncoding(basePath), 
+				_entry.DisplayRelativePath.ReplaceExtension(".bmp")
+			);
 		}
+
+		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_primaryImage, _entry.RelativePath);
 	}
 }

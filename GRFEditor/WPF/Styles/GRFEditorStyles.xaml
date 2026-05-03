@@ -439,6 +439,8 @@
 
     <SolidColorBrush x:Key="FancyButtonMouseOverBackgroundBrush" Color="#F3F6FB"/>
     <SolidColorBrush x:Key="FancyButtonMouseOverBorderBrush" Color="#DDE4EE"/>
+	<SolidColorBrush x:Key="PreviewItemMouseOverBackgroundBrush" Color="#3F97CFEF"/>
+	<SolidColorBrush x:Key="PreviewItemMouseOverBorderBrush" Color="#70C0E7"/>
 
     <SolidColorBrush x:Key="FancyButtonPressedBackgroundBrush" Color="#E3EAF6"/>
     <SolidColorBrush x:Key="FancyButtonPressedBorderBrush" Color="#C9D5E5"/>
@@ -648,6 +650,9 @@
     </Style>
 
     <Thickness x:Key="CheckBoxMarginOffset" Left="4" Top="0" Right="0" Bottom="0" />
+
+	<Style x:Key="ThemeCheckBoxStyle" TargetType="{x:Type CheckBox}" />
+	<Style TargetType="CheckBox" BasedOn="{StaticResource ThemeCheckBoxStyle}" />
 
 	<Style x:Key="MapExtractorTreeViewItemStyle" TargetType="{x:Type TreeViewManager:MapExtractorTreeViewItem}">
         <Setter Property="HorizontalContentAlignment" Value="Left" />

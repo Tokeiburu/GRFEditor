@@ -20,7 +20,7 @@ namespace GRFEditor.WPF {
 	public partial class QuickPreview : UserControl, IDisposable {
 		private string _fileName;
 		private MultiGrfReader _metaGrf;
-		private GrfImageWrapper _wrapper = new GrfImageWrapper();
+		private GrfImageWrapper _primaryImage = new GrfImageWrapper();
 
 		public QuickPreview() {
 			InitializeComponent();
@@ -37,13 +37,13 @@ namespace GRFEditor.WPF {
 				_metaGrf = null;
 			}
 
-			if (_wrapper != null) {
-				if (_wrapper.Image != null) {
-					_wrapper.Image.Close();
-					_wrapper.Image = null;
+			if (_primaryImage != null) {
+				if (_primaryImage.Image != null) {
+					_primaryImage.Image.Close();
+					_primaryImage.Image = null;
 				}
 
-				_wrapper = null;
+				_primaryImage = null;
 			}
 
 			if (_imagePreview != null) {
@@ -56,7 +56,7 @@ namespace GRFEditor.WPF {
 
 		public void Set(AsyncOperation asyncOperation) {
 			_metaGrf = GrfEditorConfiguration.Resources.MultiGrf;
-			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
+			VirtualFileDataObject.SetDraggable(_imagePreview, _primaryImage);
 		}
 
 		public void Update(string file) {
@@ -73,9 +73,9 @@ namespace GRFEditor.WPF {
 				string ext = file.GetExtension();
 
 				if (ext == ".bmp" || ext == ".tga" || ext == ".png" || ext == ".spr" || ext == ".ebm" || ext == ".gat" || ext == ".pal") {
-					_imagePreview.Tag = Path.GetFileNameWithoutExtension(file);
-					_wrapper.Image = ImageProvider.GetImage(data, ext);
-					_imagePreview.Source = _wrapper.Image.Cast<BitmapSource>();
+					_primaryImage.Image = ImageProvider.GetImage(data, ext);
+					_primaryImage.ExportFileName = Path.GetFileNameWithoutExtension(file);
+					_imagePreview.Source = _primaryImage.Image.Cast<BitmapSource>();
 					_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 					_viewport.Visibility = Visibility.Hidden;
 				}
@@ -105,8 +105,8 @@ namespace GRFEditor.WPF {
 
 		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) {
 			if (_fileName != null) {
-				if (_wrapper.Image != null)
-					_wrapper.Image.SaveTo(_fileName, PathRequest.ExtractSetting);
+				if (_primaryImage.Image != null)
+					_primaryImage.Image.SaveTo(_fileName, PathRequest.ExtractSetting);
 			}
 		}
 

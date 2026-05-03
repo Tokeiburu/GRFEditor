@@ -63,9 +63,11 @@ namespace GRF.FileFormats.ActFormat.Commands {
 						_conflict = act[_actionIndex];
 
 					act.Actions.RemoveAt(_actionIndex);
+					act.OnActionCountChanged();
 					break;
 				case ActionEdit.CopyAt:
 					act.Actions.Insert(_actionIndexTo, new Action(act[_actionIndex]));
+					act.OnActionCountChanged();
 					break;
 				case ActionEdit.ReplaceTo:
 					if (_conflict == null)
@@ -75,6 +77,7 @@ namespace GRF.FileFormats.ActFormat.Commands {
 					break;
 				case ActionEdit.InsertAt:
 					act.Actions.Insert(_actionIndexTo, new Action { Frames = new List<Frame> { new Frame() } });
+					act.OnActionCountChanged();
 					break;
 				case ActionEdit.Move:
 					act.Actions.Move(_actionIndex, _range, _actionIndexTo);
@@ -94,10 +97,12 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			switch (_edit) {
 				case ActionEdit.RemoveAt:
 					act.Actions.Insert(_actionIndex, _conflict);
+					act.OnActionCountChanged();
 					break;
 				case ActionEdit.CopyAt:
 				case ActionEdit.InsertAt:
 					act.Actions.RemoveAt(_actionIndexTo);
+					act.OnActionCountChanged();
 					break;
 				case ActionEdit.ReplaceTo:
 					act.Actions[_actionIndexTo] = _conflict;

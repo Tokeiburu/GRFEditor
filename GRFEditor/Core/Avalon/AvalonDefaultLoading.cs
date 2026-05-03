@@ -72,7 +72,7 @@ namespace GRFEditor.Core.Avalon {
 				MarkerBrush = Application.Current.Resources["AvalonEditorMarkerBrush"] as Brush
 			};
 			_textEditor.TextArea.TextView.BackgroundRenderers.Add(_renderer);
-			_textEditor.TextArea.KeyDown += new KeyEventHandler(_textArea_KeyDown);
+			_textEditor.TextArea.KeyDown += _textArea_KeyDown;
 			_textArea = _textEditor.TextArea;
 		}
 

@@ -30,8 +30,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 			LightmapHeight = gnd.LightmapHeight;
 			LightmapSizeCell = gnd.LightmapSizeCell;
 
-			foreach (var light in gnd.LightmapContainer.Lightmaps) {
-				Lightmaps.Add(light.Data);
+			foreach (var light in gnd.Lightmaps) {
+				Lightmaps.Add(light);
 			}
 
 			Tiles = new Tile[gnd.Tiles.Count];

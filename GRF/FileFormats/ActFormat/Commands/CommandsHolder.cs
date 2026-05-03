@@ -1074,6 +1074,16 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <summary>
 		/// Flips a sprite.
 		/// </summary>
+		/// <param name="relativeIndex">The relative index.</param>
+		/// <param name="type">Type of the image.</param>
+		/// <param name="direction">The direction.</param>
+		public void SpriteFlip(int relativeIndex, GrfImageType type, FlipDirection direction) {
+			SpriteFlip(relativeIndex, type == GrfImageType.Indexed8 ? 0 : 1, direction);
+		}
+
+		/// <summary>
+		/// Flips a sprite.
+		/// </summary>
 		/// <param name="absoluteIndex">The absolute index.</param>
 		/// <param name="direction">The direction.</param>
 		public void SpriteFlip(int absoluteIndex, FlipDirection direction) {
@@ -1088,6 +1098,16 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		/// <param name="image">The image.</param>
 		public void SpriteInsert(int relativeIndex, int imageType, GrfImage image) {
 			_act.Commands.StoreAndExecute(new Insert(imageType == 0 ? relativeIndex : relativeIndex + _act.Sprite.NumberOfIndexed8Images, image));
+		}
+
+		/// <summary>
+		/// Inserts a sprite.
+		/// </summary>
+		/// <param name="relativeIndex">The relative index.</param>
+		/// <param name="type">Type of the image.</param>
+		/// <param name="image">The image.</param>
+		public void SpriteInsert(int relativeIndex, GrfImageType type, GrfImage image) {
+			SpriteInsert(relativeIndex, type == GrfImageType.Indexed8 ? 0 : 1, image);
 		}
 
 		/// <summary>

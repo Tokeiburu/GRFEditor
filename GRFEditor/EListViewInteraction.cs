@@ -285,17 +285,19 @@ namespace GRFEditor {
 		}
 
 		private void _items_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
+			
+
 			try {
 				if ((Keyboard.Modifiers & ModifierKeys.Alt) == ModifierKeys.Alt && _items.SelectedItem != null) {
 					var virtualFileDataObject = new VirtualFileDataObject(
 						_ => Dispatcher.BeginInvoke((Action) (() => _progressBarComponent.Progress = -1)),
 						_ => Dispatcher.BeginInvoke((Action) (() => _progressBarComponent.Progress = 100.0f))
 						);
-
+					
 					List<VirtualFileDataObject.FileDescriptor> descriptors = new List<VirtualFileDataObject.FileDescriptor>();
-
+					
 					string currentRelativePath = _treeViewPathManager.GetCurrentRelativePath();
-
+					
 					foreach (FileEntry file in _items.SelectedItems) {
 						descriptors.Add(new VirtualFileDataObject.FileDescriptor {
 							Name = Path.GetFileName(file.RelativePath),
@@ -307,22 +309,22 @@ namespace GRFEditor {
 							}
 						});
 					}
-
+					
 					virtualFileDataObject.Source = DragAndDropSource.ListView;
 					virtualFileDataObject.SetData(descriptors);
-
-					VirtualFileDataObject.DoDragDrop(_items, virtualFileDataObject, DragDropEffects.Move);
+					
+					VirtualFileDataObject.DoDragDrop(_items, virtualFileDataObject, DragDropEffects.Copy);
 					e.Handled = true;
 					return;
 				}
 				else {
 					ListViewItem item = _items.GetObjectAtPoint<ListViewItem>(e.GetPosition(_items));
-
+			
 					if (item != null && item.IsSelected) {
 						_items_SelectionChanged(sender, null);
 					}
 				}
-
+			
 				e.Handled = false;
 			}
 			catch {
@@ -449,7 +451,7 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _replaceFilesCallback(string grfPath, string fileName, string filePath, bool isExecuted) {
+		public void ReplaceFilesCallback(string grfPath, string fileName, string filePath, bool isExecuted) {
 			if (isExecuted) {
 				_treeViewPathManager.AddFolders(_grfHolder.FileName, new List<string> { grfPath });
 			}

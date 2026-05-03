@@ -25,7 +25,7 @@ namespace ExampleProject {
 			
 			progressBar1.Style = ProgressBarStyle.Marquee;
 			_thread = new GrfThread(action, caller, 200, null);
-			button1.Click += new EventHandler((o, e) => _thread.Cancel());
+			button1.Click += (o, e) => _thread.Cancel();
 		}
 
 		protected override void OnShown(EventArgs e) {

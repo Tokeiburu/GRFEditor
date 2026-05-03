@@ -38,21 +38,6 @@ namespace GRF.FileFormats.GatFormat {
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Gat" /> class.
 		/// </summary>
-		/// <param name="width">The width.</param>
-		/// <param name="height">The height.</param>
-		/// <param name="def">The default cell value.</param>
-		internal Gat(int width, int height, Cell def) {
-			Header = new GatHeader(width, height);
-			_cells = new Cell[Header.Width * Header.Height];
-
-			for (int i = 0, count = Header.Width * Header.Height; i < count; i++) {
-				_cells[i] = def;
-			}
-		}
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="Gat" /> class.
-		/// </summary>
 		/// <param name="data">The data.</param>
 		public Gat(MultiType data) : this(data.GetBinaryReader()) {
 			LoadedPath = data.Path;
@@ -102,9 +87,8 @@ namespace GRF.FileFormats.GatFormat {
 		/// </summary>
 		/// <param name="index">The index of the cell.</param>
 		/// <returns>The cell at the specified index.</returns>
-		public Cell this[int index] {
-			get { return _cells[index]; }
-			set { _cells[index] = value; }
+		public ref Cell this[int index] {
+			get { return ref _cells[index]; }
 		}
 
 		/// <summary>
@@ -113,9 +97,8 @@ namespace GRF.FileFormats.GatFormat {
 		/// <param name="x">The x offset.</param>
 		/// <param name="y">The y offset.</param>
 		/// <returns>The cell at the specified index.</returns>
-		public Cell this[int x, int y] {
-			get { return _cells[y * Header.Width + x]; }
-			set { _cells[y * Header.Width + x] = value; }
+		public ref Cell this[int x, int y] {
+			get { return ref _cells[y * Header.Width + x]; }
 		}
 
 		#region IEnumerable<GatCell> Members
@@ -181,70 +164,6 @@ namespace GRF.FileFormats.GatFormat {
 		public void SetCellsHeight(float height) {
 			for (int index = 0; index < _cells.Length; index++) {
 				_cells[index].SetHeight(height);
-			}
-		}
-
-		/// <summary>
-		/// Identifies the water cells.
-		/// </summary>
-		/// <param name="height">The water height.</param>
-		public void IdentifyWaterCells(float height) {
-			foreach (Cell cell in _cells) {
-				if ((cell.Type == GatType.Walkable || cell.Type == GatType.Unknown) && cell[0] > height)
-					cell.IsWater = true;
-			}
-		}
-
-		/// <summary>
-		/// Identifies the gutter lines.
-		/// </summary>
-		public void IdentifyGutterLines() {
-			int index;
-			int lenX = (int) Math.Ceiling(Header.Width / 40f);
-			int lenY = (int) Math.Ceiling(Header.Height / 40f);
-			int posX;
-			int posY;
-
-			for (int y = 1; y < lenY; y++) {
-				posY = 40 * y;
-
-				for (int ys = 0; ys < 40; ys++) {
-					if (posY + ys >= Header.Height)
-						break;
-
-					index = (posY + ys) * Header.Width;
-					for (int x = 0; x < Header.Width; x++) {
-						if (ys == 0) {
-							_cells[index].SetInnerGutterLine();
-						}
-						else if (ys < 5) {
-							_cells[index].SetOutterGutterLine();
-						}
-
-						index++;
-					}
-				}
-			}
-
-			for (int x = 1; x < lenX; x++) {
-				posX = 40 * x;
-
-				for (int xs = 0; xs < 40; xs++) {
-					if (posX + xs >= Header.Width)
-						break;
-
-					index = posX + xs;
-					for (int y = 0; y < Header.Height; y++) {
-						if (xs == 0) {
-							_cells[index].SetInnerGutterLine();
-						}
-						else if (xs < 5) {
-							_cells[index].SetOutterGutterLine();
-						}
-
-						index += Header.Width;
-					}
-				}
 			}
 		}
 
@@ -331,13 +250,78 @@ namespace GRF.FileFormats.GatFormat {
 			int count = Header.Width * Header.Height;
 			_cells = new Cell[count];
 
-			for (int i = 0; i < count; i++) {
-				_cells[i] = new Cell(data);
+			unsafe {
+				byte* pData = data.GetPointer(sizeof(Cell) * count);
+
+				fixed (Cell* pCells = _cells) {
+					Buffer.MemoryCopy(pData, pCells, sizeof(Cell) * count, sizeof(Cell) * count);
+
+					if (Gat.AutomaticallyFixNegativeGatTypes) {
+						for (int i = 0; i < _cells.Length; i++) {
+							ref Cell cell = ref _cells[i];
+
+							if (cell.Type < 0)
+								cell.Type = (GatType)((int)cell.Type & ~0x80000000);
+						}
+					}
+				}
 			}
 		}
 
 		public bool InMap(int x, int y) {
 			return x >= 0 && x < Width && y >= 0 && y < Height;
+		}
+
+		[Flags]
+		public enum SpecialCellTypes {
+			None,
+			Water = 1,
+			InnerGutterLine = 2,
+			OutterGutterLine = 4,
+		}
+
+		public SpecialCellTypes[] SpecialCells;
+
+		public SpecialCellTypes[] IdentifyCells(bool identifyWater, bool identifyGutterLine, float waterHeight) {
+			SpecialCells = new SpecialCellTypes[Width * Height];
+			int x = 0;
+			int y = 0;
+
+			for (int i = 0; i < _cells.Length; i++) {
+				var cell = _cells[i];
+
+				if (identifyWater) {
+					if ((cell.Type == GatType.Walkable || cell.Type == GatType.Unknown) && cell[0] > waterHeight)
+						SpecialCells[i] |= SpecialCellTypes.Water;
+				}
+
+				if (identifyGutterLine && (cell.Type == GatType.Walkable || cell.Type == GatType.Walkable2 || cell.Type == GatType.Walkable3)) {
+					x = i % Width;
+					y = i / Width;
+
+					int bx40 = x % 40;
+					int by40 = y % 40;
+					int rx40 = x / 40;
+					int ry40 = y / 40;
+				
+					// Can draw line
+					if (rx40 > 0) {
+						if (bx40 == 0)
+							SpecialCells[i] |= SpecialCellTypes.InnerGutterLine;
+						else if (bx40 < 5)
+							SpecialCells[i] |= SpecialCellTypes.OutterGutterLine;
+					}
+
+					if (ry40 > 0) {
+						if (by40 == 0)
+							SpecialCells[i] |= SpecialCellTypes.InnerGutterLine;
+						else if (by40 < 5)
+							SpecialCells[i] |= SpecialCellTypes.OutterGutterLine;
+					}
+				}
+			}
+
+			return SpecialCells;
 		}
 	}
 }

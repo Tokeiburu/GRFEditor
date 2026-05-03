@@ -1,4 +1,5 @@
 using GRF.Core;
+using GrfToWpfBridge.PreviewTabs;
 using Utilities;
 
 namespace GRFEditor.WPF.PreviewTabs {

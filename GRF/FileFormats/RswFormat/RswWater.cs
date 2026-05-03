@@ -24,12 +24,6 @@ namespace GRF.FileFormats.RswFormat {
 		/// Initializes a new instance of the <see cref="RswWater" /> class.
 		/// </summary>
 		public RswWater() {
-			WaveHeight = 0.2f;
-			Level = 100.0f;
-			WaveSpeed = 1.0f;
-			WavePitch = 100.0f;
-			Type = 3;
-			TextureCycling = 3;
 		}
 
 		/// <summary>
@@ -42,30 +36,19 @@ namespace GRF.FileFormats.RswFormat {
 				return;
 			}
 
-			if (header.IsCompatibleWith(1, 3)) {
+			if (header.Version >= 1.3) {
 				Level = data.Float();
-			}
-			else
-				Level = 0.0f;
 
-			if (header.IsCompatibleWith(1, 8)) {
-				Type = data.Int32();
-				WaveHeight = data.Float();
-				WaveSpeed = data.Float();
-				WavePitch = data.Float();
-			}
-			else {
-				Type = 0;
-				WaveHeight = 1.0f;
-				WaveSpeed = 2.0f;
-				WavePitch = 50.0f;
-			}
+				if (header.Version >= 1.8) {
+					Type = data.Int32();
+					WaveHeight = data.Float();
+					WaveSpeed = data.Float();
+					WavePitch = data.Float();
 
-			if (header.IsCompatibleWith(1, 9)) {
-				TextureCycling = data.Int32();
-			}
-			else {
-				TextureCycling = 3;
+					if (header.Version >= 1.9) {
+						TextureCycling = data.Int32();
+					}
+				}
 			}
 		}
 
@@ -81,32 +64,32 @@ namespace GRF.FileFormats.RswFormat {
 		/// <summary>
 		/// Gets or sets the level.
 		/// </summary>
-		public float Level { get; set; }
+		public float Level { get; set; } = 0f;
 
 		/// <summary>
 		/// Gets or sets the type.
 		/// </summary>
-		public int Type { get; set; }
+		public int Type { get; set; } = 0;
 
 		/// <summary>
 		/// Gets or sets the height of the wave.
 		/// </summary>
-		public float WaveHeight { get; set; }
+		public float WaveHeight { get; set; } = 1f;
 
 		/// <summary>
 		/// Gets or sets the wave speed.
 		/// </summary>
-		public float WaveSpeed { get; set; }
+		public float WaveSpeed { get; set; } = 2f;
 
 		/// <summary>
 		/// Gets or sets the wave pitch.
 		/// </summary>
-		public float WavePitch { get; set; }
+		public float WavePitch { get; set; } = 50f;
 
 		/// <summary>
 		/// Gets or sets the texture cycling.
 		/// </summary>
-		public int TextureCycling { get; set; }
+		public int TextureCycling { get; set; } = 3;
 
 		#region IWriteableObject Members
 
@@ -139,6 +122,15 @@ namespace GRF.FileFormats.RswFormat {
 		/// Resets this instance.
 		/// </summary>
 		public void Reset() {
+			WaveHeight = 0.2f;
+			Level = 100.0f;
+			WaveSpeed = 1.0f;
+			WavePitch = 100.0f;
+			Type = 3;
+			TextureCycling = 3;
+		}
+
+		public void SetUndergroundValues() {
 			WaveHeight = 0.2f;
 			Level = 100.0f;
 			WaveSpeed = 1.0f;

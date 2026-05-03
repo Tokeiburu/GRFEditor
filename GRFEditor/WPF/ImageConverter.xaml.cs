@@ -18,7 +18,6 @@ using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.Paths;
 using TokeiLibrary.WPF.Styles;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRFEditor.WPF {
@@ -56,8 +55,8 @@ namespace GRFEditor.WPF {
 			_cbFormats.SelectedIndex = 5;
 			ShowInTaskbar = true;
 
-			_sv.ScrollChanged += new ScrollChangedEventHandler(_sv_ScrollChanged);
-			_sv.SizeChanged += new SizeChangedEventHandler(_sv_SizeChanged);
+			_sv.ScrollChanged += _sv_ScrollChanged;
+			_sv.SizeChanged += _sv_SizeChanged;
 			GrfThread.Start(_loadPreviewImages, "GRF - Preview images");
 
 			WpfUtilities.AddMouseInOutUnderline(_cbPink);
@@ -84,13 +83,11 @@ namespace GRFEditor.WPF {
 
 			_gridBackground.Height = targetHeight;
 			_wrapPanel.Height = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _previewElementHeight;
-			//_stackPanel.Height = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _previewElementHeight;
 
 			int elementCount = (int)(Math.Ceiling(minimumHeight / _previewElementHeight) + 1) * _elementPerLine;
 
 			if (_items.Count != elementCount) {
 				_wrapPanel.Children.Clear();
-				//_stackPanel.Children.Clear();
 				_items.Clear();
 
 				for (int i = 0; i < elementCount; i++) {
@@ -118,7 +115,6 @@ namespace GRFEditor.WPF {
 			if ((point.Y + _previewElementHeight < _sv.ContentVerticalOffset) ||
 				(point.Y > _sv.ContentVerticalOffset)) {
 				_wrapPanel.Margin = new Thickness(0, (int)(_sv.ContentVerticalOffset / _previewElementHeight) * _previewElementHeight, 0, 0);
-				//_stackPanel.Margin = new Thickness(0, (int)(_sv.ContentVerticalOffset / _previewElementHeight) * _previewElementHeight, 0, 0);
 
 				// Get new display index range
 				_refreshPanelFrames();
@@ -304,7 +300,7 @@ namespace GRFEditor.WPF {
 
 		private void _buttonBrowse_Click(object sender, RoutedEventArgs e) {
 			try {
-				var paths = TkPathRequest.OpenFiles<SpriteEditorConfiguration>("AppLastPath", "filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga") ?? new string[] { };
+				var paths = TkPathRequest.OpenFiles(SpriteEditorConfiguration.AppLastPath_Config, "filter", "Image Files|*.bmp;*.png;*.jpg;*.tga|Bitmap Files|*.bmp|PNG Files|*.png|Jpeg Files|*.jpg|Targa Files|*.tga") ?? new string[] { };
 
 				_paths.Clear();
 				_paths.AddRange(paths);
@@ -399,7 +395,6 @@ namespace GRFEditor.WPF {
 								previewItem._image.Source = bitmap;
 							}
 							catch {
-								Z.F();
 							}
 						});
 					}

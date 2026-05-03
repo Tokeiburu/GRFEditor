@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:Forms="clr-namespace:Be.Windows.Forms;assembly=Be.Windows.Forms.HexBox"
-                    xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
-                    mc:Ignorable="d" 
+             xmlns:PreviewTabs="clr-namespace:GrfToWpfBridge.PreviewTabs;assembly=GrfToWpfBridge"
+             mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
@@ -16,8 +16,8 @@
 			<TextBlock Name="_labelHeader" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" Padding="5" />
 			<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
-        <WindowsFormsHost Name="_hexEditorHost" Grid.Row="1" Visibility="Hidden">
-            <Forms:HexBox x:Name="_hexEditor" Visible="False" ColumnInfoVisible="True" LineInfoVisible="True" HexCasing="Lower" StringViewVisible="True" VScrollBarVisible="True" UseFixedBytesPerLine="True" GroupSeparatorVisible="True" Copied="_hexEditor_Copied" ReadOnly="True"></Forms:HexBox>
+        <WindowsFormsHost Name="_hexEditorHost" Grid.Row="1">
+            <Forms:HexBox x:Name="_hexEditor" ColumnInfoVisible="True" LineInfoVisible="True" HexCasing="Lower" StringViewVisible="True" VScrollBarVisible="True" UseFixedBytesPerLine="True" GroupSeparatorVisible="True" Copied="_hexEditor_Copied" ReadOnly="True"></Forms:HexBox>
         </WindowsFormsHost>
     </Grid>
 </PreviewTabs:FilePreviewTab>

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using GRF.Core;
@@ -10,29 +11,22 @@ using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.StrFormat;
 using GRF.Graphics;
 using GRF.Image;
+using Utilities;
 using Utilities.Services;
 
 namespace GRF.FileFormats {
 	public static class FileFormatParser {
-		private static readonly List<Type> _expandableTypes = new List<Type>();
-
-		static FileFormatParser() {
-			_expandableTypes.Add(typeof (String));
-			_expandableTypes.Add(typeof (StrLayer));
-		}
-
-		public static List<Type> ExpandableTypes {
-			get { return _expandableTypes; }
-		}
-
 		public static string DisplayObjectProperties(Object o) {
 			Type type = o.GetType();
 			var extension = Path.GetExtension(type.ToString());
-			if (extension != null) return _displayObjectProperties(o, extension.Remove(0, 1));
+			if (extension != null) {
+				ObjectParser parser = new ObjectParser(o);
+				return parser.Print(3);
+			}
 			return "";
 		}
 
-		public static string DisplayObjectPropertiesFromEntry(GrfHolder grf, FileEntry entry) {
+		public static string DisplayObjectPropertiesFromEntry(FileEntry entry) {
 			StringBuilder builder = new StringBuilder();
 			builder.AppendLine(DisplayObjectProperties(entry));
 			string toRet = builder.ToString();
@@ -46,123 +40,296 @@ namespace GRF.FileFormats {
 		}
 
 		public static string DisplayObjectPropertiesFromEntry(GrfHolder grf, string file) {
-			return DisplayObjectPropertiesFromEntry(grf, grf.FileTable[file]);
+			return DisplayObjectPropertiesFromEntry(grf.FileTable[file]);
+		}
+	}
+
+	public class ObjectParserConfig {
+		public bool LoadFields { get; set; } = true;
+		public bool ExploreAllClasses { get; set; }
+		public List<Type> ExplorableClasses = new List<Type>();
+		public bool ExploreAllLists { get; set; }
+		public List<Type> ExploreableListTypes = new List<Type>();
+		public Dictionary<Type, Func<object, string>> TypeValueOverrides = new Dictionary<Type, Func<object, string>>();
+
+		public ObjectParserConfig Clone() {
+			ObjectParserConfig ret = new ObjectParserConfig();
+			ret.ExploreAllClasses = ExploreAllClasses;
+			ret.ExploreAllLists = ExploreAllLists;
+			ret.ExplorableClasses = ExplorableClasses.ToList();
+			ret.ExploreableListTypes = ExploreableListTypes.ToList();
+
+			foreach (var entry in TypeValueOverrides)
+				ret.TypeValueOverrides[entry.Key] = entry.Value;
+
+			return ret;
+		}
+	}
+
+	public class ObjectParser {
+		private static ObjectParserConfig _defaultConfigSetting;
+
+		static ObjectParser() {
+			_defaultConfigSetting = new ObjectParserConfig();
+			_defaultConfigSetting.LoadFields = false;
+			_defaultConfigSetting.ExploreAllClasses = false;
+			_defaultConfigSetting.ExploreAllLists = false;
+			_defaultConfigSetting.ExploreableListTypes.Add(typeof(string));
+			_defaultConfigSetting.ExploreableListTypes.Add(typeof(StrLayer));
+
+			_defaultConfigSetting.TypeValueOverrides[typeof(GrfColor)] = o => ((GrfColor)o).ToString();
+			_defaultConfigSetting.TypeValueOverrides[typeof(GrfImage)] = o => "[GRF Image Format]";
+			_defaultConfigSetting.TypeValueOverrides[typeof(BoundingBox)] = o => "[Ignored property]";
 		}
 
-		private static string _displayObjectProperties(Object o, string parent, int level = 0) {
-			StringBuilder sb = new StringBuilder();
-			Type type = o.GetType();
+		private ObjectParserConfig _configSetting;
 
-			if (level > 3)
-				return "";
+		public object Object;
+		public Type Type;
+		public string FriendlyName;
+		public string PropertyName;
+		public string TypeName;
+		public string Value;
+		public string FullPath;
+		public MemberInfo MemberInfo;
+		public bool IsField => MemberInfo is FieldInfo;
+		public bool IsProperty => MemberInfo is PropertyInfo;
+		public int Priority;
 
-			foreach (PropertyInfo p in type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance)) {
-				if (p.CanRead) {
+		public ObjectParser Parent;
+		public List<ObjectParser> Children = new List<ObjectParser>();
+		public bool IsEvaluated;
+
+		public ObjectParser(object obj, ObjectParserConfig config) : this() {
+			_configSetting = config;
+			Object = obj;
+			Type = Object?.GetType();
+			Evaluate();
+		}
+
+		public ObjectParser(object obj) : this() {
+			Object = obj;
+			Type = Object?.GetType();
+			Evaluate();
+		}
+
+		private ObjectParser() {
+			_configSetting = _defaultConfigSetting;
+		}
+
+		private ObjectParser(ObjectParserConfig config) {
+			_configSetting = config;
+		}
+
+		public ObjectParser Evaluate() {
+			if (IsEvaluated)
+				return this;
+
+			PropertyName = MemberInfo?.Name ?? Path.GetExtension(Type.ToString()).Substring(1);
+			FriendlyName = Methods.CleanPropertyName(PropertyName);
+			TypeName = Object?.GetType().ToString() ?? "[Null value]";
+			FullPath = (Parent != null ? Parent.FullPath + "." : "") + PropertyName;
+			bool hasChildren = false;
+
+			if (MemberInfo != null) {
+				Priority = 1;
+
+				if (Object == null) {
+					Value = "[Null value]";
+				}
+				else if (_configSetting.TypeValueOverrides.TryGetValue(Type, out Func<object, string> v)) {
+					Value = v(Object);
+				}
+				else if (_configSetting.TypeValueOverrides.TryGetValue(Type.BaseType, out Func<object, string> v2)) {
+					Value = v2(Object);
+				}
+				else if (PropertyName == "Key" && Object is String) {
+					Value = "\"" + BitConverter.ToString(EncodingService.DisplayEncoding.GetBytes((String)Object)) + "\"";
+				}
+				else if (PropertyName == "EncryptionKey") {
+					Value = "[Ignored property]";
+				}
+				else if (PropertyName == "MainNode" && Object is Mesh) {
+					Value = "[Ignored property]";
+				}
+				else if (PropertyName == "NewCompressedData" && Object is IList) {
+					Value = "[Ignored property]";
+				}
+				else if (PropertyName == "DataImage") {
+					Value = "[Ignored property]";
+				}
+				else if (TypeName.EndsWith(".Image") || TypeName.EndsWith(".ImageSource")) {
+					Value = "[Ignored property]";
+				}
+				else if (PropertyName == "Files" && Object is IList) {
+					Value = "[Ignored property]";
+				}
+				else if (
+					Object is UInt32 || Object is Int32 || Object is Int16 || Object is UInt16 || Object is long || Object is ulong) {
+					Value = Object.ToString();
+				}
+				else if (Object is Byte) {
+					Value = ((Byte)Object).ToString(CultureInfo.InvariantCulture);
+				}
+				else if (Object is Double) {
+					Value = ((Double)Object).ToString(CultureInfo.InvariantCulture);
+				}
+				else if (Object is Single) {
+					Value = ((Single)Object).ToString(CultureInfo.InvariantCulture);
+				}
+				else if (Object is Boolean) {
+					Value = ((Boolean)Object).ToString(CultureInfo.InvariantCulture);
+				}
+				else if (Object is String) {
+					Value = ((String)Object).ToString(CultureInfo.InvariantCulture);
+				}
+				else if (Object is Stream) {
+					Value = "Stream";
+				}
+				else if (Object is Enum) {
+					Value = Object.ToString();
+				}
+				else {
+					if (Object is IList list) {
+						Priority = 2;
+
+						Value = list.Count.ToString();
+						hasChildren = list.Count > 0;
+
+						if (hasChildren) {
+							foreach (var listChild in list) {
+								if (!_configSetting.ExploreAllLists && !_configSetting.ExploreableListTypes.Contains(listChild.GetType()))
+									break;
+
+								ObjectParser child = new ObjectParser(_configSetting);
+								child.Object = listChild;
+								child.Type = listChild?.GetType();
+								child.MemberInfo = null;
+								child.Parent = this;
+
+								if (_configSetting.ExploreableListTypes.Contains(listChild.GetType())) {
+									child.Value = child.Object.ToString();
+									child.IsEvaluated = true;
+								}
+
+								Children.Add(child);
+							}
+						}
+
+						IsEvaluated = true;
+						return this;
+					}
+					else {
+						hasChildren = true;
+					}
+				}
+			}
+			else {
+				if (_configSetting.TypeValueOverrides.TryGetValue(Type, out Func<object, string> v)) {
+					Value = v(Object);
+				}
+				else if (_configSetting.TypeValueOverrides.TryGetValue(Type.BaseType, out Func<object, string> v2)) {
+					Value = v2(Object);
+				}
+				else {
+					hasChildren = true;
+				}
+			}
+
+			if (hasChildren) {
+				// Value can be explored further
+
+				foreach (PropertyInfo p in Type.GetProperties(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance).Where(p => p.CanRead && p.GetIndexParameters().Length == 0)) {
 					try {
-						if (p.Name == "EncryptionKey") {
-							continue;
-						}
+						var cObject = p.GetValue(Object, null);
 
-						object obj = p.GetValue(o, null);
-
-						if (obj != null) {
-							if (p.Name == "Key" && obj is String) {
-								_addProperty(sb, level, parent, p.Name, BitConverter.ToString(EncodingService.DisplayEncoding.GetBytes((String) obj)));
-							}
-							else if (p.Name == "EncryptionKey") {
-								// Ignored
-							}
-							else if (p.Name == "MainNode" && obj is Mesh) {
-								_addProperty(sb, level, parent, p.Name, "[Ignored property]");
-							}
-							else if (p.Name == "Box" && obj is BoundingBox) {
-								_addProperty(sb, level, parent, p.Name, "[Ignored property]");
-							}
-							else if (p.Name == "NewCompressedData" && obj is IList) {
-								_addProperty(sb, level, parent, p.Name, "[Ignored property]");
-							}
-							else if (p.Name == "DataImage") {
-								_addProperty(sb, level, parent, p.Name, "[Ignored property]");
-							}
-							else if (p.Name == "Files" && obj is IList) {
-								_addProperty(sb, level, parent, p.Name, "[Ignored property]");
-							}
-							else if (obj is Int32 || obj is UInt32 || obj is Int16 || obj is UInt16 || obj is long || obj is ulong) {
-								_addProperty(sb, level, parent, p.Name, obj.ToString());
-							}
-							else if (obj is byte) {
-								_addProperty(sb, level, parent, p.Name, ((Byte) obj).ToString(CultureInfo.InvariantCulture));
-							}
-							else if (obj is Double) {
-								_addProperty(sb, level, parent, p.Name, ((Double) obj).ToString(CultureInfo.InvariantCulture));
-							}
-							else if (obj is Single) {
-								_addProperty(sb, level, parent, p.Name, ((Single) obj).ToString(CultureInfo.InvariantCulture));
-							}
-							else if (obj is String) {
-								_addProperty(sb, level, parent, p.Name, ((String) obj).ToString(CultureInfo.InvariantCulture));
-							}
-							else if (obj is GrfImage) {
-								_addProperty(sb, level, parent, p.Name, "GRF Image Format");
-							}
-							else if (obj is GrfColor) {
-								_addProperty(sb, level, parent, p.Name, obj.ToString());
-							}
-							else if (obj is Boolean) {
-								_addProperty(sb, level, parent, p.Name, ((Boolean) obj).ToString(CultureInfo.InvariantCulture));
-							}
-							else if (obj is Stream) {
-								_addProperty(sb, level, parent, p.Name, "Stream");
-							}
-							else if (obj is Enum) {
-								_addProperty(sb, level, parent, p.Name, obj.ToString());
-							}
-							else {
-								if (obj is IList && ((IList) obj).Count > 0) {
-									//sb.AppendLine(_addSpaces(level + 1) + parent + "." + p.Name + "...");
-									_addProperty(sb, level, parent, p.Name, ((IList) obj).Count.ToString(CultureInfo.InvariantCulture));
-									foreach (object oj in ((IList) obj)) {
-										if (!_expandableTypes.Contains(oj.GetType()))
-											break;
-
-										_addProperty(sb, level + 1, "", "", oj.ToString());
-									}
-									sb.AppendLine();
-								}
-								else {
-									if (obj is IList) {
-										_addProperty(sb, level, parent, p.Name, ((IList) obj).Count.ToString(CultureInfo.InvariantCulture));
-									}
-									else {
-										sb.AppendLine(_addSpaces(level) + parent + "." + p.Name + "...");
-										string toAdd = _displayObjectProperties(obj, parent + "." + p.Name, level + 1);
-										if (toAdd != "") {
-											sb.Append(toAdd);
-										}
-										sb.AppendLine();
-									}
-								}
-							}
-						}
-						else sb.AppendLine(_addSpaces(level) + parent + "." + p.Name + " = [Null value]");
+						ObjectParser child = new ObjectParser(_configSetting);
+						child.Object = cObject;
+						child.Type = cObject?.GetType();
+						child.MemberInfo = p;
+						child.Parent = this;
+						child.IsEvaluated = false;
+						Children.Add(child);
 					}
 					catch {
 					}
 				}
+
+				if (_configSetting.LoadFields) {
+					foreach (FieldInfo f in Type.GetFields(BindingFlags.GetProperty | BindingFlags.Public | BindingFlags.Instance)) {
+						try {
+							var cObject = f.GetValue(Object);
+
+							ObjectParser child = new ObjectParser(_configSetting);
+							child.Object = cObject;
+							child.Type = cObject?.GetType();
+							child.MemberInfo = f;
+							child.Parent = this;
+							child.IsEvaluated = false;
+							Children.Add(child);
+						}
+						catch {
+						}
+					}
+				}
+
+				if (Children.Count > 0)
+					Priority = 3;
 			}
-			return sb.ToString();
+
+			IsEvaluated = true;
+			return this;
 		}
 
-		private static void _addProperty(StringBuilder sb, int level, string parent, string name, string value) {
-			sb.AppendLine(_addSpaces(level) + ((parent == "" && name == "") ? "" : (parent + "." + name + " = ")) + value);
+		public string Print(int maxLevel) {
+			StringBuilder b = new StringBuilder();
+
+			foreach (var child in Children) {
+				child._print("", 0, maxLevel, b);
+			}
+
+			return b.ToString();
 		}
 
-		private static string _addSpaces(int level) {
-			string toAdd = "";
-			for (int i = 0; i < level; i++) {
-				toAdd += "  ";
+		private void _print(string indent, int currentLevel, int maxLevel, StringBuilder b) {
+			if (!IsEvaluated) {
+				Evaluate();
 			}
-			return toAdd;
+
+			b.Append(indent);
+
+			if (!String.IsNullOrEmpty(FullPath))
+				b.Append(FullPath);
+
+			if (Children.Count > 0) {
+				b.AppendLine("...");
+
+				if (currentLevel >= maxLevel)
+					return;
+
+				foreach (var child in Children) {
+					child._print(indent + "  ", currentLevel + 1, maxLevel, b);
+				}
+
+				b.AppendLine();
+				return;
+			}
+			else if (Value == null) {
+				b.AppendLine("...");
+			}
+			else {
+				if (String.IsNullOrEmpty(FullPath))
+					b.AppendLine(Value);
+				else
+					b.AppendLine(" = " + Value);
+			}
+		}
+
+		public override string ToString() {
+			if (FullPath == null && Value != null)
+				return Value;
+
+			return FullPath + (Value != null ? " | " + Value : "");
 		}
 	}
 }

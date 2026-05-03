@@ -23,9 +23,7 @@ SOFTWARE.
 using GRF.IO;
 using System;
 using System.Diagnostics.Contracts;
-using System.Globalization;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 

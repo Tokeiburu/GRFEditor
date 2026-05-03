@@ -70,7 +70,7 @@ namespace TokeiLibrary.WPF {
 			set { SetValue(TranslatedTextProperty, value); }
 		}
 
-		private TkView _internalParent;
+		protected TkView _internalParent;
 		private bool _isSelected;
 
 		private TkView _parent {
@@ -217,7 +217,7 @@ namespace TokeiLibrary.WPF {
 			{"천사날개", "Angel Wings"},
 			{"루드라의날개", "Wings of Rudra"},
 			{"행복의날개", "Wings of Happiness"},
-			{"기타마을내부", "Other villages inside"},
+			{"기타마을내부", "Other villages interior"},
 			{"몬스터", "Monsters"},
 			//{"외부소품", "Outside props"},
 			{"신페코크루세이더", "Crusader (armored peco)"},
@@ -232,7 +232,7 @@ namespace TokeiLibrary.WPF {
 			{"기린의날개", "The Wings of the Kirin"},
 			{"아버지사랑날개2012", "Loving father Wings 2012"},
 			{"슈퍼노비스", "Super Novice"},
-			{"인던01", "Inside Dungeon 01"},
+			{"인던01", "Dungeon 01 interior"},
 			{"타나토스", "Thanatos"},
 			//{"아인브로크", "Ain Pembroke"},
 			{"마법사", "Mage"},
@@ -242,7 +242,7 @@ namespace TokeiLibrary.WPF {
 			{"방패", "Shields"},
 			{"용암동굴", "Magna Dungeon"},
 			{"상인", "Merchant"},
-			{"인던02", "Inside Dungeon 02"},
+			{"인던02", "Dungeon 02 interior"},
 			{"제네릭", "Genetic"},
 			{"휘겔", "Hugel"},
 			{"일본", "Japan"},
@@ -257,7 +257,7 @@ namespace TokeiLibrary.WPF {
 			{"세이지", "Sage"},
 			{"프로페서", "Professor"},
 			{"소서러", "Sorcerer"},
-			{"프론테라내부", "Inside Prontera"},
+			{"프론테라내부", "Prontera interior"},
 			{"건너", "Gunslinger"},
 			{"성직자", "Acolyte"},
 			{"용병", "Mercenary"},
@@ -269,7 +269,7 @@ namespace TokeiLibrary.WPF {
 			{"슈라", "Sura"},
 			{"전장", "Battleground"},
 			{"크리스마스마을", "Christmas Village"},
-			{"페이욘내부", "Inside Payon"},
+			{"페이욘내부", "Payon interior"},
 			{"마도기어", "Magic Gear/Mado"},
 			{"닌자", "Ninja"},
 			{"피아멧트의리본", "Dark Wings"},
@@ -279,13 +279,13 @@ namespace TokeiLibrary.WPF {
 			{"알데바란", "Aldebaran"},
 			{"바드", "Bard"},
 			{"권성", "Star Gladiator"},
-			{"모로코내부", "Inside Morroc"},
+			{"모로코내부", "Morroc interior"},
 			{"프리스트", "Priest"},
 			{"하이프리", "High Priest"},
 			{"아크비숍", "Arch Bishop"},
 			{"니플헤임", "Niflheim"},
 			{"흑마법사방", "Warlock room"},
-			{"워프대기실내부", "Inside waiting room"},
+			{"워프대기실내부", "Waiting room interior"},
 			{"알베르타", "Alberta"},
 			{"몸통", "Bodies"},
 			{"쉐도우체이서", "Shadow Chaser"},
@@ -293,7 +293,7 @@ namespace TokeiLibrary.WPF {
 			{"위저드", "Wizard"},
 			{"하이위저드", "High Wizard"},
 			{"워록", "Warlock"},
-			{"게펜내부", "Inside Geffen"},
+			{"게펜내부", "Geffen interior"},
 			{"히나마쯔리", "Doll's Festival"},
 			{"궁수", "Archer"},
 			{"어비스", "Abyss"},
@@ -307,7 +307,7 @@ namespace TokeiLibrary.WPF {
 			{"워터", "Water"},
 			{"산타", "Santa"},
 			{"동굴마을", "Cave Town"},
-			{"알베르타내부", "Inside Alberta"},
+			{"알베르타내부", "Alberta interior"},
 			{"지하묘지", "Catacomb"},
 			{"어세신", "Assassin"},
 			{"어쌔신크로스", "Assassin Cross"},
@@ -328,6 +328,7 @@ namespace TokeiLibrary.WPF {
 			{"원더러", "Wanderer"},
 			{"머리통", "Heads"},
 			{"도람족", "Doram"},
+			{"외부소품", "Exterior accessories"},
 		};
 		#endregion
 

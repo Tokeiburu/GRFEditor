@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Utilities;
 using Utilities.Extension;
 using Utilities.Parsers.Lua;
 using Utilities.Parsers.Lua.Structure;
@@ -104,7 +103,7 @@ namespace GRF.FileFormats.LubFormat.Preset {
 			SkillId = skillidParser.Tables.FirstOrDefault(p => String.Compare("SKID", p.Key, StringComparison.OrdinalIgnoreCase) == 0).Value.ToDictionary(p => p.Key, p => Int32.Parse(p.Value));
 			byte[] rawSkillinfoData;
 
-			if (Methods.ByteArrayCompare(skillinfoData.Data, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
+			if (Lub.IsCompiled(skillinfoData.Data)) {
 				Lub lub = new Lub(skillinfoData.Data);
 				rawSkillinfoData = EncodingService.DisplayEncoding.GetBytes(lub.Decompile());
 			}

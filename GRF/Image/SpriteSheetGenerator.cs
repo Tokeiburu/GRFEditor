@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using GRF.FileFormats.ActFormat;
 using GRF.Graphics;
-using Utilities;
 using Utilities.IndexProviders;
 using Action = GRF.FileFormats.ActFormat.Action;
 

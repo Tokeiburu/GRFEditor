@@ -41,7 +41,7 @@ namespace GRF.Image {
 				case ".tga":
 					return new Tga(dataDecompressed).Image;
 				case ".pal":
-					return new Pal(dataDecompressed).Image;
+					return new Pal(dataDecompressed, Pal.FormatMode.NoTransparency).Image;
 				case ".spr":
 					if (firstImageOnly)
 						return Spr.GetFirstImage(dataDecompressed);

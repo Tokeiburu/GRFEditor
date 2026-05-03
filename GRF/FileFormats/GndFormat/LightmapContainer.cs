@@ -1,56 +1,101 @@
-﻿using System.Collections.Generic;
-
-namespace GRF.FileFormats.GndFormat {
-	public class LightmapContainer {
-		private readonly Gnd _gnd;
-		private readonly List<Lightmap> _lightmaps = new List<Lightmap>();
-
-		/// <summary>
-		/// Initializes a new instance of the <see cref="LightmapContainer" /> class.
-		/// </summary>
-		/// <param name="gnd">The GND.</param>
-		public LightmapContainer(Gnd gnd) {
-			_gnd = gnd;
-		}
-
-		/// <summary>
-		/// Gets the raw lightmap in bytes.
-		/// </summary>
-		/// <param name="index">The index.</param>
-		/// <returns>The byte array data of the lightmap.</returns>
-		public byte[] GetRawLightmap(int index) {
-			return _lightmaps[index].Data;
-		}
-
-		/// <summary>
-		/// Gets the lightmaps.
-		/// </summary>
-		public List<Lightmap> Lightmaps {
-			get { return _lightmaps; }
-		}
-
-		/// <summary>
-		/// Gets the <see cref="Lightmap" /> at the specified index.
-		/// </summary>
-		/// <param name="index">The index.</param>
-		/// <returns>The lightmap at the specified index.</returns>
-		public Lightmap this[int index] {
-			get {
-				if (!_lightmaps[index].IsLoaded) {
-					_lightmaps[index].Load(_gnd);
-					_lightmaps[index].IsLoaded = true;
-				}
-
-				return _lightmaps[index];
-			}
-		}
-
-		/// <summary>
-		/// Adds the specified data.
-		/// </summary>
-		/// <param name="data">The data.</param>
-		public void Add(byte[] data) {
-			_lightmaps.Add(new Lightmap(data));
-		}
-	}
+﻿namespace GRF.FileFormats.GndFormat {
+	//public class LightmapContainer {
+	//	private byte[] _data;
+	//	private int[] _indices;
+	//	private  Stack<int> _freeSlots;
+	//	private int _count;
+	//	private int _capacity;
+	//
+	//	private int _lightmapSize;
+	//
+	//	public LightmapContainer() {
+	//	}
+	//
+	//	public LightmapContainer(byte[] data, int lightmapSize) {
+	//		SetData(data, lightmapSize);
+	//	}
+	//
+	//	public void SetData(byte[] data, int lightmapSize) {
+	//		_data = data;
+	//		_lightmapSize = lightmapSize;
+	//
+	//		_count = _data.Length / _lightmapSize;
+	//		_capacity = _count;
+	//		_indices = new int[_count];
+	//
+	//		for (int i = 0; i < _count; i++)
+	//			_indices[i] = i;
+	//	}
+	//
+	//	public void Clear() {
+	//		_freeSlots.Clear();
+	//
+	//		for (int i = 0; i < _indices.Length; i++) {
+	//			_indices[i] = -1;
+	//			_freeSlots.Push(i);
+	//		}
+	//
+	//		_count = 0;
+	//	}
+	//
+	//	public int AddLightmap(byte[] data) {
+	//		if (_freeSlots.Count == 0)
+	//			Grow();
+	//
+	//		int index = _freeSlots.Pop();
+	//		_indices[index] = index;
+	//		Buffer.BlockCopy(data, 0, _data, index * _lightmapSize, _lightmapSize);
+	//		_count++;
+	//		return index;
+	//	}
+	//
+	//	public void Grow() {
+	//		int newCapacity = _capacity == 0 ? 1024 : _capacity * 2;
+	//
+	//		byte[] newData = new byte[newCapacity * _lightmapSize];
+	//		int[] newIndices = new int[newCapacity];
+	//		Buffer.BlockCopy(_data, 0, newData, 0, _capacity * _lightmapSize);
+	//		Buffer.BlockCopy(_indices, 0, newIndices, 0, _capacity);
+	//
+	//		_data = newData;
+	//		_capacity = newCapacity;
+	//
+	//		for (int i = _capacity; i < newCapacity; i++) {
+	//			_freeSlots.Push(i);
+	//		}
+	//	}
+	//
+	//	public void RemoveAt(int index) {
+	//		ValidateIndex(index);
+	//
+	//		_freeSlots.Push(index);
+	//		_indices[index] = -1;
+	//		_count--;
+	//	}
+	//
+	//	public byte[] GetLightmap(int index) {
+	//		ValidateIndex(index);
+	//
+	//		byte[] data = new byte[_lightmapSize];
+	//		Buffer.BlockCopy(_data, _indices[index] * _lightmapSize, data, 0, _lightmapSize);
+	//		return data;
+	//	}
+	//
+	//	public unsafe byte* GetLightmapPtr(int index) {
+	//		ValidateIndex(index);
+	//
+	//		fixed (byte* p = _data) {
+	//			return p + _indices[index] * _lightmapSize;
+	//		}
+	//	}
+	//
+	//	public void ValidateIndex(int index) {
+	//		if (index < 0 || index >= _capacity || _indices[index] == -1)
+	//			throw new IndexOutOfRangeException("index");
+	//	}
+	//
+	//	public void RemoveRange(int start, int count) {
+	//		//
+	//	}
+	//}
 }

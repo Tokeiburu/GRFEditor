@@ -3,7 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" AllowDrop="False"
                  xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                  xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
-                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
+                 xmlns:SpriteEditorConfiguration="clr-namespace:GRFEditor.Tools.SpriteEditor"
+                 xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
+				 ShowInTaskbar="True" SnapsToDevicePixels="True" UseLayoutRounding="True"
+				 Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid AllowDrop="True" DragEnter="_presenter_DragEnter" Drop="_presenter_Drop">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -15,91 +18,36 @@
                 <MenuItem.Header>
                     <Label Content="File" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
-                <MenuItem Click="_menuItemNew_Click" Name="_menuItemNew" Header="New">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\add.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Click="_menuItemOpen_Click" Name="_menuItemOpen" Header="Open">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\newFile.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem IsEnabled="False" Name="_menuItemRecent" Header="Open recent">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Click="_menuItemCloseSprite_Click" Name="_menuItemCloseSprite" Header="Close sprite">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <Separator />
-                <MenuItem Click="_menuItemSave_Click" Name="_menuItemSave" Header="Save">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\Save.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Click="_menuItemSaveAs_Click" Name="_menuItemSaveAs" Header="Save as...">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Click="_menuItemExportAll_Click" Name="_menuItemExportAll" Header="Export all...">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Click="_menuItemClose_Click" Name="_menuItemClose" Header="Close">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\empty.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
+				<MenuItem Click="_menuItemNew_Click" TokeiLibrary:WpfProperties.ImagePath="add.png" Name="_menuItemNew" Header="New" />
+				<MenuItem Click="_menuItemOpen_Click" TokeiLibrary:WpfProperties.ImagePath="newFile.png" Name="_menuItemOpen" Header="Open" />
+				<MenuItem IsEnabled="False" TokeiLibrary:WpfProperties.ImagePath="empty.png" Name="_menuItemRecent" Header="Open recent" />
+				<Separator />
+				<MenuItem Click="_menuItemCloseSprite_Click" TokeiLibrary:WpfProperties.ImagePath="empty.png" Name="_menuItemCloseSprite" Header="Close sprite" />
+				<Separator />
+				<MenuItem Click="_menuItemSave_Click" TokeiLibrary:WpfProperties.ImagePath="save.png" Name="_menuItemSave" Header="Save" />
+				<MenuItem Click="_menuItemSaveAs_Click" TokeiLibrary:WpfProperties.ImagePath="empty.png" Name="_menuItemSaveAs" Header="Save as..." />
+				<MenuItem Click="_menuItemExportAll_Click" TokeiLibrary:WpfProperties.ImagePath="empty.png" Name="_menuItemExportAll" Header="Export all..." />
+				<MenuItem Click="_menuItemClose_Click" TokeiLibrary:WpfProperties.ImagePath="empty.png" Name="_menuItemClose" Header="Close" />
+			</MenuItem>
             <MenuItem VerticalAlignment="Center">
                 <MenuItem.Header>
                     <Label Content="Options" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
                 <MenuItem Name="_menuItem" Header="Palette">
-                    <MenuItem Name="_menuItemPalView" Click="_menuItemPalView_Click" Header="View">
-
-                    </MenuItem>
-                    <MenuItem Name="_menuItemPalReplaceWith" Click="_menuItemPalReplaceWith_Click" Header="Replace with...">
-
-                    </MenuItem>
-                    <MenuItem Name="_menuItemPalReplaceDefault" Click="_menuItemPalReplaceDefault_Click" Header="Replace with default">
-
-                    </MenuItem>
-                    <MenuItem Name="_menuItemPalClear" Click="_menuItemPalClear_Click" Header="Clear">
-
-                    </MenuItem>
-                </MenuItem>
+					<MenuItem Name="_menuItemPalView" Click="_menuItemPalView_Click" Header="View" />
+					<MenuItem Name="_menuItemPalReplaceWith" Click="_menuItemPalReplaceWith_Click" Header="Replace with..." />
+					<MenuItem Name="_menuItemPalReplaceDefault" Click="_menuItemPalReplaceDefault_Click" Header="Replace with default" />
+					<MenuItem Name="_menuItemPalClear" Click="_menuItemPalClear_Click" Header="Clear" />
+				</MenuItem>
+				<MenuItem Foreground="{DynamicResource TextForeground}" Name="_cbUseTga" Header="Export as TGA (instead of PNG)" IsCheckable="True" Margin="3" IsChecked="{Binding Path=(SpriteEditorConfiguration:SpriteEditorConfiguration.UseTgaImages), Mode=TwoWay}" />
             </MenuItem>
             <MenuItem>
                 <MenuItem.Header>
                     <Label Content="Help" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
-                <MenuItem Name="_menuItemAbout" Click="_menuItemAbout_Click" Header="About...">
-                    <MenuItem.Icon>
-                        <Image Source="..\..\Resources\help.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
+				<MenuItem Name="_menuItemAbout" TokeiLibrary:WpfProperties.ImagePath="help.png" Click="_menuItemAbout_Click" Header="About..." />
+			</MenuItem>
         </Menu>
-        <TabControl Background="{StaticResource TabItemBackground}" Name="_mainTabControl" Grid.Row="1" Style="{StaticResource TabControlSprite}">
-            <TabItem Header="Settings" Background="{StaticResource TabItemBackground}" Style="{StaticResource TabItemSprite}">
-                <StackPanel>
-                    <CheckBox Foreground="{StaticResource TextForeground}" Name="_cbUseTga" Content="Export semi-transparent images as TGA (instead of PNG)" Margin="3" />
-                    <CheckBox Foreground="{StaticResource TextForeground}" Content="Associate .spr files with this program" Margin="3" Name="_cbAssocSpr" Checked="_cbAssocSpr_Checked" Unchecked="_cbAssocSpr_Unchecked" />
-                </StackPanel>
-            </TabItem>
-        </TabControl>
-        <!--<Grid ListView:WpfUtils.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
-            <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
-                <Button  Name="_buttonCancel" Content="Close" Height="24" Margin="3" Width="100" Click="_menuItemClose_Click" />
-            </DockPanel>
-        </Grid>-->
-    </Grid>
+		<TabControl Background="{DynamicResource TabItemBackground}" Name="_mainTabControl" Grid.Row="1" Style="{DynamicResource TabControlSprite}" />
+	</Grid>
 </Styles:TkWindow>

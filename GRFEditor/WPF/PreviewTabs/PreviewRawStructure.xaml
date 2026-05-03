@@ -4,10 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" xmlns:WPF="clr-namespace:GRFEditor.WPF"
-             xmlns:PreviewTabs="clr-namespace:GRFEditor.WPF.PreviewTabs"
-                            xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-                            xmlns:avalon="clr-namespace:GRFEditor.Core.Avalon"
-                            mc:Ignorable="d" 
+             xmlns:PreviewTabs="clr-namespace:GrfToWpfBridge.PreviewTabs;assembly=GrfToWpfBridge"
+			 xmlns:PreviewTabsEditor="clr-namespace:GRFEditor.WPF.PreviewTabs"
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
+             xmlns:avalon="clr-namespace:GRFEditor.Core.Avalon"
+             mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>
         <Grid.RowDefinitions>
@@ -25,7 +26,7 @@
             </WrapPanel>
             <Rectangle Margin="5 5 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
         </StackPanel>
-        <ComboBox Grid.Column="2" HorizontalAlignment="Right" Margin="0 3 4 15" VerticalAlignment="Bottom" Name="_highlightingComboBox" Visibility="{Binding Visibility, ElementName=_textEditor}" SelectedItem="{Binding SyntaxHighlighting, ElementName=_textEditor}" ItemsSource="{Binding Source={x:Static avalon:AvalonHelper.Instance}, Path=HighlightingDefinitions}" Width="60" SelectionChanged="_highlightingComboBox_SelectionChanged" />
+        <ComboBox Grid.Column="2" HorizontalAlignment="Right" Margin="0 3 4 15" VerticalAlignment="Bottom" Name="_highlightingComboBox" Visibility="{Binding Visibility, ElementName=_textEditor}" SelectedItem="{Binding SyntaxHighlighting, ElementName=_textEditor}" ItemsSource="{Binding Source={x:Static avalon:AvalonHelper.Instance}, Path=HighlightingDefinitions}" Width="60" />
         <Grid Grid.Row="1">
         <avalonedit:TextEditor Grid.Row="1"
 					Name="_textEditor"
@@ -34,7 +35,7 @@
 					SyntaxHighlighting="XML"
 					ShowLineNumbers="True">
         </avalonedit:TextEditor>
-            <PreviewTabs:TypeExplorer x:Name="_typeExplorer" />
+            <PreviewTabsEditor:TypeExplorer x:Name="_typeExplorer" />
         </Grid>
 		<PreviewTabs:ErrorPanel x:Name="_errorPanel" />
     </Grid>

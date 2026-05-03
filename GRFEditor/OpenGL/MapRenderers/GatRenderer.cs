@@ -43,7 +43,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 				for (int x = _x; x < Math.Min(_x + ChunkSize, _gat.Width); x++) {
 					for (int y = _y; y < Math.Min(_y + ChunkSize, _gat.Height); y++) {
-						var cell = _gat[x, y];
+						ref Cell cell = ref _gat[x, y];
 						long gatType = (int)cell.Type;
 
 						if (gatType < 0) {
@@ -56,10 +56,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 						var normal_t = cell.CalcNormal();
 						Vector3 normal = new Vector3(normal_t.X, normal_t.Y, normal_t.Z);
 
-						var v1 = new Vertex(new Vector3(5 * x	 , GatOffset + -cell.Heights[2], 5 * _gat.Height - 5 * y + 5), new Vector2(t1.X, t1.Y), normal);
-						var v2 = new Vertex(new Vector3(5 * x + 5, GatOffset + -cell.Heights[3], 5 * _gat.Height - 5 * y + 5), new Vector2(t2.X, t1.Y), normal);
-						var v3 = new Vertex(new Vector3(5 * x	 , GatOffset + -cell.Heights[0], 5 * _gat.Height - 5 * y + 10), new Vector2(t1.X, t2.Y), normal);
-						var v4 = new Vertex(new Vector3(5 * x + 5, GatOffset + -cell.Heights[1], 5 * _gat.Height - 5 * y + 10), new Vector2(t2.X, t2.Y), normal);
+						var v1 = new Vertex(new Vector3(5 * x	 , GatOffset + -cell.H2, 5 * _gat.Height - 5 * y + 5), new Vector2(t1.X, t1.Y), normal);
+						var v2 = new Vertex(new Vector3(5 * x + 5, GatOffset + -cell.H3, 5 * _gat.Height - 5 * y + 5), new Vector2(t2.X, t1.Y), normal);
+						var v3 = new Vertex(new Vector3(5 * x	 , GatOffset + -cell.H0, 5 * _gat.Height - 5 * y + 10), new Vector2(t1.X, t2.Y), normal);
+						var v4 = new Vertex(new Vector3(5 * x + 5, GatOffset + -cell.H1, 5 * _gat.Height - 5 * y + 10), new Vector2(t2.X, t2.Y), normal);
 
 						list.Add(v4); list.Add(v2); list.Add(v1);
 						list.Add(v4); list.Add(v1); list.Add(v3);

@@ -25,6 +25,8 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		#region IActCommand Members
 
 		public void Execute(Act act) {
+			int oldActionCount = act.NumberOfActions;
+
 			if (_copy == null)
 				_copy = new CopyStructureAct(act, CopyMode);
 
@@ -45,12 +47,20 @@ namespace GRF.FileFormats.ActFormat.Commands {
 			}
 
 			act.InvalidateSpriteVisual();
+
+			if (oldActionCount != act.NumberOfActions)
+				act.OnActionCountChanged();
 		}
 
 		public void Undo(Act act) {
+			int oldActionCount = act.NumberOfActions;
+
 			_copy.Undo(act);
 
 			act.InvalidateSpriteVisual();
+
+			if (oldActionCount != act.NumberOfActions)
+				act.OnActionCountChanged();
 		}
 
 		public string CommandDescription {

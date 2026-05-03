@@ -49,6 +49,12 @@ namespace GrfToWpfBridge.MultiGrf {
 			ApplicationShortcut.Link(ApplicationShortcut.FromString("Enter", "MultiGrf.SelectInExplorer"), () => _menuItemsSelectInExplorer_Click(null, null), _itemsResources);
 
 			Setting = new Setting(v => { Configuration.ConfigAsker["[GRFEditor - Application latest file name]"] = v.ToString(); }, () => Configuration.ConfigAsker["[GRFEditor - Application latest file name]", Configuration.ApplicationPath]);
+
+			_buttonMoveAdd.Click += _menuItemsAdd_Click;
+			_buttonDelete.Click += _menuItemsDelete_Click;
+			_buttonMoveSelectInExplorer.Click += _menuItemsSelectInExplorer_Click;
+			_buttonMoveUp.Click += _menuItemsMoveUp_Click;
+			_buttonMoveDown.Click += _menuItemsMoveDown_Click;
 		}
 
 		public Setting Setting { get; set; }

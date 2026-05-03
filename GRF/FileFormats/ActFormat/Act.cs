@@ -15,10 +15,11 @@ using Utilities.Extension;
 
 namespace GRF.FileFormats.ActFormat {
 	// ACT files only load the animation when required, otherwise the data isn't processed
-	public class Act : IEnumerable<Action> {
+	public class Act : IEnumerable<Action>, IPrintable {
 		#region Delegates
 
 		public delegate void InvalidateVisualDelegate(object sender);
+		public delegate void ActionCountChangedEventHandler(object sender);
 
 		#endregion
 
@@ -151,6 +152,7 @@ namespace GRF.FileFormats.ActFormat {
 		public event InvalidateVisualDelegate RenderInvalidated;
 		public event InvalidateVisualDelegate SpriteVisualInvalidated;
 		public event InvalidateVisualDelegate SpritePaletteInvalidated;
+		public event ActionCountChangedEventHandler ActionCountChanged;
 
 		public void OnSpritePaletteInvalidated() {
 			InvalidateVisualDelegate handler = SpritePaletteInvalidated;
@@ -169,6 +171,11 @@ namespace GRF.FileFormats.ActFormat {
 
 		public void OnRenderInvalidated() {
 			InvalidateVisualDelegate handler = RenderInvalidated;
+			if (handler != null) handler(this);
+		}
+
+		public void OnActionCountChanged() {
+			ActionCountChangedEventHandler handler = ActionCountChanged;
 			if (handler != null) handler(this);
 		}
 
@@ -216,6 +223,24 @@ namespace GRF.FileFormats.ActFormat {
 			}
 
 			return null;
+		}
+
+		public int TryGetSoundId(int ai, int frameIndex) {
+			if (ai < NumberOfActions &&
+				frameIndex < this[ai].NumberOfFrames) {
+				return this[ai, frameIndex].SoundId;
+			}
+
+			return -1;
+		}
+
+		public string TryGetSoundFile(int ai, int frameIndex) {
+			int soundId = TryGetSoundId(ai, frameIndex);
+
+			if (soundId < 0 || soundId >= SoundFiles.Count)
+				return null;
+
+			return SoundFiles[soundId];
 		}
 
 		public void SetSprite(Spr spr) {
@@ -793,5 +818,13 @@ namespace GRF.FileFormats.ActFormat {
 		public Act Clone() {
 			return new Act(this);
 		}
+
+		#region IPrintable Members
+
+		public string GetInformation() {
+			return FileFormatParser.DisplayObjectProperties(this);
+		}
+
+		#endregion
 	}
 }

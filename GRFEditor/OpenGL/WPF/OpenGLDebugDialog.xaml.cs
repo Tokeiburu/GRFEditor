@@ -10,7 +10,7 @@ using GRF.Threading;
 using GRFEditor.Core.Avalon;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.WPF;
-using GRFEditor.WPF.PreviewTabs;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
 using Utilities;

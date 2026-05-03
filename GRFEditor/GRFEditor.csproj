@@ -143,6 +143,7 @@
     </Compile>
     <Compile Include="OpenGL\Shader.cs" />
     <Compile Include="OpenGL\MapRenderers\WaterRenderer.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TempNameDebug.xaml.cs">
       <DependentUpon>TempNameDebug.xaml</DependentUpon>
     </Compile>
@@ -161,7 +162,10 @@
     <Compile Include="Tools\Map\CellEditControl.xaml.cs">
       <DependentUpon>CellEditControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\SpriteEditor\SpriteEditorHelper.cs" />
+    <Compile Include="Tools\SpriteEditor\PaletteOperations.cs" />
+    <Compile Include="Tools\SpriteEditor\SpriteEditorControl.xaml.cs">
+      <DependentUpon>SpriteEditorControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Core\Services\EncryptionService.cs" />
     <Compile Include="Core\Services\ExtractingService.cs" />
     <Compile Include="Core\Services\OpeningService.cs" />
@@ -185,7 +189,10 @@
     <Compile Include="Tools\Map\MapEditorWindow.xaml.cs">
       <DependentUpon>MapEditorWindow.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\SpriteEditor\SpriteEditorTabInteraction.cs" />
+    <Compile Include="Tools\SpriteEditor\SpriteEditorLogic.cs" />
+    <Compile Include="Tools\SpriteEditor\SpriteView.cs" />
+    <Compile Include="Tools\SpriteEditor\SprLoaderService.cs" />
+    <Compile Include="Tools\SpriteEditor\TabEngine.cs" />
     <Compile Include="WPF\AddFileDialog.xaml.cs">
       <DependentUpon>AddFileDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
@@ -203,9 +210,14 @@
     <Compile Include="WPF\MagicEditDialog.xaml.cs">
       <DependentUpon>MagicEditDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WPF\PreviewTabs\ErrorPanel.xaml.cs">
-      <DependentUpon>ErrorPanel.xaml</DependentUpon>
+    <Compile Include="WPF\PreviewTabs\Controls\GifFormat.cs" />
+    <Compile Include="WPF\PreviewTabs\Controls\ImageHelper.cs" />
+    <Compile Include="WPF\PreviewTabs\Controls\MapResourceResolver.cs" />
+    <Compile Include="WPF\PreviewTabs\Controls\PreviewActIndexSelector.xaml.cs">
+      <DependentUpon>PreviewActIndexSelector.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\PreviewTabs\Controls\PreviewTextLoader.cs" />
+    <Compile Include="WPF\PreviewTabs\Controls\PreviewRawStructureLoader.cs" />
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
     </Compile>
@@ -217,6 +229,9 @@
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewStr.xaml.cs">
       <DependentUpon>PreviewStr.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewWav.xaml.cs">
+      <DependentUpon>PreviewWav.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\SubtractDialog.xaml.cs">
       <DependentUpon>SubtractDialog.xaml</DependentUpon>
@@ -270,10 +285,8 @@
     <Compile Include="WPF\PreviewTabs\GrfClusterView.xaml.cs">
       <DependentUpon>GrfClusterView.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WPF\PreviewTabs\FilePreviewTab.cs" />
     <Compile Include="WPF\PreviewTabs\GrfIndexor.cs" />
     <Compile Include="WPF\PreviewTabs\IFolderPreviewTab.cs" />
-    <Compile Include="WPF\PreviewTabs\IPreviewTab.cs" />
     <Compile Include="WPF\PreviewTabs\PreviewAct.xaml.cs">
       <DependentUpon>PreviewAct.xaml</DependentUpon>
     </Compile>
@@ -282,9 +295,6 @@
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewEditSprite.xaml.cs">
       <DependentUpon>PreviewEditSprite.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WPF\PreviewTabs\PreviewFolderItems.xaml.cs">
-      <DependentUpon>PreviewFolderItems.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewFolderStructure.xaml.cs">
       <DependentUpon>PreviewFolderStructure.xaml</DependentUpon>
@@ -319,9 +329,6 @@
     <Compile Include="WPF\PreviewTabs\PreviewThumbDb.xaml.cs">
       <DependentUpon>PreviewThumbDb.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WPF\PreviewTabs\PreviewWav.xaml.cs">
-      <DependentUpon>PreviewWav.xaml</DependentUpon>
-    </Compile>
     <Compile Include="WPF\PreviewTabs\TypeExplorer.xaml.cs">
       <DependentUpon>TypeExplorer.xaml</DependentUpon>
     </Compile>
@@ -345,12 +352,6 @@
     <Compile Include="Tools\SpriteEditor\SpriteConverter.xaml.cs">
       <DependentUpon>SpriteConverter.xaml</DependentUpon>
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Tools\SpriteEditor\SpriteConverterFormatDialog.xaml.cs">
-      <DependentUpon>SpriteConverterFormatDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Tools\SpriteEditor\SpriteEditorTab.xaml.cs">
-      <DependentUpon>SpriteEditorTab.xaml</DependentUpon>
     </Compile>
     <Page Include="EditorMainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -420,6 +421,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
+    <Page Include="Tools\SpriteEditor\SpriteEditorControl.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="WPF\AddFileDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -436,7 +441,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Page Include="WPF\PreviewTabs\ErrorPanel.xaml">
+    <Page Include="WPF\PreviewTabs\Controls\PreviewActIndexSelector.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -455,6 +460,10 @@
     <Page Include="WPF\PreviewTabs\PreviewStr.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewWav.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="WPF\SubtractDialog.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -536,10 +545,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WPF\PreviewTabs\PreviewFolderItems.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WPF\PreviewTabs\PreviewFolderStructure.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -584,10 +589,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WPF\PreviewTabs\PreviewWav.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WPF\PreviewTabs\TypeExplorer.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -616,23 +617,12 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Tools\SpriteEditor\SpriteConverterFormatDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Tools\SpriteEditor\SpriteEditorTab.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WPF\Styles\GRFEditorStyles.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <None Include="app.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
@@ -913,14 +903,6 @@
     <EmbeddedResource Include="Files\Compressed\GrfToWpfBridge.dll" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\GrfMenuHandler32.dll" />
-    <None Include="Files\GrfMenuHandler64.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\GrfMenuHandler32.dll" />
-    <EmbeddedResource Include="Files\Compressed\GrfMenuHandler64.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\gpf.ico" />
     <EmbeddedResource Include="Files\Compressed\grf.ico" />
     <EmbeddedResource Include="Files\Compressed\grfkey.ico" />
@@ -1067,7 +1049,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
@@ -1111,6 +1093,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\cps.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\stop2.png" />
   </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />

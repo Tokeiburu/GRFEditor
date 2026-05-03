@@ -4,7 +4,6 @@ using System.IO;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using GRF.FileFormats.TgaFormat;
 using GRF.Image;
 using Utilities;
 
@@ -17,61 +16,35 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		public override object Convert(GrfImage image) {
-			WriteableBitmap bit;
+			BitmapSource bitmap = null;
+
 			switch (image.GrfImageType) {
 				case GrfImageType.Bgra32:
-					bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Bgra32, null);
-					bit.Lock();
-					unsafe {
-						fixed (byte* src = image.Pixels)
-							Buffer.MemoryCopy(src, (void*)bit.BackBuffer, image.Pixels.Length, image.Pixels.Length);
-					}
-					bit.AddDirtyRect(new Int32Rect(0, 0, image.Width, image.Height));
-					bit.Unlock();
-					bit.Freeze();
-					return bit;
+					bitmap = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Bgra32, null, image.Pixels, image.Width * 4);
+					break;
 				case GrfImageType.Bgr32:
-					bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Bgr32, null);
-					bit.Lock();
-					unsafe {
-						fixed (byte* src = image.Pixels)
-							Buffer.MemoryCopy(src, (void*)bit.BackBuffer, image.Pixels.Length, image.Pixels.Length);
-					}
-					bit.AddDirtyRect(new Int32Rect(0, 0, image.Width, image.Height));
-					bit.Unlock();
-					bit.Freeze();
-					return bit;
+					bitmap = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Bgr32, null, image.Pixels, image.Width * 4);
+					break;
 				case GrfImageType.Bgr24:
-					bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Bgr24, null);
-					bit.WritePixels(new Int32Rect(0, 0, image.Width, image.Height), image.Pixels, image.Width * 3, 0);
-					bit.Freeze();
-					return bit;
+					bitmap = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Bgr24, null, image.Pixels, image.Width * 3);
+					break;
 				case GrfImageType.Indexed8:
-					List<Color> colors = _loadColors(image.Palette);
-
-					if (Methods.CanUseIndexed8) {
-						bit = new WriteableBitmap(image.Width, image.Height, 96, 96, PixelFormats.Indexed8, new BitmapPalette(colors));
-						bit.WritePixels(new Int32Rect(0, 0, image.Width, image.Height), image.Pixels, image.Width, 0);
-					}
-					else {
-						bit = Imaging.ToBgra32FromIndexed8(image.Pixels, colors, image.Width, image.Height);
-					}
-
-					bit.Freeze();
-					return bit;
+					bitmap = BitmapSource.Create(image.Width, image.Height, 96, 96, PixelFormats.Indexed8, new BitmapPalette(_loadColors(image.Palette)), image.Pixels, image.Width);
+					break;
 				case GrfImageType.NotEvaluated:
-					return _readAsCommonFormat(image);
-				case GrfImageType.NotEvaluatedBmp:
 					return _readAsCommonFormat(image);
 				case GrfImageType.NotEvaluatedPng:
 					return _readAsCommonFormat(image);
 				case GrfImageType.NotEvaluatedJpg:
 					return _readAsJpgFormat(image);
-				case GrfImageType.NotEvaluatedTga:
-					return _readAsTgaFormat(image);
 				default:
 					throw new Exception("Unsupported pixel format");
 			}
+
+			if (bitmap != null)
+				bitmap.Freeze();
+
+			return bitmap;
 		}
 
 		public override GrfImage ConvertToSelf(GrfImage image) {
@@ -84,18 +57,12 @@ namespace GrfToWpfBridge.Application {
 				case GrfImageType.Indexed8:
 					return image;
 				case GrfImageType.NotEvaluated:
-				case GrfImageType.NotEvaluatedBmp:
 				case GrfImageType.NotEvaluatedPng:
 					bit = _readAsCommonFormat(image);
 					break;
 				case GrfImageType.NotEvaluatedJpg:
 					bit = _readAsJpgFormat(image);
 					break;
-				case GrfImageType.NotEvaluatedTga:
-					bit = _readAsTgaFormat(image);
-					break;
-				//case GrfImageType.NotEvaluatedBmp:
-				//	return new BmpDecoder(image.Pixels).ToGrfImage();
 				default:
 					throw new Exception("Unsupported pixel format");
 			}
@@ -160,20 +127,6 @@ namespace GrfToWpfBridge.Application {
 			return bitImage;
 		}
 
-		private WriteableBitmap _readAsTgaFormat(GrfImage image) {
-			Tga decoder = new Tga(image.Pixels);
-
-			byte[] pixels = new byte[decoder.Pixels.Length];
-			Buffer.BlockCopy(decoder.Pixels, 0, pixels, 0, pixels.Length);
-
-			PixelFormat format = decoder.Type.ToPixelFormat();
-
-			WriteableBitmap bit = new WriteableBitmap(decoder.Header.Width, decoder.Header.Height, 96, 96, format, null);
-			bit.WritePixels(new Int32Rect(0, 0, decoder.Header.Width, decoder.Header.Height), pixels, decoder.Header.Width * format.BitsPerPixel / 8, 0);
-			bit.Freeze();
-			return bit;
-		}
-
 		private BitmapSource _readAsJpgFormat(GrfImage image) {
 			try {
 				return _readAsCommonFormat(image);
@@ -200,8 +153,12 @@ namespace GrfToWpfBridge.Application {
 
 			List<Color> colors = new List<Color>(256);
 
-			for (int i = 0, count = palette.Length; i < count; i += 4) {
-				colors.Add(Color.FromArgb(palette[i + 3], palette[i], palette[i + 1], palette[i + 2]));
+			unsafe {
+				fixed (byte* bPalette = palette) {
+					for (int i = 0, count = palette.Length; i < count; i += 4) {
+						colors.Add(Color.FromArgb(bPalette[i + 3], bPalette[i], bPalette[i + 1], bPalette[i + 2]));
+					}
+				}
 			}
 
 			return colors;

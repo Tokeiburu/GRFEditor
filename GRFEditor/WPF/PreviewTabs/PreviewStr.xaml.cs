@@ -5,12 +5,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using ColorPicker;
-using ColorPicker.Sliders;
 using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats.StrFormat;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {

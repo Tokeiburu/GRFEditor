@@ -292,12 +292,6 @@ namespace GRFEditor.Tools.Map {
 				_gndUseShadowsWithQuadrants(gnd, gat);
 			}
 
-			// Compress tiles
-			// Don't bother cleaning up the tiles if they still have lightmaps
-			//if ((!_mapConfig.RemoveLight || !_mapConfig.RemoveShadow) && _mapConfig.UseCustomTextures) {
-			//	gnd.CleanDuplicateTiles();
-			//}
-
 			return gnd;
 		}
 
@@ -323,7 +317,7 @@ namespace GRFEditor.Tools.Map {
 				return;
 
 			var tile = gnd.Tiles[cube.TileUp];
-			var data = gnd.LightmapContainer.GetRawLightmap(tile.LightmapIndex);
+			var data = gnd.Lightmaps[tile.LightmapIndex];
 			data[suby * gnd.LightmapHeight + subx] = shadow;
 		}
 
@@ -353,11 +347,11 @@ namespace GRFEditor.Tools.Map {
 			int offset;
 			int[] cellIndexes = new int[4];
 			sbyte[] cellTypes = new sbyte[4];
-			//string[] cellTypesString = new string[4];
 			Tile tile;
 			Cube cube;
 			Cell gatCell;
 			sbyte gatType;
+			Gat.SpecialCellTypes gatSpecialTypes;
 
 			// For each cube...
 			for (int y = 0; y < gnd.Header.Height; y++) {
@@ -371,15 +365,16 @@ namespace GRFEditor.Tools.Map {
 
 					for (int i = 0; i < 4; i++) {
 						gatCell = gat.Cells[cellIndexes[i]];
+						gatSpecialTypes = gat.SpecialCells[cellIndexes[i]];
 						gatType = (sbyte)gatCell.Type;
 
-						if (gatCell.IsWater == true) {
+						if (gatSpecialTypes.HasFlag(Gat.SpecialCellTypes.Water)) {
 							cellTypes[i] = -1;
 						}
-						else if (gatCell.IsInnerGutterLine == true) {
+						else if (gatSpecialTypes.HasFlag(Gat.SpecialCellTypes.InnerGutterLine)) {
 							cellTypes[i] = -3;
 						}
-						else if (gatCell.IsOutterGutterLine == true) {
+						else if (gatSpecialTypes.HasFlag(Gat.SpecialCellTypes.OutterGutterLine)) {
 							cellTypes[i] = -2;
 						}
 						else {
@@ -507,7 +502,7 @@ namespace GRFEditor.Tools.Map {
 			int tileIndex = 0;
 			int lightmapIndex = 0;
 			int tileCount = gnd.Tiles.Count;
-			int lightmapsCount = gnd.LightmapContainer.Lightmaps.Count;
+			int lightmapsCount = gnd.Lightmaps.Count;
 
 			// Add lightmaps
 			for (int y = 0; y < gnd.Header.Height; y++) {
@@ -519,7 +514,7 @@ namespace GRFEditor.Tools.Map {
 						cube.TileUp = tileIndex;
 						tileIndex++;
 
-						var lightData = Methods.Copy(gnd.LightmapContainer.GetRawLightmap(copy.LightmapIndex));
+						var lightData = Methods.Copy(gnd.Lightmaps[copy.LightmapIndex]);
 
 						if ((x % 8 < 4 && y % 8 < 4) ||
 							(x % 8 >= 4 && y % 8 >= 4)) {
@@ -533,7 +528,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.LightmapIndex = (ushort)lightmapIndex;
 						lightmapIndex++;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 
@@ -542,7 +537,7 @@ namespace GRFEditor.Tools.Map {
 						cube.TileSide = tileIndex;
 						tileIndex++;
 
-						var lightData = Methods.Copy(gnd.LightmapContainer.GetRawLightmap(copy.LightmapIndex));
+						var lightData = Methods.Copy(gnd.Lightmaps[copy.LightmapIndex]);
 
 						if ((x % 8 < 4 && y % 8 < 4) ||
 							(x % 8 >= 4 && y % 8 >= 4)) {
@@ -556,7 +551,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.LightmapIndex = (ushort)lightmapIndex;
 						lightmapIndex++;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 
@@ -565,7 +560,7 @@ namespace GRFEditor.Tools.Map {
 						cube.TileFront = tileIndex;
 						tileIndex++;
 
-						var lightData = Methods.Copy(gnd.LightmapContainer.GetRawLightmap(copy.LightmapIndex));
+						var lightData = Methods.Copy(gnd.Lightmaps[copy.LightmapIndex]);
 
 						if ((x % 8 < 4 && y % 8 < 4) ||
 						    (x % 8 >= 4 && y % 8 >= 4)) {
@@ -579,7 +574,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.LightmapIndex = (ushort)lightmapIndex;
 						lightmapIndex++;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 				}
@@ -587,7 +582,7 @@ namespace GRFEditor.Tools.Map {
 
 			// Delete all front tiles
 			gnd.Tiles.RemoveRange(0, tileCount);
-			gnd.LightmapContainer.Lightmaps.RemoveRange(0, lightmapsCount);
+			gnd.Lightmaps.RemoveRange(0, lightmapsCount);
 			gnd.CleanupLightmaps();
 		}
 
@@ -599,7 +594,7 @@ namespace GRFEditor.Tools.Map {
 			int tileIndex = 0;
 			int lightmapIndex = 0;
 			int tileCount = gnd.Tiles.Count;
-			int lightmapsCount = gnd.LightmapContainer.Lightmaps.Count;
+			int lightmapsCount = gnd.Lightmaps.Count;
 
 			// Add lightmaps
 			for (int y = 0; y < gnd.Header.Height; y++) {
@@ -624,7 +619,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.TileColor = new GrfColor(255, 255, 255, 255);
 						copy.LightmapIndex = (ushort)++lightmapIndex;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 
@@ -641,7 +636,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.TileColor = new GrfColor(255, 255, 255, 255);
 						copy.LightmapIndex = (ushort)++lightmapIndex;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 
@@ -658,7 +653,7 @@ namespace GRFEditor.Tools.Map {
 
 						copy.TileColor = new GrfColor(255, 255, 255, 255);
 						copy.LightmapIndex = (ushort)++lightmapIndex;
-						gnd.LightmapContainer.Add(lightData);
+						gnd.Lightmaps.Add(lightData);
 						gnd.Tiles.Add(copy);
 					}
 				}
@@ -828,15 +823,10 @@ namespace GRFEditor.Tools.Map {
 		private Gat _configGatFile(byte[] gatData, RswHeader rswHeader, float waterLevel) {
 			Gat gat = new Gat(gatData);
 
-			if (rswHeader.Version < 2.6) {
-				gat.IdentifyWaterCells(waterLevel);
-			}
+			gat.IdentifyCells(rswHeader.Version < 2.6, _mapConfig.ShowGutterLines, waterLevel);
 
 			if (_mapConfig.FlattenGround)
 				gat.SetCellsHeight(0);
-
-			if (_mapConfig.ShowGutterLines)
-				gat.IdentifyGutterLines();
 
 			return gat;
 		}

@@ -21,6 +21,7 @@ namespace GRF.IO {
 		byte Peek();
 		byte Byte();
 		byte[] Bytes(int count);
+		unsafe byte* GetPointer(int count);
 
 		char Char();
 		char[] ArrayChar(int count);

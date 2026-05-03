@@ -297,52 +297,11 @@ namespace GRF.Core {
 		/// </summary>
 		/// <param name="grfStream">The GRF stream.</param>
 		private void _load300(ByteReaderStream grfStream) {
-			FileEntry fileEntry;
-
 			grfStream.Forward(4);	// Unknown, always 0?
 			TableSizeCompressed = grfStream.Int32();
 			TableSize = grfStream.Int32();
 
-			if (TableSizeCompressed == 0 || TableSize == 0)
-				return;
-
-			byte[] data = _uncompressFileTable(grfStream);
-
-			int bufferPosition = 0;
-			int streamLength = data.Length;
-
-			while (bufferPosition < streamLength) {
-				fileEntry = new FileEntry(data, ref bufferPosition, _header, grfStream);
-
-				if (fileEntry.RelativePath.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
-					fileEntry.Modification |= Modification.FileNameRenamed;
-					fileEntry.RelativePath = fileEntry.RelativePath.Replace("\\\\", "\\");
-				}
-
-				// Ignore any other type of entries (such as directories)
-				if (fileEntry.Flags == EntryType.Directory) {
-					if (fileEntry.RelativePath.LastIndexOf('.') != -1) {
-						fileEntry.Flags |= EntryType.RawDataFile;
-					}
-				}
-
-				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
-					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out FileEntry conflict)) {
-						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
-							_indexedEntries[fileEntry.RelativePath] = fileEntry;
-						}
-					}
-					else {
-						_indexedEntries.SetQuick(fileEntry.RelativePath, fileEntry);
-					}
-				}
-			}
-
-			if (_indexedEntries.ContainsKey(GrfStrings.EncryptionFilename)) {
-				_indexedEntries[GrfStrings.EncryptionFilename].Modification |= Modification.Removed;
-			}
-
-			_indexedEntries.HasBeenModified = true;
+			_loadTable(grfStream, 300);
 		}
 
 		/// <summary>
@@ -350,44 +309,52 @@ namespace GRF.Core {
 		/// </summary>
 		/// <param name="grfStream">The GRF stream.</param>
 		private void _load200(ByteReaderStream grfStream) {
-			FileEntry fileEntry;
-
 			TableSizeCompressed = grfStream.Int32();
 			TableSize = grfStream.Int32();
 
 			if (TableSizeCompressed == 0 || TableSize == 0)
 				return;
 
+			_loadTable(grfStream, 200);
+		}
+
+		private void _loadTable(ByteReaderStream grfStream, int version) {
+			if (TableSizeCompressed == 0 || TableSize == 0)
+				return;
+
+			FileEntry fileEntry;
 			byte[] data = _uncompressFileTable(grfStream);
 
 			int bufferPosition = 0;
 			int streamLength = data.Length;
 
-			while (bufferPosition < streamLength) {
-				fileEntry = new FileEntry(data, ref bufferPosition, _header, grfStream);
+			for (int i = 0; i < 1; i++) {
+				bufferPosition = 0;
+				_indexedEntries.Clear();
+				while (bufferPosition < streamLength) {
+					fileEntry = new FileEntry(data, ref bufferPosition, _header, grfStream, version);
 
-				if (fileEntry.RelativePath.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
-					fileEntry.Modification |= Modification.FileNameRenamed;
-					fileEntry.RelativePath = fileEntry.RelativePath.Replace("\\\\", "\\");
-				}
-
-				// Ignore any other type of entries (such as directories)
-				if (fileEntry.Flags == EntryType.Directory) {
-					if (fileEntry.RelativePath.LastIndexOf('.') != -1) {
-						fileEntry.Flags |= EntryType.RawDataFile;
+					if (fileEntry.RelativePath.IndexOf("\\\\", 0, StringComparison.Ordinal) > -1) {
+						fileEntry.Modification |= Modification.FileNameRenamed;
+						fileEntry.RelativePath = fileEntry.RelativePath.Replace("\\\\", "\\");
 					}
-				}
 
-				if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
-					FileEntry conflict;
-
-					if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out conflict)) {
-						if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
-							_indexedEntries[fileEntry.RelativePath] = fileEntry;
+					// Ignore any other type of entries (such as directories)
+					if (fileEntry.Flags == EntryType.Directory) {
+						if (fileEntry.RelativePath.LastIndexOf('.') != -1) {
+							fileEntry.Flags |= EntryType.RawDataFile;
 						}
 					}
-					else {
-						_indexedEntries.SetQuick(fileEntry.RelativePath, fileEntry);
+
+					if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
+						if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out FileEntry conflict)) {
+							if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
+								_indexedEntries[fileEntry.RelativePath] = fileEntry;
+							}
+						}
+						else {
+							_indexedEntries.SetQuick(fileEntry.RelativePath, fileEntry);
+						}
 					}
 				}
 			}

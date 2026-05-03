@@ -22,8 +22,6 @@ SOFTWARE.
 
 using System;
 using System.Diagnostics.Contracts;
-using System.Globalization;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 
@@ -619,7 +617,7 @@ namespace GRF.Graphics {
 		/// <param name="blend">The blend factor.</param>
 		/// <returns>a when blend=0, b when blend=1, and a linear combination otherwise.</returns>
 		[Pure]
-		public static TkVector2 Lerp(TkVector2 a, TkVector2 b, float blend) {
+		public static TkVector2 Lerp(TkVector2 a, in TkVector2 b, float blend) {
 			a.X = (blend * (b.X - a.X)) + a.X;
 			a.Y = (blend * (b.Y - a.Y)) + a.Y;
 			return a;

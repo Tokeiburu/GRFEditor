@@ -298,17 +298,6 @@ namespace GRF.IO {
 
 		public void Close() {
 			if (Stream != null) {
-				//if (Stream != null && Stream.CanSeek) {
-				//	//CLHelper.WriteLine = "Stream closed : " + Stream.Name;
-				//	Streams[Stream.Name]--;
-				//}
-				//
-				//if (_scope != null) {
-				//	if (_scope.Value != null && _scope.Value.CanSeek) {
-				//		Streams[_scope.Value.Name]--;
-				//	}
-				//}
-
 				Stream.Close();
 			}
 		}
@@ -316,14 +305,6 @@ namespace GRF.IO {
 		public void Open(string file) {
 			Close();
 			Stream = new FileStream(file, FileMode.Open, FileAccess.Read);
-
-			if (Stream != null) {
-				//Streams[Stream.Name]++;
-				//
-				//if (Streams[Stream.Name] > 1) {
-				//	Z.F();
-				//}
-			}
 		}
 
 		public void Delete() {
@@ -332,6 +313,14 @@ namespace GRF.IO {
 
 		public string GetSource() {
 			return FileName;
+		}
+
+		public unsafe byte* GetPointer(int count) {
+			var bytes = Bytes(count);
+
+			fixed (byte* p = bytes) {
+				return p;
+			}
 		}
 	}
 }

@@ -20,10 +20,8 @@ namespace GRFEditor.WPF {
 	/// </summary>
 	public partial class SubtractDialogCustom : TkWindow, IDisposable {
 		private readonly AsyncOperation _asyncOperation;
-		private readonly EditorMainWindow _editor;
 		private readonly GrfHolder _grfAdd = new GrfHolder();
 		protected readonly GrfHolder _originalGrf;
-		public bool RequiresReload = false;
 		private bool _allowCancel;
 		private bool _cancelThread;
 		private string _fileSub;
@@ -32,13 +30,12 @@ namespace GRFEditor.WPF {
 		private string _fileSource;
 		private GrfHolder _grfSource = new GrfHolder();
 
-		public SubtractDialogCustom(EditorMainWindow editor, GrfHolder grfSource)
+		public SubtractDialogCustom(GrfHolder grfSource)
 			: base("Subtract GRFs", "convert.ico") {
 			InitializeComponent();
 
-			_textBoxOutputName.Text = String.Format("{0:0000}-{1:00}-{2:00}{3}", DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, "subtract.grf");
+			_textBoxOutputName.Text = $"{DateTime.Now.Year:0000}-{DateTime.Now.Month:00}-{DateTime.Now.Day:00}subtract.grf";
 			_asyncOperation = new AsyncOperation(_progressBarComponent);
-			_editor = editor;
 			_grfSource = grfSource;
 			_originalGrf = grfSource;
 

@@ -71,7 +71,7 @@
 			this.buttonSearch.TabIndex = 2;
 			this.buttonSearch.Text = "Search";
 			this.buttonSearch.UseVisualStyleBackColor = true;
-			this.buttonSearch.Click += new System.EventHandler(this._buttonSearch_Click);
+			this.buttonSearch.Click += _buttonSearch_Click;
 			// 
 			// listBox1
 			// 
@@ -83,8 +83,8 @@
 			this.listBox1.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBox1.Size = new System.Drawing.Size(373, 277);
 			this.listBox1.TabIndex = 3;
-			this.listBox1.SelectedIndexChanged += new System.EventHandler(this._listBox1_SelectedIndexChanged);
-			this.listBox1.MouseDown += new System.Windows.Forms.MouseEventHandler(this._listBox1_MouseDown);
+			this.listBox1.SelectedIndexChanged += _listBox1_SelectedIndexChanged;
+			this.listBox1.MouseDown += _listBox1_MouseDown;
 			// 
 			// menuStrip1
 			// 
@@ -114,21 +114,21 @@
 			this.newToolStripMenuItem.Name = "newToolStripMenuItem";
 			this.newToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
 			this.newToolStripMenuItem.Text = "New";
-			this.newToolStripMenuItem.Click += new System.EventHandler(this._newToolStripMenuItem_Click);
+			this.newToolStripMenuItem.Click += _newToolStripMenuItem_Click;
 			// 
 			// saveToolStripMenuItem
 			// 
 			this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
 			this.saveToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
 			this.saveToolStripMenuItem.Text = "Save";
-			this.saveToolStripMenuItem.Click += new System.EventHandler(this._saveToolStripMenuItem_Click);
+			this.saveToolStripMenuItem.Click += _saveToolStripMenuItem_Click;
 			// 
 			// openToolStripMenuItem
 			// 
 			this.openToolStripMenuItem.Name = "openToolStripMenuItem";
 			this.openToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
 			this.openToolStripMenuItem.Text = "Open";
-			this.openToolStripMenuItem.Click += new System.EventHandler(this._openToolStripMenuItem_Click);
+			this.openToolStripMenuItem.Click += _openToolStripMenuItem_Click;
 			// 
 			// openRecentToolStripMenuItem
 			// 
@@ -142,7 +142,7 @@
 			this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
 			this.closeToolStripMenuItem.Size = new System.Drawing.Size(134, 22);
 			this.closeToolStripMenuItem.Text = "Close";
-			this.closeToolStripMenuItem.Click += new System.EventHandler(this._closeToolStripMenuItem_Click);
+			this.closeToolStripMenuItem.Click += _closeToolStripMenuItem_Click;
 			// 
 			// editToolStripMenuItem
 			// 
@@ -161,21 +161,21 @@
 			this.addToolStripMenuItem.Name = "addToolStripMenuItem";
 			this.addToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
 			this.addToolStripMenuItem.Text = "Add";
-			this.addToolStripMenuItem.Click += new System.EventHandler(this._addToolStripMenuItem_Click);
+			this.addToolStripMenuItem.Click += _addToolStripMenuItem_Click;
 			// 
 			// deleteToolStripMenuItem
 			// 
 			this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
 			this.deleteToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
 			this.deleteToolStripMenuItem.Text = "Delete";
-			this.deleteToolStripMenuItem.Click += new System.EventHandler(this._deleteToolStripMenuItem_Click);
+			this.deleteToolStripMenuItem.Click += _deleteToolStripMenuItem_Click;
 			// 
 			// extractToolStripMenuItem
 			// 
 			this.extractToolStripMenuItem.Name = "extractToolStripMenuItem";
 			this.extractToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
 			this.extractToolStripMenuItem.Text = "Extract";
-			this.extractToolStripMenuItem.Click += new System.EventHandler(this._extractToolStripMenuItem_Click);
+			this.extractToolStripMenuItem.Click += _extractToolStripMenuItem_Click;
 			// 
 			// undoToolStripMenuItem
 			// 
@@ -183,7 +183,7 @@
 			this.undoToolStripMenuItem.Name = "undoToolStripMenuItem";
 			this.undoToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
 			this.undoToolStripMenuItem.Text = "Undo";
-			this.undoToolStripMenuItem.Click += new System.EventHandler(this._undoToolStripMenuItem_Click);
+			this.undoToolStripMenuItem.Click += _undoToolStripMenuItem_Click;
 			// 
 			// redoToolStripMenuItem
 			// 
@@ -191,7 +191,7 @@
 			this.redoToolStripMenuItem.Name = "redoToolStripMenuItem";
 			this.redoToolStripMenuItem.Size = new System.Drawing.Size(109, 22);
 			this.redoToolStripMenuItem.Text = "Redo";
-			this.redoToolStripMenuItem.Click += new System.EventHandler(this._redoToolStripMenuItem_Click);
+			this.redoToolStripMenuItem.Click += _redoToolStripMenuItem_Click;
 			// 
 			// textBox2
 			// 

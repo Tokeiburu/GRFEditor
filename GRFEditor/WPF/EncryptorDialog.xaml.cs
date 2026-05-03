@@ -34,7 +34,7 @@ namespace GRFEditor.WPF {
 			_grf = grf;
 
 			_recentFiles = new WpfRecentFiles(GrfEditorConfiguration.ConfigAsker, 6, _miLoadRecent, "Encryptor");
-			_recentFiles.FileClicked += new RecentFilesManager.RFMFileClickedEventHandler(_recentFiles_FileClicked);
+			_recentFiles.FileClicked += _recentFiles_FileClicked;
 			_recentFiles.Reload();
 
 			_tbClientPath.Text = GrfEditorConfiguration.EncryptorClientPath;
@@ -233,7 +233,7 @@ namespace GRFEditor.WPF {
 		}
 
 		private void _miLoad_Click(object sender, RoutedEventArgs e) {
-			string file = PathRequest.OpenFileEditor("filter", FileFormat.MergeFilters(Format.GrfKey));
+			string file = PathRequest.OpenFileEditor("filter", FileFormat.MergeFilters(FileFormat.GrfKey));
 
 			if (file != null) {
 				_recentFiles.AddRecentFile(file);
@@ -248,7 +248,7 @@ namespace GRFEditor.WPF {
 				return;
 			}
 
-			string file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(Format.GrfKey));
+			string file = PathRequest.SaveFileEditor("filter", FileFormat.MergeFilters(FileFormat.GrfKey));
 
 			if (file != null) {
 				_recentFiles.AddRecentFile(file);

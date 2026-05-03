@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using ErrorManager;
@@ -22,42 +21,51 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// </summary>
 	public partial class PreviewContainer : UserControl, IFolderPreviewTab {
 		private readonly EditorMainWindow _editor;
-		private readonly Dictionary<string, Grid> _grids = new Dictionary<string, Grid>();
-		private readonly object _lock = new object();
-		private readonly Queue<PreviewItem> _previewItems;
+		private readonly PreviewService _previewService;
 		private TkPath _currentPath;
 		private GrfHolder _grfData;
+		private Func<bool> _isCancelRequired;
+		private List<Grid> _typeGrids = new List<Grid>();
 
-		public PreviewContainer(Queue<PreviewItem> previewItems, EditorMainWindow editor) {
-			_previewItems = previewItems;
+		public PreviewContainer(PreviewService previewService, EditorMainWindow editor) {
+			_previewService = previewService;
 			_editor = editor;
 
 			InitializeComponent();
 
+			_initEncodingUI();
+
+			_typeGrids.Add(_gridThor);
+			_typeGrids.Add(_gridGrf);
+		}
+
+		private void _initEncodingUI() {
 			_comboBoxEncoding.Init(null,
-			                       new TypeSetting<int>(v => GrfEditorConfiguration.EncodingCodepage = v, () => GrfEditorConfiguration.EncodingCodepage),
-			                       new TypeSetting<Encoding>(v => EncodingService.DisplayEncoding = v, () => EncodingService.DisplayEncoding)
-				);
+				new TypeSetting<int>(v => GrfEditorConfiguration.EncodingCodepage = v, () => GrfEditorConfiguration.EncodingCodepage),
+				new TypeSetting<Encoding>(v => EncodingService.DisplayEncoding = v, () => EncodingService.DisplayEncoding)
+			);
 
 			_comboBoxEncoding.EncodingChanged += (s, enc) => {
 				if (!_editor.SetEncoding(enc.Encoding.CodePage)) {
 					enc.Cancel = true;
 				}
 			};
-
-			_comboBoxPatchMode.SelectionChanged += _comboBoxPatchMode_SelectionChanged;
-			_textBoxTargetGrf.TextChanged += _textBoxTargetGrf_TextChanged;
-			
-			_grids[".thor"] = _gridThor;
-			_grids[".grf"] = _gridGrf;
 		}
 
 		#region IFolderPreviewTab Members
 
 		public void Update() {
-			Thread thread = new Thread(() => _load(_currentPath)) { Name = "GrfEditor - Preview container thread" };
-			thread.SetApartmentState(ApartmentState.STA);
-			thread.Start();
+			var currentPath = _currentPath;
+			_isCancelRequired = () => _previewService.QueueCount != 0 || _currentPath.GetFullPath() != currentPath.GetFullPath();
+
+			Task.Run(delegate {
+				try {
+					_load();
+				}
+				catch (Exception err) {
+					ErrorHandler.HandleException(err);
+				}
+			});
 		}
 
 		public void Update(bool forceUpdate) {
@@ -75,50 +83,54 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		#endregion
 
-		private void _load(TkPath currentSearch) {
-			try {
-				lock (_lock) {
-					if (_previewItems.Count != 0 || currentSearch.GetFullPath() != _currentPath.GetFullPath()) return;
+		private void _load() {
+			if (_isCancelRequired()) return;
 
-					_comboBoxEncoding.Dispatch(p => p.Refresh());
-					_textBoxSourceFileName.Dispatch(p => p.Text = _grfData.FileName);
+			this.Dispatch(delegate {
+				_setupUI();
+			});
+		}
 
-					if (_grfData.FileName.GetExtension() == ".thor") {
-						_setTargetGrf();
-						_selectPatchMode();
-					}
-					else {
-						_tbMagicHeader.Dispatch(p => _tbMagicHeader.Text = _grfData.Header.Magic);
-						_tbMagicHeader.Dispatch(p => _buttonMagicReset.IsEnabled = (_tbMagicHeader.Text != (_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic)));
-					}
+		private void _setupUI() {
+			_comboBoxEncoding.Refresh();
+			_textBoxSourceFileName.Text = _grfData.FileName;
 
-					_setVisible();
-				}
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
+			_typeGrids.ForEach(p => p.Visibility = Visibility.Hidden);
+
+			switch (_grfData.FileName.GetExtension()) {
+				case ".thor":
+					_textBoxTargetGrf.Text = _grfData.GetAttachedProperty<string>("Thor.TargetGrf") ?? "";
+					_comboBoxPatchMode.SelectedIndex = _grfData.GetAttachedProperty<bool>("Thor.UseGrfMerging") ? 1 : 0;
+					_labelPropertyType.Content = "Thor type properties";
+					_gridThor.Visibility = Visibility.Visible;
+					break;
+				case ".grf":
+				case ".gpf":
+				case ".rgz":
+				default:
+					_tbMagicHeader.Text = _grfData.Header.Magic;
+					_buttonMagicReset.IsEnabled = !_isDefaultMagicHeader();
+					_labelPropertyType.Content = "Grf type properties";
+					_gridGrf.Visibility = Visibility.Visible;
+
+					_comboBoxFormat.SelectionChanged -= _comboBoxFormat_SelectionChanged;
+					_comboBoxFormat.SelectedItem = _grfData.Header.FormatView;
+					_comboBoxFormat.SelectionChanged += _comboBoxFormat_SelectionChanged;
+					break;
 			}
 		}
 
-		private void _selectPatchMode() {
-			_comboBoxPatchMode.Dispatch(delegate { _comboBoxPatchMode.SelectedIndex = _grfData.GetAttachedProperty<bool>("Thor.UseGrfMerging") ? 1 : 0; });
-		}
-
+		#region Thor settings
 		private void _comboBoxPatchMode_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 			if (_grfData == null) return;
 
 			try {
-				_grfData.Attached["Thor.UseGrfMerging"] = _comboBoxPatchMode.SelectedIndex == 1;
+				bool directoryPatchMode = _comboBoxPatchMode.SelectedIndex == 0;
 
-				if (_comboBoxPatchMode.SelectedIndex == 0) {
-					_tbTarget.Visibility = Visibility.Collapsed;
-					_textBoxTargetGrf.Visibility = Visibility.Collapsed;
-				}
-				else {
-					_tbTarget.Visibility = Visibility.Visible;
-					_textBoxTargetGrf.Visibility = Visibility.Visible;
-				}
-
+				_grfData.Attached["Thor.UseGrfMerging"] = !directoryPatchMode;
+				var visibility = directoryPatchMode ? Visibility.Collapsed : Visibility.Visible;
+				_tbTarget.Visibility = visibility;
+				_textBoxTargetGrf.Visibility = visibility;
 				_tkInfo.Visibility = _textBoxTargetGrf.Text == "" && _textBoxTargetGrf.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
 			}
 			catch (Exception err) {
@@ -126,105 +138,48 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
-		private void _setTargetGrf() {
-			_textBoxTargetGrf.Dispatch(delegate { _textBoxTargetGrf.Text = (string) (_grfData.Attached["Thor.TargetGrf"] ?? ""); });
-		}
-
 		private void _textBoxTargetGrf_TextChanged(object sender, TextChangedEventArgs e) {
 			_grfData.Attached["Thor.TargetGrf"] = _textBoxTargetGrf.Text;
 			_tkInfo.Visibility = _textBoxTargetGrf.Text == "" && _textBoxTargetGrf.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
+		}
+		#endregion
 
-			//if (_textBoxTargetGrf.Text != "") {
-			//    _labelFind.Visibility = Visibility.Hidden;
-			//}
+		#region GRF settings
+		private bool _isDefaultMagicHeader() {
+			return _grfData.Header.Magic == _getDefaultMagicHeader();
 		}
 
-		private void _setVisible() {
-			this.Dispatch(delegate {
-				_grids.Values.ToList().ForEach(p => p.Visibility = Visibility.Collapsed);
-
-				if (_grfData.FileName.GetExtension() == ".thor") {
-					_labelPropetyType.Content = "Thor type properties";
-					_grids[".thor"].Visibility = Visibility.Visible;
-				}
-				else {
-					_labelPropetyType.Content = "Grf type properties";
-					_grids[".grf"].Visibility = Visibility.Visible;
-					_selectVersion();
-				}
-			});
-		}
-
-		private void _selectVersion() {
-			_comboBoxFormat.Dispatch(delegate {
-				_comboBoxFormat.SelectionChanged -= _comboBoxFormat_SelectionChanged;
-
-				if (_grfData.Header.Is(3, 0)) {
-					_comboBoxFormat.SelectedIndex = 0;
-				}
-				else if (_grfData.Header.Is(2, 0)) {
-					_comboBoxFormat.SelectedIndex = 1;
-				}
-				else if (_grfData.Header.Is(1, 3)) {
-					_comboBoxFormat.SelectedIndex = 2;
-				}
-				else if (_grfData.Header.Is(1, 2)) {
-					_comboBoxFormat.SelectedIndex = 3;
-				}
-
-				_comboBoxFormat.SelectionChanged += _comboBoxFormat_SelectionChanged;
-			});
+		private string _getDefaultMagicHeader() {
+			return _grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic;
 		}
 
 		protected void _comboBoxFormat_SelectionChanged(object sender, SelectionChangedEventArgs e) {
-			if (_comboBoxFormat != null) {
-				try {
-					_grfData.Commands.Begin();
+			if (_comboBoxFormat.SelectedItem == null)
+				return;
 
-					switch(_comboBoxFormat.SelectedIndex) {
-						case 0:
-							_grfData.Commands.ChangeVersion(3, 0);
+			try {
+				var targetFormat = (GrfFormatView)_comboBoxFormat.SelectedItem;
 
-							if (_grfData.Header.Magic == GrfStrings.MasterOfMagic) {
-								_grfData.Commands.ChangeHeader(GrfStrings.EventHorizon, _changeHeaderCallback);
-							}
-							break;
-						case 1:
-							_grfData.Commands.ChangeVersion(2, 0);
+				if (targetFormat == _grfData.Header.FormatView)
+					return;
 
-							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
-								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
-							}
-							break;
-						case 2:
-							_grfData.Commands.ChangeVersion(1, 3);
+				_grfData.Commands.Begin();
+				_grfData.Commands.ChangeVersion(targetFormat.Major, targetFormat.Minor);
 
-							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
-								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
-							}
-							break;
-						case 3:
-							_grfData.Commands.ChangeVersion(1, 2);
-
-							if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
-								_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
-							}
-							break;
+				if (targetFormat == GrfFormatViews.Grf300) {
+					if (_grfData.Header.Magic == GrfStrings.MasterOfMagic) {
+						_grfData.Commands.ChangeHeader(GrfStrings.EventHorizon, _changeHeaderCallback);
 					}
 				}
-				finally {
-					_grfData.Commands.End();
+				else {
+					if (_grfData.Header.Magic == GrfStrings.EventHorizon) {
+						_grfData.Commands.ChangeHeader(GrfStrings.MasterOfMagic, _changeHeaderCallback);
+					}
 				}
 			}
-		}
-
-		private void _tbTarget_GotFocus(object sender, RoutedEventArgs e) {
-			//_labelFind.Visibility = Visibility.Hidden;
-		}
-
-		private void _tbTarget_LostFocus(object sender, RoutedEventArgs e) {
-			//if (_textBoxTargetGrf.Text == "")
-			//    _labelFind.Visibility = Visibility.Visible;
+			finally {
+				_grfData.Commands.End();
+			}
 		}
 
 		private void _buttonMagicEdit_Click(object sender, RoutedEventArgs e) {
@@ -236,12 +191,15 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _buttonMagicReset_Click(object sender, RoutedEventArgs e) {
-			_grfData.Commands.ChangeHeader(_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic, _changeHeaderCallback);
+			_grfData.Commands.ChangeHeader(_getDefaultMagicHeader(), _changeHeaderCallback);
 		}
 
-		private void _changeHeaderCallback(string header, bool execute) {
-			_tbMagicHeader.Text = header;
-			_buttonMagicReset.IsEnabled = _tbMagicHeader.Text != (_grfData.Header.IsCompatibleWith(3, 0) ? GrfStrings.EventHorizon : GrfStrings.MasterOfMagic);
+		private void _changeHeaderCallback(string magic, bool execute) {
+			this.Dispatch(() => {
+				_tbMagicHeader.Text = magic;
+				_buttonMagicReset.IsEnabled = !_isDefaultMagicHeader();
+			});
 		}
+		#endregion
 	}
 }

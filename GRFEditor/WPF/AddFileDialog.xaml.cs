@@ -17,29 +17,28 @@ namespace GRFEditor.WPF {
 	/// Interaction logic for AddFile.xaml
 	/// </summary>
 	public partial class AddFileDialog : TkWindow {
+		public string SelectedFilePath { get; set; }
+		public TkPath SelectedGrfPath { get; set; }
+
 		private string _filePath = "";
 
-		public AddFileDialog(TreeView treeView, string grfPath = null) : base("Add files", "add.ico") {
+		public AddFileDialog(TreeView treeView, TkPath grfSelectPath = null) : base("Add files", "add.ico") {
 			InitializeComponent();
 
+			_copyTreeView(treeView);
+			_selectNode(grfSelectPath);
+			_treeView.ScrollToCenterOfView(_treeView.SelectedItem);
+
+			WpfUtilities.SetMinAndMaxSize(this);
+		}
+
+		private void _copyTreeView(TreeView treeView) {
 			foreach (TkTreeViewItem item in treeView.Items) {
 				_treeView.Items.Add(_copyNode(item));
 			}
 
 			_treeView.Items.Refresh();
-
-			_selectNode(grfPath);
-			_filePath = _textBoxSourceFile.Text;
-
-			if (treeView.Items.Count > 0)
-				GrfPath = new TkPath(TreeViewPathManager.GetTkPath(treeView.Items[0]));
-
-			WpfUtilities.SetMinAndMaxSize(this);
-			_treeView_SelectedItemChanged(null, null);
 		}
-
-		public string FilePath { get; set; }
-		public TkPath GrfPath { get; set; }
 
 		protected TreeViewItem _copyNode(TkTreeViewItem viewItem) {
 			TkTreeViewItem currentNode;
@@ -62,7 +61,7 @@ namespace GRFEditor.WPF {
 			return currentNode;
 		}
 
-		protected void _selectNode(string grfPath) {
+		protected void _selectNode(TkPath grfPath) {
 			try {
 				if (grfPath == null) return;
 
@@ -74,12 +73,11 @@ namespace GRFEditor.WPF {
 					return;
 				}
 
-				string containerPath = grfPath.Split('?')[0];
-				string[] values = grfPath.Split('?')[1].Split('\\');
+				string[] folders = grfPath.RelativePath.Split('\\');
 
 				TkTreeViewItem currentNode = null;
 				foreach (ProjectTreeViewItem pNode in _treeView.Items) {
-					if (pNode.TkPath.FilePath == containerPath) {
+					if (pNode.TkPath.FilePath == grfPath.FilePath) {
 						currentNode = pNode;
 						break;
 					}
@@ -88,7 +86,7 @@ namespace GRFEditor.WPF {
 				if (currentNode == null)
 					return;
 
-				foreach (string f in values) {
+				foreach (string f in folders) {
 					foreach (TkTreeViewItem item in currentNode.Items) {
 						if (item.HeaderText == f) {
 							currentNode = item;
@@ -110,16 +108,16 @@ namespace GRFEditor.WPF {
 
 			if (path != null) {
 				_textBoxGrfPath.Text = path.RelativePath;
-				GrfPath = path;	
+				SelectedGrfPath = path;	
 			}
 		}
 
 		protected void _buttonOK_Click(object sender, RoutedEventArgs e) {
-			FilePath = _filePath;
+			SelectedFilePath = _filePath;
 
-			if (GrfPath.RelativePath == "") {
-				if (GrfPath.FilePath.IsExtension(".rgz", ".thor")) {
-					GrfPath.RelativePath = GrfStrings.RgzRoot;
+			if (SelectedGrfPath.RelativePath == "") {
+				if (SelectedGrfPath.FilePath.IsExtension(".rgz", ".thor")) {
+					SelectedGrfPath.RelativePath = GrfStrings.RgzRoot;
 				}
 			}
 

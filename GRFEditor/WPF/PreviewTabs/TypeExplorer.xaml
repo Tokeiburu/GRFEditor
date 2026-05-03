@@ -6,6 +6,6 @@
              RenderOptions.BitmapScalingMode="NearestNeighbor"
              xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary" mc:Ignorable="d" >
     <Grid>
-        <WPF:TkView x:Name="_view" BorderThickness="0" SnapsToDevicePixels="True" RenderOptions.BitmapScalingMode="NearestNeighbor" RenderOptions.EdgeMode="Unspecified" />
+		<WPF:TkView x:Name="_view" BorderThickness="0" SnapsToDevicePixels="True" VirtualizingStackPanel.IsVirtualizing="True" VirtualizingStackPanel.VirtualizationMode="Recycling" RenderOptions.BitmapScalingMode="NearestNeighbor" RenderOptions.EdgeMode="Unspecified" />
     </Grid>
 </UserControl>

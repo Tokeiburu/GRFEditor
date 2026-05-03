@@ -90,7 +90,7 @@ namespace GRF.Image {
 		}
 
 		public static GrfColor FromByteArray(IList<byte> data, int offset, GrfImageType type) {
-			GrfColor color = default(GrfColor);
+			GrfColor color = new GrfColor();
 
 			switch (type) {
 				case GrfImageType.Indexed8:
@@ -644,6 +644,15 @@ namespace GRF.Image {
 			color[3] = 255;
 
 			Buffer.BlockCopy(color, 0, colorsData, arrayIndex, 4);
+		}
+
+		public static GrfColor Lerp(GrfColor a, GrfColor b, float t) {
+			return GrfColor.FromArgb(
+				(byte)(a.A + (b.A - a.A) * t),
+				(byte)(a.R + (b.R - a.R) * t),
+				(byte)(a.G + (b.G - a.G) * t),
+				(byte)(a.B + (b.B - a.B) * t)
+			);
 		}
 	}
 

@@ -4,18 +4,30 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" mc:Ignorable="d" 
+             xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
              d:DesignHeight="300" d:DesignWidth="300">
     <Grid>
-        <ListView AllowDrop="True" Name="_itemsResources" Margin="3" PreviewMouseRightButtonUp="_itemsResources_PreviewMouseRightButtonUp" DragEnter="_itemsResources_DragEnter" Drop="_itemsResources_Drop">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition Width="auto" />
+		</Grid.ColumnDefinitions>
+        <ListView AllowDrop="True" Name="_itemsResources" Margin="3 3 0 3" PreviewMouseRightButtonUp="_itemsResources_PreviewMouseRightButtonUp" DragEnter="_itemsResources_DragEnter" Drop="_itemsResources_Drop">
             <ListView.ContextMenu>
                 <ContextMenu>
-                    <Styles:TkMenuItem Name="_menuItemsDelete" Header="Delete" Click="_menuItemsDelete_Click" IconPath="delete.png" />
-                    <Styles:TkMenuItem Name="_menuItemsMoveUp" Header="Move up" Click="_menuItemsMoveUp_Click" IconPath="arrowup.png" />
-                    <Styles:TkMenuItem Name="_menuItemsMoveDown" Header="Move down" Click="_menuItemsMoveDown_Click"  IconPath="arrowdown.png" />
-                    <Styles:TkMenuItem Name="_menuItemsSelectInExplorer" Header="Select in explorer" Click="_menuItemsSelectInExplorer_Click" IconPath="find.png" />
-                    <Styles:TkMenuItem Name="_menuItemsAdd" Header="Add..." Click="_menuItemsAdd_Click" IconPath="add.png" />
+					<Styles:TkMenuItem Name="_menuItemsDelete" Header="Delete" Click="_menuItemsDelete_Click" TokeiLibrary:WpfProperties.ImagePath="delete.png" />
+					<Styles:TkMenuItem Name="_menuItemsMoveUp" Header="Move up" Click="_menuItemsMoveUp_Click" TokeiLibrary:WpfProperties.ImagePath="arrowup.png" />
+					<Styles:TkMenuItem Name="_menuItemsMoveDown" Header="Move down" Click="_menuItemsMoveDown_Click" TokeiLibrary:WpfProperties.ImagePath="arrowdown.png" />
+					<Styles:TkMenuItem Name="_menuItemsSelectInExplorer" Header="Select in explorer" Click="_menuItemsSelectInExplorer_Click" TokeiLibrary:WpfProperties.ImagePath="find.png" />
+					<Styles:TkMenuItem Name="_menuItemsAdd" Header="Add..." Click="_menuItemsAdd_Click" TokeiLibrary:WpfProperties.ImagePath="add.png" />
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>
+		<StackPanel Grid.Column="1" HorizontalAlignment="Right" Margin="0 1 0 0">
+			<Button x:Name="_buttonMoveAdd" Height="20" TokeiLibrary:WpfProperties.ImagePath="add.png" Width="20" Margin="2" />
+			<Button x:Name="_buttonMoveUp" Height="20" TokeiLibrary:WpfProperties.ImagePath="arrowup.png" Width="20" Margin="2" />
+			<Button x:Name="_buttonMoveDown" Height="20" TokeiLibrary:WpfProperties.ImagePath="arrowdown.png" Width="20" Margin="2" />
+			<Button x:Name="_buttonMoveSelectInExplorer" Height="20" TokeiLibrary:WpfProperties.ImagePath="find.png" Width="20" Margin="2" Visibility="Collapsed" />
+			<Button x:Name="_buttonDelete" TokeiLibrary:WpfProperties.ImagePath="delete.png" Height="20" Width="20" Margin="2" />
+		</StackPanel>
     </Grid>
 </UserControl>

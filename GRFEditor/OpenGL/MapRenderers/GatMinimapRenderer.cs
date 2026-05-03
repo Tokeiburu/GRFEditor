@@ -95,7 +95,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				for (int y = 0; y < _gat.Height; y++) {
 					List<Vertex> list = null;
 
-					Cell cell = _gat[x, y];
+					ref Cell cell = ref _gat[x, y];
 					Cube cube = _gnd[x / 2, y / 2];
 
 					if (cube.TileUp == -1)

@@ -1,25 +1,19 @@
 ﻿using GRF.FileFormats.ActFormat;
 using GRF.FileFormats.ActFormat.Commands;
 using GRF.FileFormats.PalFormat;
-using GRF.FileFormats.SprFormat.Builder;
 using GRF.Image;
 using Utilities;
 
 namespace GRF.FileFormats.SprFormat.Commands {
-	public class Insert : ICommand, IActCommand {
+	public class Insert : IActCommand {
 		private readonly int _absoluteIndex;
 		private readonly GrfImage _image;
-		private readonly SprBuilderImageView _view;
 		private bool? _isPaletteSet;
 		private int _relativeIndex = -1;
 
 		public Insert(int absoluteIndex, GrfImage image) {
 			_absoluteIndex = absoluteIndex;
 			_image = image;
-		}
-
-		public Insert(SprBuilderImageView view) {
-			_view = view;
 		}
 
 		#region IActCommand Members
@@ -61,18 +55,6 @@ namespace GRF.FileFormats.SprFormat.Commands {
 
 		public string CommandDescription {
 			get { return "Sprite added"; }
-		}
-
-		#endregion
-
-		#region ICommand Members
-
-		public void Execute(SprBuilderInterface sbi) {
-			sbi.Insert(_view);
-		}
-
-		public void Undo(SprBuilderInterface sbi) {
-			sbi.Delete(_view);
 		}
 
 		#endregion

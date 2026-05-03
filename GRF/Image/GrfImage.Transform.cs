@@ -1,6 +1,10 @@
 ﻿using GRF.ContainerFormat;
 using GRF.Graphics;
+using GRF.Image.Decoders;
 using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using Utilities;
 
 namespace GRF.Image {
 	public partial class GrfImage {
@@ -47,22 +51,19 @@ namespace GRF.Image {
 			scaleX = 1 / scaleX;
 			scaleY = 1 / scaleY;
 
-			double fractionX, fractionY, oneMinusX, oneMinusY;
-			int ceilX, ceilY, floorX, floorY;
-
-			for (int x = 0; x < newWidth; x++) {
-				floorX = (int)Math.Floor(x * scaleX);
-				ceilX = floorX + 1;
+			Parallel.For(0, newWidth, x => {
+				int floorX = (int)Math.Floor(x * scaleX);
+				int ceilX = floorX + 1;
 				if (ceilX >= Width) ceilX = floorX;
-				fractionX = x * scaleX - floorX;
-				oneMinusX = 1.0 - fractionX;
+				double fractionX = x * scaleX - floorX;
+				double oneMinusX = 1.0 - fractionX;
 
 				for (int y = 0; y < newHeight; y++) {
-					floorY = (int)Math.Floor(y * scaleY);
-					ceilY = floorY + 1;
+					int floorY = (int)Math.Floor(y * scaleY);
+					int ceilY = floorY + 1;
 					if (ceilY >= Height) ceilY = floorY;
-					fractionY = y * scaleY - floorY;
-					oneMinusY = 1.0 - fractionY;
+					double fractionY = y * scaleY - floorY;
+					double oneMinusY = 1.0 - fractionY;
 
 					for (int k = 0; k < bpp; k++) {
 						pixels[bpp * (y * newWidth + x) + k] =
@@ -73,7 +74,7 @@ namespace GRF.Image {
 								Pixels[(ceilY * Width + ceilX) * bpp + k]));
 					}
 				}
-			}
+			});
 
 			Pixels = pixels;
 			Width = newWidth;
@@ -326,6 +327,97 @@ namespace GRF.Image {
 			var trimLengths = GetTrimLengths();
 
 			Crop(trimLengths.Left, trimLengths.Top, trimLengths.Right, trimLengths.Bottom);
+		}
+
+		/// <summary>
+		/// Creates the a displacement map used for modifying an image. This tool is similar to "Liquify".
+		/// </summary>
+		/// <returns></returns>
+		public WarpField CreateWarpField() {
+			return new WarpField(this.Width, this.Height);
+		}
+
+		/// <summary>
+		/// Applies the warp map to the image.
+		/// </summary>
+		/// <param name="field">The warp map.</param>
+		public unsafe void ApplyWarpField(WarpField field) {
+			GrfImage result = this;
+			GrfImage source = this.Clone();
+			Indexed8FormatConverter converter = new Indexed8FormatConverter();
+			byte[] palette = source.Palette ?? new byte[1024];
+			converter.ExistingPalette = palette;
+			ConcurrentDictionary<int, int> matches = new ConcurrentDictionary<int, int>();
+
+			fixed (byte* pPaletteBase = palette) {
+				byte* pPalette = pPaletteBase;
+
+				Parallel.For(0, source.Height * source.Width, index => {
+					int x = index % source.Width;
+					int y = index / source.Width;
+
+					ref TkVector2 d = ref field.GetSafe(x, y);
+
+					if (d.X == 0 && d.Y == 0)
+						return;
+
+					float sampleX = x - d.X;
+					float sampleY = y - d.Y;
+
+					if (field.UseClosestNearbyPixel) {
+						int x0 = Methods.Clamp((int)Math.Round(sampleX), 0, source.Width - 1);
+						int y0 = Methods.Clamp((int)Math.Round(sampleY), 0, source.Height - 1);
+
+						if (result.GrfImageType == GrfImageType.Indexed8)
+							result.SetColor(x, y, source.Pixels[y0 * source.Width + x0]);
+						else
+							result.SetColor(x, y, source.GetColor(x0, y0));
+					}
+					else {
+						GrfColor c = SampleBilinear(source, sampleX, sampleY);
+
+						if (result.GrfImageType == GrfImageType.Indexed8) {
+							// ?? Test to see which feels best
+							if (c.A < field.AlphaCutoff) {
+								result.SetColor(x, y, 0);
+							}
+							else {
+								var idx = converter.FindClosetMatch(matches, c.R, c.G, c.B, pPalette, 1);
+								result.SetColor(x, y, idx);
+							}
+						}
+						else {
+							result.SetColor(x, y, c);
+						}
+					}
+				});
+			}
+		}
+
+		private static GrfColor SampleBilinear(GrfImage img, float x, float y) {
+			int x0 = (int)Math.Floor(x);
+			int y0 = (int)Math.Floor(y);
+			int x1 = x0 + 1;
+			int y1 = y0 + 1;
+
+			float tx = x - x0;
+			float ty = y - y0;
+
+			x0 = Methods.Clamp(x0, 0, img.Width - 1);
+			y0 = Methods.Clamp(y0, 0, img.Height - 1);
+			x1 = Methods.Clamp(x1, 0, img.Width - 1);
+			y1 = Methods.Clamp(y1, 0, img.Height - 1);
+
+			GrfColor c00 = img.GetColor(x0, y0);
+			GrfColor c10 = img.GetColor(x1, y0);
+			GrfColor c01 = img.GetColor(x0, y1);
+			GrfColor c11 = img.GetColor(x1, y1);
+
+			return GrfColor.Lerp(
+				GrfColor.Lerp(c00, c10, tx),
+				GrfColor.Lerp(c01, c11, tx),
+				ty
+			);
 		}
 	}
 }

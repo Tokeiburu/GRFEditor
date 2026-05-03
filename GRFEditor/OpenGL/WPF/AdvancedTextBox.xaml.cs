@@ -117,7 +117,7 @@ namespace GRFEditor.OpenGL.WPF {
 			_tb.TextChanged += (s, e) => {
 				OnTextChanged(e, false);
 			};
-			_tb.KeyDown += new KeyEventHandler(_tb_KeyDown);
+			_tb.KeyDown += _tb_KeyDown;
 
 			var color = (Color)Application.Current.Resources["UIThemeTextBoxBackgroundColor"];
 

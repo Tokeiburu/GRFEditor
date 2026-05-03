@@ -471,5 +471,11 @@ namespace GRF.IO {
 			CreateDirectoryFromFile(to);
 			File.Copy(from, to);
 		}
+
+		public static string GetAncestorPath(string sprPath) {
+			var parent = GetDirectoryName(GetDirectoryName(sprPath));
+
+			return GrfPath.Combine(parent, GrfPath.GetFileName(sprPath));
+		}
 	}
 }

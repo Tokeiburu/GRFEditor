@@ -54,7 +54,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			_data.Clear();
 		}
 
-		public void Add(TkPath path, MultiGrfReader metaGrf, Action<float> progress) {
+		public void Add(TkPath path, MultiGrfReader metaGrf, Action<float> progress, Func<bool> cancelToken) {
 			if (path.RelativePath != null) return;
 
 			string name = String.Format("db_{0}_{1}.tdb", path.FilePath.GetHashCode(), new FileInfo(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, "")).LastWriteTimeUtc.Ticks);
@@ -75,9 +75,14 @@ namespace GRFEditor.WPF.PreviewTabs {
 					grf.Open(path.FilePath.ReplaceFirst(GrfStrings.CurrentlyOpenedGrfHeader, ""));
 				}
 
-				grf.ThreadOperation(progress, () => false, (entry, data) => {
+				bool isCancelling = false;
+				grf.ThreadOperation(progress, () => isCancelling, (entry, data) => {
 					string file = entry.RelativePath;
-					//progress(index / (float)count * 100f);
+
+					if (cancelToken()) {
+						isCancelling = true;
+						return;
+					}
 
 					if (!_data.ContainsKey(file)) {
 						lock (_lock) {
@@ -167,6 +172,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 						}
 					}
 				});
+
+				if (cancelToken())
+					return;
 
 				using (MemoryStream stream = new MemoryStream())
 				using (StreamWriter writer = new StreamWriter(stream, EncodingService.Ansi)) {

@@ -34,6 +34,14 @@ namespace GrfToWpfBridge {
 			encoder.Save(pathDestination);
 		}
 
+		public static void Save(this GrfImage image, Stream stream, PixelFormatInfo format) {
+			GrfImage convertedImage = _convert(image, format);
+			BridgeEncoder encoder = BridgeEncoder.GetEncoder(format);
+
+			encoder.AddFrame(convertedImage);
+			encoder.Save(stream);
+		}
+
 		public static void Save(this GrfImage image, string pathDestination, PixelFormat format) {
 			pathDestination = _validatePath(pathDestination, image.GrfImageType);
 			Save(image, pathDestination, PixelFormatInfo.GetFormat(pathDestination.GetExtension(), format));
@@ -42,6 +50,10 @@ namespace GrfToWpfBridge {
 		public static void Save(this GrfImage image, string pathDestination) {
 			pathDestination = _validatePath(pathDestination, image.GrfImageType);
 			Save(image, pathDestination, PixelFormatInfo.GetFormat(pathDestination.GetExtension(), image.GrfImageType.ToPixelFormat()));
+		}
+
+		public static void Save(this GrfImage image, Stream stream) {
+			Save(image, stream, PixelFormatInfo.GetFormat(image.GrfImageType.ToPixelFormat()));
 		}
 
 		public static string SaveTo(this GrfImage image, string suggestedFileName, Setting setting) {
@@ -184,13 +196,13 @@ namespace GrfToWpfBridge {
 
 		#region Extension methods for Act
 
-		public static void SaveTo(this Act act, int actionIndex, string suggestedFileName, Setting setting, AsyncOperation asyncOperation = null) {
+		public static string SaveTo(this Act act, int actionIndex, string suggestedFileName, Setting setting, AsyncOperation asyncOperation = null) {
 			SaveFileDialog sfd = new SaveFileDialog();
 			sfd.FileName = Path.GetFileNameWithoutExtension(suggestedFileName);
 			sfd.AddExtension = true;
 			sfd.InitialDirectory = (string) setting.Get();
 			sfd.OverwritePrompt = true;
-			sfd.Filter = FileFormat.MergeFilters(Format.Gif);
+			sfd.Filter = FileFormat.Gif.ToFilter();
 
 			DialogResult res = sfd.ShowDialog();
 
@@ -217,7 +229,11 @@ namespace GrfToWpfBridge {
 				else {
 					action();
 				}
+
+				return filename;
 			}
+
+			return null;
 		}
 
 		#endregion

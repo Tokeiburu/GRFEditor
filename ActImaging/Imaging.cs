@@ -17,10 +17,26 @@ using Utilities.CommandLine;
 using Color = System.Drawing.Color;
 using Frame = GRF.FileFormats.ActFormat.Frame;
 using Point = System.Windows.Point;
+using GRF.Image.Decoders;
 
 namespace ActImaging {
 	public static class Imaging {
+		private static BoundingBox _defaultBoundingBox;
 		private static Color _transparentPixel = Color.FromArgb(255, 255, 0, 255);
+
+		static Imaging() {
+			_defaultBoundingBox = new BoundingBox();
+			_defaultBoundingBox.Max[0] = 1;
+			_defaultBoundingBox.Max[1] = 1;
+			_defaultBoundingBox.Min[0] = -1;
+			_defaultBoundingBox.Min[1] = -1;
+
+			_defaultBoundingBox.Center[0] = 0;
+			_defaultBoundingBox.Center[1] = 0;
+
+			_defaultBoundingBox.Range[0] = 1;
+			_defaultBoundingBox.Range[1] = 1;
+		}
 
 		/// <summary>
 		/// Gets or sets the transparent pixel used for the background in palettes.
@@ -42,10 +58,12 @@ namespace ActImaging {
 		public static List<ImageSource> GenerateImages(Act act, int actionIndex) {
 			List<ImageSource> images = new List<ImageSource>();
 
-			BoundingBox boundingBox = GenerateBoundingBox(act, actionIndex);
-
+			GenerateImageConfig config = new GenerateImageConfig();
+			config.Box = GenerateBoundingBox(act, actionIndex);
+			
 			for (int i = 0; i < act[actionIndex].Frames.Count; i++) {
-				images.Add(_generateImage(act, actionIndex, i, true, Colors.Transparent, boundingBox, Configuration.BestAvailableScaleMode));
+				config.Layers = act[actionIndex, i].Layers;
+				images.Add(_generateImage(act, config));
 			}
 
 			return images;
@@ -58,25 +76,9 @@ namespace ActImaging {
 		/// <param name="actionIndex">Index of the action.</param>
 		/// <param name="frameIndex">Index of the frame.</param>
 		/// <returns></returns>
-		public static ImageSource GenerateImage(Act act, int actionIndex, int frameIndex) {
-			BoundingBox boundingBox = GenerateBoundingBox(act, actionIndex);
-			return _generateImage(act, actionIndex, frameIndex, true, Colors.Transparent, boundingBox, Configuration.BestAvailableScaleMode);
-		}
-
-		public static ImageSource GenerateImage(Act act, int actionIndex, int frameIndex, BitmapScalingMode scalingMode) {
-			BoundingBox boundingBox = GenerateBoundingBox(act, actionIndex);
-			return _generateImage(act, actionIndex, frameIndex, true, Colors.Transparent, boundingBox, scalingMode);
-		}
-
-		public static ImageSource GenerateFrameImage(Act act, Frame frame) {
-			BoundingBox boundingBox = GenerateFrameBoundingBox(act, frame);
-			return _generateImage(act, frame, false, Colors.Transparent, boundingBox, Configuration.BestAvailableScaleMode);
-		}
-
-		public static ImageSource GenerateFrameImage(Act act, int actionIndex, int frameIndex) {
-			BoundingBox boundingBox = GenerateFrameBoundingBox(act, actionIndex, frameIndex);
-			return _generateImage(act, actionIndex, frameIndex, true, Colors.Transparent, boundingBox, Configuration.BestAvailableScaleMode);
-		}
+		public static ImageSource GenerateImage(Act act, List<Layer> layers, BitmapScalingMode scalingMode = BitmapScalingMode.NearestNeighbor) => _generateImage(act, new GenerateImageConfig(layers) { ScalingMode = scalingMode });
+		public static ImageSource GenerateImage(Act act, int actionIndex, int frameIndex, BitmapScalingMode scalingMode = BitmapScalingMode.NearestNeighbor) => GenerateImage(act, act[actionIndex, frameIndex].Layers, scalingMode);
+		public static ImageSource GenerateImage(Act act, Frame frame, BitmapScalingMode scalingMode = BitmapScalingMode.NearestNeighbor) => GenerateImage(act, frame.Layers, scalingMode);
 
 		/// <summary>
 		/// Generates all frames of the action index for the Act with advanced parameters.
@@ -89,10 +91,24 @@ namespace ActImaging {
 		/// <returns></returns>
 		public static List<ImageSource> GenerateImages(Act act, int actionIndex, bool uniform, System.Windows.Media.Color guideLineColors, int margin, BitmapScalingMode scalingMode) {
 			List<ImageSource> images = new List<ImageSource>();
-			BoundingBox boundingBox = GenerateBoundingBox(act, actionIndex, margin);
+
+			GenerateImageConfig config = new GenerateImageConfig();
+			config.Box = GenerateBoundingBox(act, actionIndex);
+			config.GuidelineColor = guideLineColors;
+			config.ScalingMode = scalingMode;
+
+			if (margin > 0) {
+				config.Box.Min[0] -= margin;
+				config.Box.Min[1] -= margin;
+				config.Box.Max[0] += margin;
+				config.Box.Max[1] += margin;
+				config.Box.Range[0] = config.Box.Max[0] - config.Box.Center[0];
+				config.Box.Range[1] = config.Box.Max[1] - config.Box.Center[1];
+			}
 
 			for (int i = 0; i < act[actionIndex].Frames.Count; i++) {
-				images.Add(_generateImage(act, actionIndex, i, uniform, guideLineColors, boundingBox, scalingMode));
+				config.Layers = act[actionIndex, i].Layers;
+				images.Add(_generateImage(act, config));
 			}
 
 			images.ForEach(p => p.SetValue(RenderOptions.BitmapScalingModeProperty, scalingMode));
@@ -142,7 +158,7 @@ namespace ActImaging {
 			int margin = 0;
 			System.Windows.Media.Color background = System.Windows.Media.Color.FromArgb(255, 255, 255, 255);
 			System.Windows.Media.Color guildeLinesColor = Colors.Transparent;
-			BitmapScalingMode scaling = Configuration.BestAvailableScaleMode;
+			BitmapScalingMode scaling = BitmapScalingMode.NearestNeighbor;
 			int delay = (int) Math.Ceiling((act[actionIndex].AnimationSpeed * 25));
 
 			for (int index = 0; index < extra.Length; index++) {
@@ -240,218 +256,141 @@ namespace ActImaging {
 			return (float) Math.Ceiling(max);
 		}
 
-		public static BoundingBox GenerateFrameBoundingBox(Act act, int actionIndex, int frameIndex) {
-			return GenerateFrameBoundingBox(act, act[actionIndex, frameIndex]);
-		}
 
-		public static BoundingBox GenerateFrameBoundingBox(Act act, Layer layer) {
+		public static BoundingBox GenerateBoundingBox(Act act, int actionIndex, bool ceilingAwayFromZero = true, bool enableScaling = true) {
+			List<Layer> layers = new List<Layer>();
+			foreach (var frame in act[actionIndex])
+				layers.AddRange(frame.Layers);
+			return GenerateBoundingBox(act, layers, ceilingAwayFromZero, enableScaling);
+		}
+		public static BoundingBox GenerateBoundingBox(Act act, Frame frame, bool ceilingAwayFromZero = true, bool enableScaling = true) => GenerateBoundingBox(act, frame.Layers, ceilingAwayFromZero, enableScaling);
+		public static BoundingBox GenerateBoundingBox(Act act, int actionIndex, int frameIndex, bool ceilingAwayFromZero = true, bool enableScaling = true) => GenerateBoundingBox(act, act[actionIndex, frameIndex].Layers, ceilingAwayFromZero, enableScaling);
+		public static BoundingBox GenerateBoundingBox(Act act, Layer layer, bool ceilingAwayFromZero = true, bool enableScaling = true) => GenerateBoundingBox(act, new List<Layer>() { layer }, ceilingAwayFromZero, enableScaling);
+		public static BoundingBox GenerateBoundingBox(Act act, List<Layer> layers, bool ceilingAwayFromZero = true, bool enableScaling = true) {
 			List<Plane> planes = new List<Plane>();
 			BoundingBox box = new BoundingBox();
 
-			if (layer.SpriteIndex < 0)
-				return box;
+			foreach (Layer layerF in layers) {
+				var layer = layerF;
 
-			Plane plane = layer.ToPlane(act);
-			planes.Add(plane);
-
-			if (planes.Count == 0) {
-				box.Max[0] = 2;
-				box.Max[1] = 2;
-				box.Min[0] = 0;
-				box.Min[1] = 0;
-
-				box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
-				box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-
-				box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-				box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
-
-				box.Range[0] = box.Max[0] - box.Center[0];
-				box.Range[1] = box.Max[1] - box.Center[1];
-
-				return box;
-			}
-
-			box.Max[0] = _awayRounding(planes.Max(p => p.Points.Max(q => q.X)));
-			box.Max[1] = _awayRounding(planes.Max(p => p.Points.Max(q => q.Y)));
-			box.Min[0] = _awayRounding(planes.Min(p => p.Points.Min(q => q.X)));
-			box.Min[1] = _awayRounding(planes.Min(p => p.Points.Min(q => q.Y)));
-
-			box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
-			box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-			box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-			box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
-			box.Range[0] = box.Max[0] - box.Center[0];
-			box.Range[1] = box.Max[1] - box.Center[1];
-
-			return box;
-		}
-
-		public static BoundingBox GenerateFrameBoundingBox(Act act, Frame frame) {
-			List<Plane> planes = new List<Plane>();
-			BoundingBox box = new BoundingBox();
-
-			foreach (Layer layer in frame) {
 				if (layer.SpriteIndex < 0)
 					continue;
 
-				GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
+				if (!enableScaling) {
+					layer = new Layer(layer);
+					layer.ScaleX = 1;
+					layer.ScaleY = 1;
+				}
+
 				Plane plane = layer.ToPlane(act);
 				planes.Add(plane);
 			}
 
 			if (planes.Count == 0) {
-				box.Max[0] = 2;
-				box.Max[1] = 2;
-				box.Min[0] = 0;
-				box.Min[1] = 0;
-
-				box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
-				box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-
-				box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-				box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
-
-				box.Range[0] = box.Max[0] - box.Center[0];
-				box.Range[1] = box.Max[1] - box.Center[1];
-
-				return box;
+				return _defaultBoundingBox.Clone();
 			}
 
-			box.Max[0] = _awayRounding(planes.Max(p => p.Points.Max(q => q.X)));
-			box.Max[1] = _awayRounding(planes.Max(p => p.Points.Max(q => q.Y)));
-			box.Min[0] = _awayRounding(planes.Min(p => p.Points.Min(q => q.X)));
-			box.Min[1] = _awayRounding(planes.Min(p => p.Points.Min(q => q.Y)));
-
-			box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
-			box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-			box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-			box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
-			box.Range[0] = box.Max[0] - box.Center[0];
-			box.Range[1] = box.Max[1] - box.Center[1];
-
+			box = _calculateBox(box, planes, ceilingAwayFromZero);
 			return box;
 		}
 
-		public static BoundingBox GenerateBoundingBox(Act act, int actionIndex, int margin = 0, bool enableScaling = true) {
-			List<Plane> planes = new List<Plane>();
-			BoundingBox box = new BoundingBox();
-
-			foreach (Frame frame in act[actionIndex].Frames) {
-				foreach (Layer layerF in frame.Layers) {
-					var layer = layerF;
-
-					if (layer.SpriteIndex < 0)
-						continue;
-
-					GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
-
-					if (!enableScaling) {
-						layer = new Layer(layer);
-						layer.ScaleX = 1;
-						layer.ScaleY = 1;
-					}
-
-					Plane plane = layer.ToPlane(act);
-					planes.Add(plane);
-				}
+		private static BoundingBox _calculateBox(BoundingBox box, List<Plane> planes, bool ceilingAwayFromZero) {
+			if (ceilingAwayFromZero) {
+				box.Max[0] = _awayRounding(planes.Max(p => p.Points.Max(q => q.X)));
+				box.Max[1] = _awayRounding(planes.Max(p => p.Points.Max(q => q.Y)));
+				box.Min[0] = _awayRounding(planes.Min(p => p.Points.Min(q => q.X)));
+				box.Min[1] = _awayRounding(planes.Min(p => p.Points.Min(q => q.Y)));
 			}
-
-			if (planes.Count == 0) {
-				box.Max[0] = 2;
-				box.Max[1] = 2;
-				box.Min[0] = 0;
-				box.Min[1] = 0;
-
-				box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
-				box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-
-				box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-				box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
-
-				box.Range[0] = box.Max[0] - box.Center[0];
-				box.Range[1] = box.Max[1] - box.Center[1];
-
-				return box;
-			}
-
-			box.Max[0] = _awayRounding(planes.Max(p => p.Points.Max(q => q.X)));
-			box.Max[1] = _awayRounding(planes.Max(p => p.Points.Max(q => q.Y)));
-			box.Min[0] = _awayRounding(planes.Min(p => p.Points.Min(q => q.X)));
-			box.Min[1] = _awayRounding(planes.Min(p => p.Points.Min(q => q.Y)));
-
-			if (margin > 0) {
-				box.Min[0] -= margin;
-				box.Min[1] -= margin;
-				box.Max[0] += margin;
-				box.Max[1] += margin;
+			else {
+				box.Max[0] = planes.Max(p => p.Points.Max(q => q.X));
+				box.Max[1] = planes.Max(p => p.Points.Max(q => q.Y));
+				box.Min[0] = planes.Min(p => p.Points.Min(q => q.X));
+				box.Min[1] = planes.Min(p => p.Points.Min(q => q.Y));
 			}
 
 			box.Center[0] = (box.Max[0] - box.Min[0]) / 2f + box.Min[0];
 			box.Center[1] = (box.Max[1] - box.Min[1]) / 2f + box.Min[1];
-			box.Center[0] = _awayRounding((2 * box.Center[0] + 1) / 2);
-			box.Center[1] = _awayRounding((2 * box.Center[1] + 1) / 2);
+
 			box.Range[0] = box.Max[0] - box.Center[0];
 			box.Range[1] = box.Max[1] - box.Center[1];
-
 			return box;
 		}
-		private static ImageSource _generateImage(Act act, int actionIndex, int frameIndex, bool uniform, System.Windows.Media.Color guideLineColors, BoundingBox box, BitmapScalingMode scalingMode) {
-			return _generateImage(act, act[actionIndex, frameIndex], uniform, guideLineColors, box, scalingMode);
+
+		public class GenerateImageConfig {
+			public BitmapScalingMode ScalingMode = BitmapScalingMode.NearestNeighbor;
+			public List<Layer> Layers = new List<Layer>();
+			public System.Windows.Media.Color? GuidelineColor;
+			public BoundingBox Box;
+
+			public GenerateImageConfig() {
+			}
+
+			public GenerateImageConfig(List<Layer> layers) {
+				Layers = layers;
+			}
 		}
-		private static ImageSource _generateImage(Act act, Frame frame, bool uniform, System.Windows.Media.Color guideLineColors, BoundingBox box, BitmapScalingMode scalingMode) {
-			List<Layer> layers = frame.Layers.ToList();
+
+		private static ImageSource _generateImage(Act act, GenerateImageConfig config) {
+			TransformGroup transformGroup = new TransformGroup();
+			RotateTransform rotate = new RotateTransform();
+			ScaleTransform scale = new ScaleTransform();
+			ScaleTransform mirrorScale = new ScaleTransform();
+			TranslateTransform translateFrame = new TranslateTransform();
+			TranslateTransform translateToCenter = new TranslateTransform();
+
+			transformGroup.Children.Add(mirrorScale);
+			transformGroup.Children.Add(translateToCenter);
+			transformGroup.Children.Add(scale);
+			transformGroup.Children.Add(rotate);
+			transformGroup.Children.Add(translateFrame);
 
 			DrawingGroup dGroup = new DrawingGroup();
 			using (DrawingContext dc = dGroup.Open()) {
-				foreach (Layer layer in layers) {
+				foreach (Layer layer in config.Layers) {
 					if (layer.SpriteIndex < 0)
 						continue;
 
-					GrfImage img = act.Sprite.Images[layer.SpriteTypeInt == 1 ? layer.SpriteIndex + act.Sprite.NumberOfIndexed8Images : layer.SpriteIndex];
+					GrfImage img = layer.GetImage(act.Sprite);
 
-					TransformGroup transformGroup = new TransformGroup();
-					ScaleTransform scale = new ScaleTransform();
-					TranslateTransform translate = new TranslateTransform();
-					TranslateTransform translate2 = new TranslateTransform();
-					RotateTransform rotate = new RotateTransform();
+					mirrorScale.ScaleX = layer.Mirror ? -1d : 1d;
+					mirrorScale.ScaleY = 1d;
+					mirrorScale.CenterX = img.Width / 2d;
 
-					translate2.X = -((img.Width + 1) / 2) + (layer.Mirror ? -(img.Width + 1) % 2 : 0);
-					translate2.Y = -((img.Height + 1) / 2);
-					translate.X = layer.OffsetX;
-					translate.Y = layer.OffsetY;
+					translateToCenter.X = -(img.Width + 1) / 2;
+					translateToCenter.Y = -(img.Height + 1) / 2;
 
-					scale.ScaleX = layer.ScaleX * (layer.Mirror ? -1 : 1);
+					scale.ScaleX = layer.ScaleX;
 					scale.ScaleY = layer.ScaleY;
 
 					rotate.Angle = layer.Rotation;
+					rotate.CenterX = img.Width % 2 == 1 ? -0.5f * layer.ScaleX : 0;
+					rotate.CenterY = img.Height % 2 == 1 ? -0.5f * layer.ScaleY : 0;
 
-					transformGroup.Children.Add(translate2);
-					transformGroup.Children.Add(scale);
-					transformGroup.Children.Add(rotate);
-					transformGroup.Children.Add(translate);
-					dc.PushTransform(transformGroup);
+					translateFrame.X = layer.OffsetX;
+					translateFrame.Y = layer.OffsetY;
+
+					dc.PushTransform(new MatrixTransform(transformGroup.Value));
 
 					img = img.Copy();
 					img.Multiply(layer.Color);
 					dc.DrawImage(img.Cast<BitmapSource>(), new Rect(0, 0, img.Width, img.Height));
-					
 					dc.Pop();
 				}
 
-				if (uniform) {
-					Pen shapeOutlinePen = new Pen(new SolidColorBrush(guideLineColors), 1);
+				if (config.GuidelineColor != null) {
+					var box = config.Box;
+					Pen shapeOutlinePen = new Pen(new SolidColorBrush(config.GuidelineColor.Value), 1);
 					shapeOutlinePen.Freeze();
 					dc.DrawLine(shapeOutlinePen, new Point(0, box.Max.Y), new Point(0, box.Min.Y));
 					dc.DrawLine(shapeOutlinePen, new Point(box.Min.X, 0), new Point(box.Max.X, 0));
 				}
 			}
 
-			dGroup.SetValue(RenderOptions.BitmapScalingModeProperty, scalingMode);
+			dGroup.SetValue(RenderOptions.BitmapScalingModeProperty, config.ScalingMode);
 			dGroup.Freeze();
 
 			DrawingImage dImage = new DrawingImage(dGroup);
-			dImage.SetValue(RenderOptions.BitmapScalingModeProperty, scalingMode);
+			dImage.SetValue(RenderOptions.BitmapScalingModeProperty, config.ScalingMode);
 			return dImage;
 		}
 		private static BitmapFrame _getIndexed8BitmapFrame(ImageSource source, System.Windows.Media.Color background, BitmapScalingMode mode) {
@@ -460,161 +399,39 @@ namespace ActImaging {
 			return _reconstructImage(im, background);
 		}
 		public static BitmapFrame ForceRender(ImageSource dImage, BitmapScalingMode mode) {
-			Viewbox viewbox = new Viewbox();
-			Image im = new Image();
-			im.Source = dImage;
-			im.SetValue(RenderOptions.BitmapScalingModeProperty, mode);
-			viewbox.Child = im;
-			viewbox.SetValue(RenderOptions.BitmapScalingModeProperty, mode);
-			viewbox.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-			viewbox.Measure(new Size(dImage.Width, dImage.Height));
-			viewbox.Arrange(new Rect(0, 0, dImage.Width, dImage.Height));
-			viewbox.UpdateLayout();
-
-			RenderTargetBitmap targetBitmap =
-				new RenderTargetBitmap((int) dImage.Width,
-				                       (int) dImage.Height,
-				                       96, 96,
-				                       PixelFormats.Pbgra32);
-			targetBitmap.Render(viewbox);
-			return BitmapFrame.Create(targetBitmap);
+			return ForceRender(new Image { Source = dImage }, mode);
 		}
 		public static BitmapFrame ForceRender(Image dImage, BitmapScalingMode mode) {
-			Viewbox viewbox = new Viewbox();
-			Image im = dImage;
-			im.SetValue(RenderOptions.BitmapScalingModeProperty, mode);
-			viewbox.Child = im;
-			viewbox.SetValue(RenderOptions.BitmapScalingModeProperty, mode);
-			viewbox.SetValue(RenderOptions.EdgeModeProperty, EdgeMode.Aliased);
-			viewbox.Measure(new Size(dImage.Width, dImage.Height));
-			viewbox.Arrange(new Rect(0, 0, dImage.Width, dImage.Height));
-			viewbox.UpdateLayout();
+			ImageSource source = dImage.Source;
+			if (source == null) return null;
 
-			RenderTargetBitmap targetBitmap =
-				new RenderTargetBitmap((int)dImage.Width,
-									   (int)dImage.Height,
-									   96, 96,
-									   PixelFormats.Pbgra32);
-			targetBitmap.Render(viewbox);
+			double width = double.IsNaN(dImage.Width) ? dImage.Source.Width : dImage.Width;
+			double height = double.IsNaN(dImage.Height) ? dImage.Source.Height : dImage.Height;
+
+			DrawingVisual drawingVisual = new DrawingVisual();
+
+			RenderOptions.SetBitmapScalingMode(drawingVisual, mode);
+			RenderOptions.SetEdgeMode(drawingVisual, EdgeMode.Aliased);
+
+			using (DrawingContext dc = drawingVisual.RenderOpen()) {
+				dc.DrawImage(source, new Rect(0, 0, width, height));
+			}
+
+			RenderTargetBitmap targetBitmap = new RenderTargetBitmap((int)Math.Ceiling(width), (int)Math.Ceiling(height), 96, 96, PixelFormats.Pbgra32);
+			targetBitmap.Render(drawingVisual);
 			return BitmapFrame.Create(targetBitmap);
 		}
 		private static BitmapFrame _reconstructImage(BitmapSource im, System.Windows.Media.Color background) {
 			byte[] pixels = new byte[im.PixelWidth * im.PixelHeight * im.Format.BitsPerPixel / 8];
 			im.CopyPixels(pixels, im.PixelWidth * im.Format.BitsPerPixel / 8, 0);
 
-			byte[] newPixels = new byte[im.PixelWidth * im.PixelHeight];
-
-			List<int> colors = new List<int>();
-			colors.Add(TransparentPixel.A << 24 | TransparentPixel.R << 16 | TransparentPixel.G << 8 | TransparentPixel.B);
-			int color;
-			int colorTransparent = colors[0];
-			byte colorA;
-
-			for (int i = 0, numPixels = pixels.Length / 4; i < numPixels; i++) {
-				if (pixels[4 * i + 3] != 0) {
-					colorA = pixels[4 * i + 3];
-
-					color = 0xff << 24 |
-							(byte)(((255 - colorA) * background.R + colorA * pixels[4 * i + 2]) / 255f) << 16 |
-							(byte)(((255 - colorA) * background.G + colorA * pixels[4 * i + 1]) / 255f) << 8 |
-							(byte)(((255 - colorA) * background.B + colorA * pixels[4 * i + 0]) / 255f);
-				}
-				else {
-					color = colorTransparent;
-				}
-
-				if (colors.Contains(color)) {
-					newPixels[i] = (byte) colors.IndexOf(color);
-				}
-				else {
-					colors.Add(color);
-					newPixels[i] = (byte) (colors.Count - 1);
-				}
-			}
-
-			List<System.Windows.Media.Color> toWpfColors = new List<System.Windows.Media.Color>(256);
-
-			for (int i = 0; i < colors.Count; i++) {
-				color = colors[i];
-
-				toWpfColors.Add(System.Windows.Media.Color.FromArgb(
-									255, 
-									(byte) ((color & 0x00ff0000) >> 16),
-									(byte) ((color & 0x0000ff00) >> 8),
-									(byte) ((color & 0x000000ff))
-									));
-			}
-
-			if (toWpfColors.Count > 256)
-				toWpfColors = _reduceImageQuality(out newPixels, pixels, im.PixelWidth, im.PixelHeight, toWpfColors, background);
-
-			while (toWpfColors.Count < 256) {
-				toWpfColors.Add(System.Windows.Media.Color.FromArgb(255, 0, 0, 0));
-			}
-
-			WriteableBitmap bit = new WriteableBitmap(im.PixelWidth, im.PixelHeight, 96, 96, PixelFormats.Indexed8, new BitmapPalette(toWpfColors));
-			bit.WritePixels(new Int32Rect(0, 0, im.PixelWidth, im.PixelHeight), newPixels, im.PixelWidth, 0);
-			bit.Freeze();
-			return BitmapFrame.Create(bit);
-		}
-		private static List<System.Windows.Media.Color> _reduceImageQuality(out byte[] pixels, byte[] originalPixels, int pixelWidth, int pixelHeight, IList<System.Windows.Media.Color> colors, System.Windows.Media.Color background) {
-			byte[] newPixels = new byte[pixelWidth * pixelHeight];
-
-			int exceedingColors = colors.Count - 256;
-			Dictionary<int, int> closestMatchingColors = new Dictionary<int, int>();
-
-			int searchRadius = (int) (exceedingColors / 150f + 10);
-
-			while (closestMatchingColors.Count < exceedingColors) {
-				closestMatchingColors.Clear();
-
-				for (int i = 1; i < colors.Count; i++) {
-					if (closestMatchingColors.ContainsKey(i))
-						continue;
-
-					for (int j = 1; j < colors.Count; j++) {
-						if (j == i || closestMatchingColors.ContainsKey(j))
-							continue;
-
-						if (Math.Abs(colors[i].R - colors[j].R) + Math.Abs(colors[i].G - colors[j].G) + Math.Abs(colors[i].B - colors[j].B) < searchRadius) {
-							closestMatchingColors.Add(j, i);
-						}
-					}
-				}
-
-				searchRadius *= 2;
-			}
-
-			List<System.Windows.Media.Color> newColors = new List<System.Windows.Media.Color>(colors);
-			foreach (KeyValuePair<int, int> tuple in closestMatchingColors) {
-				newColors[tuple.Key] = colors[tuple.Value];
-			}
-
-			newColors = newColors.Distinct().ToList();
-
-			for (int i = 0; i < originalPixels.Length / 4; i++) {
-				System.Windows.Media.Color color = System.Windows.Media.Color.FromArgb(originalPixels[4 * i + 3], originalPixels[4 * i + 2], originalPixels[4 * i + 1], originalPixels[4 * i + 0]);
-				if (color.A != 0) {
-					color = System.Windows.Media.Color.FromArgb(255,
-										   (byte)(((255 - color.A) * background.R + color.A * color.R) / 255f),
-										   (byte)(((255 - color.A) * background.G + color.A * color.G) / 255f),
-										   (byte)(((255 - color.A) * background.B + color.A * color.B) / 255f));
-
-					int colorIndex = colors.IndexOf(color);
-					if (closestMatchingColors.ContainsKey(colorIndex)) {
-						newPixels[i] = (byte)newColors.IndexOf(colors[closestMatchingColors[colorIndex]]);
-					}
-					else {
-						newPixels[i] = (byte)newColors.IndexOf(color);
-					}
-				}
-				else {
-					newPixels[i] = 0;
-				}
-			}
-
-			pixels = newPixels;
-			return newColors;
+			GrfImage image = new GrfImage(pixels, im.PixelWidth, im.PixelHeight, GrfImageType.Bgra32);
+			var converter = new Indexed8FormatConverter();
+			converter.UseBackgroundColor = true;
+			converter.BackgroundColor = GrfColor.FromArgb(background.A, background.R, background.G, background.B);
+			converter.Options |= Indexed8FormatConverter.PaletteOptions.AutomaticallyGeneratePalette;
+			image.Convert(converter);
+			return BitmapFrame.Create(image.Cast<BitmapSource>());
 		}
 	}
 }

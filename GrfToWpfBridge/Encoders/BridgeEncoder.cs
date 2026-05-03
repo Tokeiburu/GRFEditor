@@ -19,11 +19,15 @@ namespace GrfToWpfBridge.Encoders {
 
 		public void Save(string file) {
 			using (FileStream stream = File.Open(file, FileMode.Create)) {
-				if (_encoder != null)
-					_encoder.Save(stream);
-				else if (_wpfEncoder != null)
-					_wpfEncoder.Save(stream);
+				Save(stream);
 			}
+		}
+
+		public void Save(Stream stream) {
+			if (_encoder != null)
+				_encoder.Save(stream);
+			else if (_wpfEncoder != null)
+				_wpfEncoder.Save(stream);
 		}
 
 		public static BridgeEncoder GetEncoder(PixelFormatInfo info) {

@@ -2,9 +2,14 @@
 using System.Text;
 using GRF.FileFormats.LubFormat.Types;
 using GRF.IO;
+using Utilities;
 
 namespace GRF.FileFormats.LubFormat {
 	public class Lub {
+		public static bool IsCompiled(byte[] data) {
+			return Methods.ByteArrayCompare(data, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0);
+		}
+
 		public static string String_LoopPcBounds = "-- loop_pc_bounds: ";
 
 		public int TotalFunctionCount = 0;

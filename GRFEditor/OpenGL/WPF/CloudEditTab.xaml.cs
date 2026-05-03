@@ -8,7 +8,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using TokeiLibrary;
-using static GRFEditor.Tools.SpriteEditor.SpriteEditorTab;
 
 namespace GRFEditor.OpenGL.WPF {
 	/// <summary>
@@ -212,6 +211,7 @@ namespace GRFEditor.OpenGL.WPF {
 			};
 		}
 
+		public delegate void TabEventHandler(object sender);
 		public event TabEventHandler Close;
 
 		public void OnClose() {
@@ -221,7 +221,7 @@ namespace GRFEditor.OpenGL.WPF {
 				subEffect.IsDeleted = true;
 			}
 
-			Close?.Invoke(this, "");
+			Close?.Invoke(this);
 		}
 	}
 }

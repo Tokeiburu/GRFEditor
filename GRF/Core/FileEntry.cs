@@ -52,7 +52,8 @@ namespace GRF.Core {
 		/// <param name="offset">The offset.</param>
 		/// <param name="header">The header.</param>
 		/// <param name="stream">The stream.</param>
-		internal FileEntry(byte[] data, ref int offset, GrfHeader header, ByteReaderStream stream) {
+		/// <param name="version">The GRF version.</param>
+		internal FileEntry(byte[] data, ref int offset, GrfHeader header, ByteReaderStream stream, int version) {
 			Header = header;
 			Stream = stream;
 			int endCharPosition = offset;
@@ -74,16 +75,25 @@ namespace GRF.Core {
 			NewSizeDecompressed = SizeDecompressed = BitConverter.ToInt32(data, offset + 8);
 			Flags = (EntryType)data[offset + 12];
 
-			if (header.IsCompatibleWith(3, 0)) {
+			int entrySize = version == 300 ? 21 : 17;
+
+			if (version == 300) {
 				FileExactOffset = TemporaryOffset = BitConverter.ToInt64(data, offset + 13) + GrfHeader.DataByteSize;
-				offset = offset + 21;
 			}
 			else {
 				FileExactOffset = TemporaryOffset = BitConverter.ToUInt32(data, offset + 13) + GrfHeader.DataByteSize;
-				offset = offset + 17;
 			}
 
+			offset += entrySize;
+
 			switch (Flags) {
+				case EntryType.File:
+				case EntryType.Directory:
+					Cycle = -1;
+					break;
+				case EntryType.GravityEncryptedFile:
+					Cycle = -1;
+					break;
 				case EntryType.FileAndHeaderCrypted:
 					Cycle = 1;
 					for (int i = 10; SizeCompressed >= i; i *= 10)
@@ -91,10 +101,6 @@ namespace GRF.Core {
 					break;
 				case EntryType.FileAndDataCrypted:
 					Cycle = 0;
-					break;
-				case EntryType.GravityEncryptedFile:
-					Cycle = -1;
-					//Flags = EntryType.File;
 					break;
 				default:
 					Cycle = -1;

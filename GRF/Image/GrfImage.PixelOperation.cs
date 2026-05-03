@@ -96,6 +96,32 @@ namespace GRF.Image {
 		}
 
 		/// <summary>
+		/// Gets the color address at the requested pixel index.
+		/// </summary>
+		/// <param name="x">Index pixel for width.</param>
+		/// <param name="y">Index pixel for height.</param>
+		/// <returns>The requested color</returns>
+		public unsafe byte* GetRawColor(int x, int y) {
+			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
+			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
+
+			int bpp = GetBpp();
+
+			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
+
+			if (GrfImageType == GrfImageType.Indexed8) {
+				fixed (byte* pPixels = Pixels)
+				fixed (byte* pPalette = Palette) {
+					return pPalette + 4 * pPixels[y * Width + x];
+				}
+			}
+
+			fixed (byte* pPixels = Pixels) {
+				return pPixels + bpp * (y * Width + x);
+			}
+		}
+
+		/// <summary>
 		/// Sets the color at the requested pixel index.
 		/// </summary>
 		/// <param name="pixelIndex">Index of the pixel.</param>
@@ -401,6 +427,20 @@ namespace GRF.Image {
 		public void SetPixels(ref byte[] pixels) {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = pixels;
+			InvalidateHash();
+		}
+
+		/// <summary>
+		/// Sets pixels in the image.
+		/// </summary>
+		/// <param name="pixels">The pixels.</param>
+		/// <param name="width">Width of the new image data.</param>
+		/// <param name="height">Height of the new image data.</param>
+		public void SetPixels(ref byte[] pixels, int width, int height) {
+			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
+			Pixels = pixels;
+			Width = width;
+			Height = height;
 			InvalidateHash();
 		}
 

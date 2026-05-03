@@ -5,6 +5,7 @@ using System.Windows;
 using GRF.Core;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -23,9 +24,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		protected override void _load(FileEntry entry) {
-			_labelHeader.Dispatch(p => p.Text = "Wav file: " + Path.GetFileName(entry.RelativePath));
+			_setupUI(entry);
 
-			_player.Stream = new MemoryStream(entry.GetDecompressedData());
+			_loadSoundPlayer(entry);
 
 			if (_isCancelRequired()) return;
 
@@ -35,39 +36,33 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}
 		}
 
+		private void _loadSoundPlayer(FileEntry entry) {
+			_player.Stop();
+			_player.Stream?.Dispose();
+			_player.Stream = new MemoryStream(entry.GetDecompressedData());
+		}
+
+		private void _setupUI(FileEntry entry) {
+			this.Dispatch(delegate {
+				_labelHeader.Text = "Wav file: " + entry.DisplayRelativePath;
+			});
+		}
+
 		private void _playFile() {
+			if (_player.Stream != null)
+				_player.Stream.Position = 0;
+
 			_player.Play();
 		}
 
-		private void _stopFile() {
-			_player.Stop();
-		}
-
-		private void _buttonPlaySound_Click(object sender, RoutedEventArgs e) {
-			_playFile();
-		}
-
-		private void _buttonStopSound_Click(object sender, RoutedEventArgs e) {
-			_stopFile();
-		}
+		private void _stopFile() => _player.Stop();
+		private void _buttonPlaySound_Click(object sender, RoutedEventArgs e) => _playFile();
+		private void _buttonStopSound_Click(object sender, RoutedEventArgs e) => _stopFile();
 
 		#region IDisposable members
 
 		public void Dispose() {
-			Dispose(true);
-			GC.SuppressFinalize(this);
-		}
-
-		~PreviewWav() {
-			Dispose(false);
-		}
-
-		protected void Dispose(bool disposing) {
-			if (disposing) {
-				if (_player != null) {
-					_player.Dispose();
-				}
-			}
+			_player?.Dispose();
 		}
 
 		#endregion

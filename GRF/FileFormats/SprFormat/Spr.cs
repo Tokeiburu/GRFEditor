@@ -14,7 +14,7 @@ namespace GRF.FileFormats.SprFormat {
 	/// <summary>
 	/// If the Spr file is loaded from an Act file, it 
 	/// </summary>
-	public partial class Spr : IImageable, IEnumerable<GrfImage> {
+	public partial class Spr : IImageable, IEnumerable<GrfImage>, IPrintable {
 		private static bool _enableImageSizeCheck = true;
 		private GrfImage _image;
 		private Pal _pal;
@@ -34,7 +34,7 @@ namespace GRF.FileFormats.SprFormat {
 		/// <param name="sprData">The sprite data.</param>
 		public Spr(MultiType sprData)
 			: this(sprData.Data, false) {
-			LoadedPath = sprData.Path;
+			LoadedPath = sprData.GrfPath ?? sprData.Path;
 		}
 
 		/// <summary>
@@ -48,7 +48,7 @@ namespace GRF.FileFormats.SprFormat {
 			Images = new List<GrfImage>();
 
 			if (spr.Palette != null)
-				Palette = new Pal(spr.Palette.BytePalette, false);
+				Palette = new Pal(spr.Palette.BytePalette, Pal.FormatMode.NoTransparencyExceptFirstPixel);
 
 			foreach (var image in spr.Images) {
 				Images.Add(image.Copy());
@@ -80,17 +80,21 @@ namespace GRF.FileFormats.SprFormat {
 			set { _enableImageSizeCheck = value; }
 		}
 
-		public string LoadedPath { get; set; }
+		public TkPath LoadedPath { get; set; }
 
 		public Pal Palette {
 			get { return _pal; }
 			set {
 				bool refresh = _pal != null;
 
+				if (_pal != null) {
+					_pal.PaletteChanged -= _pal_PaletteChanged;
+				}
+
 				_pal = value;
 
 				if (_pal != null) {
-					_pal.PaletteChanged += new Pal.PalEventHandler(_pal_PaletteChanged);
+					_pal.PaletteChanged += _pal_PaletteChanged;
 
 					if (refresh)
 						_pal_PaletteChanged(null);
@@ -147,6 +151,9 @@ namespace GRF.FileFormats.SprFormat {
 		}
 
 		private void _pal_PaletteChanged(object sender) {
+			if (Images == null)
+				return;
+
 			for (int i = 0; i < NumberOfIndexed8Images; i++) {
 				GrfImage image = Images[i];
 				image.SetPalette(_pal.BytePalette);
@@ -160,113 +167,23 @@ namespace GRF.FileFormats.SprFormat {
 				return;
 			}
 
+			GrfImageType targetImageType = GrfImageType.Bgra32;
+
 			if (imageSources.All(p => p.GrfImageType == GrfImageType.Indexed8)) {
-				int bitWidth = imageSources.Sum(p => p.Width);
-				int bitHeight = imageSources.Max(p => p.Height);
-				int bitStride = bitWidth;
-
-				int currentXPosition = 0;
-				int colorsLength = bitWidth * bitHeight;
-				byte[] realColors = new byte[colorsLength];
-
-				foreach (GrfImage so in imageSources) {
-					int width = so.Width;
-					int height = so.Height;
-					int stride = width;
-
-					byte[] pixels1 = so.Pixels;
-
-					for (int j = 0; j < height; j++) {
-						Buffer.BlockCopy(pixels1, j * stride, realColors, j * bitStride + currentXPosition, stride);
-					}
-					currentXPosition += stride;
-				}
-
-				byte[] palette = imageSources[0].Palette;
-				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Indexed8, palette);
-			}
-			else if (imageSources.All(p => p.GrfImageType == GrfImageType.Bgra32)) {
-				int bitWidth = imageSources.Sum(p => p.Width);
-				int bitHeight = imageSources.Max(p => p.Height);
-				int bitStride = bitWidth * 4;
-
-				int currentXPosition = 0;
-				int colorsLength = bitWidth * bitHeight * 4;
-				byte[] realColors = new byte[colorsLength];
-
-				foreach (GrfImage so in imageSources) {
-					int width = so.Width;
-					int height = so.Height;
-					int stride = width * 4;
-
-					byte[] pixels1 = so.Pixels;
-
-					for (int j = 0; j < height; j++) {
-						Buffer.BlockCopy(pixels1, j * stride, realColors, j * bitStride + currentXPosition, stride);
-					}
-					currentXPosition += stride;
-				}
-
-				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
-			}
-			else {
-				// Converting all images to Bgra32
-				int bitWidth = imageSources.Sum(p => p.Width);
-				int bitHeight = imageSources.Max(p => p.Height);
-				int bitStride = bitWidth * 4;
-
-				int currentXPosition = 0;
-				int colorsLength = bitWidth * bitHeight * 4;
-				byte[] realColors = new byte[colorsLength];
-				byte[] palette = _toBgraPalette(imageSources.First(p => p.GrfImageType == GrfImageType.Indexed8).Palette);
-
-				int t;
-				int t2;
-				byte[] pixels1;
-
-				foreach (GrfImage so in imageSources) {
-					int width = so.Width;
-					int height = so.Height;
-					int stride = width * 4;
-
-					if (so.GrfImageType == GrfImageType.Indexed8) {
-						pixels1 = so.Pixels;
-
-						for (int j = 0; j < height; j++) {
-							t = j * width;
-							t2 = j * bitStride + currentXPosition;
-
-							for (int x = 0; x < width; x++) {
-								Buffer.BlockCopy(palette, pixels1[t + x] * 4, realColors, t2 + 4 * x, 4);
-							}
-						}
-					}
-					else {
-						pixels1 = so.Pixels;
-
-						for (int j = 0; j < height; j++) {
-							Buffer.BlockCopy(pixels1, j * stride, realColors, j * bitStride + currentXPosition, stride);
-						}
-					}
-
-					currentXPosition += stride;
-				}
-
-				Image = new GrfImage(realColors, bitWidth, bitHeight, GrfImageType.Bgra32);
-			}
-		}
-
-		protected byte[] _toBgraPalette(byte[] palette) {
-			byte[] pal = new byte[palette.Length];
-
-			for (int i = 0, size = palette.Length; i < size; i += 4) {
-				pal[i + 0] = palette[i + 2];
-				pal[i + 1] = palette[i + 1];
-				pal[i + 2] = palette[i + 0];
-				pal[i + 3] = palette[i + 3];
+				targetImageType = GrfImageType.Indexed8;
 			}
 
-			return pal;
+			int bitWidth = imageSources.Sum(p => p.Width);
+			int bitHeight = imageSources.Max(p => p.Height);
+
+			Image = new GrfImage(new byte[bitWidth * bitHeight * (targetImageType == GrfImageType.Bgra32 ? 4 : 1)], bitWidth, bitHeight, targetImageType, imageSources[0].Palette);
+
+			int offsetX = 0;
+
+			foreach (var image in imageSources) {
+				Image.SetPixels(offsetX, 0, image);
+				offsetX += image.Width;
+			}
 		}
 
 		public HashSet<byte> GetUnusedPaletteIndexes() {
@@ -418,6 +335,10 @@ namespace GRF.FileFormats.SprFormat {
 			Remove(image.GrfImageType == GrfImageType.Indexed8 ? idx : NumberOfIndexed8Images + idx, image.GrfImageType);
 		}
 
+		public void Remove(SpriteIndex index) {
+			Remove(index.Index, index.Type);
+		}
+
 		public void Remove(int relativeIndex, GrfImageType type) {
 			if (type == GrfImageType.Indexed8) {
 				if (relativeIndex < NumberOfIndexed8Images && relativeIndex > -1) {
@@ -480,7 +401,7 @@ namespace GRF.FileFormats.SprFormat {
 
 				if (NumberOfIndexed8Images == 1) {
 					// Added the image successfully
-					Palette = new Pal(image.Palette);
+					Palette = new Pal(image.Palette, Pal.FormatMode.NoTransparencyExceptFirstPixel);
 				}
 				else {
 					image.SetPalette(Palette.BytePalette);
@@ -588,7 +509,7 @@ namespace GRF.FileFormats.SprFormat {
 				return GetImage(absoluteIndex, GrfImageType.Indexed8);
 			}
 
-			return GetImage(absoluteIndex - NumberOfIndexed8Images, GrfImageType.Indexed8);
+			return GetImage(absoluteIndex - NumberOfIndexed8Images, GrfImageType.Bgra32);
 		}
 
 		public GrfImage GetImage(int index, GrfImageType type) {
@@ -700,8 +621,20 @@ namespace GRF.FileFormats.SprFormat {
 		public void SetPalette(byte[] palette) {
 			palette = Methods.Copy(palette);
 			palette[3] = 0;
+
+			if (Palette == null)
+				Palette = new Pal();
+
 			Palette.SetPalette(palette);
 		}
+
+		#region IPrintable Members
+
+		public string GetInformation() {
+			return FileFormatParser.DisplayObjectProperties(this);
+		}
+
+		#endregion
 	}
 
 	public enum EditOption {

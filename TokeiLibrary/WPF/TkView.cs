@@ -31,6 +31,7 @@ namespace TokeiLibrary.WPF {
 		public event EncodingChangedEventHandler EncodingChanged;
 		public Encoding DisplayEncoding { get; set; }
 		public Action CopyMethod;
+		private bool _pressedScrollBar;
 
 		public virtual void OnEncodingChanged() {
 			EncodingChangedEventHandler handler = EncodingChanged;
@@ -51,6 +52,7 @@ namespace TokeiLibrary.WPF {
 			DragLeave += _treeView_DragLeave;
 			PreviewMouseMove += _treeView_PreviewMouseMove;
 			PreviewMouseLeftButtonDown += _treeView_PreviewMouseLeftButtonDown;
+			PreviewMouseLeftButtonUp += _treeView_PreviewMouseLeftButtonUp;
 			KeyDown += new KeyEventHandler(_tKView_KeyDown);
 			DisplayEncoding = EncodingService.DisplayEncoding;
 			base.SelectedItemChanged += new RoutedPropertyChangedEventHandler<object>(_base_SelectedItemChanged);
@@ -58,8 +60,16 @@ namespace TokeiLibrary.WPF {
 			SetValue(DragDropExtension.ScrollOnDragDropProperty, true);
 		}
 
+		private void _treeView_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e) {
+			_pressedScrollBar = false;
+		}
+
 		private void _treeView_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e) {
 			try {
+				if (_isMouseUnderVerticalScrollBar(e)) {
+					_pressedScrollBar = true;
+				}
+
 				var tItem = _getTreeViewMousePos(e);
 
 				if (tItem != null)
@@ -390,6 +400,9 @@ namespace TokeiLibrary.WPF {
 		}
 
 		private void _treeView_PreviewMouseMove(object sender, MouseEventArgs e) {
+			if (_pressedScrollBar)
+				return;
+
 			try {
 				if (e.LeftButton == MouseButtonState.Pressed && _watch.ElapsedMilliseconds > 200) {
 					//DragDropExtension.OnContainerScroll(this, Mouse.GetPosition(this), 20);
@@ -470,6 +483,17 @@ namespace TokeiLibrary.WPF {
 			}
 
 			return path;
+		}
+
+		private bool _isMouseUnderVerticalScrollBar(MouseEventArgs e) {
+			if (_sv == null)
+				_sv = WpfUtilities.FindChild<ScrollViewer>(this);
+
+			if (_sv == null)
+				return false;
+
+			var tPos = e.GetPosition(this);
+			return _sv.ComputedVerticalScrollBarVisibility == System.Windows.Visibility.Visible && tPos.X >= this.ActualWidth - SystemParameters.VerticalScrollBarWidth;
 		}
 
 		private TkTreeViewItem _getTreeViewMousePos(MouseEventArgs e) {

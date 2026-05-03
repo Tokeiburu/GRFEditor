@@ -108,7 +108,7 @@ namespace GRFEditor {
 					virtualFileDataObject.Source = DragAndDropSource.ListViewSearch;
 					virtualFileDataObject.SetData(descriptors);
 
-					VirtualFileDataObject.DoDragDrop(_listBoxResults, virtualFileDataObject, DragDropEffects.Move);
+					VirtualFileDataObject.DoDragDrop(_listBoxResults, virtualFileDataObject, DragDropEffects.Copy);
 					e.Handled = true;
 					return;
 				}
@@ -240,7 +240,8 @@ namespace GRFEditor {
 						_items.ItemsSource = _itemEntries;
 					});
 				}
-				catch {
+				catch (Exception err) {
+					Z.F(err);
 				}
 			});
 

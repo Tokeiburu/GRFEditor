@@ -1,7 +1,4 @@
 ﻿using GRF.Core;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace GRF.ContainerFormat {
 	public class ContainerSaveResult {

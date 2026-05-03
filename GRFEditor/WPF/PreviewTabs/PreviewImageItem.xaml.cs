@@ -12,8 +12,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 		public PreviewImageItem() {
 			InitializeComponent();
 
-			this.MouseEnter += new MouseEventHandler(_previewItem_MouseEnter);
-			this.MouseLeave += new MouseEventHandler(_previewItem_MouseLeave);
+			this.MouseEnter += _previewItem_MouseEnter;
+			this.MouseLeave += _previewItem_MouseLeave;
 		}
 
 		private void _previewItem_MouseLeave(object sender, MouseEventArgs e) {

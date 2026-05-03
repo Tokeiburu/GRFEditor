@@ -24,7 +24,7 @@ namespace GRF.Threading {
 			_are.WaitOne();
 		}
 
-		protected void Resume() {
+		public void Resume() {
 			_are.Set();
 		}
 	}

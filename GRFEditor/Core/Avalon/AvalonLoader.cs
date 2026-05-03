@@ -10,8 +10,11 @@ using System.Xml;
 using ICSharpCode.AvalonEdit;
 using ICSharpCode.AvalonEdit.Document;
 using ICSharpCode.AvalonEdit.Editing;
+using ICSharpCode.AvalonEdit.Folding;
 using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
+using ICSharpCode.AvalonEdit.Indentation;
+using ICSharpCode.AvalonEdit.Indentation.CSharp;
 using ICSharpCode.AvalonEdit.Rendering;
 using TokeiLibrary;
 
@@ -230,6 +233,51 @@ namespace GRFEditor.Core.Avalon {
 			}
 
 			editor.SyntaxHighlighting = def;
+		}
+
+		public static void SetupSyntaxSelection(TextEditor textEditor, ComboBox cb) {
+			cb.SelectionChanged += (s, e) => _syntax_SelectionChanged(textEditor, s, e);
+			_syntax_SelectionChanged(textEditor, null, null);
+		}
+
+		private static void _syntax_SelectionChanged(TextEditor textEditor, object sender, SelectionChangedEventArgs e) {
+			FoldingManager foldingManager = null;
+			AbstractFoldingStrategy foldingStrategy = null;
+
+			if (textEditor.SyntaxHighlighting == null) {
+				foldingStrategy = null;
+			}
+			else {
+				switch (textEditor.SyntaxHighlighting.Name) {
+					case "XML":
+						foldingStrategy = new XmlFoldingStrategy();
+						textEditor.TextArea.IndentationStrategy = new DefaultIndentationStrategy();
+						break;
+					case "C#":
+					case "C++":
+					case "PHP":
+					case "Java":
+						textEditor.TextArea.IndentationStrategy = new CSharpIndentationStrategy(textEditor.Options);
+						break;
+					default:
+						textEditor.TextArea.IndentationStrategy = new DefaultIndentationStrategy();
+						foldingStrategy = null;
+						break;
+				}
+
+				AvalonHelper.SetSyntax(textEditor, textEditor.SyntaxHighlighting.Name);
+			}
+			if (foldingStrategy != null) {
+				if (foldingManager == null)
+					foldingManager = FoldingManager.Install(textEditor.TextArea);
+				foldingStrategy.UpdateFoldings(foldingManager, textEditor.Document);
+			}
+			else {
+				if (foldingManager != null) {
+					FoldingManager.Uninstall(foldingManager);
+					foldingManager = null;
+				}
+			}
 		}
 	}
 }

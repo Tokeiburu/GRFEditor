@@ -7,7 +7,7 @@ using Utilities;
 using Utilities.Services;
 
 namespace GRF.FileFormats.GndFormat {
-	[StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct UCube {
 		public float Height0;
 		public float Height1;
@@ -36,7 +36,7 @@ namespace GRF.FileFormats.GndFormat {
 		}
 	}
 
-	[StructLayout(LayoutKind.Sequential)]
+	[StructLayout(LayoutKind.Sequential, Pack = 1)]
 	public struct UTile {
 		public float TexCoordsX0;
 		public float TexCoordsX1;
@@ -182,16 +182,16 @@ namespace GRF.FileFormats.GndFormat {
 					count = *(int*)(pData + 0);
 					pData += 4;
 
-					if (pData + Marshal.SizeOf<UTile>() * count > pEnd)
+					if (pData + sizeof(UTile) * count > pEnd)
 						throw new IndexOutOfRangeException();
 
-					Tiles = new UTile[Marshal.SizeOf<UTile>() * count];
+					Tiles = new UTile[sizeof(UTile) * count];
 
 					fixed (UTile* ptrTiles = Tiles) {
-						Buffer.MemoryCopy(pData, ptrTiles, Marshal.SizeOf<UTile>() * count, Marshal.SizeOf<UTile>() * count);
+						Buffer.MemoryCopy(pData, ptrTiles, sizeof(UTile) * count, sizeof(UTile) * count);
 					}
 
-					pData += Marshal.SizeOf<UTile>() * count;
+					pData += sizeof(UTile) * count;
 				}
 
 				// _loadCubes
@@ -349,7 +349,6 @@ namespace GRF.FileFormats.GndFormat {
 						Water.Zones.Clear();
 
 						count = Water.WaterSplitWidth * Water.WaterSplitHeight;
-
 
 						if (pData + 4 * count > pEnd)
 							throw new IndexOutOfRangeException();

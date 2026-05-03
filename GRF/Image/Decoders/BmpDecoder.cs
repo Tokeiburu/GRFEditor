@@ -3,7 +3,6 @@ using System.IO;
 using System.Text;
 using GRF.ContainerFormat;
 using GRF.IO;
-using Utilities;
 
 namespace GRF.Image.Decoders {
 	public class BmpHeader {
@@ -14,6 +13,9 @@ namespace GRF.Image.Decoders {
 		public int OffsetBits { get; internal set; }
 
 		public BmpHeader(ByteReader reader) {
+			if (reader.LengthLong - reader.PositionLong < 14)
+				throw GrfExceptions.__InvalidImageFormat.Create();
+
 			Magic = reader.String(2);
 			Size = reader.Int32();
 			Reserved1 = reader.Int16();
@@ -58,8 +60,14 @@ namespace GRF.Image.Decoders {
 		public uint YPelsPerMeter { get; internal set; }
 		public uint ClrUsed { get; internal set; }
 		public uint ClrImportant { get; internal set; }
+		public const int MAX_HEIGHT = 60000;
+		public const int MAX_WIDTH = 60000;
+		public uint[] RgbaMask;
 
 		public DibData(ByteReader reader) {
+			if (reader.LengthLong - reader.PositionLong < 40)
+				throw GrfExceptions.__InvalidImageFormat.Create();
+
 			DibSize = reader.UInt32();
 			Width = reader.Int32();
 			Height = reader.Int32();
@@ -71,6 +79,21 @@ namespace GRF.Image.Decoders {
 			YPelsPerMeter = reader.UInt32();
 			ClrUsed = reader.UInt32();
 			ClrImportant = reader.UInt32();
+
+			if (Compression == DibCompression.BI_BITFIELDS) {
+				if (reader.LengthLong - reader.PositionLong < 16)
+					throw GrfExceptions.__InvalidImageFormat.Create();
+
+				RgbaMask = new uint[4];
+
+				RgbaMask[0] = reader.UInt32();
+				RgbaMask[1] = reader.UInt32();
+				RgbaMask[2] = reader.UInt32();
+
+				if (DibSize >= 56) {
+					RgbaMask[3] = reader.UInt32();
+				}
+			}
 		}
 
 		public DibData() {
@@ -120,100 +143,530 @@ namespace GRF.Image.Decoders {
 
 		public GrfImage ToGrfImage() {
 			_reader.Position = 54;
-			int bpp = -1;
-			byte[] palette = null;
-			GrfImageType type = GrfImageType.NotEvaluated;
+			byte[] palette = _readPalette();
+			(int bpp, GrfImageType type) = _retrieveOutputFormat();
 
-			switch(Dib.BitCount) {
-				case 8:	// Convert from RGB to BGRA palette format
-					palette = new byte[1024];
-
-					if (Header.OffsetBits < _reader.Position)
-						throw GrfExceptions.__InvalidImageFormat.Create();
-
-					byte[] srcPalette = new byte[(Dib.ClrImportant == 0 ? Dib.BitCount * 32 : (int)Dib.ClrImportant) * 4];
-					_reader.Bytes(srcPalette, 0, srcPalette.Length);
-
-					for (int i = 0; i < 1024; i += 4) {
-						if (i < srcPalette.Length) {
-							palette[i + 0] = srcPalette[i + 2];
-							palette[i + 1] = srcPalette[i + 1];
-							palette[i + 2] = srcPalette[i + 0];
-						}
-
-						palette[i + 3] = 255;
-					}
-
-					type = GrfImageType.Indexed8;
-					bpp = 1;
-					break;
-				case 16:
-				case 24:
-					type = GrfImageType.Bgr24;
-					bpp = 3;
-					break;
-				case 32:
-					type = GrfImageType.Bgr32;
-					bpp = 4;
-					break;
-				default:
-					throw GrfExceptions.__InvalidImageFormat.Create();
-			}
-
-			byte[] pixels = new byte[bpp * Dib.Width * Math.Abs(Dib.Height)];
+			if (Header.OffsetBits >= _reader.LengthLong)
+				throw GrfExceptions.__InvalidImageFormat.Create();
 
 			_reader.Position = Header.OffsetBits;
 
-			if (type == GrfImageType.NotEvaluated) {
-				throw GrfExceptions.__InvalidImageFormat.Create();
-			}
-
 			switch(Dib.Compression) {
 				case DibCompression.BI_RGB:
-					int padding = (4 - (Dib.Width * bpp) % 4) % 4;
-					int stride = Dib.Width * bpp;
-
-					if (Dib.BitCount == 16) {	// Convert to bgr24
-						byte[] data = new byte[2];
-						int offset = 0;
-
-						for (int y = 0; y < Dib.Height; y++) {
-							offset = (Dib.Height - y - 1) * stride;
-
-							for (int x = 0; x < Dib.Width; x++, offset += bpp) {
-								try {
-									if (_reader.LengthLong - _reader.PositionLong < 2)
-										break;
-
-									_reader.Bytes(data, 0, 2);
-
-									pixels[offset + 0] = (byte)((data[0] << 3) & 0xF8);
-									pixels[offset + 1] = (byte)((data[1] << 6) & 0xC0 | (data[0] >> 2) & 0x38);
-									pixels[offset + 2] = (byte)((data[1] << 1) & 0xF8);
-								}
-								catch (Exception err) {
-									Z.F(err);
-								}
-							}
-
-							if (padding > 0)
-								_reader.Forward(padding);
-						}
-
-						return new GrfImage(pixels, Dib.Width, Math.Abs(Dib.Height), type, palette);
+					switch (Dib.BitCount) {
+						case 1:
+							return _readBI_RGB_1(bpp, type, palette);
+						case 4:
+							return _readBI_RGB_4(bpp, type, palette);
+						case 16:
+							return _readBI_RGB_16(bpp, type, palette);
+						case 8:
+						case 24:
+						case 32:
+							return _readBI_RGB_24(bpp, type, palette);
+						default:
+							throw GrfExceptions.__InvalidImageFormat.Create();
 					}
-
-					for (int y = 0; y < Dib.Height; y++) {
-						_reader.Bytes(pixels, (Dib.Height - y - 1) * stride, stride);
-
-						if (padding > 0)
-							_reader.Forward(padding);
-					}
-
-					return new GrfImage(pixels, Dib.Width, Math.Abs(Dib.Height), type, palette);
+				case DibCompression.BI_BITFIELDS:
+					return _readBitFields(bpp, type, palette);
+				case DibCompression.BI_RLE4:
+					return _readRle4(bpp, type, palette);
+				case DibCompression.BI_RLE8:
+					return _readRle8(bpp, type, palette);
 				default:
 					throw GrfExceptions.__InvalidImageFormat.Create();
 			}
+		}
+
+		private GrfImage _readRle8(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			if (Dib.BitCount != 8)
+				throw GrfExceptions.__InvalidImageFormat.Create();
+
+			int width = Dib.Width;
+			int height = _dstHeight;
+			int x = 0;
+			int y = 0;
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* p = pSrcBase + _reader.PositionLong;
+					byte* end = pSrcBase + _reader.LengthLong;
+
+					while (p < end) {
+						byte count = *p++;
+						if (p >= end) break;
+
+						byte value = *p++;
+
+						if (count > 0) {
+							// Encoded mode
+							for (int i = 0; i < count; i++) {
+								if (x < width && y < height) {
+									int dstY = _flipImage ? y : (height - y - 1);
+									_pixels[dstY * _dstStride + x] = value;
+								}
+								x++;
+							}
+						}
+						else {
+							// Escape mode
+							switch (value) {
+								case 0: // End of line
+									x = 0;
+									y++;
+									break;
+								case 1:
+									return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+
+								case 2: { // Delta
+										if (p + 2 > end)
+											return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+
+										byte dx = *p++;
+										byte dy = *p++;
+
+										x += dx;
+										y += dy;
+										break;
+									}
+
+								default: {
+										// Absolute mode
+										int n = value;
+
+										if (p + n > end)
+											return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+
+										for (int i = 0; i < n; i++) {
+											if (x < width && y < height) {
+												int dstY = _flipImage ? y : (height - y - 1);
+												_pixels[dstY * _dstStride + x] = p[i];
+											}
+											x++;
+										}
+
+										p += n;
+
+										// WORD alignment
+										if ((n & 1) == 1)
+											p++;
+
+										break;
+									}
+							}
+						}
+
+						if (y >= height)
+							break;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private GrfImage _readRle4(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			if (Dib.BitCount != 4)
+				throw GrfExceptions.__InvalidImageFormat.Create();
+
+			int width = Dib.Width;
+			int height = _dstHeight;
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pBase = pSrcBase + _reader.PositionLong;
+					byte* pSrcEnd = pSrcBase + _reader.LengthLong;
+					byte* p = pBase;
+					int x = 0;
+					int y = 0;
+
+					while (p < pSrcEnd) {
+						byte count = *p++;
+
+						if (p >= pSrcEnd)
+							break;
+
+						byte value = *p++;
+
+						if (count > 0) {
+							// Encoded mode
+							byte hi = (byte)(value >> 4);
+							byte lo = (byte)(value & 0x0F);
+
+							for (int i = 0; i < count; i++) {
+								byte index = ((i & 1) == 0) ? hi : lo;
+
+								if (x < width && y < height) {
+									int dstY = _flipImage ? y : (height - y - 1);
+									_pixels[dstY * _dstStride + x] = index;
+								}
+
+								x++;
+							}
+						}
+						else {
+							// Escape mode
+							switch (value) {
+								case 0: // End of line
+									x = 0;
+									y++;
+									break;
+								case 1:
+									return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+								case 2: {
+										byte dx = *p++;
+										byte dy = *p++;
+										x += dx;
+										y += dy;
+										break;
+									}
+
+								default: {
+										// Absolute mode
+										int n = value;
+
+										int byteCount = (n + 1) / 2;
+
+										if (p + byteCount > pSrcEnd)
+											return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+
+										for (int i = 0; i < n; i++) {
+											byte b = p[i >> 1];
+											byte index = ((i & 1) == 0) ? (byte)(b >> 4) : (byte)(b & 0x0F);
+
+											if (x < width && y < height) {
+												int dstY = _flipImage ? y : (height - y - 1);
+												_pixels[dstY * _dstStride + x] = index;
+											}
+
+											x++;
+										}
+
+										p += byteCount;
+
+										if ((byteCount & 1) == 1)
+											p++;
+										break;
+									}
+							}
+						}
+
+						if (y >= height)
+							break;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private GrfImage _readBitFields(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			_analyzeMask(Dib.RgbaMask[0], out int rShift, out int rBits);
+			_analyzeMask(Dib.RgbaMask[1], out int gShift, out int gBits);
+			_analyzeMask(Dib.RgbaMask[2], out int bShift, out int bBits);
+			_analyzeMask(Dib.RgbaMask[3], out int aShift, out int aBits);
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pSrcRow = pSrcBase + _reader.PositionLong;
+
+					for (int y = 0; y < _dstHeight; y++) {
+						byte* pDst = pDstBase + (_flipImage ? y : (_dstHeight - y - 1)) * _dstStride;
+						byte* pSrc = pSrcRow;
+
+						for (int x = 0; x < Dib.Width; x++) {
+							uint value;
+
+							if (_srcBpp == 2)
+								value = *(ushort*)pSrc;
+							else
+								value = *(uint*)pSrc;
+
+							byte r = _extract(value, rShift, rBits);
+							byte g = _extract(value, gShift, gBits);
+							byte b = _extract(value, bShift, bBits);
+							byte a = aBits > 0 ? _extract(value, aShift, aBits) : (byte)255;
+
+							pDst[0] = b;
+							pDst[1] = g;
+							pDst[2] = r;
+
+							if (bpp == 4)
+								pDst[3] = a;
+
+							pSrc += _srcBpp;
+							pDst += bpp;
+						}
+
+						pSrcRow += _srcStride;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private byte _extract(uint value, int shift, int bits) {
+			if (bits == 0) return 0;
+
+			uint v = (value >> shift) & ((1u << bits) - 1);
+
+			// Scale to 0–255
+			return (byte)((v * 255 + ((1 << bits) - 1) / 2) / ((1 << bits) - 1));
+		}
+
+		private int _dstStride;
+		private int _dstHeight;
+		private bool _flipImage;
+		private byte[] _pixels;
+		private int _srcBpp;
+		private int _bitsPerRow;
+		private int _srcStride;
+		private int _bytesPerRow;
+		private int _srcPadding;
+
+		private void _calculateImage(int bpp) {
+			if (Dib.Width >= DibData.MAX_WIDTH || Dib.Height >= DibData.MAX_HEIGHT)
+				throw new ArgumentOutOfRangeException("Image dimension is too high.");
+			if (Dib.Width < 0)
+				throw new ArgumentOutOfRangeException("Image width is negative.");
+
+			_dstStride = bpp * Dib.Width;
+			_dstHeight = Math.Abs(Dib.Height);
+			_flipImage = Dib.Height < 0;
+			_pixels = new byte[bpp * Dib.Width * _dstHeight];
+			_srcBpp = Dib.BitCount / 8;
+
+			_bitsPerRow = Dib.Width * Dib.BitCount;
+			_srcStride = ((_bitsPerRow + 31) / 32) * 4;
+
+			_bytesPerRow = (_bitsPerRow + 7) / 8;
+			_srcPadding = _srcStride - _bytesPerRow;
+
+			if (Dib.Compression == DibCompression.BI_RLE4 ||
+				Dib.Compression == DibCompression.BI_RLE8)
+				return;
+
+			if (_reader.LengthLong - _reader.PositionLong < Dib.Height * _bytesPerRow)
+				throw GrfExceptions.__InvalidImageFormat.Create();
+		}
+
+		private GrfImage _readBI_RGB_1(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pSrcRow = pSrcBase + _reader.PositionLong;
+					byte* pSrcEnd = pSrcBase + _reader.LengthLong;
+
+					if (pSrcRow + _srcStride * _dstHeight > pSrcEnd)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					for (int y = 0; y < _dstHeight; y++) {
+						byte* pDst = pDstBase + (_flipImage ? y : (_dstHeight - y - 1)) * _dstStride;
+						byte* pSrc = pSrcRow;
+
+						for (int x = 0; x < Dib.Width; x++) {
+							int pos = x & 7;
+
+							*pDst = (byte)((*pSrc >> (8 - pos - 1)) & 0x01);
+							pDst++;
+
+							if (pos == 7)
+								pSrc++;
+						}
+
+						pSrcRow += _srcStride;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private GrfImage _readBI_RGB_4(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pSrcRow = pSrcBase + _reader.PositionLong;
+					byte* pSrcEnd = pSrcBase + _reader.LengthLong;
+
+					if (pSrcRow + _srcStride * _dstHeight > pSrcEnd)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					for (int y = 0; y < _dstHeight; y++) {
+						byte* pDst = pDstBase + (_flipImage ? y : (_dstHeight - y - 1)) * _dstStride;
+						byte* pSrc = pSrcRow;
+
+						for (int x = 0; x < Dib.Width; x++) {
+							if ((x & 1) == 0) {
+								*pDst = (byte)(*pSrc >> 4);
+							}
+							else {
+								*pDst = (byte)(*pSrc & 0x0F);
+								pSrc++;
+							}
+
+							pDst++;
+						}
+
+						pSrcRow += _srcStride;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private GrfImage _readBI_RGB_16(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pSrcRow = pSrcBase + _reader.PositionLong;
+					byte* pSrcEnd = pSrcBase + _reader.LengthLong;
+
+					if (pSrcRow + _srcStride * _dstHeight > pSrcEnd)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					for (int y = 0; y < _dstHeight; y++) {
+						byte* pDst = pDstBase + (_flipImage ? y : (_dstHeight - y - 1)) * _dstStride;
+						byte* pDstEnd = pDst + _dstStride;
+						ushort* pSrc = (ushort*)pSrcRow;
+
+						while (pDst < pDstEnd) {
+							int b5 = (*pSrc >> 0) & 0x1F;
+							int g5 = (*pSrc >> 5) & 0x1F;
+							int r5 = (*pSrc >> 10) & 0x1F;
+
+							pDst[0] = (byte)((b5 << 3) | (b5 >> 2));
+							pDst[1] = (byte)((g5 << 3) | (g5 >> 2));
+							pDst[2] = (byte)((r5 << 3) | (r5 >> 2));
+
+							pSrc++;
+							pDst += bpp;
+						}
+
+						pSrcRow += _srcStride;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private GrfImage _readBI_RGB_32(int bpp, GrfImageType type, byte[] palette) {
+			return _readBI_RGB_24(bpp, type, palette);
+		}
+
+		private GrfImage _readBI_RGB_24(int bpp, GrfImageType type, byte[] palette) {
+			_calculateImage(bpp);
+
+			unsafe {
+				fixed (byte* pDstBase = _pixels)
+				fixed (byte* pSrcBase = _reader._data) {
+					byte* pSrcRow = pSrcBase + _reader.PositionLong;
+					byte* pSrcEnd = pSrcBase + _reader.LengthLong;
+
+					if (pSrcRow + _dstStride * _dstHeight > pSrcEnd)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					for (int y = 0; y < _dstHeight; y++) {
+						byte* pDst = pDstBase + (_flipImage ? y : (_dstHeight - y - 1)) * _dstStride;
+						Buffer.MemoryCopy(pSrcRow, pDst, _dstStride, _dstStride);
+						pSrcRow += _srcStride;
+					}
+				}
+			}
+
+			return new GrfImage(_pixels, Dib.Width, _dstHeight, type, palette);
+		}
+
+		private (int bpp, GrfImageType type) _retrieveOutputFormat() {
+			switch (Dib.BitCount) {
+				case 1:
+				case 4:
+				case 8:
+					return (1, GrfImageType.Indexed8);
+				case 16:
+				case 24:
+					return (3, GrfImageType.Bgr24);
+				case 32:
+					return (4, GrfImageType.Bgr32);
+				default:
+					throw GrfExceptions.__InvalidImageFormat.Create();
+			}
+		}
+
+		private byte[] _readPalette() {
+			byte[] palette = null;
+			int colorCount = Dib.ClrUsed > 0 ? (int)Dib.ClrUsed : 1 << Dib.BitCount;
+			int paletteByteSize = Header.OffsetBits - _reader.Position;
+
+			switch (Dib.BitCount) {
+				case 1:
+				case 4:
+				case 8: // Convert from BGR to RGBA palette format
+					if (paletteByteSize <= 0 || 4 * colorCount > paletteByteSize || colorCount < 0 || colorCount > 256)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					palette = new byte[1024];
+
+					int srcPaletteLength = colorCount * 4;
+
+					if (srcPaletteLength < 0 || _reader.LengthLong - _reader.PositionLong < srcPaletteLength)
+						throw GrfExceptions.__InvalidImageFormat.Create();
+
+					unsafe {
+						fixed (byte* pDst = palette)
+						fixed (byte* pSrcBase = _reader._data) {
+							byte* pSrc = pSrcBase + _reader.PositionLong;
+
+							for (int i = 0; i < 1024; i += 4) {
+								if (i < srcPaletteLength) {
+									pDst[i + 0] = pSrc[i + 2];
+									pDst[i + 1] = pSrc[i + 1];
+									pDst[i + 2] = pSrc[i + 0];
+								}
+
+								pDst[i + 3] = 255;
+							}
+						}
+					}
+
+					break;
+			}
+
+			return palette;
+		}
+
+		private void _analyzeMask(uint mask, out int shift, out int bits) {
+			if (mask == 0) {
+				shift = 0;
+				bits = 0;
+				return;
+			}
+
+			shift = 0;
+			while (((mask >> shift) & 1) == 0)
+				shift++;
+
+			bits = 0;
+			while (((mask >> (shift + bits)) & 1) == 1)
+				bits++;
 		}
 
 		public static void Save(GrfImage image, Stream stream) {
@@ -275,8 +728,7 @@ namespace GRF.Image.Decoders {
 
 					break;
 				default:
-					return;
-				//throw GrfExceptions.__InvalidImageFormat.Create();
+					throw GrfExceptions.__InvalidImageFormat.Create();
 			}
 		}
 

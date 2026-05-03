@@ -5,7 +5,7 @@
 		xmlns:TokeiLibrary="clr-namespace:TokeiLibrary;assembly=TokeiLibrary"
 		MinWidth="350" MaxWidth="350" Background="{StaticResource TabItemBackground}" Foreground="{StaticResource TextForeground}">
     <StackPanel>
-        <Grid Margin="2" Name="_grid1" DragEnter="_grid1_DragEnter" Drop="_grid1_Drop">
+		<Grid Margin="2" Name="_grid1" DragEnter="_grid_DragEnter" Drop="_grid_Drop">
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition />
@@ -16,7 +16,7 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Button Name="_buttonFile1" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile1_Click" />
+            <Button Name="_buttonFile1" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile_Click" />
             <Label Content="Size" Grid.Row="1" Grid.Column="0" />
             <Label Content="CRC32" Grid.Row="2" Grid.Column="0" />
             <Label Content="MD5" Grid.Row="3" Grid.Column="0" />
@@ -25,7 +25,7 @@
             <TextBox Name="_tbCrc1" IsReadOnly="True" Grid.Row="2" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
             <TextBox Name="_tbMd51" IsReadOnly="True" Grid.Row="3" Grid.Column="1" Margin="3" VerticalContentAlignment="Center" />
         </Grid>
-        <Grid Margin="2 25 2 2" Name="_grid2" DragEnter="_grid2_DragEnter" Drop="_grid2_Drop" >
+		<Grid Margin="2 25 2 2" Name="_grid2" DragEnter="_grid_DragEnter" Drop="_grid_Drop" >
             <Grid.RowDefinitions>
                 <RowDefinition />
                 <RowDefinition />
@@ -36,7 +36,7 @@
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <Button Name="_buttonFile2" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile2_Click" />
+            <Button Name="_buttonFile2" Content="File..." Margin="3" Height="24" Width="75" Click="_buttonFile_Click" />
             <Label Content="Size" Grid.Row="1" Grid.Column="0" />
             <Label Content="CRC32" Grid.Row="2" Grid.Column="0" />
             <Label Content="MD5" Grid.Row="3" Grid.Column="0" />

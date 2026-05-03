@@ -227,7 +227,7 @@ namespace GRFEditor.OpenGL.WPF {
 			tab.Header = skyEffect.IsStarEffect ? "Star" : "Sky";
 			tab.Style = TryFindResource("TabItemSprite") as Style;
 
-			tab.Close += (o, a) => _primary.Items.RemoveAt(Tabs().IndexOf(Tabs().First(p => ReferenceEquals(p, tab))));
+			tab.Close += (o) => _primary.Items.RemoveAt(Tabs().IndexOf(Tabs().First(p => ReferenceEquals(p, tab))));
 
 			_primary.Items.Add(tab);
 		}

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
 using ErrorManager;
@@ -15,27 +15,13 @@ namespace GRFEditor.WPF {
 	/// Interaction logic for HashDialog.xaml
 	/// </summary>
 	public partial class HashDialog : TkWindow {
+		const int WarningFileSize = 75 * 1024 * 1024;
+
 		public HashDialog() : base("Hash viewer", "hash.ico") {
 			InitializeComponent();
 		}
 
-		private void _buttonFile1_Click(object sender, RoutedEventArgs e) {
-			string file = PathRequest.OpenFileEditor("filter", "Any File|*.*");
-
-			if (file != null && File.Exists(file)) {
-				_updateFile1(file);
-			}
-		}
-
-		private void _updateFile1(string fileName) {
-			_updateFile(fileName, _tbName1, _tbSize1, _tbCrc1, _tbMd51);
-		}
-
-		private void _updateFile2(string fileName) {
-			_updateFile(fileName, _tbName2, _tbSize2, _tbCrc2, _tbMd52);
-		}
-
-		private void _updateFile(string fileName, TextBox tbName, TextBox tbSize, TextBox tbCrc, TextBox tbMd5) {
+		private void _hashFile(string fileName, TextBox tbName, TextBox tbSize, TextBox tbCrc, TextBox tbMd5) {
 			try {
 				tbName.Text = fileName;
 				long length = new FileInfo(fileName).Length;
@@ -44,7 +30,8 @@ namespace GRFEditor.WPF {
 				tbMd5.Text = "";
 
 				bool answer = true;
-				if (length > 75 * 1024 * 1024) {
+
+				if (length > WarningFileSize) {
 					answer = ErrorHandler.YesNoRequest("Files bigger than 75 MB can take a while to process, are you sure you want to continue?", "Large file");
 				}
 
@@ -54,51 +41,42 @@ namespace GRFEditor.WPF {
 
 					using (MD5 md5 = new MD5CryptoServiceProvider()) {
 						byte[] ba = md5.ComputeHash(File.ReadAllBytes(fileName));
-						StringBuilder sb = new StringBuilder(ba.Length * 2);
-
-						foreach (byte b in ba) {
-							sb.AppendFormat("{0:x2}", b);
-						}
-
-						tbMd5.Text = sb.ToString();
+						tbMd5.Text = ba.Select(p => p.ToString("x2")).Aggregate((a, b) => a + b);
 					}
 				}
 			}
-			catch {
+			catch (Exception err) {
+				ErrorHandler.HandleException("Failed to hash file '" + fileName + "'.", err);
 			}
 		}
 
-		private void _buttonFile2_Click(object sender, RoutedEventArgs e) {
+		private void _updateFile(int source, string fileName) {
+			switch (source) {
+				case 0:
+					_hashFile(fileName, _tbName1, _tbSize1, _tbCrc1, _tbMd51);
+					break;
+				case 1:
+					_hashFile(fileName, _tbName2, _tbSize2, _tbCrc2, _tbMd52);
+					break;
+			}
+		}
+
+		private void _buttonFile_Click(object sender, RoutedEventArgs e) => _selectFile(sender == _grid1 ? 0 : 1);
+		
+		private void _selectFile(int source) {
 			string file = PathRequest.OpenFileEditor("filter", "Any File|*.*");
 
 			if (file != null && File.Exists(file)) {
-				_updateFile2(file);
+				_updateFile(source, file);
 			}
 		}
 
-		private void _grid1_DragEnter(object sender, DragEventArgs e) {
-			e.Effects = DragDropEffects.Copy;
-		}
+		private void _grid_DragEnter(object sender, DragEventArgs e) => e.Effects = DragDropEffects.Copy;
 
-		private void _grid1_Drop(object sender, DragEventArgs e) {
+		private void _grid_Drop(object sender, DragEventArgs e) {
 			try {
 				if (e.Is(DataFormats.FileDrop)) {
-					_updateFile1(e.Get<string>(DataFormats.FileDrop));
-				}
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
-		}
-
-		private void _grid2_DragEnter(object sender, DragEventArgs e) {
-			e.Effects = DragDropEffects.Copy;
-		}
-
-		private void _grid2_Drop(object sender, DragEventArgs e) {
-			try {
-				if (e.Is(DataFormats.FileDrop)) {
-					_updateFile2(e.Get<string>(DataFormats.FileDrop));
+					_updateFile(sender == _grid1 ? 0 : 1, e.Get<string>(DataFormats.FileDrop));
 				}
 			}
 			catch (Exception err) {

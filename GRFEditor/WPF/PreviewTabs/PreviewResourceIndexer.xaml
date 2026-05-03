@@ -44,17 +44,9 @@
                     <WPF:TkView MouseRightButtonUp="_tree_MouseRightButtonUp" BorderThickness="0" MultiSelection="True" SelectedItemChanged="_tree_SelectedItemChanged"  x:Name="_tree" Grid.Row="1">
                         <WPF:TkView.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Name="_menuItemsSelectRootFiles" Header="Select root files" Click="_menuItemsSelectRootFiles_Click" >
-                                    <MenuItem.Icon>
-                                        <Image Source="../../Resources/empty.png"  />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                                <MenuItem Name="_menuItemsSelectInGrf" Header="Select in project" Click="_menuItemsSelectInGrf_Click" >
-                                    <MenuItem.Icon>
-                                        <Image Source="../../Resources/arrowdown.png"  />
-                                    </MenuItem.Icon>
-                                </MenuItem>
-                            </ContextMenu>
+								<MenuItem Name="_menuItemsSelectRootFiles" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Select root files" />
+								<MenuItem Name="_menuItemsSelectInGrf" TokeiLibrary:WpfProperties.ImagePath="arrowdown.png" Header="Select in project" Click="_menuItemsSelectInGrf_Click" />
+							</ContextMenu>
                         </WPF:TkView.ContextMenu>
                     </WPF:TkView>
                 </Grid>

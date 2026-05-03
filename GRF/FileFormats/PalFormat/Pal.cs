@@ -7,6 +7,12 @@ using GRF.Image;
 
 namespace GRF.FileFormats.PalFormat {
 	public class Pal : IImageable {
+		public enum FormatMode {
+			PreserveOriginal,
+			NoTransparency,
+			NoTransparencyExceptFirstPixel,
+		}
+
 		#region Delegates
 
 		public delegate void PalEventHandler(object sender);
@@ -31,27 +37,32 @@ namespace GRF.FileFormats.PalFormat {
 			}
 		}
 
-		public Pal(byte[] dataDecompressed, bool reformatPalette = true) : this() {
-			int offset = 0;
+		public Pal(byte[] dataDecompressed, FormatMode loadMode) : this() {
+			unsafe {
+				fixed (byte* pDst = _palette)
+				fixed (byte* pDataBase = dataDecompressed) {
+					byte* pDataEnd = pDataBase + Math.Min(1024, dataDecompressed.Length);
+					byte* pData = pDataBase;
 
-			if (reformatPalette) {
-				for (int j = 0; j < 256; j++) {
-					dataDecompressed[offset + 3] = 255;
-					offset += 4;
+					if (loadMode > FormatMode.PreserveOriginal) {
+						pData = pData + 3;
+
+						while (pData < pDataEnd) {
+							*pData = 255;
+							pData += 4;
+						}
+					}
+
+					Buffer.MemoryCopy(pDataBase, pDst, _palette.Length, Math.Min(_palette.Length, dataDecompressed.Length));
 				}
 			}
 
-			if (dataDecompressed.Length > 1024) {
-				// What kind of shit software made palettes with more than 256 colors...
-				byte[] temp = new byte[1024];
-				Buffer.BlockCopy(dataDecompressed, 0, temp, 0, 1024);
-				dataDecompressed = temp;
+			if (loadMode == FormatMode.NoTransparencyExceptFirstPixel) {
+				_palette[3] = 0;
 			}
-
-			Buffer.BlockCopy(dataDecompressed, 0, _palette, 0, 1024);
 		}
 
-		public Pal(string path) : this(File.ReadAllBytes(path)) {
+		public Pal(string path, FormatMode loadMode) : this(File.ReadAllBytes(path), loadMode) {
 			LoadedPath = path;
 		}
 

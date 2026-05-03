@@ -3,7 +3,6 @@ using GRF.Image.Decoders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using Utilities;
 
 namespace GRF.Image {
@@ -26,8 +25,18 @@ namespace GRF.Image {
 		}
 
 		public static GrfImage SprConvert(Spr spr, GrfImage imageSource, bool useDithering, SprTransparencyMode transparency, SprConvertMode mode) {
-			// ?? What if palette is not set...?
-			var originalPalette = spr.Palette.BytePalette;
+			byte[] originalPalette;
+
+			if (spr.Palette == null || spr.Palette.BytePalette == null) {
+				originalPalette = new byte[1024];
+				originalPalette[0] = 255;
+				originalPalette[1] = 0;
+				originalPalette[2] = 255;
+				originalPalette[3] = 255;
+			}
+			else {
+				originalPalette = spr.Palette.BytePalette;
+			}
 
 			if (mode == SprConvertMode.Original) {
 				if (imageSource.GrfImageType != GrfImageType.Indexed8)
@@ -396,6 +405,18 @@ namespace GRF.Image {
 		public unsafe void Fill(byte value) {
 			fixed (byte* pDst = Pixels) {
 				NativeMethods.memset((IntPtr)pDst, value, (UIntPtr)Pixels.Length);
+			}
+		}
+
+		public unsafe void Fill(int offset, int length, byte value) {
+			length = Math.Min(Pixels.Length - offset - 1, length);
+
+			if (length < 0) return;
+			if (offset + length >= Pixels.Length)
+				throw new ArgumentOutOfRangeException("Total length of the fill buffer is larger than the image size.", "length");
+
+			fixed (byte* pDst = Pixels) {
+				NativeMethods.memset((IntPtr)(pDst + offset), value, (UIntPtr)length);
 			}
 		}
 	}

@@ -21,7 +21,6 @@ namespace GRFEditor.Core.Services {
 	}
 
 	public class OpeningService {
-		public static bool Enabled;
 		private string _fileToOpen = "";
 
 		public void OpenSelectedFile(FileEntry entry, OpeningAction action) {

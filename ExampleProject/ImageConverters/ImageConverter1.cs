@@ -74,7 +74,7 @@ namespace ExampleProject.ImageConverters {
 			byte[] pal = new byte[image.Palette.Length];
 			Buffer.BlockCopy(image.Palette, 0, pal, 0, pal.Length);
 
-			return new GrfImage(ref pixels, newWidth, newHeight, image.GrfImageType, ref pal);
+			return new GrfImage(pixels, newWidth, newHeight, image.GrfImageType, pal);
 		}
 
 		private Bitmap _readAsCommonFormat(GrfImage image) {

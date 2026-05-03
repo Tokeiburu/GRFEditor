@@ -31,8 +31,8 @@ namespace GRF.FileFormats.ActFormat {
 							Layer layer = new Layer();
 
 							if (act.Version >= 2.6) {
-								layer.OffsetX = (int)reader.Float();
-								layer.OffsetY = (int)reader.Float();
+								layer.OffsetX = (int)Math.Floor(reader.Float());
+								layer.OffsetY = (int)Math.Floor(reader.Float());
 							}
 							else {
 								layer.OffsetX = reader.Int32();
@@ -61,6 +61,12 @@ namespace GRF.FileFormats.ActFormat {
 								if (act.Version >= 2.5) {
 									layer.Width = reader.Int32();
 									layer.Height = reader.Int32();
+								}
+
+								if (act.Version >= 2.6) {
+									if (act.Sprite != null && act.Sprite.Header.IsCompatibleWith(3, 2)) {
+										layer.SpriteType = SpriteTypes.Bgra32;
+									}
 								}
 							}
 

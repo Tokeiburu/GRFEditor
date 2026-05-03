@@ -32,7 +32,6 @@ namespace GRF.FileFormats.RswFormat {
 		/// <param name="reader">The reader.</param>
 		public Rsw(IBinaryReader reader) {
 			Objects = new List<RswObject>();
-			ModelResources = new List<string>();
 			LubEffects = new List<Effect>();
 
 			Header = new RswHeader(reader);
@@ -47,9 +46,7 @@ namespace GRF.FileFormats.RswFormat {
 
 			_loadOjbects(reader);
 
-			ModelResources = Objects.Where(p => p.Type == RswObjectType.Model).Cast<Model>().Select(p => p.ModelName).Distinct().ToList();
-
-			if (reader.CanRead && Header.IsCompatibleWith(2, 1)) {
+			if (reader.CanRead && Header.Version >= 2.1) {
 				_quadTree = new QuadTree(reader);
 			}
 		}
@@ -102,7 +99,7 @@ namespace GRF.FileFormats.RswFormat {
 		/// <summary>
 		/// Gets or sets the model resources.
 		/// </summary>
-		public List<string> ModelResources { get; set; }
+		public List<string> ModelResources => Objects.Where(p => p.Type == RswObjectType.Model).Cast<Model>().Select(p => p.ModelName).Distinct().ToList();
 
 		#region IPrintable Members
 
@@ -263,10 +260,10 @@ namespace GRF.FileFormats.RswFormat {
 		public static Rsw CreateEmpty(string mapname) {
 			Rsw rsw = new Rsw();
 			rsw.Objects = new List<RswObject>();
-			rsw.ModelResources = new List<string>();
 
 			rsw.LubEffects = new List<Effect>();
 			rsw.Water = new RswWater();
+			rsw.Water.SetUndergroundValues();
 			rsw.Light = new RswLight();
 			rsw.Header = new RswHeader(mapname);
 			rsw.Ground = new RswGround();

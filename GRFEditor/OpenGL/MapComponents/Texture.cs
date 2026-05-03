@@ -367,12 +367,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 				OpenGLMemoryManager.AddTextureId(_id);
 				GL.BindTexture(TextureTarget.Texture2D, _id);
 
-				if (IsSemiTransparent) {
-					if (Resource.IsExtension(".tga")) {
-						Image.Flip(FlipDirection.Vertical);
-					}
-				}
-
 				GCHandle pinnedArray = GCHandle.Alloc(Image.Pixels, GCHandleType.Pinned);
 				IntPtr pointer = pinnedArray.AddrOfPinnedObject();
 

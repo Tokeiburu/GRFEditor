@@ -108,10 +108,8 @@ namespace GRF.FileFormats.SprFormat {
 				//}
 			}
 
-			palette[3] = 0;
-			Palette = new Pal(palette, false);
-
-			return palette;
+			Palette = new Pal(palette, Pal.FormatMode.NoTransparencyExceptFirstPixel);
+			return Palette.BytePalette;
 		}
 
 		protected void _readAsBgra32(List<Rle> rleImages, IBinaryReader reader) {

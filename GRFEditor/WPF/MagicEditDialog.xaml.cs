@@ -24,8 +24,8 @@ namespace GRFEditor.WPF {
 			MemoryStream ms = new MemoryStream(data2);
 			DynamicFileByteProvider prov = new DynamicFileByteProvider(ms);
 			_hexEditor.ByteProvider = prov;
-			_hexEditor.CurrentLineChanged += new EventHandler(_hexEditor_CurrentLineChanged);
-			_hexEditor.SelectionStartChanged += new EventHandler(_hexEditor_SelectionStartChanged);
+			_hexEditor.CurrentLineChanged += _hexEditor_CurrentLineChanged;
+			_hexEditor.SelectionStartChanged += _hexEditor_SelectionStartChanged;
 
 			try {
 				var color = ((SolidColorBrush)Application.Current.Resources["TabItemBackground"]).Color;

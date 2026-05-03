@@ -25,6 +25,8 @@ using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
 using AsyncOperation = GrfToWpfBridge.Application.AsyncOperation;
+using GRF.FileFormats.RswFormat;
+using TokeiLibrary.Shortcuts;
 
 //using Parallel = GRF.Threading.Parallel;
 
@@ -73,11 +75,7 @@ namespace GRFEditor.Tools.Map {
 			_cecWall._qcs.ColorChanged += (s, c) => _updateTextures();
 			_cec0._qcs.ColorChanged += (s, c) => _updateTextures();
 			_cec1._qcs.ColorChanged += (s, c) => _updateTextures();
-			//_cec2._qcs.ColorChanged += (s, c) => _updateTextures();
-			//_cec3._qcs.ColorChanged += (s, c) => _updateTextures();
-			//_cec4._qcs.ColorChanged += (s, c) => _updateTextures();
 			_cec5._qcs.ColorChanged += (s, c) => _updateTextures();
-			//_cec6._qcs.ColorChanged += (s, c) => _updateTextures();
 			_cecX._qcs.ColorChanged += (s, c) => _updateTextures();
 
 			_tbPreviewName.TextChanged += delegate {
@@ -198,6 +196,16 @@ namespace GRFEditor.Tools.Map {
 			this.Loaded += delegate {
 				_gridError.Visibility = Visibility.Collapsed;
 			};
+
+			_listView.KeyDown += _listView_KeyDown;
+		}
+
+		private void _listView_KeyDown(object sender, KeyEventArgs e) {
+			if (ApplicationShortcut.Copy.IsMatch()) {
+				if (_listView.SelectedItems.Count > 0) {
+					Clipboard.SetDataObject(String.Join("\r\n", _listView.SelectedItems.Cast<MapEditorExceptionView>().Select(p => p.Description).ToArray()));
+				}
+			}
 		}
 
 		private void _fileModified(object arg1, FileSystemEventArgs arg2) {
@@ -500,48 +508,37 @@ namespace GRFEditor.Tools.Map {
 						FileStream f = streams[thread.ThreadId];
 
 						if (_grfOnly) {
-							var gat = _grfHolder.FileTable.TryGet("data\\" + file + ".gat");
-							var rsw = _grfHolder.FileTable.TryGet("data\\" + file + ".rsw");
-							var gnd = _grfHolder.FileTable.TryGet("data\\" + file + ".gnd");
-
-							if (gat == null)
-								AddException(new MapEditorException("File not found in GRF: data\\" + file + ".gat", ErrorLevel.Warning));
-							if (rsw == null)
-								AddException(new MapEditorException("File not found in GRF: data\\" + file + ".rsw", ErrorLevel.Warning));
-							if (gnd == null)
-								AddException(new MapEditorException("File not found in GRF: data\\" + file + ".gnd", ErrorLevel.Warning));
-							
-							if (gat == null || rsw == null || gnd == null) {
-								return;
-							}
-
-							byte[] gatData = null;
-							byte[] rswData = null;
+							byte[] gatData = _tryLoad(file, ".gat");
+							byte[] rswData = _tryLoad(file, ".rsw");
 							byte[] gndData = null;
 
-							try {
-								gatData = gat.GetDecompressedData();
+							var gnd = _grfHolder.FileTable.TryGet("data\\" + file + ".gnd");
+
+							// Attempt to load the GND file from the header
+							if (rswData != null && gnd == null) {
+								RswHeader rswHeader = new RswHeader(new ByteReader(rswData));
+								gnd = _grfHolder.FileTable.TryGet("data\\" + rswHeader.GroundFile);
+
+								if (gnd == null) {
+									AddException(new MapEditorException("File not found in GRF: data\\" + rswHeader.GroundFile, ErrorLevel.Warning));
+								}
 							}
-							catch (Exception err) {
-								AddException(new MapEditorException("Failed to read data from GRF (possibly encrypted?): data\\" + file + ".gat", ErrorLevel.Warning, err));
+							else if (gnd == null) {
+								AddException(new MapEditorException("File not found in GRF: data\\" + file + ".gnd", ErrorLevel.Warning));
 							}
 
-							try {
-								rswData = rsw.GetDecompressedData();
-							}
-							catch (Exception err) {
-								AddException(new MapEditorException("Failed to read data from GRF (possibly encrypted?): data\\" + file + ".rsw", ErrorLevel.Warning, err));
-							}
-
-							try {
-								gndData = gnd.GetDecompressedData();
-							}
-							catch (Exception err) {
-								AddException(new MapEditorException("Failed to read data from GRF (possibly encrypted?): data\\" + file + ".gnd", ErrorLevel.Warning, err));
+							if (gnd != null) {
+								try {
+									gndData = gnd.GetDecompressedData();
+								}
+								catch (Exception err) {
+									AddException(new MapEditorException("Failed to read data from GRF (possibly encrypted?): data\\" + file + ".gnd", ErrorLevel.Warning, err));
+								}
 							}
 
-							if (gatData == null || rswData == null || gndData == null)
+							if (gatData == null || rswData == null || gndData == null) {
 								return;
+							}
 
 							try {
 								_mapEditor.Generate(file, gatData, rswData, gndData, f, threadPoolLock, entries);
@@ -624,6 +621,25 @@ namespace GRFEditor.Tools.Map {
 					_tabItemTexture.IsEnabled = true;
 				});
 			}
+		}
+
+		private byte[] _tryLoad(string file, string ext) {
+			var entry = _grfHolder.FileTable.TryGet("data\\" + file + ext);
+
+			if (entry == null)
+				AddException(new MapEditorException("File not found in GRF: data\\" + file + ext, ErrorLevel.Warning));
+
+			if (entry == null)
+				return null;
+
+			try {
+				return entry.GetDecompressedData();
+			}
+			catch (Exception err) {
+				AddException(new MapEditorException("Failed to read data from GRF (possibly encrypted?): data\\" + file + ext, ErrorLevel.Warning, err));
+			}
+
+			return null;
 		}
 
 		protected override void OnClosing(CancelEventArgs e) {

@@ -21,7 +21,7 @@ namespace GRFEditor.WPF {
 				}
 				else {
 					Prop = "# GRF File Entry Properties #";
-					Prop = FileFormatParser.DisplayObjectPropertiesFromEntry(grfData, (FileEntry) selectedObject);
+					Prop = FileFormatParser.DisplayObjectPropertiesFromEntry((FileEntry)selectedObject);
 				}
 			}
 			catch (Exception er) {

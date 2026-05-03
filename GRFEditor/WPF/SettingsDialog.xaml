@@ -6,268 +6,224 @@
         xmlns:WPF="clr-namespace:GRFEditor.WPF"
         xmlns:ApplicationConfiguration="clr-namespace:GRFEditor.ApplicationConfiguration"
         xmlns:Application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge"
-        xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge"
-        MaxWidth="500" MinWidth="500" MinHeight="520" MaxHeight="498" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
-    <Grid>
-        <Grid.RowDefinitions>
+        xmlns:GRF="clr-namespace:GRF.Core;assembly=GRF"
+        xmlns:multiGrf="clr-namespace:GrfToWpfBridge.MultiGrf;assembly=GrfToWpfBridge" UseLayoutRounding="True"
+        MaxWidth="500" MinWidth="500" MinHeight="560" MaxHeight="560" Foreground="{DynamicResource TextForeground}" SnapsToDevicePixels="True" >
+	<Grid>
+		<Grid.Resources>
+			<Style TargetType="{x:Type CheckBox}" BasedOn="{StaticResource ThemeCheckBoxStyle}">
+				<Setter Property="Foreground" Value="{DynamicResource TextForeground}" />
+				<Setter Property="Margin" Value="3" />
+				<Setter Property="VerticalAlignment" Value="Center" />
+				<Setter Property="HorizontalAlignment" Value="Left" />
+				<Setter Property="ToolTipService.ShowDuration" Value="30000" />
+
+				<Setter Property="ContentTemplate">
+					<Setter.Value>
+						<DataTemplate>
+							<TextBlock Text="{Binding}" x:Name="text"/>
+							<DataTemplate.Triggers>
+								<DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=CheckBox}}" Value="True">
+									<Setter TargetName="text" Property="TextDecorations" Value="Underline"/>
+								</DataTrigger>
+							</DataTemplate.Triggers>
+						</DataTemplate>
+					</Setter.Value>
+				</Setter>
+
+				<Style.Triggers>
+					<Trigger Property="IsMouseOver" Value="True">
+						<Setter Property="Cursor" Value="Hand"/>
+						<Setter Property="Foreground" Value="{DynamicResource MouseOverTextBrush}" />
+					</Trigger>
+				</Style.Triggers>
+			</Style>
+			<Style TargetType="{x:Type ToolTip}">
+				<Setter Property="MaxWidth" Value="350" />
+				<Setter Property="ContentTemplate">
+					<Setter.Value>
+						<DataTemplate>
+							<TextBlock Text="{Binding}" TextWrapping="Wrap" />
+						</DataTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+		</Grid.Resources>
+		<Grid.RowDefinitions>
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <Border Background="{DynamicResource ResourceKey=TabControlBackground}">
-            <Grid>
-                <TabControl Style="{DynamicResource ResourceKey=TabControlStyled}">
-                    <TabItem Header="General" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <StackPanel>
-                            <StackPanel>
-                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                            </StackPanel>
-                            <Grid Name="_gridGeneral">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Row="0">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition Width="auto" />
-                                    </Grid.ColumnDefinitions>
-                                    <Label Content="Display encoding" />
-                                    <Image Name="_encodingImage" Grid.Column="1" VerticalAlignment="Center" Source="/Resources/help.png" Height="16" Width="16"  Margin="0 0 5 0" MouseDown="_encodingImage_MouseDown" />
-                                </Grid>
-                                <Label Grid.Row="2" Content="Save format" >
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                        The output format of the GRF.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <Label Grid.Row="3" Content="Compression method" >
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                        Determines how the container will be compressed.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <Label Grid.Row="4" Content="Theme" Visibility="Visible" >
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                        Determines GRF Editor's UI style.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <Label Grid.Row="5" Content="Maximum number of threads" >
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                    Default value is 10. This feature enables you to run more threads for the services. 
-                                    <LineBreak />
-                                    Too many threads and the whole system lags though, so there's a limit of 50.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <Label Grid.Row="6" Content="Preview panel background">
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                    The background color for previewing images.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <CheckBox Name="_cbOverrideExtractionPath" Margin="3 3 3 1" Grid.ColumnSpan="2" Grid.Row="7" Content="Override the extraction path">
-                                    <CheckBox.ToolTip>
-                                        <TextBlock>
-                                            Instead of extracting files to the current location of the GRF,
-                                            <LineBreak />
-                                            files will be extracted at the path below.
-                                        </TextBlock>
-                                    </CheckBox.ToolTip>
-                                </CheckBox>
-                                <Styles:PathBrowser Name="_pbExtration" Margin="20 0 0 3" Grid.Row="8" Grid.ColumnSpan="2" BrowseMode="Folder" />
-                                <Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" />
-                                <ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" VerticalAlignment="Center" Margin="3" >
-                                    <ComboBoxItem Content="0x300" />
-                                    <ComboBoxItem Content="0x200" />
-                                    <ComboBoxItem Content="0x103" />
-                                    <ComboBoxItem Content="0x102" />
-                                </ComboBox>
-                                <ComboBox Grid.Row="4" Grid.Column="1" Name="_comboBoxStyles" VerticalAlignment="Center" Margin="3" Visibility="Visible" >
-                                    <ComboBoxItem Content="Default" />
-                                    <ComboBoxItem Content="Dark theme" />
-                                </ComboBox>
-                                <Application:CompressionMethodPicker Grid.Row="3" Grid.Column="1" Name="_comboBoxCompression" VerticalAlignment="Center" Margin="3" />
-                                <TextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center"  Name="_textBoxMaxThreads" HorizontalAlignment="Stretch" Margin="3" />
-                                <WPF:QuickColorSelector Height="20" Margin="3" x:Name="_qcsBackground" Grid.Row="6" Grid.Column="1" ColorBrush="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" />
-                            </Grid>
-                        </StackPanel>
-                    </TabItem>
-                    <TabItem Header="Tree behavior" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <StackPanel>
-                            <StackPanel>
-                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                            </StackPanel>
-                            <Grid Name="_gridTreeBehavior">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Button Name="_buttonTreeExpandSpecific" Click="_buttonTreeExpandSpecific_Click" Grid.Row="1" Width="80" Margin="3" Height="22" Content="Edit..." HorizontalAlignment="Right" Grid.Column="1" />
-                            </Grid>
-                        </StackPanel>
-                    </TabItem>
-                    <TabItem Header="Shell integration" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <StackPanel>
-                            <StackPanel>
-                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                            </StackPanel>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <Grid Grid.Row="2" Grid.ColumnSpan="2">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition Width="100" />
-                                        <ColumnDefinition />
-                                    </Grid.ColumnDefinitions>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                        <RowDefinition />
-                                    </Grid.RowDefinitions>
-                                    <CheckBox Name="_assGrf" Content=".grf" Grid.Row="0" VerticalAlignment="Center" Margin="3" />
-                                    <CheckBox Name="_assGpf" Content=".gpf" Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Margin="3" />
-                                    <CheckBox Name="_assRgz" Content=".rgz" Grid.Row="0" Grid.Column="2" VerticalAlignment="Center" Margin="3" />
-                                    <CheckBox Name="_assGrfKey" Content=".grfkey" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="3" />
-                                    <CheckBox Name="_assThor" Content=".thor" Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="3" />
-                                </Grid>
-                                <TextBlock Text="Associate these file extensions with GRF Editor." Margin="3" Grid.ColumnSpan="2" />
-                                <TextBlock Text="Context menus" Grid.Row="3" Margin="3 20 3 3" Grid.ColumnSpan="2" TextWrapping="Wrap" />
-                                <CheckBox Name="_assShellAll" Content="Use context menus in Windows Explorer for GRF Editor" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" VerticalAlignment="Center" Margin="3" />
-                                <Button Name="_buttonRemoveAllExtensions" Click="_buttonRemoveAllExtensions_Click" Grid.Row="8" Height="24" Margin="3 10 3 3" Width="auto" VerticalAlignment="Bottom" Content=" Remove all extensions " />
-                            </Grid>
-                        </StackPanel>
-                    </TabItem>
-                    <TabItem Header="Resources" Style="{DynamicResource TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <Grid>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="auto" />
-                                <RowDefinition Height="140" />
-                                <RowDefinition Height="auto" />
-                            </Grid.RowDefinitions>
-                            <StackPanel>
-                                <StackPanel>
-                                    <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                    <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                                </StackPanel>
-                                <WrapPanel>
-                                </WrapPanel>
-                                <TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). The validation will only be applied to the currently opened GRF, but providing additional resources will be used to locate textures, sound files, models, etc." TextWrapping="Wrap" />
-                            </StackPanel>
-                            <multiGrf:MetaGrfResourcesViewer x:Name="_mViewer" Grid.Row="1" />
-                        </Grid>
-                    </TabItem>
-                    <TabItem Header="Debugger" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <StackPanel>
-                            <StackPanel>
-                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                            </StackPanel>
-                            <Grid Name="_gridDebugger">
-                            </Grid>
-                        </StackPanel>
-                    </TabItem>
-                    <TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
-                        <StackPanel>
-                            <StackPanel>
-                                <Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
-                                <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-                            </StackPanel>
-                            <Grid>
-                                <Grid.RowDefinitions>
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                    <RowDefinition />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="auto" />
-                                    <ColumnDefinition />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Text="These settings cannot be modified because some of them depend of your OS settings and limitations." FontStyle="Italic" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="3" />
-                                <Label Content="Configuration file name" Grid.Row="1" />
-                                <Label Content=".NET Framework used" Grid.Row="2" />
-                                <Label Content="Bitmap pixel indexation" Grid.Row="3" />
-                                <Label Content="Bitmap rendering" Grid.Row="4" />
-                                <Label Grid.Row="5" Content="Warning level">
-                                    <Label.ToolTip>
-                                        <TextBlock>
-                                    The tolerance of the exceptions being shown.
-                                    <LineBreak />
-                                    Low = all exceptions are being shown. Critical = only exceptions 
-                                    <LineBreak />
-                                    with potential damage are being shown.
-                                        </TextBlock>
-                                    </Label.ToolTip>
-                                </Label>
-                                <Label Content="Encryption method" Grid.Row="6" />
-                                <Grid Grid.Row="1" Grid.Column="1">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition />
-                                        <ColumnDefinition Width="auto" />
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <Button Name="_configSelect" Grid.Column="1" Height="24" Width="24" Margin="0 0 3 0" />
-                                    <TextBox Name="_tbConfig" Grid.Column="0" Height="24" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
-                                </Grid>
-                                <TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
-                                <TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
-                                <TextBox Name="_tbRenderingMode" Grid.Row="4" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
-                                <ComboBox Grid.Row="5" Grid.Column="1" Name="_comboBoxWarningLevel" SelectedIndex="0" VerticalAlignment="Center" Margin="3" >
-                                    <ComboBoxItem Content="Low" />
-                                    <ComboBoxItem Content="Warning" />
-                                    <ComboBoxItem Content="Critical" />
-                                </ComboBox>
-                                <Application:EncryptionMethodPicker Grid.Row="6" Grid.Column="1" Name="_comboBoxEncryption" VerticalAlignment="Center" Margin="3" />
-                            </Grid>
-                        </StackPanel>
-                    </TabItem>
-                </TabControl>
-                <!--<Image IsHitTestVisible="False" Source="../Resources/tree.png" Height="28" Width="28" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5 52 0 0" />-->
-            </Grid>
-        </Border>
+		<Border Background="{DynamicResource ResourceKey=TabControlBackground}">
+			<TabControl Style="{DynamicResource ResourceKey=TabControlStyled}">
+				<TabItem Header="General" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<StackPanel>
+						<StackPanel>
+							<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}, FallbackValue='General'}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+						</StackPanel>
+						<Grid Name="_gridGeneral">
+							<Grid.RowDefinitions>
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition />
+							</Grid.ColumnDefinitions>
+							<Grid Grid.Row="0">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition />
+									<ColumnDefinition Width="auto" />
+								</Grid.ColumnDefinitions>
+								<Label Content="Display encoding" />
+								<Image Name="_encodingImage" Grid.Column="1" VerticalAlignment="Center" Source="/Resources/help.png" Height="16" Width="16"  Margin="0 0 5 0" MouseDown="_encodingImage_MouseDown" />
+							</Grid>
+							<Label Grid.Row="2" Content="Save format" ToolTip="The output format of the GRF." />
+							<Label Grid.Row="3" Content="Compression method" ToolTip="Determines how the container will be compressed." />
+							<Label Grid.Row="4" Content="Theme" ToolTip="Determines GRF Editor's UI style." />
+							<Label Grid.Row="5" VerticalAlignment="Center" Content="Maximum number of threads" ToolTip="Default value is 10. This feature enables you to run more threads for the services. Too many threads and the whole system lags though, so there's a limit of 50." />
+							<Label Grid.Row="6" Content="Preview panel background" ToolTip="The background color for previewing images." />
+							<CheckBox Name="_cbOverrideExtractionPath" Margin="3 3 3 1" Grid.ColumnSpan="2" Grid.Row="7" Content="Override the extraction path" ToolTip="Instead of extracting files to the current location of the GRF, files will be extracted at the path below." />
+							<Styles:PathBrowser Name="_pbExtration" Margin="20 0 0 3" Grid.Row="8" Grid.ColumnSpan="2" BrowseMode="Folder" />
+							<Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" EncodingChanged="_comboBoxEncoding_EncodingChanged"  />
+							<ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" VerticalAlignment="Center" Margin="3" ItemsSource="{Binding Source={x:Static GRF:GrfFormatViews.Formats}}" SelectionChanged="_comboBoxFormat_SelectionChanged" />
+							<ComboBox Grid.Row="4" Grid.Column="1" Name="_comboBoxStyles" VerticalAlignment="Center" Margin="3">
+								<ComboBoxItem Content="Default" />
+								<ComboBoxItem Content="Dark theme" />
+							</ComboBox>
+							<Application:CompressionMethodPicker Grid.Row="3" Grid.Column="1" Name="_comboBoxCompression" VerticalAlignment="Center" Margin="3" />
+							<TextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Height="22" Name="_textBoxMaxThreads" HorizontalAlignment="Stretch" Margin="3" TextChanged="_textBoxMaxThreads_TextChanged" VerticalContentAlignment="Center" />
+							<WPF:QuickColorSelector Height="20" Margin="3" x:Name="_qcsBackground" Grid.Row="6" Grid.Column="1" ColorBrush="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" />
+						</Grid>
+						<StackPanel>
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.CpuPerformanceManagement), Mode=TwoWay}" Content="CPU performance management" ToolTip="This option monitors your CPU usage and it'll be used to dynamically change the number of threads doing work. The main purpose of this feature is to avoid situations where the CPU could reach 100% usage and hence lagging the entire system." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.AlwaysOpenAfterExtraction), Mode=TwoWay}" Content="Always open folder after extraction" ToolTip="Prevents services from showing a file or folder in Windows Explorer after an extraction." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.AlwaysReopenLatestGrf), Mode=TwoWay}" Content="Always reopen latest opened GRF" ToolTip="Always reopen the most recently opened GRF when starting the application." />
+							<CheckBox IsChecked="{Binding Path=(TokeiLibrary:Configuration.EnableWindowsOwnership), Mode=TwoWay}" Content="Enable windows ownership" ToolTip="Makes the windows linked together, resulting in only being able to focus on one at a time. Disabling this features enables you to open multiple windows (as in tools)." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.LockFiles), Mode=TwoWay}" Content="Lock added files" ToolTip="If enabled, files added to a GRF will be locked (other processes won't be able to move, delete or modify them)." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.AddHashFileForThor), Mode=TwoWay}" Content="Add hash data to Thor files" ToolTip="If enabled, a hash file will be added to Thor patches." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.SaveEditorPosition), Mode=TwoWay}" Content="Save GRF Editor window position" ToolTip="If enabled, the window position and width will be saved upon re-opening the program." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.FullFileTableEncryptionSupport), Mode=TwoWay}" Content="Enable full encryption file table support" ToolTip="If enabled and the GRF's file table is encrypted, an encryption key will be requested when opening the GRF instead of showing a loading error." />
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
+				<TabItem Header="Tree behavior" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<StackPanel>
+						<StackPanel>
+							<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+						</StackPanel>
+						<StackPanel>
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.TreeBehaviorSaveExpansion), Mode=TwoWay}" Content="Remember tree expansion for each GRF" ToolTip="Saves the structure of the tree for the opened GRF to make it faster when opening the file again." />
+							<Grid HorizontalAlignment="Stretch">
+								<CheckBox x:Name="_cbExpandFolders" IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.TreeBehaviorExpandSpecificFolders), Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Content="Always expand specific folders" ToolTip="Expand specific folders for all GRF or RGZ files when opening them." />
+								<Button Name="_buttonTreeExpandSpecific" Click="_buttonTreeExpandSpecific_Click" Grid.Row="1" Width="80" Margin="3" Height="22" Content="Edit..." HorizontalAlignment="Right" IsEnabled="{Binding IsChecked, ElementName=_cbExpandFolders}" />
+							</Grid>
+							<CheckBox IsChecked="{Binding Path=(TokeiLibrary:Configuration.TreeBehaviorUseAlt), Mode=TwoWay}" Content="Move items in the tree by holding ALT" ToolTip="Move folders in the main tree view (directories of the GRF) by holding down the ALT key. If disabled, it'll be the same behavior as Windows Explorer." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.TreeBehaviorSelectLatest), Mode=TwoWay}" Content="Remember last selected node" ToolTip="If enabled, the last seleted node for a GRF will be reopend." />
+							<CheckBox IsChecked="{Binding Path=(TokeiLibrary:Configuration.TranslateTreeView), Mode=TwoWay}" Content="Translate paths in the tree" ToolTip="If enabled, common paths will be translated in gray." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.TreeBehaviorSortFolders), Mode=TwoWay}" Content="Sort GRF folders" ToolTip="If enabled, the GRF folders will be listed in alphabetical order. If disabled, the GRF folders will be listetd in the order they were loaded in the file table." />
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
+				<TabItem Header="Resources" Style="{DynamicResource TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="auto" />
+							<RowDefinition Height="140" />
+							<RowDefinition Height="auto" />
+						</Grid.RowDefinitions>
+						<StackPanel>
+							<StackPanel>
+								<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+								<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+							</StackPanel>
+							<WrapPanel>
+							</WrapPanel>
+							<TextBlock Margin="3" Text="Resources (drop a data folder or a GRF file here). The validation will only be applied to the currently opened GRF, but providing additional resources will be used to locate textures, sound files, models, etc." TextWrapping="Wrap" />
+						</StackPanel>
+						<multiGrf:MetaGrfResourcesViewer x:Name="_mViewer" Grid.Row="1" />
+					</Grid>
+				</TabItem>
+				<TabItem Header="Debugger" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<StackPanel>
+						<StackPanel>
+							<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+						</StackPanel>
+						<StackPanel>
+							<CheckBox IsChecked="{Binding Path=(TokeiLibrary:Configuration.LogAnyExceptions), Mode=TwoWay}" Content="Log any exceptions (debug.log)" ToolTip="If enabled, all exceptions will be logged in the debug.log (found in the roaming folder)." />
+							<CheckBox IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.SpecialDxhjVersionSupport), Mode=TwoWay}" Content="Read map files using 大话仙境OL's engine" ToolTip="If enabled, map files will read using the 大话仙境OL engine, which is not compatible with the normal RO formats." />
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
+				<TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<StackPanel>
+						<StackPanel>
+							<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+						</StackPanel>
+						<Grid>
+							<Grid.RowDefinitions>
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+								<RowDefinition />
+							</Grid.RowDefinitions>
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="auto" />
+								<ColumnDefinition />
+							</Grid.ColumnDefinitions>
+							<TextBlock Text="These settings cannot be modified because some of them depend of your OS settings and limitations." FontStyle="Italic" Grid.ColumnSpan="2" TextWrapping="Wrap" Margin="3" />
+							<Label Content="Configuration file name" Grid.Row="1" />
+							<Label Content=".NET Framework used" Grid.Row="2" />
+							<Label Content="Bitmap pixel indexation" Grid.Row="3" />
+							<Label Grid.Row="5" Content="Warning level">
+								<Label.ToolTip>
+									<TextBlock>
+                                The tolerance of the exceptions being shown.
+                                <LineBreak />
+                                Low = all exceptions are being shown. Critical = only exceptions 
+                                <LineBreak />
+                                with potential damage are being shown.
+									</TextBlock>
+								</Label.ToolTip>
+							</Label>
+							<Label Content="Encryption method" Grid.Row="6" />
+							<Grid Grid.Row="1" Grid.Column="1">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition />
+									<ColumnDefinition Width="auto" />
+								</Grid.ColumnDefinitions>
+
+								<Button Name="_configSelect" Grid.Column="1" Height="24" Width="24" Margin="0 0 3 0" TokeiLibrary:WpfProperties.ImagePath="arrowdown.png" />
+								<TextBox Name="_tbConfig" Grid.Column="0" Height="24" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+							</Grid>
+							<TextBox Name="_tbFramework" Grid.Row="2" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+							<TextBox Name="_tbPixelIndexation" Grid.Row="3" Grid.Column="1" Margin="3" IsReadOnly="True" VerticalContentAlignment="Center" />
+							<ComboBox Grid.Row="5" Grid.Column="1" Name="_comboBoxWarningLevel" SelectedIndex="0" VerticalAlignment="Center" Margin="3" SelectionChanged="_comboBoxWarningLevel_SelectionChanged" >
+								<ComboBoxItem Content="Low" />
+								<ComboBoxItem Content="Warning" />
+								<ComboBoxItem Content="Critical" />
+							</ComboBox>
+							<Application:EncryptionMethodPicker Grid.Row="6" Grid.Column="1" Name="_comboBoxEncryption" VerticalAlignment="Center" Margin="3" />
+						</Grid>
+					</StackPanel>
+				</TabItem>
+			</TabControl>
+		</Border>
         <Grid TokeiLibrary:WpfProperties.IsDraggable="True" Grid.Row="2" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
                 <Button Content="Ok" Height="24" Margin="3" Width="100" Click="_buttonClose" />

@@ -57,12 +57,21 @@ namespace GRF {
 
 		private MultiType(ContainerEntry entry) {
 			_entry = entry;
+
+			string fileName = entry.Stream?.FileName;
+			string relativePath = entry.RelativePath;
+
+			if (fileName != null) {
+				GrfPath = new TkPath(fileName, relativePath);
+			}
 		}
 
 		/// <summary>
 		/// Gets the path of the loaded file.
 		/// </summary>
 		public string Path { get; private set; }
+
+		public TkPath GrfPath { get; private set; }
 
 		public static implicit operator MultiType(string file) {
 			if (file == null)
@@ -91,6 +100,7 @@ namespace GRF {
 		public static implicit operator MultiType(ContainerEntry entry) {
 			if (entry == null)
 				throw new ArgumentNullException("entry");
+
 			return new MultiType(entry);
 		}
 

@@ -83,6 +83,17 @@ namespace GRF.Graphics {
 			Center.Y *= -1;
 		}
 
+		public BoundingBox Clone() {
+			BoundingBox box = new BoundingBox();
+
+			box.Max = Max;
+			box.Min = Min;
+			box.Center = Center;
+			box.Range = Range;
+
+			return box;
+		}
+
 		public static BoundingBox operator +(BoundingBox boxA, BoundingBox boxB) {
 			BoundingBox box = new BoundingBox();
 

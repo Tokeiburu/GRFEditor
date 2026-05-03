@@ -130,5 +130,9 @@ namespace GRF.FileFormats.RsmFormat {
 				}
 			}
 		}
+
+		public override string ToString() {
+			return $"({TextureVertexIds[0]}, {TextureVertexIds[1]}, {TextureVertexIds[2]}), TexID = {TextureId}";
+		}
 	}
 }

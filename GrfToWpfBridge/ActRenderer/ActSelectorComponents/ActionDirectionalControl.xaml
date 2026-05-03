@@ -1,0 +1,28 @@
+﻿<UserControl x:Class="GrfToWpfBridge.ActRenderer.ActSelectorComponents.ActionDirectionalControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary" FontSize="10"
+             mc:Ignorable="d">
+	<Grid x:Name="_directionalGrid">
+		<Grid.ColumnDefinitions>
+			<ColumnDefinition />
+			<ColumnDefinition />
+			<ColumnDefinition />
+		</Grid.ColumnDefinitions>
+		<Grid.RowDefinitions>
+			<RowDefinition />
+			<RowDefinition />
+			<RowDefinition />
+		</Grid.RowDefinitions>
+		<Styles:FancyButton x:Name="_fancyButton3" Tag="3" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="0" Grid.Column="0" />
+		<Styles:FancyButton x:Name="_fancyButton4" Tag="4" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="0" Grid.Column="1" />
+		<Styles:FancyButton x:Name="_fancyButton5" Tag="5" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="0" Grid.Column="2" />
+		<Styles:FancyButton x:Name="_fancyButton2" Tag="2" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="1" Grid.Column="0" />
+		<Styles:FancyButton x:Name="_fancyButton6" Tag="6" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="1" Grid.Column="2" />
+		<Styles:FancyButton x:Name="_fancyButton1" Tag="1" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="2" Grid.Column="0" />
+		<Styles:FancyButton x:Name="_fancyButton0" Tag="0" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="2" Grid.Column="1" />
+		<Styles:FancyButton x:Name="_fancyButton7" Tag="7" Click="_fancyButton_Click" Height="16" Width="16" Grid.Row="2" Grid.Column="2" />
+	</Grid>
+</UserControl>

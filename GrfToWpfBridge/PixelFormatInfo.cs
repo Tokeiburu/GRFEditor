@@ -123,7 +123,20 @@ namespace GrfToWpfBridge {
 				}
 			}
 
-			return BmpBgra32;
+			return PngBgra32;
+		}
+
+		public static PixelFormatInfo GetFormat(PixelFormat format) {
+			if (format == PixelFormats.Bgr24)
+				return BmpBgr24;
+			else if (format == PixelFormats.Bgr32)
+				return BmpBgr32;
+			else if (format == PixelFormats.Bgra32)
+				return PngBgra32;
+			else if (format == PixelFormats.Indexed8)
+				return BmpIndexed8;
+			else
+				throw new Exception("Unsupported PixelFormat: " + format);
 		}
 	}
 }

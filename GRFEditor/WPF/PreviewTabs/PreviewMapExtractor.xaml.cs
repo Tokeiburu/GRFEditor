@@ -5,6 +5,7 @@ using System.Windows.Media;
 using ErrorManager;
 using GRF.Core;
 using GRFEditor.Tools.MapExtractor;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -60,16 +61,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			}));
 		}
 
-		private void _buttonExport_Click(object sender, RoutedEventArgs e) {
-			if (_mapExtractor != null) {
-				_mapExtractor.Export();
-			}
-		}
-
-		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) {
-			if (_mapExtractor != null) {
-				_mapExtractor.ExportAt();
-			}
-		}
+		private void _buttonExport_Click(object sender, RoutedEventArgs e) => _mapExtractor?.Export();
+		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) => _mapExtractor?.ExportAt();
 	}
 }

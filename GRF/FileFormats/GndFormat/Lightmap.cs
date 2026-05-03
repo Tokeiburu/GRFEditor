@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using GRF.Image;
 using Utilities;
 
@@ -8,61 +6,24 @@ namespace GRF.FileFormats.GndFormat {
 	/// <summary>
 	/// Represents a lightmap for a tile
 	/// </summary>
-	public class Lightmap {
-		public byte[] Data;
-		private readonly List<GrfColor> _colors = new List<GrfColor>();
-		private Gnd _gnd;
-
+	public static class Lightmap {
 		/// <summary>
-		/// Initializes a new instance of the <see cref="Lightmap" /> class.
+		/// Gets the <see cref="GrfColor" /> at the specified index of the lightmap.
 		/// </summary>
-		/// <param name="data">The data.</param>
-		public Lightmap(byte[] data) {
-			Data = data;
-		}
-
-		/// <summary>
-		/// Gets the colors.
-		/// </summary>
-		public ReadOnlyCollection<GrfColor> Colors {
-			get { return _colors.AsReadOnly(); }
-		}
-
-		/// <summary>
-		/// Gets the <see cref="GrfColor" /> at the specified index.
-		/// </summary>
+		/// <param name="data">The lightmap data.</param>
 		/// <param name="index">The index.</param>
 		/// <returns>The color at the specified index.</returns>
-		public GrfColor this[int index] {
-			get { return _colors[index]; }
-			set {
-				Data[index] = value.A;
-				Data[3 * index + _gnd.PerCell + 0] = value.R;
-				Data[3 * index + _gnd.PerCell + 1] = value.G;
-				Data[3 * index + _gnd.PerCell + 2] = value.B;
-			}
+		public static GrfColor GetColor(byte[] data, int index) {
+			int b = data.Length >> 2;
+			b = 3 * index + b;
+			return new GrfColor(index, data[b], data[b + 1], data[b + 2]);
 		}
 
-		public int Count {
-			get { return _colors.Count; }
+		public static int GetColorCount(byte[] data) {
+			return data.Length >> 2;
 		}
 
-		internal bool IsLoaded { get; set; }
-
-		internal void Load(Gnd gnd) {
-			_gnd = gnd;
-
-			int offsetA = 0;
-			int offsetRgb = gnd.PerCell;
-
-			for (int i = 0; i < gnd.PerCell; i++) {
-				_colors.Add(new GrfColor(Data[offsetA], Data[offsetRgb + 0], Data[offsetRgb + 1], Data[offsetRgb + 2]));
-				offsetA++;
-				offsetRgb += 3;
-			}
-		}
-
-		public int Hash(Gnd gnd) {
+		public static int GetHash(byte[] data, Gnd gnd) {
 			const uint poly = 0x82f63b78;
 
 			long crc = ~0;
@@ -70,26 +31,14 @@ namespace GRF.FileFormats.GndFormat {
 			if (size < 4)
 				return 0;
 			for (int i = 0; i < size; i++) {
-				crc ^= Data[i];
+				crc ^= data[i];
 				crc = (crc & 1) == 1 ? (crc >> 1) ^ poly : crc >> 1;
 			}
 			return (int)~crc;
 		}
 
-		public static bool operator ==(Lightmap a, Lightmap b) {
-			return NativeMethods.memcmp(a.Data, b.Data, Math.Max(a.Data.Length, b.Data.Length)) == 0;
-		}
-
-		public static bool operator !=(Lightmap a, Lightmap b) {
-			return !(a == b);
-		}
-
-		public override bool Equals(object obj) {
-			return base.Equals(obj);
-		}
-
-		public override int GetHashCode() {
-			return -301143667 + EqualityComparer<byte[]>.Default.GetHashCode(Data);
+		public static bool IsEqual(byte[] a, byte[] b) {
+			return NativeMethods.memcmp(a, b, Math.Max(a.Length, b.Length)) == 0;
 		}
 	}
 }

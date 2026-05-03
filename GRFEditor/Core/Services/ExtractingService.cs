@@ -158,7 +158,7 @@ namespace GRFEditor.Core.Services {
 					return;
 
 				string path = PathRequest.SaveFileEditor(
-					"filter", FileFormat.MergeFilters(Format.Grf | Format.Gpf | Format.Thor), 
+					"filter", FileFormat.MergeFilters(FileFormat.Grf, FileFormat.Gpf, FileFormat.Thor), 
 					"fileName", Path.GetFileName(grfData.FileName));
 
 				if (path != null) {

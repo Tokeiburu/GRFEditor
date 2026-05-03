@@ -141,6 +141,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[TreeBehavior - Select latest folders]"] = value; }
 		}
 
+		public static bool TreeBehaviorSortFolders {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]", true.ToString()]); }
+			set { ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]"] = value.ToString(); }
+		}
+
 		public sealed class GrfResources {
 			private readonly GrfHolder _grf;
 			private MultiGrfReader _multiGrf = new MultiGrfReader();
@@ -315,7 +320,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.9.0.5"; }
+			get { return "1.9.0.7"; }
 		}
 
 		public static string Author {
@@ -449,6 +454,11 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - Preview zoom]"] = value.ToString(CultureInfo.InvariantCulture); }
 		}
 
+		public static float PreviewPaletteZoom {
+			get { return FormatConverters.DefConverter(ConfigAsker["[GRFEditor - PreviewPaletteZoom]", "1"], FormatConverters.SingleConverter); }
+			set { ConfigAsker["[GRFEditor - PreviewPaletteZoom]"] = value.ToString(CultureInfo.InvariantCulture); }
+		}
+
 		public static bool AlwaysOpenAfterExtraction {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]", true.ToString()]); }
 			set { ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]"] = value.ToString(); }
@@ -507,6 +517,10 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[GRFEditor - Application latest file name]"] = value; }
 		}
 
+		public static Setting AppLastPath_Config {
+			get { return new Setting(v => AppLastPath = v.ToString(), () => AppLastPath); }
+		}
+
 		public static bool OverrideExtractionPath {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]", false.ToString()]); }
 			set { ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]"] = value.ToString(); }
@@ -525,6 +539,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool PreviewActScaleType {
 			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActScaleType]", false.ToString()]); }
 			set { ConfigAsker["[GRFEditor - PreviewActScaleType]"] = value.ToString(); }
+		}
+
+		public static bool PreviewActShowGrid {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActShowGrid]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - PreviewActShowGrid]"] = value.ToString(); }
 		}
 
 		public static bool MapRendererGlobalLighting {

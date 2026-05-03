@@ -6,7 +6,7 @@ using GRFEditor.ApplicationConfiguration;
 using Utilities;
 
 namespace GRFEditor.Tools.SpriteEditor {
-	public class SpriteEditorConfiguration {
+	public static class SpriteEditorConfiguration {
 		private static ConfigAsker _configAsker;
 
 		public static ConfigAsker ConfigAsker {
@@ -35,9 +35,8 @@ namespace GRFEditor.Tools.SpriteEditor {
 			set { ConfigAsker["[Sprite Editor - Application latest file name]"] = value; }
 		}
 
-		public static bool UseDithering {
-			get { return Boolean.Parse(ConfigAsker["[Sprite Editor - Use dithering]", false.ToString()]); }
-			set { ConfigAsker["[Sprite Editor - Use dithering]"] = value.ToString(); }
+		public static Setting AppLastPath_Config {
+			get { return new Setting(v => AppLastPath = v.ToString(), () => AppLastPath); }
 		}
 
 		public static bool UseTgaImages {
@@ -48,11 +47,6 @@ namespace GRFEditor.Tools.SpriteEditor {
 		public static int TransparencyMode {
 			get { return Int32.Parse(ConfigAsker["[Sprite Editor - Transparency mode]", 1.ToString(CultureInfo.InvariantCulture)]); }
 			set { ConfigAsker["[Sprite Editor - Transparency mode]"] = value.ToString(CultureInfo.InvariantCulture); }
-		}
-
-		public static int FormatConflictOption {
-			get { return Int32.Parse(ConfigAsker["[Sprite Editor - Last format conflict option]", 2.ToString(CultureInfo.InvariantCulture)]); }
-			set { ConfigAsker["[Sprite Editor - Last format conflict option]"] = value.ToString(CultureInfo.InvariantCulture); }
 		}
 	}
 }

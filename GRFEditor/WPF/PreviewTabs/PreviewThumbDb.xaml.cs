@@ -8,9 +8,9 @@ using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats.DbFormat;
 using GRF.Image;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
-using GrfToWpfBridge;
+using GRFEditor.WPF.PreviewTabs.Controls;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 
@@ -19,72 +19,74 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// Interaction logic for PreviewThumbDb.xaml
 	/// </summary>
 	public partial class PreviewThumbDb : FilePreviewTab {
-		private readonly GrfImageWrapper _wrapper = new GrfImageWrapper();
+		private readonly GrfImageWrapper _primaryImage = new GrfImageWrapper();
 		private ThumbDB _db;
 
 		public PreviewThumbDb() {
 			InitializeComponent();
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
-			_isInvisibleResult = new Action(() => _scrollViewer.Visibility = Visibility.Hidden);
-			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
+			VirtualFileDataObject.SetDraggable(_imagePreview, _primaryImage);
+			ErrorPanel = _errorPanel;
 		}
 
 		public Action<Brush> BackgroundBrushFunction {
 			get { return v => this.Dispatch(p => _scrollViewer.Background = v); }
 		}
 
-		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper.Image != null)
-				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
+		protected override void _load(FileEntry entry) {
+			_setupUI(entry);
+
+			_db = _tryLoadThumbnailDb(entry);
+
+			if (_isCancelRequired()) return;
+
+			_displayThumbnailDb();
 		}
 
-		protected override void _load(FileEntry entry) {
-			string fileName = entry.RelativePath;
-			_labelHeader.Dispatch(p => p.Text = "Image preview: " + Path.GetFileName(fileName));
+		private void _displayThumbnailDb() {
+			this.Dispatch(delegate {
+				string[] files = _db.GetThumbfiles();
 
-			_comboBoxActionIndex.Dispatch(p => p.Items.Clear());
+				_comboBoxActionIndex.ItemsSource = files;
+				_comboBoxActionIndex.SelectedIndex = 0;
 
+				// Clear previous displayed image
+				if (files.Length == 0) {
+					_imagePreview.Source = null;
+				}
+			});
+		}
+
+		private ThumbDB _tryLoadThumbnailDb(FileEntry entry) {
+			// A physical file is required for ThumbDB to read its content.
 			string rFileName = Path.Combine(Configuration.TempPath, Path.GetRandomFileName());
 			File.WriteAllBytes(rFileName, entry.GetDecompressedData());
+			return new ThumbDB(rFileName);
+		}
 
-			if (_isCancelRequired()) return;
+		private void _setupUI(FileEntry entry) {
+			this.Dispatch(delegate {
+				_labelHeader.Text = "Image preview: " + entry.DisplayRelativePath;
 
-			_db = new ThumbDB(rFileName);
-			string[] files = _db.GetThumbfiles();
-
-			if (_isCancelRequired()) return;
-
-			for (int i = 0; i < files.Length; i++) {
-				int i1 = i;
-				_comboBoxActionIndex.Dispatcher.Invoke((Action) (() => _comboBoxActionIndex.Items.Add(files[i1])));
-			}
-
-			if (_isCancelRequired()) return;
-
-			_imagePreview.Dispatch(p => p.VerticalAlignment = VerticalAlignment.Top);
-			_imagePreview.Dispatch(p => p.HorizontalAlignment = HorizontalAlignment.Left);
-			_comboBoxActionIndex.Dispatch(p => p.SelectedIndex = 0);
-			_comboBoxActionIndex.Dispatch(p => p.Visibility = Visibility.Visible);
-			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
-			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
+				_comboBoxActionIndex.ItemsSource = null;
+			});
 		}
 
 		private void _comboBoxActionIndex_SelectionChanged(object sender, SelectionChangedEventArgs e) {
 			if (_comboBoxActionIndex.SelectedItem == null) return;
 
 			try {
-				_wrapper.Image = _db.GetThumbnailImage(_comboBoxActionIndex.SelectedItem.ToString());
-				_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(_comboBoxActionIndex.SelectedItem.ToString()));
-				_imagePreview.Source = _wrapper.Image.Cast<BitmapSource>();
+				string fileName = _comboBoxActionIndex.SelectedItem.ToString();
+				_primaryImage.Image = _db.GetThumbnailImage(fileName);
+				_primaryImage.ExportFileName = Path.GetFileNameWithoutExtension(fileName);
+				_imagePreview.Source = _primaryImage.Image.Cast<BitmapSource>();
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 		}
 
-		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper.Image != null)
-				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
-		}
+		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_primaryImage, _entry.RelativePath);
+		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_primaryImage, _entry.RelativePath);
 	}
 }

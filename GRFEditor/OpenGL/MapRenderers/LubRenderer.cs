@@ -81,7 +81,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			_request = request;
 
 			if (lubData != null && rsw.LubEffects.Count > 0) {
-				if (Methods.ByteArrayCompare(lubData, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
+				if (Lub.IsCompiled(lubData)) {
 					Lub lub = new Lub(lubData);
 					var text = lub.Decompile();
 					lubData = EncodingService.DisplayEncoding.GetBytes(text);

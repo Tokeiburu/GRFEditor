@@ -51,8 +51,8 @@ namespace GRFEditor {
 				var dialog = new AddFileDialog(_treeView, _treeViewPathManager.GetCurrentPath());
 				dialog.Owner = this;
 
-				if (dialog.ShowDialog() == true && !String.IsNullOrEmpty(dialog.FilePath) && dialog.GrfPath != null) {
-					_grfHolder.Commands.AddFileInDirectory(dialog.GrfPath.RelativePath, dialog.FilePath, _addFilesCallback);
+				if (dialog.ShowDialog() == true && !String.IsNullOrEmpty(dialog.SelectedFilePath) && dialog.SelectedGrfPath != null) {
+					_grfHolder.Commands.AddFileInDirectory(dialog.SelectedGrfPath.RelativePath, dialog.SelectedFilePath, _addFilesCallback);
 					_loadListItems();
 				}
 			}
@@ -231,8 +231,12 @@ namespace GRFEditor {
 			TkTreeViewItem item = _treeView.SelectedItem as TkTreeViewItem;
 			string treeViewSelection = _treeViewPathManager.GetCurrentPath();
 
-			if (item != null && treeViewSelection != _lastTreeViewSelection) {
-				_loadListItems();
+			if (item != null) {
+				if (treeViewSelection != _lastTreeViewSelection) {
+					_loadListItems();
+				}
+
+				// Update the preview panel if we switch from a file to a folder
 				_previewService.ShowPreview(_grfHolder, _treeViewPathManager.GetCurrentRelativePath(), null);
 			}
 
@@ -784,10 +788,9 @@ namespace GRFEditor {
 						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, 300, null, true));
 
 						_treeViewPathManager.AddPath(new TkPath { FilePath = loadSettings.FileName, RelativePath = "" });
-						_treeViewPathManager.AddPaths(loadSettings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);
+						_treeViewPathManager.AddPaths(loadSettings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).OrderBy(p => p).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);
 
 						_treeViewPathManager.ExpandFirstNode();
-						_treeViewPathManager.SelectFirstNode();
 
 						if (Configuration.TreeBehaviorExpandSpecificFolders) {
 							List<string> paths = Methods.StringToList(Configuration.TreeBehaviorSpecificFolders);
@@ -817,6 +820,9 @@ namespace GRFEditor {
 								string tkPath = tkPaths.First(p => p.StartsWith(loadSettings.FileName + "?"));
 								_treeViewPathManager.Select(new TkPath(tkPath));
 							}
+						}
+						else {
+							_treeViewPathManager.SelectFirstNode();
 						}
 
 						_recentFilesManager.AddRecentFile(loadSettings.FileName);

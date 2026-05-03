@@ -14,10 +14,10 @@ using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
 using GRFEditor.Tools.SpriteEditor;
-using GrfToWpfBridge;
+using GRFEditor.WPF.PreviewTabs.Controls;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using TokeiLibrary.Paths;
-using Utilities;
 using Utilities.Extension;
 
 namespace GRFEditor.WPF.PreviewTabs {
@@ -25,46 +25,19 @@ namespace GRFEditor.WPF.PreviewTabs {
 	/// Interaction logic for PreviewImage.xaml
 	/// </summary>
 	public partial class PreviewImage : FilePreviewTab {
-		private readonly GrfImageWrapper _wrapper = new GrfImageWrapper();
-		private readonly GrfImageWrapper _wrapper2 = new GrfImageWrapper();
-		private TransformGroup _regularTransformGroup = new TransformGroup();
+		private readonly GrfImageWrapper _primaryImage = new GrfImageWrapper();
+		private readonly GrfImageWrapper _spriteImage = new GrfImageWrapper();
 		private string _sprFilePath;
+		private string _sprExportPath;
+		private Spr _spr;
 
 		public PreviewImage() {
 			InitializeComponent();
 			SettingsDialog.UIPanelPreviewBackgroundPick(_qcsBackground);
-			_loadOtherTransformGroup();
-			_imagePreview.RenderTransform = _regularTransformGroup;
-			_isInvisibleResult = () => _imagePreview.Dispatch(p => p.Visibility = Visibility.Hidden);
-			VirtualFileDataObject.SetDraggable(_imagePreview, _wrapper);
-			VirtualFileDataObject.SetDraggable(_imagePreviewSprite, _wrapper2);
+			VirtualFileDataObject.SetDraggable(_imagePreview, _primaryImage);
+			VirtualFileDataObject.SetDraggable(_imagePreviewSprite, _spriteImage);
 			WpfUtilities.AddFocus(_tbEase);
-
-			bool eventsEnabled = true;
-
-			_gpEase.ValueChanged += delegate {
-				if (!eventsEnabled) return;
-				_tbEase.Text = String.Format("{0:0.00}", _gpEase.Position * 5d + 1);
-			};
-
-			_tbEase.TextChanged += delegate {
-				eventsEnabled = false;
-
-				try {
-					var zoom = FormatConverters.DoubleConverter(_tbEase.Text);
-					GrfEditorConfiguration.PreviewImageZoom = (float) zoom;
-					_gpEase.SetPosition((zoom - 1) / 5d, false);
-					_updateZoom(zoom);
-				}
-				catch {
-					_updateZoom(1d);
-				}
-				finally {
-					eventsEnabled = true;
-				}
-			};
-
-			_tbEase.Text = String.Format("{0:0.00}", GrfEditorConfiguration.PreviewImageZoom);
+			ImageHelper.SetupZoomUI(_imagePreview, 6f, _gpEase, _tbEase, () => GrfEditorConfiguration.PreviewImageZoom, v => GrfEditorConfiguration.PreviewImageZoom = v);
 			ErrorPanel = _errorPanel;
 		}
 
@@ -72,127 +45,88 @@ namespace GRFEditor.WPF.PreviewTabs {
 			get { return v => this.Dispatch(p => _scrollViewer.Background = v); }
 		}
 
-		private void _updateZoom() {
-			this.Dispatch(delegate {
-				try {
-					_updateZoom(FormatConverters.DoubleConverter(_tbEase.Text));
-				}
-				catch {
-					_updateZoom(1d);
-				}
-			});
-		}
-
-		private void _updateZoom(double zoom) {
-			if (_imagePreview.Source == null) return;
-			BitmapSource bitmap = (BitmapSource) _imagePreview.Source;
-
-			_imagePreview.Width = bitmap.PixelWidth * zoom;
-			_imagePreview.Height = bitmap.PixelHeight * zoom;
-			_imagePreview.Stretch = Stretch.Fill;
-		}
-
-		private void _loadOtherTransformGroup() {
-			_regularTransformGroup = new TransformGroup();
-			ScaleTransform flipTrans = new ScaleTransform();
-			TranslateTransform translate = new TranslateTransform();
-			RotateTransform rotate = new RotateTransform();
-			translate.X = 0;
-			translate.Y = 0;
-			rotate.Angle = 0;
-			flipTrans.ScaleX = 1;
-			flipTrans.ScaleY = 1;
-
-			_regularTransformGroup.Children.Add(rotate);
-			_regularTransformGroup.Children.Add(flipTrans);
-			_regularTransformGroup.Children.Add(translate);
-		}
-
-		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper.Image != null)
-				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
-		}
-
 		protected override void _load(FileEntry entry) {
-			string fileName = entry.RelativePath;
+			_setupUI(entry);
 
-			_buttonSelectSprite.Dispatch(delegate {
-				if (fileName.GetExtension() == ".pal") {
+			var image = _tryLoadImage(entry);
+			if (image == null) return;
+
+			_displayImage(entry, image);
+			_updateSpritePreview(entry);
+		}
+
+		private void _updateSpritePreview(FileEntry entry) {
+			this.Dispatch(delegate {
+				if (entry.RelativePath.GetExtension() == ".pal") {
 					_buttonSelectSprite.Visibility = Visibility.Visible;
 					_imagePreviewSprite.Visibility = Visibility.Visible;
-					_loadSpr();
+					_loadSpr(entry);
 				}
 				else {
 					_buttonSelectSprite.Visibility = Visibility.Collapsed;
 					_imagePreviewSprite.Visibility = Visibility.Collapsed;
 				}
 			});
+		}
 
-			_imagePreview.Dispatch(p => p.Tag = Path.GetFileNameWithoutExtension(fileName));
-			_labelHeader.Dispatch(p => p.Text = "Image preview: " + Path.GetFileName(fileName));
+		private void _displayImage(FileEntry entry, GrfImage image) {
+			this.Dispatch(delegate {
+				_primaryImage.Image = image;
+				_primaryImage.ExportFileName = Path.GetFileNameWithoutExtension(entry.RelativePath);
+				_imagePreview.Source = image.Cast<BitmapSource>();
+				ImageHelper.UpdateZoom(_imagePreview, GrfEditorConfiguration.PreviewImageZoom);
 
-			_buttonGroupImage.Dispatch(p => p.Visibility = PreviewService.IsImageCutable(entry.RelativePath, _grfData) ? Visibility.Visible : Visibility.Collapsed);
+				_tbFileInfo.Text =
+					$"Type: {entry.FileType}\r\n" +
+					$"Format: {_primaryImage.Image.GrfImageType}\r\n" +
+					$"Size: {_primaryImage.Image.Width}x{_primaryImage.Image.Height}";
+			});
+		}
 
+		private GrfImage _tryLoadImage(FileEntry entry) {
 			try {
-				_wrapper.Image = ImageProvider.GetImage(_grfData.FileTable[fileName].GetDecompressedData(), Path.GetExtension(fileName).ToLower());
+				if (entry.RelativePath.IsExtension(".gif"))
+					return GifFormat.LoadAsGrfImage(entry);
 
-				if (_wrapper.Image != null) {
-					_tbFileInfo.Dispatch(p => p.Text =
-						"Type: " + entry.FileType + "\r\n" +
-						"Format: " + _wrapper.Image.GrfImageType + "\r\n" +
-						"Size: " + _wrapper.Image.Width + "x" + _wrapper.Image.Height);
-				}
+				return ImageProvider.GetImage(entry.GetDecompressedData(), Path.GetExtension(entry.RelativePath).ToLowerInvariant());
 			}
 			catch (GrfException err) {
 				if (err == GrfExceptions.__CorruptedOrEncryptedEntry || err == GrfExceptions.__GravityEncryptedFile) {
-					_imagePreview.Dispatch(delegate {
-						_imagePreview.Source = null;
-						_updateZoom();
-					});
-
+					_imagePreview.Dispatch(p => p.Source = null);
 					throw;
 				}
 
 				if (err == GrfExceptions.__ContainerBusy)
-					return;
+					return null;
 
 				throw;
 			}
-
-			_imagePreview.Dispatch(delegate {
-				_imagePreview.Source = _wrapper.Image.Cast<BitmapSource>();
-				_updateZoom();
-			});
-			_imagePreview.Dispatch(p => p.Visibility = Visibility.Visible);
-			_scrollViewer.Dispatch(p => p.Visibility = Visibility.Visible);
 		}
 
-		private void _loadSpr() {
-			if (_sprFilePath != null) {
+		private void _setupUI(FileEntry entry) {
+			string fileName = entry.RelativePath;
+
+			this.Dispatch(delegate {
+				_labelHeader.Text = "Image preview: " + entry.DisplayRelativePath;
+				_buttonGroupImage.Visibility = PreviewService.IsImageCutable(entry.RelativePath, _grfData) ? Visibility.Visible : Visibility.Collapsed;
+			});
+		}
+
+		private void _loadSpr(FileEntry entry) {
+			if (_spr != null) {
 				_imagePreviewSprite.Visibility = Visibility.Visible;
 
-				if (File.Exists(_sprFilePath)) {
-					try {
-						byte[] data = File.ReadAllBytes(_sprFilePath);
-						Spr spr = new Spr(data);
-						byte[] palette = new Pal(_entry.GetDecompressedData()).BytePalette;
-						palette[3] = 0;
+				try {
+					_spr.SetPalette(new Pal(entry.GetDecompressedData(), Pal.FormatMode.NoTransparencyExceptFirstPixel).BytePalette);
 
-						if (spr.Palette == null)
-							spr.Palette = new Pal(palette);
-
-						spr.Palette.SetPalette(palette);
-
-						for (int i = 0; i < spr.NumberOfIndexed8Images; i++) {
-							spr.Images[i].SetPalette(palette);
-						}
-
-						_wrapper2.Image = spr.Image;
-						_imagePreviewSprite.Source = _wrapper2.Image.Cast<BitmapSource>();
-						_imagePreviewSprite.Tag = _sprFilePath.ReplaceExtension(".bmp");
-					}
-					catch {
-					}
+					// Clear the sprite's cached image since we're reusing the sprite file.
+					_spr.Image = null;
+					_spriteImage.Image = _spr.Image;
+					_imagePreviewSprite.Source = _spriteImage.Image.Cast<BitmapSource>();
+					_sprExportPath = _sprFilePath.ReplaceExtension(".bmp");
+					_spriteImage.ExportFileName = Path.GetFileNameWithoutExtension(_sprExportPath);
+				}
+				catch {
 				}
 			}
 		}
@@ -200,31 +134,39 @@ namespace GRFEditor.WPF.PreviewTabs {
 		private void _buttonGroupImage_Click(object sender, RoutedEventArgs e) {
 			try {
 				PreviewService.RebuildSelectedImage(_entry.RelativePath, _grfData, _imagePreview);
-				BitmapSource bitmap = (BitmapSource) _imagePreview.Source;
+				BitmapSource bitmap = (BitmapSource)_imagePreview.Source;
 
 				byte[] pixels = WpfImaging.GetData(bitmap);
-				_wrapper.Image = new GrfImage(pixels, bitmap.PixelWidth, bitmap.PixelHeight, GrfImageType.Bgra32);
-				_imagePreview.Width = _wrapper.Image.Width;
-				_imagePreview.Height = _wrapper.Image.Height;
+				_primaryImage.Image = new GrfImage(pixels, bitmap.PixelWidth, bitmap.PixelHeight, GrfImageType.Bgra32);
+				_imagePreview.Width = _primaryImage.Image.Width;
+				_imagePreview.Height = _primaryImage.Image.Height;
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 		}
 
-		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper.Image != null)
-				_wrapper.Image.SaveTo(_entry.RelativePath, PathRequest.ExtractSetting);
-		}
-
 		private void _buttonSelectSprite_Click(object sender, RoutedEventArgs e) {
-			_sprFilePath = TkPathRequest.OpenFile<SpriteEditorConfiguration>("AppLastPath", "filter", FileFormat.MergeFilters(Format.Spr));
-			_loadSpr();
+			try {
+				string path = TkPathRequest.OpenFile(SpriteEditorConfiguration.AppLastPath_Config, "filter", FileFormat.Spr.ToFilter());
+
+				if (path != null) {
+					_sprFilePath = path;
+
+					_spr = new Spr(File.ReadAllBytes(_sprFilePath));
+					if (_spr.Palette == null)
+						_spr.Palette = new Pal();
+
+					_loadSpr(_entry);
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
 		}
 
-		private void _menuItemImageExport2_Click(object sender, RoutedEventArgs e) {
-			if (_wrapper2.Image != null)
-				_wrapper2.Image.SaveTo(_imagePreviewSprite.Tag.ToString(), PathRequest.ExtractSetting);
-		}
+		private void _buttonExportAt_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_primaryImage, _entry.RelativePath);
+		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_primaryImage, _entry.RelativePath);
+		private void _menuItemImageExport2_Click(object sender, RoutedEventArgs e) => ImageHelper.ExportAs(_spriteImage, _sprExportPath);
 	}
 }

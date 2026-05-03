@@ -173,6 +173,9 @@ namespace GrfToWpfBridge.Application {
 			else {
 				// Direct assign
 				try {
+					if (_encodings[SelectedIndex].Encoding.CodePage == oldEncoding)
+						return;
+
 					_encodingGetter.Set(_encodings[SelectedIndex].Encoding);
 					_encodingCodePage.Set(_encodings[SelectedIndex].Encoding.CodePage);
 					var args = new EncodingArgs(_encodingGetter.Get());

@@ -5,7 +5,6 @@ using System.Windows;
 using System.Windows.Controls;
 using ErrorManager;
 using GRF.Core;
-using GRFEditor.ApplicationConfiguration;
 using GRFEditor.WPF;
 using TokeiLibrary;
 

@@ -162,7 +162,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					return null;
 				}
 
-				if (Methods.ByteArrayCompare(mapskydata, 0, 4, new byte[] { 0x1b, 0x4c, 0x75, 0x61 }, 0)) {
+				if (Lub.IsCompiled(mapskydata)) {
 					Lub lub = new Lub(mapskydata);
 					var text = lub.Decompile();
 					mapskydata = EncodingService.DisplayEncoding.GetBytes(text);

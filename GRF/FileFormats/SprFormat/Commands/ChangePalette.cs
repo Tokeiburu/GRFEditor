@@ -2,10 +2,9 @@
 using GRF.FileFormats.ActFormat;
 using GRF.FileFormats.ActFormat.Commands;
 using GRF.FileFormats.PalFormat;
-using GRF.FileFormats.SprFormat.Builder;
 
 namespace GRF.FileFormats.SprFormat.Commands {
-	public class ChangePalette : ICommand, IActCommand {
+	public class ChangePalette : IActCommand {
 		private readonly byte[] _palette = new byte[1024];
 		private bool? _isPaletteSet;
 		private byte[] _oldPalette;
@@ -61,23 +60,6 @@ namespace GRF.FileFormats.SprFormat.Commands {
 
 		public string CommandDescription {
 			get { return "Sprite palette modified"; }
-		}
-
-		#endregion
-
-		#region ICommand Members
-
-		public void Execute(SprBuilderInterface sbi) {
-			if (_oldPalette == null) {
-				_oldPalette = new byte[1024];
-				Buffer.BlockCopy(sbi.GetPalette(), 0, _oldPalette, 0, 1024);
-			}
-
-			sbi.SetPalette(_palette);
-		}
-
-		public void Undo(SprBuilderInterface sbi) {
-			sbi.SetPalette(_oldPalette);
 		}
 
 		#endregion

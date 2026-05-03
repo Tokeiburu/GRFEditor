@@ -83,6 +83,9 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __GrfSizeLimitReached = "Failed to save the GRF, size limit reached (4,294,967,295 bytes).";
 		public static readonly FormattedExceptionMessage __InvalidSprConvertMode = "Unexpected SprConvertMode for this function.";
 		public static readonly FormattedExceptionMessage __GravityEncryptedFile = "The file '{0}' is using a new encryption method by Gravity which is not supported.";
+		public static readonly FormattedExceptionMessage __ThorFileDeleted = "The file '{0}' is a special GRF entry used by patchers to signal its deletion. It has no content.";
+		public static readonly FormattedExceptionMessage __SprSizeLimitReached = "Image [index: {2}, {0}x{1}] has too many pixels (max: {3}), the limit is 65536. Consider converting the image to Bgra32 (no size limit).";
+		public static readonly FormattedExceptionMessage __SprRleBufferOverflowException = "Buffer overflow while executing the Rle compression or decompressing.";
 
 		internal static GrfException Create(FormattedExceptionMessage exception, params object[] items) {
 			return new GrfException(exception, String.Format(exception.Message, items));

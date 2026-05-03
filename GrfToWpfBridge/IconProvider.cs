@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -12,8 +12,8 @@ namespace GrfToWpfBridge {
 	/// Provides icon images from an extension
 	/// </summary>
 	public class IconProvider {
-		private static readonly Dictionary<string, BitmapSource> _associatedExtensions = new Dictionary<string, BitmapSource>();
-		private static readonly Dictionary<string, BitmapSource> _associatedLargeExtensions = new Dictionary<string, BitmapSource>();
+		private static readonly ConcurrentDictionary<string, BitmapSource> _associatedExtensions = new ConcurrentDictionary<string, BitmapSource>();
+		private static readonly ConcurrentDictionary<string, BitmapSource> _associatedLargeExtensions = new ConcurrentDictionary<string, BitmapSource>();
 
 		/// <summary>
 		/// Gets the large icon image (16 x 16) from a filename.
@@ -60,19 +60,19 @@ namespace GrfToWpfBridge {
 					case ".pal":
 						buffer = ApplicationManager.GetResource("pal.png");
 						image = new GrfImage(buffer);
-						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
+						_associatedExtensions[extension] = image.Cast<BitmapSource>();
 						break;
 					case ".rsm2":
 						buffer = ApplicationManager.GetResource("file_rsm.png");
 						image = new GrfImage(buffer);
-						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
+						_associatedExtensions[extension] = image.Cast<BitmapSource>();
 						break;
 					default:
 						buffer = ApplicationManager.GetResource("file_" + extension.Substring(1) + ".png");
 
 						if (buffer != null) {
 							image = new GrfImage(buffer);
-							_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
+							_associatedExtensions[extension] = image.Cast<BitmapSource>();
 							break;
 						}
 
@@ -86,14 +86,14 @@ namespace GrfToWpfBridge {
 						}
 
 						image = new GrfImage(buffer);
-						_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
+						_associatedExtensions[extension] = image.Cast<BitmapSource>();
 						break;
 				}
 			}
 			catch {
 				buffer = ApplicationManager.GetResource("pal.png");
 				image = new GrfImage(buffer);
-				_associatedExtensions.Add(extension, image.Cast<BitmapSource>());
+				_associatedExtensions[extension] = image.Cast<BitmapSource>();
 			}
 		}
 
@@ -114,14 +114,14 @@ namespace GrfToWpfBridge {
 						}
 
 						image = new GrfImage(buffer);
-						_associatedLargeExtensions.Add(extension, image.Cast<BitmapSource>());
+						_associatedLargeExtensions[extension] = image.Cast<BitmapSource>();
 						break;
 				}
 			}
 			catch {
 				buffer = ApplicationManager.GetResource("pal.png");
 				image = new GrfImage(buffer);
-				_associatedLargeExtensions.Add(extension, image.Cast<BitmapSource>());
+				_associatedLargeExtensions[extension] = image.Cast<BitmapSource>();
 			}
 		}
 	}

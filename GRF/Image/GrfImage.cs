@@ -286,7 +286,20 @@ namespace GRF.Image {
 		public void SelfAny() {
 			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 
-			GrfImage image = ImageConverterManager.SelfAny(this);
+			GrfImage image;
+
+			switch (GrfImageType) {
+				case GrfImageType.NotEvaluatedBmp:
+					var bmpDecoder = new BmpDecoder(Pixels);
+					image = bmpDecoder.ToGrfImage();
+					break;
+				case GrfImageType.NotEvaluatedTga:
+					image = new FileFormats.TgaFormat.Tga(Pixels).Image;
+					break;
+				default:
+					image = ImageConverterManager.SelfAny(this);
+					break;
+			}
 
 			GrfImageType = image.GrfImageType;
 

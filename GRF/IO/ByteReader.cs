@@ -4,7 +4,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using GRF.Graphics;
 using GRF.Image;
-using Utilities.Extension;
 using Utilities.Services;
 
 namespace GRF.IO {
@@ -58,19 +57,36 @@ namespace GRF.IO {
 			File.WriteAllBytes(file, _data);
 		}
 
-		public string String(int length) {
+		public unsafe string String(int length) {
 			_forward(length);
-			return EncodingService.DisplayEncoding.GetString(_data, _offset, length);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return EncodingService.DisplayEncoding.GetString(p, length);
+			}
 		}
 
-		public string String(int length, char cut) {
+		public unsafe string String(int length, char cut) {
 			_forward(length);
-			return EncodingService.DisplayEncoding.GetString(_data, _offset, length, cut);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				int len = 0;
+
+				while (len < length && p[len] != 0)
+					len++;
+				
+				return EncodingService.DisplayEncoding.GetString(p, len);
+			}
 		}
 
-		public string StringANSI(int length) {
+		public unsafe string StringANSI(int length) {
 			_forward(length);
-			return EncodingService.Ansi.GetString(_data, _offset, length);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return EncodingService.Ansi.GetString(p, length);
+			}
 		}
 
 		public string StringUnicode(int length) {
@@ -136,16 +152,25 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public short Int16() {
+		public unsafe short Int16() {
 			_forward(2);
-			return BitConverter.ToInt16(_data, _offset);
+			if (_offset + 2 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(short*)p;
+			}
 		}
 
-		public short[] ArrayInt16(int count) {
+		public unsafe short[] ArrayInt16(int count) {
 			short[] array = new short[count];
+			int length = count * 2;
+			_forward(length);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
 
-			for (int i = 0; i < count; i++) {
-				array[i] = Int16();
+			fixed (short* pDst = array)
+			fixed (byte* p = &_data[_offset]) {
+				Buffer.MemoryCopy(p, pDst, length, length);
 			}
 
 			return array;
@@ -160,11 +185,16 @@ namespace GRF.IO {
 			}
 		}
 
-		public ushort[] ArrayUInt16(int count) {
+		public unsafe ushort[] ArrayUInt16(int count) {
 			ushort[] array = new ushort[count];
-
-			for (int i = 0; i < count; i++) {
-				array[i] = UInt16();
+			int length = count * 2;
+			_forward(length);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
+			
+			fixed (ushort* pDst = array)
+			fixed (byte* p = &_data[_offset]) {
+				Buffer.MemoryCopy(p, pDst, length, length);
 			}
 
 			return array;
@@ -194,9 +224,13 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public uint UInt32() {
+		public unsafe uint UInt32() {
 			_forward(4);
-			return BitConverter.ToUInt32(_data, _offset);
+			if (_offset + 4 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(uint*)p;
+			}
 		}
 
 		public uint[] ArrayUInt32(int count) {
@@ -209,9 +243,13 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public long Int64() {
+		public unsafe long Int64() {
 			_forward(8);
-			return BitConverter.ToInt64(_data, _offset);
+			if (_offset + 8 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(long*)p;
+			}
 		}
 
 		public long[] ArrayInt64(int count) {
@@ -224,9 +262,13 @@ namespace GRF.IO {
 			return array;
 		}
 
-		public ulong UInt64() {
+		public unsafe ulong UInt64() {
 			_forward(8);
-			return BitConverter.ToUInt64(_data, _offset);
+			if (_offset + 8 > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return *(ulong*)p;
+			}
 		}
 
 		public ulong[] ArrayUInt64(int count) {
@@ -248,20 +290,16 @@ namespace GRF.IO {
 			}
 		}
 
-		public float[] ArrayFloat(int count) {
+		public unsafe float[] ArrayFloat(int count) {
 			float[] array = new float[count];
-			//_offset += _byteRead;
-			//if (_offset + sizeof(float) * count > _data.Length)
-			//	throw new IndexOutOfRangeException();
-			//fixed (byte* p = _data)
-			//fixed (float* pArray = array) {
-			//	Buffer.MemoryCopy(p, pArray, sizeof(float) * count, sizeof(float) * count);
-			//}
-			//
-			//_offset += sizeof(float) * count;
-			//_byteRead = 0;
-			for (int i = 0; i < count; i++) {
-				array[i] = Float();
+			int length = count * 4;
+			_forward(length);
+			if (_offset + length > _data.Length)
+				throw new IndexOutOfRangeException();
+
+			fixed (float* pDst = array)
+			fixed (byte* p = &_data[_offset]) {
+				Buffer.MemoryCopy(p, pDst, length, length);
 			}
 
 			return array;
@@ -311,6 +349,15 @@ namespace GRF.IO {
 
 		public string GetSource() {
 			return _source;
+		}
+
+		public unsafe byte* GetPointer(int count) {
+			_forward(count);
+			if (_offset + count > _data.Length)
+				throw new IndexOutOfRangeException();
+			fixed (byte* p = &_data[_offset]) {
+				return p;
+			}
 		}
 	}
 }

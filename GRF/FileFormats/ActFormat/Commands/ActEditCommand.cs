@@ -57,13 +57,19 @@ namespace GRF.FileFormats.ActFormat.Commands {
 		}
 
 		public void Execute(Act act) {
+			int oldActionCount = act.NumberOfActions;
 			_applyChanges(act, true);
 			act.InvalidateSpriteVisual();
+			if (oldActionCount != act.NumberOfActions)
+				act.OnActionCountChanged();
 		}
 
 		public void Undo(Act act) {
+			int oldActionCount = act.NumberOfActions;
 			_applyChanges(act, false);
 			act.InvalidateSpriteVisual();
+			if (oldActionCount != act.NumberOfActions)
+				act.OnActionCountChanged();
 		}
 
 		public bool HasChanged(Act act) {

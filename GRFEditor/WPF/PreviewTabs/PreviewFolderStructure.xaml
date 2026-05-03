@@ -16,52 +16,68 @@
             <Label Content="Directory information" FontWeight="Bold" FontSize="14" Margin="3 10 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
             <Grid Margin="6 0 0 0">
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="30" />
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition Width="auto" />
-                    <ColumnDefinition />
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Number of files" Margin="3" Grid.Row="0" />
-                <TextBlock Text="Compression ratio" Margin="3" Grid.Row="1" />
-                <TextBlock Text="%" Margin="3" Grid.Row="1" Grid.Column="2" />
-                <TextBlock Text="Size compressed" Margin="3" Grid.Column="4" Grid.Row="0" />
-                <TextBlock Text="Size decompressed" Margin="3" Grid.Column="4" Grid.Row="1" />
+				<DockPanel>
+					<Grid Margin="0 0 15 10" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition />
+							<RowDefinition />
+							<RowDefinition />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="10" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="Current directory only" FontStyle="Italic" FontWeight="DemiBold"  Margin="3" Grid.Row="0" Grid.ColumnSpan="5" />
+						<TextBlock Text="Files" Margin="3" Grid.Row="1" />
+						<TextBlock Text="Ratio" Margin="3" Grid.Row="2" />
+						<TextBlock Text="%" Margin="0 3 3 3" Grid.Row="2" Grid.Column="2" />
+						<TextBlock Text="Compressed" Margin="3" Grid.Column="4" Grid.Row="1" />
+						<TextBlock Text="Decompressed" Margin="3" Grid.Column="4" Grid.Row="2" />
 
-                <TextBlock Name="_tbNumOfFiles" HorizontalAlignment="Right" Margin="3" Grid.Row="0" Grid.Column="1" />
-                <TextBlock Name="_tbCompRatio" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="1" />
-                <TextBlock Name="_tbSizeCompressed" HorizontalAlignment="Right" Margin="3" Grid.Row="0" Grid.Column="5" />
-                <TextBlock Name="_tbSizeDecompressed" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="5" />
-            </Grid>
-            <Label Content="Cluster view" FontWeight="Bold" FontSize="14" Margin="3 10 0 5" />
+						<TextBlock Name="_tbNumOfFilesTopDirectory" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="1" />
+						<TextBlock Name="_tbCompRatioTopDirectory" HorizontalAlignment="Right" Margin="3" Grid.Row="2" Grid.Column="1" />
+						<TextBlock Name="_tbSizeCompressedTopDirectory" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="5" />
+						<TextBlock Name="_tbSizeDecompressedTopDirectory" HorizontalAlignment="Right" Margin="3" Grid.Row="2" Grid.Column="5" />
+					</Grid>
+					<Grid Margin="0 0 15 10" Background="#07000000" HorizontalAlignment="Left">
+						<Grid.RowDefinitions>
+							<RowDefinition />
+							<RowDefinition />
+							<RowDefinition />
+						</Grid.RowDefinitions>
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="10" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition Width="auto" />
+							<ColumnDefinition />
+						</Grid.ColumnDefinitions>
+						<TextBlock Text="Current directory and subdirectories" FontStyle="Italic" FontWeight="DemiBold" Margin="3" Grid.Row="0" Grid.ColumnSpan="5" />
+						<TextBlock Text="Files" Margin="3" Grid.Row="1" />
+						<TextBlock Text="Ratio" Margin="3" Grid.Row="2" />
+						<TextBlock Text="%" Margin="0 3 3 3" Grid.Row="2" Grid.Column="2" />
+						<TextBlock Text="Compressed" Margin="3" Grid.Column="4" Grid.Row="1" />
+						<TextBlock Text="Decompressed" Margin="3" Grid.Column="4" Grid.Row="2" />
+
+						<TextBlock Name="_tbNumOfFilesAll" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="1" />
+						<TextBlock Name="_tbCompRatioAll" HorizontalAlignment="Right" Margin="3" Grid.Row="2" Grid.Column="1" />
+						<TextBlock Name="_tbSizeCompressedAll" HorizontalAlignment="Right" Margin="3" Grid.Row="1" Grid.Column="5" />
+						<TextBlock Name="_tbSizeDecompressedAll" HorizontalAlignment="Right" Margin="3" Grid.Row="2" Grid.Column="5" />
+					</Grid>
+				</DockPanel>
+			</Grid>
+            <Label Content="Cluster view" FontWeight="Bold" FontSize="14" Margin="3 0 0 5" />
             <Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
-            <Grid Name="_clusterViewGrid" Grid.Row="1">
-                <PreviewTabs:GrfClusterView x:Name="_clusterView" Margin="0 0 3 0" />
-            </Grid>
-            <WrapPanel Visibility="Collapsed" Grid.Row="2" Margin="0 141 0 0">
-                <Border Background="#8E8E8E" Margin="0 2 4 2" Width="90" Height="20">
-                    <Label Content="Header" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" />
-                </Border>
-                <Border Background="#FF7F8ACF" Margin="0 2 4 2" Width="90" Height="20">
-                    <Label Content="File table" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" />
-                </Border>
-                <Border Background="#FF9BA5E5" Margin="0 2 4 2" Width="90" Height="20">
-                    <Label Content="Other files" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" />
-                </Border>
-                <Border Background="#FFCFDAEE" Margin="0 2 4 2" Width="90" Height="20">
-                    <Label Content="All files" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" />
-                </Border>
-                <Border Background="#FFEFEFEF" Margin="0 2 4 2" Width="90" Height="20">
-                    <Label Content="Root files" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="0" />
-                </Border>
-            </WrapPanel>
-        </StackPanel>
+			<Grid Name="_clusterViewGrid" Grid.Row="1">
+				<PreviewTabs:GrfClusterView x:Name="_clusterView" Margin="0 0 3 0" />
+			</Grid>
+		</StackPanel>
     </Grid>
 </UserControl>

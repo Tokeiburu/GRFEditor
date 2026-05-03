@@ -5,6 +5,7 @@ using System.Windows;
 using System.Windows.Media;
 using Be.Windows.Forms;
 using GRF.Core;
+using GrfToWpfBridge.PreviewTabs;
 using TokeiLibrary;
 using Utilities.Extension;
 using Utilities.Services;
@@ -17,8 +18,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 	public partial class PreviewResource : FilePreviewTab {
 		public PreviewResource() {
 			InitializeComponent();
-
-			_isInvisibleResult = () => _hexEditorHost.Dispatch(p => p.Visibility = Visibility.Hidden);
 
 			try {
 				var color = ((SolidColorBrush)Application.Current.Resources["TabItemBackground"]).Color;
@@ -50,8 +49,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 			MemoryStream ms = new MemoryStream(data);
 			DynamicFileByteProvider prov = new DynamicFileByteProvider(ms);
 			_hexEditorHost.Dispatch(p => _hexEditor.ByteProvider = prov);
-			_hexEditorHost.Dispatch(p => _hexEditor.Visible = true);
-			_hexEditorHost.Dispatch(p => p.Visibility = Visibility.Visible);
 		}
 
 		private void _hexEditor_Copied(object sender, EventArgs e) {

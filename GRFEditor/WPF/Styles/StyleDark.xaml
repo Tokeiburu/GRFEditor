@@ -83,8 +83,9 @@
     <SolidColorBrush x:Key="CellBrushRemoved" Color="{StaticResource UIThemePropertyRemovedColor}"/>
     <SolidColorBrush x:Key="CellBrushAdded" Color="{StaticResource UIThemePropertyAddedColor}"/>
 	<SolidColorBrush x:Key="CellGravityEncrypted" Color="#FF00A7A7"/>
+	<SolidColorBrush x:Key="CellBrushModified" Color="#00DA00"/>
 
-    <!-- GRF Editor style overrides - TabControl -->
+	<!-- GRF Editor style overrides - TabControl -->
     <SolidColorBrush x:Key="TabControlBackground" Color="{StaticResource UIThemeBackground1Color}"/>
     <SolidColorBrush x:Key="TabControlBorder" Color="{StaticResource UIThemeSeparatorLineColor}"/>
     <SolidColorBrush x:Key="TabItemBackground" Color="{StaticResource UIThemeBackground2Color}"/>
@@ -729,7 +730,7 @@
             Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>
     </Style>
 
-    <Style TargetType="CheckBox">
+	<Style x:Key="ThemeCheckBoxStyle" TargetType="CheckBox">
         <Setter Property="Foreground"
             Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>
         <Setter Property="SnapsToDevicePixels" Value="true"/>
@@ -790,7 +791,9 @@
         </Setter>
     </Style>
 
-    <!--
+	<Style TargetType="CheckBox" BasedOn="{StaticResource ThemeCheckBoxStyle}" />
+
+	<!--
     <Style TargetType="{x:Type CheckBox}">
         <Setter Property="Foreground"
             Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type FrameworkElement}}, Path=(TextElement.Foreground)}"/>

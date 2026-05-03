@@ -71,9 +71,33 @@
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WindowsFormsIntegration" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Act.cs" />
+    <Compile Include="ActRenderer\ActSelectorComponents\ActAnimation.cs" />
+    <Compile Include="ActRenderer\ActSelectorComponents\ActIndexSelectorHelper.cs" />
+    <Compile Include="ActRenderer\ActSelectorComponents\ActionDirectionalControl.xaml.cs">
+      <DependentUpon>ActionDirectionalControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ActRenderer\ActSelectorComponents\ActSelectorHelper.cs" />
+    <Compile Include="ActRenderer\ActSelectorComponents\AnimationState.cs" />
+    <Compile Include="ActRenderer\ActSelectorComponents\ISoundPlayer.cs" />
+    <Compile Include="ActRenderer\BitmapResourceManager.cs" />
+    <Compile Include="ActRenderer\BufferedBrushes.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\ActDraw.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\DrawingComponent.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\DrawingModule.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\DrawingPriorityValues.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\DrawSlotManager.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\LayerDraw.cs" />
+    <Compile Include="ActRenderer\DrawingComponents\LineRenderer.cs" />
+    <Compile Include="ActRenderer\FrameRenderer.xaml.cs">
+      <DependentUpon>FrameRenderer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ActRenderer\FrameRendererConfiguration.cs" />
+    <Compile Include="ActRenderer\FrameRendererEdit.cs" />
+    <Compile Include="ActRenderer\IFrameRenderer.cs" />
     <Compile Include="Application\AsyncOperation.cs" />
     <Compile Include="Application\EncryptionMethodPicker.cs" />
     <Compile Include="IconProvider.cs" />
@@ -96,6 +120,11 @@
     <Compile Include="Encoders\TargaBitmapEncoder.cs" />
     <Compile Include="Encoders\WpfGifBitmapEncoder.cs" />
     <Compile Include="Imaging.cs" />
+    <Compile Include="PreviewTabs\ErrorPanel.xaml.cs">
+      <DependentUpon>ErrorPanel.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="PreviewTabs\FilePreviewTab.cs" />
+    <Compile Include="PreviewTabs\IPreviewTab.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TaskDialog.xaml.cs">
       <DependentUpon>TaskDialog.xaml</DependentUpon>
@@ -129,7 +158,19 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <Page Include="ActRenderer\ActSelectorComponents\ActionDirectionalControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="ActRenderer\FrameRenderer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="MultiGrf\MetaGrfResourcesViewer.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="PreviewTabs\ErrorPanel.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -164,6 +205,9 @@
   <ItemGroup Condition="Exists('$(ExternalDllsPath)')">
     <ExternalDlls Include="$(ExternalDllsPath)\ErrorManager.dll" Visible="false" />
     <ExternalDlls Include="$(ExternalDllsPath)\Gif.Components.dll" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\background.png" />
   </ItemGroup>
   <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />

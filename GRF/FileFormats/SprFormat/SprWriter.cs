@@ -1,7 +1,8 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using GRF.FileFormats.SprFormat.Builder;
+using GRF.ContainerFormat;
+using GRF.FileFormats.SprFormat.Commands;
 using GRF.Image;
 using Utilities;
 
@@ -61,8 +62,8 @@ namespace GRF.FileFormats.SprFormat {
 
 		protected void _writeAsIndexed8(BinaryWriter writer, GrfImage image, int imageIndex, byte major, byte minor) {
 			if (EnableImageSizeCheck && major >= 2 && minor >= 1)
-				if (image.Width * image.Height > UInt16.MaxValue) throw new SprImageOverflowException(imageIndex, image.Width, image.Height);
-			//if (image.Height > 256) throw new SprImageOverflowException(imageIndex, image.Width, image.Height);
+				if (image.Width * image.Height > UInt16.MaxValue)
+					throw new SprImageOverflowException(imageIndex, image.Width, image.Height);
 
 			writer.Write((UInt16)image.Width);
 			writer.Write((UInt16)image.Height);
@@ -73,7 +74,7 @@ namespace GRF.FileFormats.SprFormat {
 				sourcePixels = Rle.Compress(image.Pixels);
 
 				if (sourcePixels.Length > UInt16.MaxValue) {
-					throw new SprRleBufferOverflowException();
+					throw GrfExceptions.__SprRleBufferOverflowException.Create();
 				}
 
 				writer.Write((ushort)sourcePixels.Length);
@@ -111,7 +112,7 @@ namespace GRF.FileFormats.SprFormat {
 				RleSaveError = false;
 				_save(writer, config);
 			}
-			catch (SprRleBufferOverflowException) {
+			catch (GrfException rle) when (rle == GrfExceptions.__SprRleBufferOverflowException) {
 				if (AutomaticDowngradeOnRleException) {
 					RleSaveError = true;
 					writer.BaseStream.Position = 0;

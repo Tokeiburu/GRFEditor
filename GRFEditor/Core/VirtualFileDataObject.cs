@@ -298,16 +298,22 @@ namespace GRFEditor.Core {
 					GetData = () => {
 						// Create IStream for data
 						var iStream = NativeMethods.CreateStreamOnHGlobal(IntPtr.Zero, true);
+						var ret = NativeMethods.S_OK;
 						if (descriptor.StreamContents != null) {
 							// Wrap in a .NET-friendly Stream and call provided code to fill it
 							using (var stream = new IStreamWrapper(iStream)) {
-								descriptor.StreamContents(descriptor.GrfData, descriptor.FilePath, stream, descriptor.Argument);
+								try {
+									descriptor.StreamContents(descriptor.GrfData, descriptor.FilePath, stream, descriptor.Argument);
+								}
+								catch {
+									ret = NativeMethods.S_FALSE;
+								}
 							}
 						}
 						// Return an IntPtr for the IStream
 						IntPtr ptr = Marshal.GetComInterfaceForObject(iStream, typeof (IStream));
 						Marshal.ReleaseComObject(iStream);
-						return new Utilities.Extension.Tuple<IntPtr, int>(ptr, NativeMethods.S_OK);
+						return new Utilities.Extension.Tuple<IntPtr, int>(ptr, ret);
 					},
 				});
 		}
@@ -417,7 +423,7 @@ namespace GRFEditor.Core {
 					if (a.LeftButton == MouseButtonState.Pressed) {
 						VirtualFileDataObject virtualFileDataObject = new VirtualFileDataObject();
 
-						string name = (string) imagePreview.Tag;
+						string name = wrapper.ExportFileName;
 
 						List<FileDescriptor> descriptors = new List<FileDescriptor> {
 							new FileDescriptor {

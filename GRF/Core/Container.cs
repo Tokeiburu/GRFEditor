@@ -730,7 +730,7 @@ namespace GRF.Core {
 			GrfThreadPool<FileEntry> threadPool = new GrfThreadPool<FileEntry>();
 			threadPool.Initialize<ThreadGenericGrf>(this, Table.Entries, numOfThreads);
 			foreach (var thread in threadPool.Threads.OfType<ThreadGenericGrf>()) {
-				thread.Init(action);
+				thread.Init(action, isCancelling);
 			}
 			threadPool.Start(progress, isCancelling);
 		}
