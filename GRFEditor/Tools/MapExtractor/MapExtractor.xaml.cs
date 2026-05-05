@@ -59,7 +59,9 @@ namespace GRFEditor.Tools.MapExtractor {
 			_itemsResources.LoadResourceMethod = () => Configuration.Resources.LoadResources();
 			Configuration.Resources.Modified += delegate {
 				_itemsResources.LoadResourcesInfo();
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, 200, null, false, true));
+				
+				if (!_asyncOperation.IsRunning)
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, 200, null, false, true));
 			};
 			_itemsResources.LoadResourcesInfo();
 			_itemsResources.CanDeleteMainGrf = false;

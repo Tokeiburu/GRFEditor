@@ -59,6 +59,18 @@ namespace GrfToWpfBridge.Application {
 			}
 		}
 
+		public void SetAndRunOperation(Action<ProgressObject> action, object returnState = null) {
+			ProgressObject progress = new ProgressObject();
+			GrfThread thread = new GrfThread(() => action(progress), progress, 200, returnState, true);
+			SetAndRunOperation(thread);
+		}
+
+		public void SetAndRunOperation(Action<ProgressObject> action, GrfThread.GrfThreadEventHandler finished, object returnState = null) {
+			ProgressObject progress = new ProgressObject();
+			GrfThread thread = new GrfThread(() => action(progress), progress, 200, returnState, true);
+			SetAndRunOperation(thread, finished);
+		}
+
 		public void SetAndRunOperation(GrfThread thread) {
 			if (_thread != null && _thread.IsRunning) {
 				if (!DoNotShowExtraDialogs)

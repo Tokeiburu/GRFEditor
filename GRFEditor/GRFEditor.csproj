@@ -154,10 +154,13 @@
     <Compile Include="TestWindow.xaml.cs">
       <DependentUpon>TestWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\GrfValidation\ValidateGenericErrors.cs" />
     <Compile Include="Tools\GrfValidation\Validation.cs" />
+    <Compile Include="Tools\GrfValidation\ValidateContentReader.cs" />
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Tools\GrfValidation\ValidationGenericError.cs" />
     <Compile Include="Tools\GrfValidation\ValidationView.cs" />
     <Compile Include="Tools\Map\CellEditControl.xaml.cs">
       <DependentUpon>CellEditControl.xaml</DependentUpon>
@@ -1049,7 +1052,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>

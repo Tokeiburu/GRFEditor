@@ -151,8 +151,11 @@ namespace Utilities {
 		[DllImport("User32.dll")]
 		public static extern bool GetCursorPos(out POINT point);
 
+		[DllImport("User32.dll")]
+		public static extern IntPtr WindowFromPoint(POINT Point);
+
 		[DllImport("user32.dll")]
-		internal static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
+		public static extern bool MoveWindow(IntPtr hWnd, int X, int Y, int nWidth, int nHeight, bool bRepaint);
 
 		[DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
 		public static extern IntPtr CreateFile(

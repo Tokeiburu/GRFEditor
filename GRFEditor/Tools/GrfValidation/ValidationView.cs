@@ -41,6 +41,7 @@ namespace GRFEditor.Tools.GrfValidation {
 				case ValidationTypes.FeInvalidFileTable:
 				case ValidationTypes.FeNoExtension:
 				case ValidationTypes.FeRootFiles:
+				case ValidationTypes.VcInvalidImageFormat:
 					DataImage = ApplicationManager.PreloadResourceImage("error16.png");
 					break;
 				default:
@@ -57,18 +58,9 @@ namespace GRFEditor.Tools.GrfValidation {
 		public Utilities.Extension.Tuple<ValidationTypes, string, string> OriginalData { get; private set; }
 
 		public string Description { get; set; }
-
-		public string ToolTipRelativePath {
-			get { return RelativePath; }
-		}
-
-		public string ToolTipDescription {
-			get { return Description; }
-		}
-
-		public bool Default {
-			get { return true; }
-		}
+		public string ToolTipRelativePath => RelativePath;
+		public string ToolTipDescription => Description;
+		public bool Default => true;
 
 		public override string ToString() {
 			return ValidationType + "\t" + RelativePath + "\t" + Description;

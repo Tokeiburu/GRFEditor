@@ -267,16 +267,16 @@ namespace GrfCL {
 			}
 			else if (clOption == CommandLineOptions.ExtractRgz) {
 				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[0]] == null && clOption.Option.OptionalArgs[clOption.FullOptionIds[1]] == null) {
-					Rgz.ExtractRgz(new ProgressDummy(), clOption.Args[0], clOption.Args[1], false);
+					Rgz.ExtractRgz(new ProgressObject(), clOption.Args[0], clOption.Args[1], false);
 					CLHelper.Log = "Extracted RGZ to " + clOption.Args[1];
 				}
 				else {
 					if (clOption.Option.OptionalArgs[clOption.FullOptionIds[0]] != null && Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[0]])) {
-						Rgz.ExtractRgz(new ProgressDummy(), clOption.Args[0], Path.GetDirectoryName(clOption.Args[0]), false);
+						Rgz.ExtractRgz(new ProgressObject(), clOption.Args[0], Path.GetDirectoryName(clOption.Args[0]), false);
 						CLHelper.Log = "Extracted RGZ to " + Path.GetDirectoryName(clOption.Args[0]);
 					}
 					else if (clOption.Option.OptionalArgs[clOption.FullOptionIds[1]] != null && Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[1]])) {
-						Rgz.ExtractRgz(new ProgressDummy(), clOption.Args[0], Path.Combine(Path.GetDirectoryName(clOption.Args[0]), Path.GetFileNameWithoutExtension(clOption.Args[0])), false);
+						Rgz.ExtractRgz(new ProgressObject(), clOption.Args[0], Path.Combine(Path.GetDirectoryName(clOption.Args[0]), Path.GetFileNameWithoutExtension(clOption.Args[0])), false);
 						CLHelper.Log = "Extracted RGZ to " + Path.Combine(Path.GetDirectoryName(clOption.Args[0]), Path.GetFileNameWithoutExtension(clOption.Args[0]));
 					}
 				}
@@ -618,7 +618,7 @@ namespace GrfCL {
 					extra.Add("margin");
 					extra.Add(clOption.Option.OptionalArgs[clOption.FullOptionIds[10]]);
 
-					ProgressDummy dum = new ProgressDummy();
+					ProgressObject dum = new ProgressObject();
 					dum.Progress = -1;
 
 					new GrfThread(() => ActImaging.Imaging.SaveAsGif(destinationFile, act, actionIndex, dum, extra.ToArray()),
@@ -660,7 +660,7 @@ namespace GrfCL {
 				ByteReaderStream stream = new ByteReaderStream(filename);
 				string temporaryFile = TemporaryFilesManager.GetTemporaryFilePath("temp_rgz_{0:0000}.dat");
 
-				Compression.GZipDecompress(new ProgressDummy(), stream, temporaryFile);
+				Compression.GZipDecompress(new ProgressObject(), stream, temporaryFile);
 				ByteReaderStream dataReader = new ByteReaderStream(temporaryFile);
 
 				while (dataReader.CanRead) {

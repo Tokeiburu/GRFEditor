@@ -210,7 +210,7 @@ namespace GrfToWpfBridge {
 				setting.Set(sfd.FileName);
 				string filename = sfd.FileName;
 
-				ProgressDummy dum = new ProgressDummy();
+				ProgressObject dum = new ProgressObject();
 				dum.Progress = -1;
 
 				Action action = () => ActImaging.Imaging.SaveAsGif(filename, act, actionIndex, dum);

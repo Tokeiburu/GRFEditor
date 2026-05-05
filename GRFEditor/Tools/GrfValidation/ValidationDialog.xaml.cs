@@ -16,7 +16,6 @@ using GrfToWpfBridge;
 using TokeiLibrary;
 using TokeiLibrary.WPF.Styles;
 using TokeiLibrary.WPF.Styles.ListView;
-using Utilities.Hash;
 using AsyncOperation = GrfToWpfBridge.Application.AsyncOperation;
 using OpeningService = Utilities.Services.OpeningService;
 
@@ -24,12 +23,11 @@ namespace GRFEditor.Tools.GrfValidation {
 	/// <summary>
 	/// Interaction logic for ValidationDialog.xaml
 	/// </summary>
-	public partial class ValidationDialog : TkWindow, IProgress {
-		private readonly string[] _advancedView = new string[] { "List view", "Show the list view" };
-		private readonly string[] _rawView = new string[] { "Raw view", "Show the raw text view" };
+	public partial class ValidationDialog : TkWindow {
 		private readonly AsyncOperation _asyncOperation;
 		private readonly GrfHolder _grfHolder;
-		private readonly Validation _validation = new Validation();
+		private readonly ValidateGenericErrors _validateFindErrors = new ValidateGenericErrors();
+		private readonly ValidateContentReader _validateContentReader = new ValidateContentReader();
 
 		public ValidationDialog(GrfHolder grfHolder)
 			: base("Grf validation", "validity.ico", SizeToContent.Manual, ResizeMode.CanResize) {
@@ -38,33 +36,25 @@ namespace GRFEditor.Tools.GrfValidation {
 
 			_asyncOperation = new AsyncOperation(_progressBar);
 
-			_loadSettingsFindErrors();
 			_loadSettingsValidateContent();
-			_loadSettingsValidateExtraction();
 			_loadSettingsUI();
+			_setupResourceViewer();
 
+			_progressBar.SetSpecialState(TkProgressBar.ProgressStatus.Finished);
+
+			Owner = WpfUtilities.TopWindow;
+		}
+
+		private void _setupResourceViewer() {
 			_mViewer.SaveResourceMethod = v => GrfEditorConfiguration.Resources.SaveResources(v);
 			_mViewer.LoadResourceMethod = () => GrfEditorConfiguration.Resources.LoadResources();
 			GrfEditorConfiguration.Resources.Modified += delegate {
 				_mViewer.LoadResourcesInfo();
-				_asyncOperation.SetAndRunOperation(new GrfThread(_updateResources, this, 200, null, false, true));
 			};
 			_mViewer.LoadResourcesInfo();
 			_mViewer.CanDeleteMainGrf = false;
-			_progressBar.SetSpecialState(TkProgressBar.ProgressStatus.Finished);
-
-			Owner = WpfUtilities.TopWindow;
-
-			Binder.Bind(_cbComparisonAlrightm);
+			_asyncOperation.SetAndRunOperation(prog => _updateResources(prog));
 		}
-
-		#region IProgress Members
-
-		public float Progress { get; set; }
-		public bool IsCancelling { get; set; }
-		public bool IsCancelled { get; set; }
-
-		#endregion
 
 		private void _loadSettingsUI() {
 			_changeRawViewButton();
@@ -77,73 +67,25 @@ namespace GRFEditor.Tools.GrfValidation {
 			}, new DefaultListViewComparer<ValidationView>(), new string[] { "Default", "{StaticResource TextForeground}" });
 		}
 
-		private void _loadSettingsValidateExtraction() {
-			Binder.Bind(_cbVeIgnoreFilesNotFound, () => GrfEditorConfiguration.VeFilesNotFound);
-			Binder.Bind(_cbVeFilesDifferentSize, () => GrfEditorConfiguration.VeFilesDifferentSize);
-			Binder.Bind(_pbValidation, () => GrfEditorConfiguration.VeFolder);
-
-			_cbComparisonAlrightm.Items.Add(new Crc32Hash());
-			_cbComparisonAlrightm.Items.Add(new Md5Hash());
-			_cbComparisonAlrightm.Items.Add(new FileSizeHash());
-			_cbComparisonAlrightm.SelectedIndex = 0;
-
-			WpfUtilities.AddMouseInOutUnderline(_cbVeIgnoreFilesNotFound, _cbVeFilesDifferentSize);
-		}
-
 		private void _loadSettingsValidateContent() {
-			Binder.Bind(_cbVcDecompressEntries, () => GrfEditorConfiguration.VcDecompressEntries);
-			Binder.Bind(_cbVcLoadEntries, () => GrfEditorConfiguration.VcLoadEntries, delegate {
-				bool enabled = GrfEditorConfiguration.VcLoadEntries;
-
-				_cbVcSpriteIssues.IsEnabled = enabled;
-				_cbVcResourcesModelFiles.IsEnabled = enabled;
-				_cbVcResourcesMapFiles.IsEnabled = enabled;
-
-				enabled = enabled && GrfEditorConfiguration.VcSpriteIssues;
-
-				_cbVcSpriteIssuesRle.IsEnabled = enabled;
-				_cbVcSpriteSoundIndex.IsEnabled = enabled;
-				_cbVcSpriteSoundMissing.IsEnabled = enabled;
-				_cbVcSpriteIndex.IsEnabled = enabled;
-			}, true);
-			Binder.Bind(_cbVcInvalidEntryMetadata, () => GrfEditorConfiguration.VcInvalidEntryMetadata);
-			Binder.Bind(_cbVcSpriteIssues, () => GrfEditorConfiguration.VcSpriteIssues, delegate {
-				bool enabled = GrfEditorConfiguration.VcLoadEntries && GrfEditorConfiguration.VcSpriteIssues;
-
-				_cbVcSpriteIssuesRle.IsEnabled = enabled;
-				_cbVcSpriteSoundIndex.IsEnabled = enabled;
-				_cbVcSpriteSoundMissing.IsEnabled = enabled;
-				_cbVcSpriteIndex.IsEnabled = enabled;
-			}, true);
-
-			Binder.Bind(_cbVcResourcesModelFiles, () => GrfEditorConfiguration.VcResourcesModelFiles);
-			Binder.Bind(_cbVcResourcesMapFiles, () => GrfEditorConfiguration.VcResourcesMapFiles);
-			Binder.Bind(_cbVcChecksum, () => GrfEditorConfiguration.VcZlibChecksum);
-			Binder.Bind(_cbVcSpriteIssuesRle, () => GrfEditorConfiguration.VcSpriteIssuesRle);
-			Binder.Bind(_cbVcSpriteSoundIndex, () => GrfEditorConfiguration.VcSpriteSoundIndex);
-			Binder.Bind(_cbVcSpriteSoundMissing, () => GrfEditorConfiguration.VcSpriteSoundMissing);
-			Binder.Bind(_cbVcSpriteIndex, () => GrfEditorConfiguration.VcSpriteIndex);
-
-			WpfUtilities.AddMouseInOutUnderline(_cbVcDecompressEntries, _cbVcLoadEntries, _cbVcInvalidEntryMetadata, _cbVcSpriteIssues,
-											 _cbVcResourcesModelFiles, _cbVcResourcesMapFiles, _cbVcChecksum, _cbVcSpriteIssuesRle, _cbVcSpriteSoundIndex,
-											 _cbVcSpriteSoundMissing, _cbVcSpriteIndex);
+			Binder.Bind(_cbVcLoadEntries, () => GrfEditorConfiguration.VcLoadEntries, _updateValidationUIState, true);
+			Binder.Bind(_cbVcSpriteIssues, () => GrfEditorConfiguration.VcSpriteIssues, _updateValidationUIState, true);
 		}
 
-		private void _loadSettingsFindErrors() {
-			Binder.Bind(_cbFeNoExtension, () => GrfEditorConfiguration.FeNoExtension);
-			Binder.Bind(_cbFeMissingSprAct, () => GrfEditorConfiguration.FeMissingSprAct);
-			Binder.Bind(_cbFeEmptyFiles, () => GrfEditorConfiguration.FeEmptyFiles);
-			Binder.Bind(_cbFeDb, () => GrfEditorConfiguration.FeDb);
-			Binder.Bind(_cbFeSvn, () => GrfEditorConfiguration.FeSvn);
-			Binder.Bind(_cbFeDuplicateFiles, () => GrfEditorConfiguration.FeDuplicateFiles);
-			Binder.Bind(_cbFeDuplicatePaths, () => GrfEditorConfiguration.FeDuplicatePaths);
-			Binder.Bind(_cbFeSpaceSaved, () => GrfEditorConfiguration.FeSpaceSaved);
-			Binder.Bind(_cbFeInvalidFileTable, () => GrfEditorConfiguration.FeInvalidFileTable);
-			Binder.Bind(_cbFeRootFiles, () => GrfEditorConfiguration.FeRootFiles);
+		private void _updateValidationUIState() {
+			bool loadEntries = GrfEditorConfiguration.VcLoadEntries;
 
-			WpfUtilities.AddMouseInOutUnderline(
-				_cbFeNoExtension, _cbFeMissingSprAct, _cbFeEmptyFiles, _cbFeDb, _cbFeSvn,
-				_cbFeDuplicateFiles, _cbFeDuplicatePaths, _cbFeSpaceSaved, _cbFeInvalidFileTable, _cbFeRootFiles);
+			_cbVcSpriteIssues.IsEnabled = loadEntries;
+			_cbVcResourcesModelFiles.IsEnabled = loadEntries;
+			_cbVcResourcesMapFiles.IsEnabled = loadEntries;
+			_cbVcInvalidImageFormat.IsEnabled = loadEntries;
+
+			bool spriteIssues = loadEntries && GrfEditorConfiguration.VcSpriteIssues;
+
+			_cbVcSpriteIssuesRle.IsEnabled = spriteIssues;
+			_cbVcSpriteSoundIndex.IsEnabled = spriteIssues;
+			_cbVcSpriteSoundMissing.IsEnabled = spriteIssues;
+			_cbVcSpriteIndex.IsEnabled = spriteIssues;
 		}
 
 		protected override void OnClosing(CancelEventArgs e) {
@@ -156,50 +98,30 @@ namespace GRFEditor.Tools.GrfValidation {
 		}
 
 		private void _buttonFindErrors_Click(object sender, RoutedEventArgs e) {
-			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.FindErrors(errors, _grfHolder), _validation, 200, errors), _updateErrors);
+			ValidateResult result = new ValidateResult();
+			_asyncOperation.SetAndRunOperation(prog => _validateFindErrors.FindErrors(prog, result, _grfHolder), _updateErrors, result);
+		}
+
+		private void _buttonValidateContent_Click(object sender, RoutedEventArgs e) {
+			ValidateResult result = new ValidateResult();
+			_asyncOperation.SetAndRunOperation(prog => _validateContentReader.ValidateContent(prog, result, _grfHolder), _updateErrors, result);
 		}
 
 		private void _updateErrors(object state) {
 			try {
-				List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = (List<Utilities.Extension.Tuple<ValidationTypes, string, string>>)state;
-				errors = errors.Where(p => p != null).ToList();
-				List<ValidationView> errorsView = errors.Select(error => new ValidationView(error)).ToList();
-				StringBuilder builder = new StringBuilder();
+				var errors = (ValidateResult)state;
+				List<ValidationView> errorsView = errors.Errors.Select(error => new ValidationView(error)).ToList();
+				string rawView = String.Join("\r\n", errorsView);
 
-				for (int index = 0; index < errorsView.Count; index++) {
-					builder.Append(errorsView[index] + "\r\n");
-				}
-
-				_tbResults.Dispatch(p => p.Text = builder.ToString());
-				_listViewResults.Dispatch(p => p.ItemsSource = errorsView);
-				_tabControl.Dispatch(p => p.SelectedItem = _tabItemResults);
+				this.Dispatch(delegate {
+					_tbResults.Text = rawView;
+					_listViewResults.ItemsSource = errorsView;
+					_tabControl.SelectedItem = _tabItemResults;
+				});
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
-		}
-
-		private void _buttonValidateContent_Click(object sender, RoutedEventArgs e) {
-			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.ValidateContent(errors, _grfHolder, GrfEditorConfiguration.Resources.MultiGrf), _validation, 200, errors), _updateErrors);
-		}
-
-		private void _buttonValidateExtraction_Click(object sender, RoutedEventArgs e) {
-			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
-			bool direction = _rbGrfFolder.IsChecked == true;
-			IHash hash = _cbComparisonAlrightm.SelectedItem as IHash;
-			bool ignoreFilesNotFound = _cbVeIgnoreFilesNotFound.IsChecked == true;
-			string text = _pbValidation.Text;
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.ValidateExtraction(errors, _grfHolder, text, direction, hash, ignoreFilesNotFound), _validation, 200, errors), _updateErrors);
-		}
-
-		private void _buttonPrintHash_Click(object sender, RoutedEventArgs e) {
-			List<Utilities.Extension.Tuple<ValidationTypes, string, string>> errors = new List<Utilities.Extension.Tuple<ValidationTypes, string, string>>();
-			IHash hash = _cbComparisonAlrightm.SelectedItem as IHash;
-			bool direction = _rbGrfFolder.IsChecked == true;
-			string text = _pbValidation.Text;
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _validation.ComputeHash(errors, _grfHolder, hash, direction, text), _validation, 200, errors), _updateErrors);
 		}
 
 		private void _buttonRawView_Click(object sender, RoutedEventArgs e) {
@@ -208,24 +130,17 @@ namespace GRFEditor.Tools.GrfValidation {
 		}
 
 		private void _changeRawViewButton() {
-			if (GrfEditorConfiguration.ValidationRawView) {
-				_buttonRawView.Dispatch(p => p.TextHeader = _advancedView[0]);
-				_buttonRawView.Dispatch(p => p.TextDescription = _advancedView[1]);
-				_listViewResults.Visibility = Visibility.Hidden;
-				_tbResults.Visibility = Visibility.Visible;
-			}
-			else {
-				_buttonRawView.Dispatch(p => p.TextHeader = _rawView[0]);
-				_buttonRawView.Dispatch(p => p.TextDescription = _rawView[1]);
-				_listViewResults.Visibility = Visibility.Visible;
-				_tbResults.Visibility = Visibility.Hidden;
-			}
+			bool isValidate = GrfEditorConfiguration.ValidationRawView;
+			_buttonRawView.TextHeader = isValidate ? "List view" : "Raw view";
+			_buttonRawView.TextDescription = isValidate ? "Show the list view" : "Show the raw text view";
+			_listViewResults.Visibility = isValidate ? Visibility.Hidden : Visibility.Visible;
+			_tbResults.Visibility = isValidate ? Visibility.Visible : Visibility.Hidden;
 		}
 
 		private void _listViewResults_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e) {
-			object test = _listViewResults.InputHitTest(e.GetPosition(_listViewResults));
+			var lvi = _listViewResults.GetObjectAtPoint<ListViewItem>(e.GetPosition(_listViewResults));
 
-			if (test is ScrollViewer) {
+			if (lvi == null) {
 				_cmResults.IsOpen = false;
 				e.Handled = true;
 			}
@@ -249,58 +164,16 @@ namespace GRFEditor.Tools.GrfValidation {
 			}
 		}
 
-		private void _updateResources() {
+		private void _updateResources(ProgressObject prog) {
 			try {
-				Progress = -1;
 				GrfEditorConfiguration.Resources.Reload();
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
 			}
 			finally {
-				Progress = 100;
+				prog.Finish();
 			}
 		}
-
-		#region Nested type: ValidationViewSorter
-
-		internal class ValidationViewSorter : ListViewCustomComparer {
-			public override int Compare(object x, object y) {
-				try {
-					ValidationView xc = (ValidationView)x;
-					ValidationView yc = (ValidationView)y;
-
-					string valx = String.Empty, valy = String.Empty;
-
-					if (_sortColumn == null)
-						return 0;
-
-					switch (_sortColumn) {
-						case "ValidationType":
-							valx = xc.ValidationType;
-							valy = yc.ValidationType;
-							break;
-						case "DisplayRelativePath":
-							valx = xc.DisplayRelativePath;
-							valy = yc.DisplayRelativePath;
-							break;
-						case "Description":
-							valx = xc.Description;
-							valy = yc.Description;
-							break;
-					}
-
-					if (_direction == ListSortDirection.Ascending)
-						return String.CompareOrdinal(valx, valy);
-
-					return (-1) * String.CompareOrdinal(valx, valy);
-				}
-				catch (Exception) {
-					return 0;
-				}
-			}
-		}
-
-		#endregion
 	}
 }

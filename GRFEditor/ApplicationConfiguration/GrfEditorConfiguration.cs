@@ -1008,11 +1008,6 @@ namespace GRFEditor.ApplicationConfiguration {
 			set { ConfigAsker["[Validation - Find errors - Root files]"] = value.ToString(); }
 		}
 
-		public static bool VcDecompressEntries {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Decompress entries]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Decompress entries]"] = value.ToString(); }
-		}
-
 		public static bool VcLoadEntries {
 			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Load entries]", true.ToString()]); }
 			set { ConfigAsker["[Validation - Validate content - Load entries]"] = value.ToString(); }
@@ -1021,6 +1016,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool VcInvalidEntryMetadata {
 			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]", true.ToString()]); }
 			set { ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]"] = value.ToString(); }
+		}
+
+		public static bool VcInvalidImageFormat {
+			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]", true.ToString()]); }
+			set { ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]"] = value.ToString(); }
 		}
 
 		public static bool VcSpriteIssues {

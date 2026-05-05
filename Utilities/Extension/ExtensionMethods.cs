@@ -490,6 +490,21 @@ namespace Utilities.Extension {
 			return text.Remove(index) + newExtension;
 		}
 
+		public static string RemoveExtension(this String text) {
+			if (text == null) return null;
+
+			int index = text.LastIndexOf('.');
+
+			if (index < 0)
+				return text;
+
+			if (text.IndexOf('\\', index) > index) {
+				return text;
+			}
+
+			return text.Substring(0, index);
+		}
+
 		public static string GetExtension(this String text) {
 			if (text == null) return null;
 

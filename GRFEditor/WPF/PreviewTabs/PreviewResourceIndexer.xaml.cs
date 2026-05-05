@@ -100,7 +100,9 @@ namespace GRFEditor.WPF.PreviewTabs {
 			GrfEditorConfiguration.Resources.Modified += delegate {
 				_itemsResources2.LoadResourcesInfo();
 				_reloadIndex = true;
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
+
+				if (!_asyncOperation.IsRunning)
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
 			};
 			_itemsResources2.LoadResourcesInfo();
 			_itemsResources2.CanDeleteMainGrf = false;

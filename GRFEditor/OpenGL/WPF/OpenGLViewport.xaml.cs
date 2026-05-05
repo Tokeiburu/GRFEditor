@@ -589,7 +589,7 @@ namespace GRFEditor.OpenGL.WPF {
 					var clientPos = _primary.PointToClient(currentMousePosition);
 					bool isInside = _primary.ClientRectangle.Contains(clientPos);
 
-					if (isInside) {
+					if (isInside && IsMouseOverControl(_primary)) {
 						_camera.Zoom(deltaWheel < 0 ? 1.1f : 0.9f);
 						IsRotatingCamera = false;
 					}
@@ -636,6 +636,20 @@ namespace GRFEditor.OpenGL.WPF {
 				_previousState = mouseState;
 				_previousMousePosition = currentMousePosition;
 			}
+		}
+
+		private bool IsMouseOverControl(System.Windows.Forms.Control control) {
+			var pos = System.Windows.Forms.Control.MousePosition;
+
+			var pt = new NativeMethods.POINT { X = pos.X, Y = pos.Y };
+			IntPtr hWndUnderMouse = NativeMethods.WindowFromPoint(pt);
+
+			if (hWndUnderMouse == IntPtr.Zero)
+				return false;
+
+			System.Windows.Forms.Control hovered = System.Windows.Forms.Control.FromHandle(hWndUnderMouse);
+
+			return hovered != null && (hovered == control || control.Contains(hovered));
 		}
 		#endregion
 	}

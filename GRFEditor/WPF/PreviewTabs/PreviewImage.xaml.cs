@@ -10,6 +10,7 @@ using GRF.FileFormats;
 using GRF.FileFormats.PalFormat;
 using GRF.FileFormats.SprFormat;
 using GRF.Image;
+using GRF.Image.Decoders;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core;
 using GRFEditor.Core.Services;
@@ -48,10 +49,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 		protected override void _load(FileEntry entry) {
 			_setupUI(entry);
 
-			var image = _tryLoadImage(entry);
-			if (image == null) return;
+			var loadData = _tryLoadImage(entry);
+			if (loadData.Image == null) return;
 
-			_displayImage(entry, image);
+			_displayImage(entry, loadData);
 			_updateSpritePreview(entry);
 		}
 
@@ -69,26 +70,41 @@ namespace GRFEditor.WPF.PreviewTabs {
 			});
 		}
 
-		private void _displayImage(FileEntry entry, GrfImage image) {
+		private void _displayImage(FileEntry entry, (GrfImage Image, string DisplayType) loadData) {
 			this.Dispatch(delegate {
-				_primaryImage.Image = image;
+				_primaryImage.Image = loadData.Image;
 				_primaryImage.ExportFileName = Path.GetFileNameWithoutExtension(entry.RelativePath);
-				_imagePreview.Source = image.Cast<BitmapSource>();
+				_imagePreview.Source = loadData.Image.Cast<BitmapSource>();
 				ImageHelper.UpdateZoom(_imagePreview, GrfEditorConfiguration.PreviewImageZoom);
-
+				
 				_tbFileInfo.Text =
 					$"Type: {entry.FileType}\r\n" +
-					$"Format: {_primaryImage.Image.GrfImageType}\r\n" +
+					$"Format: {loadData.DisplayType ?? loadData.Image.GrfImageType.ToString()}\r\n" +
 					$"Size: {_primaryImage.Image.Width}x{_primaryImage.Image.Height}";
 			});
 		}
 
-		private GrfImage _tryLoadImage(FileEntry entry) {
+		private (GrfImage Image, string DisplayType) _tryLoadImage(FileEntry entry) {
 			try {
 				if (entry.RelativePath.IsExtension(".gif"))
-					return GifFormat.LoadAsGrfImage(entry);
+					return (GifFormat.LoadAsGrfImage(entry), null);
 
-				return ImageProvider.GetImage(entry.GetDecompressedData(), Path.GetExtension(entry.RelativePath).ToLowerInvariant());
+				var data = entry.GetDecompressedData();
+				var image = ImageProvider.GetImage(data, entry.RelativePath.GetExtension());
+				string displayType = null;
+
+				// This is necessary because the displayed image type will be converted to a different format
+				if (entry.RelativePath.IsExtension(".bmp")) {
+					try {
+						BmpDecoder decoder = new BmpDecoder(data);
+						displayType = decoder.GetDisplayType();
+					}
+					catch {
+						
+					}
+				}
+
+				return (image, displayType);
 			}
 			catch (GrfException err) {
 				if (err == GrfExceptions.__CorruptedOrEncryptedEntry || err == GrfExceptions.__GravityEncryptedFile) {
@@ -97,7 +113,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				}
 
 				if (err == GrfExceptions.__ContainerBusy)
-					return null;
+					return (null, null);
 
 				throw;
 			}

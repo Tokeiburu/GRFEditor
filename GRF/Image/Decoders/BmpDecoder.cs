@@ -141,6 +141,38 @@ namespace GRF.Image.Decoders {
 			Dib = new DibData();
 		}
 
+		public GrfImageType GetOriginalImageFormat() {
+			switch (Dib.BitCount) {
+				case 8:
+					return GrfImageType.Indexed8;
+				case 24:
+					return GrfImageType.Bgr24;
+				case 32:
+					return GrfImageType.Bgr32;
+			}
+
+			return GrfImageType.NotEvaluated;
+		}
+
+		public string GetDisplayType() {
+			switch (Dib.BitCount) {
+				case 1:
+					return "Indexed1";
+				case 4:
+					return "Indexed4";
+				case 8:
+					return "Indexed8";
+				case 16:
+					return "Bgr555";
+				case 24:
+					return "Bgr24";
+				case 32:
+					return "Bgr32";
+			}
+
+			return null;
+		}
+
 		public GrfImage ToGrfImage() {
 			_reader.Position = 54;
 			byte[] palette = _readPalette();
