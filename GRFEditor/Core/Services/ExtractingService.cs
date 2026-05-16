@@ -68,7 +68,7 @@ namespace GRFEditor.Core.Services {
 				if (!_isValid(showErrors, selectedItem))
 					return;
 
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, _getCurrentPath(selectedItem), SearchOption.AllDirectories, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, _getCurrentPath(selectedItem), SearchOption.AllDirectories, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -84,7 +84,7 @@ namespace GRFEditor.Core.Services {
 				string path = PathRequest.FolderExtract();
 
 				if (path != null) {
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, _getCurrentPath(selectedItem), SearchOption.AllDirectories, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, _getCurrentPath(selectedItem), SearchOption.AllDirectories, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 				}
 			}
 			catch (Exception err) {
@@ -98,7 +98,7 @@ namespace GRFEditor.Core.Services {
 				if (!_isValid(showErrors, selectedItem))
 					return;
 
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, _getCurrentPath(selectedItem), SearchOption.TopDirectoryOnly, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, _getCurrentPath(selectedItem), SearchOption.TopDirectoryOnly, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err, ErrorLevel.Warning);
@@ -114,7 +114,7 @@ namespace GRFEditor.Core.Services {
 				string path = PathRequest.FolderExtract();
 
 				if (path != null) {
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, _getCurrentPath(selectedItem), SearchOption.TopDirectoryOnly, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, _getCurrentPath(selectedItem), SearchOption.TopDirectoryOnly, null, GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 				}
 			}
 			catch (Exception err) {
@@ -128,7 +128,7 @@ namespace GRFEditor.Core.Services {
 				if (!_isValid(showErrors, selectedItems))
 					return;
 
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, Path.GetDirectoryName(((FileEntry)selectedItems[0]).RelativePath), SearchOption.TopDirectoryOnly, selectedItems.OfType<FileEntry>(), GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(null, Path.GetDirectoryName(((FileEntry)selectedItems[0]).RelativePath), SearchOption.TopDirectoryOnly, selectedItems.OfType<FileEntry>(), GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err, ErrorLevel.Warning);
@@ -144,7 +144,7 @@ namespace GRFEditor.Core.Services {
 				string path = PathRequest.FolderExtract();
 
 				if (path != null) {
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, Path.GetDirectoryName(((FileEntry)selectedItems[0]).RelativePath), SearchOption.TopDirectoryOnly, selectedItems.OfType<FileEntry>(), GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, 300, null, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(path, Path.GetDirectoryName(((FileEntry)selectedItems[0]).RelativePath), SearchOption.TopDirectoryOnly, selectedItems.OfType<FileEntry>(), GrfEditorConfiguration.DefaultExtractingPath, _getOptions(), SyncMode.Synchronous), grfData, null, true));
 				}
 			}
 			catch (Exception err) {
@@ -167,7 +167,7 @@ namespace GRFEditor.Core.Services {
 					_asyncOperation.SetAndRunOperation(new GrfThread(() => {
 						try {
 							using (grf) {
-								grf.Attached["Thor.UseGrfMerging"] = true;
+								grf.Header.ThorSettings.UseGrfMerging = true;
 								bool isThor = path.IsExtension(".thor");
 
 								foreach (var entry in selectedItems.Cast<FileEntry>()) {
@@ -185,16 +185,17 @@ namespace GRFEditor.Core.Services {
 									grf.Commands.AddFile(outputPath, entry);
 								}
 
-								grf.Save(path, SyncMode.Synchronous);
+								grf.SaveAs(path, SyncMode.Synchronous);
 
-								if (!grf.CancelReload)
+								if (grf.ProcessSaveResult()) {
 									Utilities.Services.OpeningService.FileOrFolder(path);
+								}
 							}
 						}
 						catch (Exception err) {
 							ErrorHandler.HandleException(err);
 						}
-					}, grf, 300, null, true));
+					}, grf, null, true));
 				}
 			}
 			catch (Exception err) {
@@ -208,7 +209,7 @@ namespace GRFEditor.Core.Services {
 			try {
 				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(extractionPath, "", SearchOption.AllDirectories, grfData.FileTable.Entries,
  					null,
-					ExtractOptions.Normal | ExtractOptions.OverrideCpuPerf | (GrfEditorConfiguration.GrfFileTableIgnoreCase ? ExtractOptions.IgnoreCase : 0), SyncMode.Synchronous), grfData, 200, null, true));
+					ExtractOptions.Normal | ExtractOptions.OverrideCpuPerf | (GrfEditorConfiguration.GrfFileTableIgnoreCase ? ExtractOptions.IgnoreCase : 0), SyncMode.Synchronous), grfData, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err, ErrorLevel.NotSpecified);

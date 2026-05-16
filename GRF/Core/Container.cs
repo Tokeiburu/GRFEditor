@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
-using System.Text;
 using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats;
@@ -11,6 +10,7 @@ using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
+using GRF.Core.GrfWriters;
 
 namespace GRF.Core {
 	internal class Container : ContainerAbstract<FileEntry>, IDisposable {
@@ -22,28 +22,18 @@ namespace GRF.Core {
 			FileName = "new.grf";
 			IsBusy = false;
 			IsNewGrf = true;
-			CancelReload = false;
 			State = ContainerState.Normal;
 		}
 
 		internal Container(string fileName, GrfLoadData loadData = null) {
 			try {
 				GrfExceptions.IfNullThrow(fileName, "fileName");
-
-				// Fixed 2014-12-21 : Null-named containers are no longer allowed
-				// They created a broken GRF on purpose and would allow further modifications.
-				//if (fileName == null) {
-				//	_table = new FileTable(InternalHeader);
-				//	throw new Exception();
-				//}
-
 				_load(fileName, loadData);
-				CancelReload = false;
 			}
 			catch (Exception err) {
 				if (_header == null) {
 					_header = new GrfHeader(this);
-					_header.SetError("Null header, this object was forcibly instanced.");
+					_header.SetError("Null header, this object was forcibly instantiated.");
 				}
 
 				_header.SetError(err.Message);
@@ -58,8 +48,8 @@ namespace GRF.Core {
 			set { _reader = value; }
 		}
 
-		private FileTable _table { get; set; }
-		private GrfHeader _header { get; set; }
+		private FileTable _table;
+		private GrfHeader _header;
 
 		/// <summary>
 		/// Gets or sets the table.
@@ -96,9 +86,7 @@ namespace GRF.Core {
 		/// <summary>
 		/// Gets a value indicating whether this container is modified (from the Commands object).
 		/// </summary>
-		public bool IsModified {
-			get { return Commands.IsModified; }
-		}
+		public bool IsModified => Commands.IsModified;
 
 		/// <summary>
 		/// Gets or sets the name of the file.
@@ -109,11 +97,6 @@ namespace GRF.Core {
 		/// Gets or sets a value indicating whether this container is a new GRF (doesn't have a source file yet).
 		/// </summary>
 		public bool IsNewGrf { get; set; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether this file should be reloaded after saving.
-		/// </summary>
-		internal bool CancelReload { get; set; }
 
 		/// <summary>
 		/// Gets or sets attached properties.
@@ -167,7 +150,6 @@ namespace GRF.Core {
 				IsBusy = false;
 				FileName = fileName;
 				Reader = new ByteReaderStream(FileName);
-
 				InternalHeader = new GrfHeader(Reader, this);
 				Reader.PositionLong = InternalHeader.FileTableOffset + GrfHeader.DataByteSize;
 
@@ -178,8 +160,12 @@ namespace GRF.Core {
 
 				_table = new FileTable(InternalHeader, Reader);
 
-				if (Table.Contains(GrfStrings.EncryptionFilename))
+				var encryptedCheckEntry = Table.TryGet(GrfStrings.EncryptionFilename);
+
+				if (encryptedCheckEntry != null) {
 					InternalHeader.IsEncrypted = true;
+					Debug.Ignore(() => InternalHeader.EncryptionHashValue = BitConverter.ToUInt32(encryptedCheckEntry.GetDecompressedData(), 0));
+				}
 			}
 			catch (Exception err) {
 				if (Header != null) {
@@ -206,138 +192,119 @@ namespace GRF.Core {
 		}
 
 		protected override void _onPreviewDispose() {
-			if (Reader != null)
-				Reader.Close();
+			Reader?.Close();
 		}
 
-		public ContainerSaveResult Save(string fileName, Container mergeGrf, SavingMode mode, SyncMode syncMode) {
-			ContainerSaveResult result = new ContainerSaveResult();
-			result.SaveModeRequested = mode;
-			result.SaveModeUsed = mode;
-			result.Success = true;
-			result.SyncMode = syncMode;
-			result.OldFileName = FileName;
-			result.NewFileName = fileName;
+		public ContainerSaveResult SaveResult;
 
-			// Determines whether the repack should reload or not.
-			bool shouldRepackCancelReload = false;
+		/// <summary>
+		/// Saves the container to the hard drive.
+		/// </summary>
+		/// <param name="fileName">Name of the file (null if overwriting the current container).</param>
+		/// <param name="mergeGrf">The GRF to merge (null if nothing to merge).</param>
+		/// <param name="mode">The saving mode.</param>
+		/// <param name="syncMode">The synchronize mode (default to Synchronous.</param>
+		public ContainerSaveResult Save(string fileName, Container mergeGrf, SavingMode mode, SyncMode syncMode) {
+			ContainerSaveResult result = new ContainerSaveResult(this, fileName, mergeGrf, mode, syncMode);
 
 			try {
 				GrfExceptions.IfTrueThrowContainerSaving(IsBusy);
 				GrfExceptions.IfEncryptionCheckFlagThrow(this);
+				string ext = (fileName ?? FileName).GetExtension();
 
-				if (mode == SavingMode.GrfSave || mode == SavingMode.QuickMerge) {
-					if (mergeGrf != null && mergeGrf.IsModified)
-						throw GrfExceptions.__AddedGrfModified.Create();
+				switch (mode) {
+					case SavingMode.FileCopy:
+					case SavingMode.FileEdit:
+						if (mergeGrf != null && mergeGrf.IsModified)
+							throw GrfExceptions.__AddedGrfModified.Create();
+						break;
+					case SavingMode.RepackSource:
+						if (ext != ".thor")
+							throw GrfExceptions.__OperationNotAllowed.Create();
+						break;
+					case SavingMode.Repack:
+						if (IsModified || IsNewGrf)
+							throw GrfExceptions.__ContainerNotSavedForRepack.Create();
+
+						switch (ext) {
+							case ".thor":
+								mode = SavingMode.Thor;
+								InternalHeader.ThorSettings.Repack = true;
+								break;
+							case ".rgz":
+								throw GrfExceptions.__InvalidContainerFormat.Create(fileName ?? FileName, ".grf, .gpf or .thor");
+						}
+						break;
+					case SavingMode.Compact:
+						if (IsModified || IsNewGrf)
+							throw GrfExceptions.__ContainerNotSavedForCompact.Create();
+
+						switch (ext) {
+							case ".thor":
+								mode = SavingMode.Thor;
+								break;
+							case ".rgz":
+								mode = SavingMode.Rgz;
+								break;
+						}
+						break;
 				}
 
-				if (mode == SavingMode.RepackSource && (fileName ?? FileName.GetExtension()) != ".thor") {
-					throw GrfExceptions.__OperationNotAllowed.Create();
-				}
-
-				if (mode == SavingMode.Repack) {
-					if (IsModified || IsNewGrf)
-						throw GrfExceptions.__ContainerNotSavedForRepack.Create();
-
-					// Thor files are always repacked
-					// ^ Bug fix : Not true! 2015-04-04
-					switch (fileName ?? FileName.GetExtension()) {
-						case ".thor":
-							mode = SavingMode.Thor;
-							Attached["Thor.Repack"] = true;
-							break;
-						case ".rgz":
-							throw GrfExceptions.__InvalidContainerFormat.Create(fileName ?? FileName, ".grf, .gpf or .thor");
-					}
-				}
-
-				if (mode == SavingMode.Compact) {
-					if (IsModified || IsNewGrf)
-						throw GrfExceptions.__ContainerNotSavedForCompact.Create();
-
-					// If the filename is null, then we must find the original filename
-					switch (fileName ?? FileName.GetExtension()) {
-						case ".thor":
-							mode = SavingMode.Thor;
-							break;
-						case ".rgz":
-							mode = SavingMode.Rgz;
-							break;
-					}
-				}
-
-				result.SaveModeUsed = mode;
 				IsBusy = true;
-				CancelReload = false;
-				shouldRepackCancelReload = true;
 
 				if (syncMode == SyncMode.Synchronous)
-					return _save(fileName, mergeGrf, mode, result);
+					_save(fileName, mergeGrf, mode, result);
 				else
-					GrfThread.Start(() => _save(fileName, mergeGrf, mode, result));
+					GrfThread.Start(delegate {
+						_save(fileName, mergeGrf, mode, result);
+						result.Completed = true;
+						SaveResult = result;
+					});
 			}
 			catch (Exception err) {
-				CancelReload = true;
-
-				// The repack should reload if it starts going into the _save method.
-				if ((shouldRepackCancelReload) && mode == SavingMode.Repack) {
-					CancelReload = false;
-				}
-
-				if (syncMode == SyncMode.Synchronous)
-					throw;
-
-				ErrorHandler.HandleException(err);
-				result.Success = false;
+				result.Fail(err);
 			}
 
+			result.Completed = true;
+			SaveResult = result;
 			return result;
 		}
 
-		private void _internalSave(string fileName, Container mergeGrf, SavingMode mode) {
+		private void _internalSave(string fileName, Container mergeGrf, SavingMode mode, ContainerSaveResult result) {
 			bool shouldRepack = false;
 
 			try {
 				// Validation before saving
-				if (fileName.GetExtension() == null && mode != SavingMode.QuickMerge) throw new InvalidOperationException("The file name must end with : .grf | .gpf | .rgz");
-				if (_headerCheckFailed()) return;
-				if (_headerEncryptedFailed(fileName)) return;
+				if (fileName.GetExtension() == null && mode != SavingMode.FileEdit)
+					throw new InvalidOperationException("The file name must end with : .grf | .gpf | .rgz");
+				if (_headerCheckFailed()) {
+					result.Cancelled();
+					return;
+				}
+
+				_headerEncryptedFailed(fileName);
 
 				try {
-					switch(mode) {
-						case SavingMode.GrfSave:
-						case SavingMode.Compact:
-						case SavingMode.Repack:
-						case SavingMode.RepackSource:
-						case SavingMode.QuickMerge:
-							// Reset the temp offsets
-							foreach (var entry in _table.Entries) {
-								if (!entry.IsAdded) {
-									// Fix : 2015-04-07
-									// This is required...!
-									entry.TemporaryOffset = 0;
-								}
-							}
+					bool exists = File.Exists(fileName);
+					_table.ResetTemporaryOffsets();
 
+					// Merge GRF validation
+					switch (mode) {
+						case SavingMode.FileCopy:
+							_applyMergeOnTable(mergeGrf);
+							break;
+						case SavingMode.FileEdit:
+							_applyMergeOnTable(mergeGrf);
+							Close();
+							break;
+						default:
+							if (mergeGrf != null)
+								throw GrfExceptions.__MergeNotSupported.Create();
 							break;
 					}
 
-					if (mode == SavingMode.GrfSave || mode == SavingMode.QuickMerge) {
-						_applyMergeOnTable(mergeGrf);
-					}
-					else {
-						if (mergeGrf != null)
-							throw GrfExceptions.__MergeNotSupported.Create();
-					}
-
-					if (mode == SavingMode.QuickMerge) {
-						Close();
-					}
-
-					bool exists = File.Exists(fileName);
-
 					switch(mode) {
-						case SavingMode.GrfSave:
+						case SavingMode.FileCopy:
 						case SavingMode.Compact:
 						case SavingMode.Repack:
 						case SavingMode.RepackSource:
@@ -345,14 +312,13 @@ namespace GRF.Core {
 								using (FileStream output = new FileStream(fileName, FileMode.Create)) {
 									long fileLength = GrfHeader.DataByteSize + InternalHeader.FileTableOffset;
 
-									if (Header.IsNotCompatibleWith(3, 0) && fileLength > uint.MaxValue) {
+									if (Header.Version < 3.0 && fileLength > uint.MaxValue)
 										throw GrfExceptions.__GrfSizeLimitReached.Create();
-									}
 
 									output.SetLength(fileLength);
 
 									switch(mode) {
-										case SavingMode.GrfSave:
+										case SavingMode.FileCopy:
 											_table.WriteData(this, Reader.Stream, output, mergeGrf);
 											break;
 										case SavingMode.Repack:
@@ -366,9 +332,8 @@ namespace GRF.Core {
 
 									long fileTableOffset = output.Position - GrfHeader.DataByteSize;
 									
-									if (Header.IsNotCompatibleWith(3, 0) && fileTableOffset > uint.MaxValue) {
+									if (Header.Version < 3.0 && fileTableOffset > uint.MaxValue)
 										throw GrfExceptions.__GrfSizeLimitReached.Create();
-									}
 
 									int tableSize = _table.WriteMetadata(InternalHeader, output);
 									InternalHeader.FileTableOffset = fileTableOffset;
@@ -388,9 +353,9 @@ namespace GRF.Core {
 								throw;
 							}
 							break;
-						case SavingMode.QuickMerge:
+						case SavingMode.FileEdit:
 							try {
-								using (FileStream output = new FileStream(FileName, FileMode.OpenOrCreate, FileAccess.Write)) {
+								using (FileStream output = new FileStream(FileName, FileMode.OpenOrCreate, FileAccess.ReadWrite)) {
 									long offset;
 
 									try {
@@ -409,9 +374,8 @@ namespace GRF.Core {
 
 									long fileTableOffset = offset - GrfHeader.DataByteSize;
 
-									if (Header.IsNotCompatibleWith(3, 0) && fileTableOffset > uint.MaxValue) {
+									if (Header.Version < 3.0 && fileTableOffset > uint.MaxValue)
 										throw GrfExceptions.__GrfSizeLimitReached.Create();
-									}
 
 									InternalHeader.FileTableOffset = fileTableOffset;
 									InternalHeader.RealFilesCount = Table.Entries.Count;
@@ -433,62 +397,42 @@ namespace GRF.Core {
 							}
 							break;
 						case SavingMode.Rgz:
-							Rgz.SaveRgz(this, fileName);
+							Rgz.SaveRgz(this, fileName, result);
 							break;
 						case SavingMode.Thor:
-							Thor.SaveFromGrf(this, fileName);
+							Thor.SaveFromGrf(this, fileName, result);
 							break;
 					}
 				}
 				catch (OperationCanceledException) {
-					CancelReload = true;
-
-					if (mode == SavingMode.Repack) {
-						CancelReload = false;
-					}
+					result.Cancelled();
+					return;
 				}
-				catch (GrfException err) {
-					if (err == GrfExceptions.__GrfSizeLimitReached && mergeGrf != null) {
-						CancelReload = true;
+				catch (GrfException err) when (err == GrfExceptions.__GrfSizeLimitReached && mergeGrf != null) {
+					switch(mode) {
+						case SavingMode.FileCopy:
+						case SavingMode.Compact:
+						case SavingMode.Repack:
+						case SavingMode.RepackSource:
+							// Temporary file
+							try {
+								if (fileName != null && File.Exists(fileName))
+									File.Delete(fileName);
 
-						switch(mode) {
-							case SavingMode.GrfSave:
-							case SavingMode.Compact:
-							case SavingMode.Repack:
-							case SavingMode.RepackSource:
-								// Temporary file
-								try {
-									if (fileName != null && File.Exists(fileName))
-										File.Delete(fileName);
-
-									if (Reader != null)
-										Reader.Close();
-
-									_load(FileName);
-								}
-								catch {
-									if (Reader != null)
-										Reader.Open(FileName);
-
-									CancelReload = true;
-								}
-								break;
-						}
-
-						ErrorHandler.HandleException(GrfStrings.CouldNotSaveContainerForceReload, err, ErrorLevel.Warning);
+								Reader?.Close();
+								_load(FileName);
+							}
+							catch {
+								Reader?.Open(FileName);
+							}
+							break;
 					}
-					else {	
-						ErrorHandler.HandleException(GrfStrings.CouldNotSaveContainer, err, ErrorLevel.Warning);
-						CancelReload = true;
-					}
-				}
-				catch (Exception err) {
-					ErrorHandler.HandleException(GrfStrings.CouldNotSaveContainer, err, ErrorLevel.Warning);
-					CancelReload = true;
+
+					throw;
 				}
 			}
 			finally {
-				if (mode == SavingMode.QuickMerge) {
+				if (mode == SavingMode.FileEdit) {
 					try {
 						ResetStream();
 					}
@@ -500,26 +444,10 @@ namespace GRF.Core {
 		}
 
 		private void _writeEncryptionIndex() {
-			try {
-				if (!InternalHeader.IsEncrypted)
-					return;
+			if (!InternalHeader.IsEncrypted)
+				return;
 
-				string file = File.GetLastWriteTimeUtc(FileName).ToFileTimeUtc() + "\\files.enc";
-
-				using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
-					StringBuilder files = new StringBuilder();
-
-					foreach (var entry in Table.Entries.Where(p => p.Encrypted)) {
-						files.AppendLine(entry.RelativePath);
-					}
-
-					grf.Commands.AddFile(file, Encoding.Default.GetBytes(files.ToString()));
-					grf.QuickSave();
-				}
-			}
-			catch (Exception err) {
-				ErrorHandler.HandleException(err);
-			}
+			GrfHolder.WriteEncryptionIndex(this, File.GetLastWriteTimeUtc(FileName).ToFileTimeUtc() + "\\files.enc");
 		}
 
 		/// <summary>
@@ -539,86 +467,142 @@ namespace GRF.Core {
 			}
 		}
 
-		private ContainerSaveResult _save(string fileName, Container mergeGrf, SavingMode mode, ContainerSaveResult result) {
+		private void _save(string fileName, Container mergeGrf, SavingMode mode, ContainerSaveResult result) {
+			AProgress.Init(this);
+			bool fileCopy = fileName == null && mode != SavingMode.FileEdit;
+			string targetFilePath = fileName;
+			string sourceFilePath = FileName;
+
 			try {
-				AProgress.Init(this);
+				if (fileCopy) {
+					// Make a file copy first before overwriting the current file
+					string tmp = GrfPath.Combine(Path.GetDirectoryName(sourceFilePath), "~" + Path.GetFileName(sourceFilePath));
 
-				if (fileName != null || mode == SavingMode.QuickMerge) {
-					_internalSave(fileName, mergeGrf, mode);
+					// Validate if the source GRF can be deleted, since it needs to be moved afterwards
+					string streamFileName = Reader?.Stream?.Name;
+
+					if (streamFileName != null)
+						_testIfSourceFileCanBeDeleted(streamFileName);
+
+					targetFilePath = tmp;
 				}
-				else {
-					string tmp = TemporaryFilesManager.GetTemporaryFilePath("temp_container_{0:0000}" + FileName.GetExtension());
 
-					// Validate if the GRF can be written
-					string streamFileName = Reader == null ? null : Reader.Stream == null ? null : Reader.Stream.Name;
+				_internalSave(targetFilePath, mergeGrf, mode, result);
 
-					if (streamFileName != null) {
-						try {
-							if (Reader != null)
-								Reader.Close();
+				if (!result.Success)
+					return;
 
-							if (Methods.IsFileLocked(streamFileName)) {
-								throw GrfExceptions.__FileLocked.Create(streamFileName);
-							}
-						}
-						catch {
-							CancelReload = true;
-							throw;
-						}
-						finally {
-							if (Reader != null)
-								Reader.Open(streamFileName);
-						}
-					}
+				if (fileCopy) {
+					if (!File.Exists(targetFilePath))
+						return;
 
-					_internalSave(tmp, mergeGrf, mode);
+					Progress = TieredProgress.SpecialCopyingFile;
+					Reader?.Close();
+					File.Delete(sourceFilePath);
+					File.Move(targetFilePath, sourceFilePath);
+					targetFilePath = sourceFilePath;
+				}
 
-					// Prevents erasing the original file
-					if (!CancelReload) {
-						try {
-							if (!File.Exists(tmp))
-								return result;
-
-							if (Reader != null)
-								Reader.Close();
-
-							File.Delete(FileName);
-							File.Move(tmp, FileName);
-
-							byte[] oldEncryptionKey = InternalHeader.EncryptionKey;
-
-							_load(FileName);
-
-							if (oldEncryptionKey != null) {
-								// Attempt to set the encryption key
-								try {
-									InternalHeader.SetKey(oldEncryptionKey, _table);
-								}
-								catch {
-								}
-							}
-						}
-						catch {
-							if (Reader != null)
-								Reader.Open(FileName);
-
-							CancelReload = true;
-
-							throw;
-						}
-					}
+				switch (mode) {
+					case SavingMode.Rgz:
+					case SavingMode.Thor:
+						result.RequiresReload = true;
+						break;
+					default:
+						_quickLoad(targetFilePath, mode, ignoreFileType: true);
+						break;
 				}
 			}
+			catch (GrfException err) {
+				if (fileCopy)
+					_deleteFileCopy(sourceFilePath, targetFilePath);
+				result.Fail(err);
+			}
 			catch (Exception err) {
-				ErrorHandler.HandleException(GrfStrings.CouldNotSaveContainer, err);
+				if (fileCopy)
+					_deleteFileCopy(sourceFilePath, targetFilePath);
+				result.Fail(new Exception(GrfStrings.CouldNotSaveContainer, err));
 			}
 			finally {
 				IsBusy = false;
-				Attached["Thor.Repack"] = null;
+				InternalHeader.ThorSettings.Repack = false;
 				AProgress.Finalize(this);
 			}
+		}
 
-			return result;
+		private void _deleteFileCopy(string sourceFilePath, string targetFilePath) {
+			try {
+				if (File.Exists(sourceFilePath) && File.Exists(targetFilePath))
+					GrfPath.Delete(targetFilePath);
+			}
+			catch { }
+		}
+
+		private void _testIfSourceFileCanBeDeleted(string streamFileName) {
+			try {
+				Reader?.Close();
+
+				if (Methods.IsFileLocked(streamFileName))
+					throw GrfExceptions.__FileLocked.Create(streamFileName);
+			}
+			finally {
+				Reader?.Open(streamFileName);
+			}
+		}
+
+		private void _quickLoad(string fileName, SavingMode mode, bool ignoreFileType = false) {
+			// Thor and Rgz use temporary archives, not reloading them is problematic
+			if (!ignoreFileType && fileName.IsExtension(".thor", ".rgz")) {
+				return;
+			}
+
+			if (fileName != null) {
+				FileName = fileName;
+				Reader?.Close();
+				Reader = new ByteReaderStream(fileName);
+			}
+
+			var entries = Table.Entries;
+
+			for (int i = 0; i < entries.Count; i++) {
+				var entry = entries[i];
+				bool propertyChanged = false;
+
+				if (entry.Modification.HasFlag(Modification.Removed)) {
+					Table.DeleteEntry(entry.RelativePath);
+					continue;
+				}
+
+				if (entry.Modification.HasFlag(Modification.Encrypt)) {
+					entry.Flags |= EntryType.GrfEditorCrypted;
+				}
+				else if (entry.Modification.HasFlag(Modification.Decrypt)) {
+					entry.Flags &= ~EntryType.GrfEditorCrypted;
+				}
+				else if (entry.Modification.HasFlag(Modification.Added)) {
+					propertyChanged = true;
+				}
+
+				entry.Modification &= ~(Modification.GrfMerge | Modification.Encrypt | Modification.Decrypt | Modification.Added);
+				entry.ExtractionFilePath = null;
+				entry.SourceFilePath = null;
+				entry.RawDataSource = null;
+				entry.RemovedFlagCount = 0;
+
+				entry.SizeCompressed = entry.NewSizeCompressed;
+				entry.SizeCompressedAlignment = entry.TemporarySizeCompressedAlignment;
+				entry.SizeDecompressed = entry.NewSizeDecompressed;
+				entry.FileExactOffset = entry.TemporaryOffset;
+
+				entry.Stream = Reader;
+				entry.Header = InternalHeader;
+
+				if (propertyChanged)
+					entry.OnPropertyChanged("IsAdded");
+			}
+
+			Table.InvalidateInternalSets();
+			Commands.ClearCommands();
 		}
 
 		/// <summary>
@@ -664,22 +648,14 @@ namespace GRF.Core {
 			Table.InvalidateInternalSets();
 		}
 
-		private bool _headerEncryptedFailed(string fileName) {
-			if (InternalHeader.IsEncrypted) {
-				if ((fileName != null && fileName.GetExtension() == ".rgz") || Header.IsMajorVersion(1)) {
-					ErrorHandler.HandleException(GrfStrings.FailedHeaderEncrypted);
-					CancelReload = true;
-					return true;
-				}
-			}
-
-			return false;
+		private void _headerEncryptedFailed(string fileName) {
+			if ((InternalHeader.IsEncrypted || InternalHeader.EncryptFileTable) && (fileName.IsExtension(".rgz") || Header.IsMajorVersion(1)))
+				throw GrfExceptions.__UnsupportedEncryptionVersion.Create();
 		}
 
 		private bool _headerCheckFailed() {
 			if (InternalHeader.FoundErrors) {
 				if (ErrorHandler.YesNoRequest(GrfStrings.GrfContainsErrors, GrfStrings.GrfDataIntegrity) == false) {
-					CancelReload = true;
 					return true;
 				}
 			}
@@ -688,9 +664,7 @@ namespace GRF.Core {
 		}
 
 		public void Close() {
-			if (Reader != null) {
-				Reader.Close();
-			}
+			Reader?.Close();
 		}
 
 		/// <summary>

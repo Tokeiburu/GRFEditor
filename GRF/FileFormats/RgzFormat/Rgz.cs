@@ -27,7 +27,7 @@ namespace GRF.FileFormats.RgzFormat {
 
 				_decompressedFileName = TemporaryFilesManager.GetTemporaryFilePath("rgz_decomp_{0:0000}.dat");
 
-				Compression.GZipDecompress(this, _reader, _decompressedFileName);
+				Compression.GZipCompression.DecompressFile(this, _reader.Stream, _decompressedFileName);
 				_dataReader = new ByteReaderStream(_decompressedFileName);
 
 				while (_dataReader.CanRead) {
@@ -63,10 +63,8 @@ namespace GRF.FileFormats.RgzFormat {
 		}
 
 		protected override void _onDispose() {
-			if (_dataReader != null) {
-				_dataReader.Close();
-				_dataReader = null;
-			}
+			_dataReader?.Close();
+			_dataReader = null;
 
 			if (_decompressedFileName != null) {
 				GrfPath.Delete(_decompressedFileName);
@@ -89,7 +87,7 @@ namespace GRF.FileFormats.RgzFormat {
 		/// <returns>The converted container to a GRF container.</returns>
 		internal override Container ToGrfContainer(string grfName = null) {
 			string oldFileName = _reader.Stream.Name;
-			Container parsed = _parse(new Container(_toGrfContainer(".thor", true, grfName)));
+			Container parsed = _parse(new Container(_toGrfContainer(".rgz", true, grfName)));
 			parsed.FileName = oldFileName;
 			return parsed;
 		}

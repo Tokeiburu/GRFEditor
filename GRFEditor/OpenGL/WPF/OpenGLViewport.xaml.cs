@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Forms;
 using ErrorManager;
 using GRF.FileFormats.GatFormat;
 using GRF.FileFormats.RswFormat;
@@ -22,7 +21,6 @@ using TokeiLibrary;
 using Utilities;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
-using Point = System.Windows.Point;
 using UserControl = System.Windows.Controls.UserControl;
 
 namespace GRFEditor.OpenGL.WPF {

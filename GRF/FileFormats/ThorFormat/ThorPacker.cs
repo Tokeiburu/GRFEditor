@@ -10,8 +10,14 @@ namespace GRF.FileFormats.ThorFormat {
 	/// <summary>
 	/// Class used to pack data in an executable.
 	/// </summary>
-	internal class ThorPacker {
+	public class ThorPacker {
 		public ThorPacker() {
+		}
+
+		public ThorPacker(GrfHolder grf, int packOffset) {
+			PackedOffset = packOffset;
+			NonPackedData = new byte[PackedOffset];
+			UpdateTableData(grf.FileTable);
 		}
 
 		/// <summary>
@@ -133,7 +139,7 @@ namespace GRF.FileFormats.ThorFormat {
 				var offset = (uint) 0;
 				foreach (var entry in table) {
 					var uncompressedData = entry.GetDecompressedData(); //
-					var compressedData = Compression.CompressDotNet(uncompressedData);
+					var compressedData = Compression.CompressZlibDotNet(uncompressedData);
 					//var compressedData = entry.GetCompressedData();
 
 					entry.SizeDecompressed = uncompressedData.Length;

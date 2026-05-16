@@ -43,7 +43,7 @@ namespace GRF.Hash {
 					default: throw GrfExceptions.__UnknownHashAlgorithm.Create();
 				}
 
-				ByteReader reader = new ByteReader(Compression.DecompressDotNet(data.Bytes(data.Length - data.Position)));
+				ByteReader reader = new ByteReader(Compression.DecompressZlibDotNet(data.Bytes(data.Length - data.Position)));
 
 				int length = reader.Int32();
 

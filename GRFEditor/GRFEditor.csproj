@@ -160,7 +160,6 @@
     <Compile Include="Tools\GrfValidation\ValidationDialog.xaml.cs">
       <DependentUpon>ValidationDialog.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Tools\GrfValidation\ValidationGenericError.cs" />
     <Compile Include="Tools\GrfValidation\ValidationView.cs" />
     <Compile Include="Tools\Map\CellEditControl.xaml.cs">
       <DependentUpon>CellEditControl.xaml</DependentUpon>

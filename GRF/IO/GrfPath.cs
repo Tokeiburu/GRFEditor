@@ -268,7 +268,7 @@ namespace GRF.IO {
 
 				using (GrfHolder grf = new GrfHolder(fullFilePath, GrfLoadOptions.Normal)) {
 					grf.Commands.RemoveFiles(file.RelativePath);
-					grf.QuickMerge(null);
+					grf.Merge(null);
 					return true;
 				}
 			}
@@ -389,10 +389,13 @@ namespace GRF.IO {
 		}
 
 		public static void CreateDirectoryFromFile(string fileName) {
+			if (fileName == null)
+				return;
+
 			string directory = Path.GetDirectoryName(fileName);
 
 			if (directory == null)
-				throw new Exception("directory is null.");
+				return;
 
 			if (!Directory.Exists(directory)) {
 				Directory.CreateDirectory(directory);

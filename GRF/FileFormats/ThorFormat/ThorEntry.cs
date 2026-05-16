@@ -80,7 +80,7 @@ namespace GRF.FileFormats.ThorFormat {
 
 			if (Compression.IsNormalCompression || Compression.IsLzma || Compression.IsCustom) {
 				if (data.Length > 1 && data[0] == 0) {
-					Flags |= EntryType.CustomCompressed;
+					Flags |= EntryType.LzmaCompressed;
 
 					if (Compression.IsCustom)
 						return Compression.Decompress(data, SizeDecompressed);

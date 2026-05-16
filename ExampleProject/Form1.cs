@@ -168,7 +168,10 @@ namespace ExampleProject {
 			SaveFileDialog dialog = new SaveFileDialog {Filter = "GRF|*.grf|GPF|*.gpf"};
 
 			if (dialog.ShowDialog() == DialogResult.OK) {
-				WaitingWindow wDialog = new WaitingWindow(() => _grf.Save(dialog.FileName), _grf) { StartPosition = FormStartPosition.CenterParent };
+				WaitingWindow wDialog = new WaitingWindow(delegate {
+					_grf.SaveAs(dialog.FileName);
+					_grf.ProcessSaveResult();
+				}, _grf) { StartPosition = FormStartPosition.CenterParent };
 				if (wDialog.ShowDialog() == DialogResult.OK) {
 					_grf.Close();
 					_openGrf(dialog.FileName);

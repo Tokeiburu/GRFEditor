@@ -19,8 +19,6 @@ namespace GRF.Threading {
 		protected List<TEntry> _entries;
 		protected ContainerAbstract<TEntry> _grfData;
 
-		public FileStream OutputFileStream;
-
 		public void Init(GrfHolder container, List<TEntry> entries, int startIndex, int endIndex) {
 			Init((ContainerAbstract<TEntry>) (object) container.Container, entries, startIndex, endIndex);
 		}

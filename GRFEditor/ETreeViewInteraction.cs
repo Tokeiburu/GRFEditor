@@ -193,7 +193,7 @@ namespace GRFEditor {
 		}
 
 		private void _menuItemExtractRgz_Click(object sender, RoutedEventArgs e) {
-			_asyncOperation.SetAndRunOperation(new GrfThread(_extractRgz, _grfHolder, 200));
+			_asyncOperation.SetAndRunOperation(new GrfThread(_extractRgz, _grfHolder));
 		}
 
 		private void _menuItemEditContainerSettings_Click(object sender, RoutedEventArgs e) {
@@ -600,42 +600,6 @@ namespace GRFEditor {
 			}
 		}
 
-		public class GrfTreeNode {
-			public GrfTreeNode Parent;
-			public Dictionary<string, GrfTreeNode> Children = new Dictionary<string, GrfTreeNode>();
-			public string Name;
-
-			public GrfTreeNode(GrfTreeNode parent, string name) {
-				Parent = parent;
-				Name = name;
-			}
-
-			public void AddPath(string[] paths, int index) {
-				if (index >= paths.Length)
-					return;
-
-				GrfTreeNode child;
-
-				if (!Children.TryGetValue(paths[index], out child)) {
-					child = new GrfTreeNode(this, paths[index]);
-					Children[paths[index]] = child;
-				}
-
-				child.AddPath(paths, index + 1);
-			}
-
-			public TkTreeViewItem GetTvi(TkView tree, Style style) {
-				var tvi = new TkTreeViewItem(tree) { HeaderText = Name };
-				tvi.Style = style;
-				
-				foreach (var child in Children) {
-					tvi.Items.Add(child.Value.GetTvi(tree, style));
-				}
-
-				return tvi;
-			}
-		}
-
 		private void _reloadContainer(string fileName) {
 			byte[] encryptionKey = _grfHolder.Header.EncryptionKey;
 
@@ -684,7 +648,7 @@ namespace GRFEditor {
 						if (encryptionKey != null)
 							_grfHolder.Header.SetKey(encryptionKey, _grfHolder);
 
-						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, 300, null, true));
+						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, null, true));
 
 						_treeViewPathManager.RenamePrimaryProject(loadSettings.FileName);
 						_progressBarComponent.SetSpecialState(_grfHolder.Header != null && _grfHolder.Header.FoundErrors ? TkProgressBar.ProgressStatus.ErrorsDetected : TkProgressBar.ProgressStatus.Finished);
@@ -720,11 +684,6 @@ namespace GRFEditor {
 			byte[] encryptionKey = loadSettings.EncryptionKey;
 			
 			_lastLoadSettings = loadSettings;
-
-			if (_grfHolder.IsOpened && _grfHolder.CancelReload) {
-				_grfHolder.CancelReload = false;
-				return false;
-			}
 
 			if (!_validateNewContainer()) return false;
 
@@ -785,7 +744,7 @@ namespace GRFEditor {
 
 						_checkIfEncrypted();
 
-						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, 300, null, true));
+						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, null, true));
 
 						_treeViewPathManager.AddPath(new TkPath { FilePath = loadSettings.FileName, RelativePath = "" });
 						_treeViewPathManager.AddPaths(loadSettings.FileName, _grfHolder.FileTable.Entries.Select(p => p.DirectoryPath).Distinct().Where(p => !String.IsNullOrEmpty(p)).OrderBy(p => p).ToList(), GrfEditorConfiguration.GrfFileTableIgnoreCase);

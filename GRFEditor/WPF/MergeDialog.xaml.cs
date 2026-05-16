@@ -140,7 +140,7 @@ namespace GRFEditor.WPF {
 			_buttonOK.Dispatch(p => p.IsEnabled = false);
 			_pathBrowserNewGrf.Dispatch(p => p.IsEnabled = false);
 			_pathBrowserOldGrf.Dispatch(p => p.IsEnabled = false);
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfSource.QuickMerge(_grfAdd), _grfSource, 200, _grfSource), _syncFinished);
+			_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfSource.Merge(_grfAdd), _grfSource, _grfSource), _syncFinished);
 		}
 
 		private void _syncFinished(object grfSource) {

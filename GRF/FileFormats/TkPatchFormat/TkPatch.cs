@@ -128,7 +128,7 @@ namespace GRF.FileFormats.TkPatchFormat {
 
 						byte[] data = new byte[mem.Length];
 						mem.Read(data, 0, (int) mem.Length);
-						data = Compression.CompressDotNet(data);
+						data = Compression.CompressZlibDotNet(data);
 						stream.Write(data, 0, data.Length);
 					}
 
@@ -231,7 +231,7 @@ namespace GRF.FileFormats.TkPatchFormat {
 							throw new OperationCanceledException();
 						}
 
-						grf.QuickMerge(patch.ToGrfHolder(pairs.Value), SyncMode.Asynchronous);
+						grf.Merge(patch.ToGrfHolder(pairs.Value), SyncMode.Asynchronous);
 
 						while (!grf.IsOpened || grf.IsBusy || grf.Progress < 100f) {
 							if (patch.IsCancelling) {

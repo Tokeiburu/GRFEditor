@@ -8,7 +8,6 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using ErrorManager;
 using Encryption;
 using GRF.Core;
 using GRF.FileFormats;
@@ -166,45 +165,25 @@ namespace GrfCL {
 				CLHelper.Log = "Version has been changed to " + clOption.Args[0];
 			}
 			else if (clOption == CommandLineOptions.SaveAs) {
-				if (clOption.Args.Count == 0) {
-					string randomFile = Path.Combine(Settings.TempPath, Path.GetRandomFileName() + Path.GetExtension(_grf.FileName));
-					string oldGrfFilename = _grf.FileName;
+				string targetFileName = clOption.Args.Count == 1 ? clOption.Args[0] : null;
+				GrfPath.CreateDirectoryFromFile(targetFileName);
+				_grf.SaveAs(targetFileName, SyncMode.Asynchronous);
+				_showProgress(_grf);
 
-					_grf.Save(randomFile, SyncMode.Asynchronous);
-					_showProgress(_grf);
-
-					if (_grf.CancelReload) {
-						_grf.CancelReload = false;
-						throw new Exception("The GRF has cancelled the reload procedure (original file will not be affected).");
-					}
-
-					try {
-						_grf.Close();
-						File.Delete(oldGrfFilename);
-						File.Move(randomFile, oldGrfFilename);
-						_grf.Open(oldGrfFilename);
-						CLHelper.Log = "Saved the GRF to " + _grf.FileName;
-					}
-					catch (Exception err) {
-						ErrorHandler.HandleException(err);
-					}
+				if (_grf.ProcessSaveResult()) {
+					CLHelper.Log = "Saved the GRF to " + _grf.FileName;
 				}
-				else if (clOption.Args.Count == 1) {
-					if (!Directory.Exists(Path.GetDirectoryName(clOption.Args[0])) && !String.IsNullOrEmpty(Path.GetDirectoryName(clOption.Args[0])))
-						Directory.CreateDirectory(Path.GetDirectoryName(clOption.Args[0]));
-
-					_grf.Save(clOption.Args[0], SyncMode.Asynchronous);
-					_showProgress(_grf);
-					CLHelper.Log = "Saved the GRF to " + clOption.Args[0];
+				else {
+					CLHelper.Log = "Save failed";
 				}
 			}
 			else if (clOption == CommandLineOptions.Options) {
 				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[0]] != null) {
-					_grf.Attached["Thor.UseGrfMerging"] = Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[0]]);
+					_grf.Header.ThorSettings.UseGrfMerging = Boolean.Parse(clOption.Option.OptionalArgs[clOption.FullOptionIds[0]]);
 				}
 
 				if (clOption.Option.OptionalArgs[clOption.FullOptionIds[1]] != null) {
-					_grf.Attached["Thor.TargetGrf"] = clOption.Option.OptionalArgs[clOption.FullOptionIds[1]];
+					_grf.Header.ThorSettings.TargetGrf = clOption.Option.OptionalArgs[clOption.FullOptionIds[1]];
 				}
 			}
 			else if (clOption == CommandLineOptions.SequenceMode) {
@@ -358,10 +337,15 @@ namespace GrfCL {
 				string[] shellFiles = Directory.GetFiles(clOption.Args[1], "*.*", SearchOption.TopDirectoryOnly);
 				string[] shellFolders = Directory.GetDirectories(clOption.Args[1]);
 				_grf.Commands.AddFilesInDirectory("data", shellFiles.Concat(shellFolders).ToArray());
-				_grf.Save(clOption.Args[0], SyncMode.Asynchronous);
+				_grf.SaveAs(clOption.Args[0], SyncMode.Asynchronous);
 				_showProgress(_grf);
+				if (_grf.ProcessSaveResult()) {
+					CLHelper.Log = "GRF " + clOption.Args[0] + " has been made";
+				}
+				else {
+					CLHelper.Log = "Failed to create GRF";
+				}
 				_grf.Close();
-				CLHelper.Log = "GRF " + clOption.Args[0] + " has been made";
 			}
 			else if (clOption == CommandLineOptions.Patch) {
 				GrfHolder newerGrf = new GrfHolder();
@@ -478,16 +462,14 @@ namespace GrfCL {
 					}
 				}
 
-				grf.Attached["Thor.PackFormat"] = 1;
-				grf.Attached["Thor.PackOffset"] = nonPackedThor.Length;
-
 				string thorPath = TemporaryFilesManager.GetTemporaryFilePath("pack_thor_{0:0000}.thor");
 
-				Thor.SaveFromGrf(grf, thorPath);
+				var packer = new ThorPacker(grf, nonPackedThor.Length);
+				packer.Write(thorPath);
 
+				// This below seems rather silly, but I'll judge this another time...
 				byte[] data = File.ReadAllBytes(thorPath);
 				Buffer.BlockCopy(nonPackedThor, 0, data, 0, nonPackedThor.Length);
-
 				File.WriteAllBytes(packedPath, data);
 			}
 			else if (clOption == CommandLineOptions.HashFolder) {
@@ -622,7 +604,7 @@ namespace GrfCL {
 					dum.Progress = -1;
 
 					new GrfThread(() => ActImaging.Imaging.SaveAsGif(destinationFile, act, actionIndex, dum, extra.ToArray()),
-						dum, 200, null, true, true).Start();
+						dum, null, true, true).Start();
 
 					while (dum.Progress < 100) {
 						CLHelper.Progress = dum.Progress;
@@ -632,7 +614,7 @@ namespace GrfCL {
 				}
 			}
 			else if (clOption == CommandLineOptions.AddFakeClientInfo) {
-				_generateHashData("def.txt");
+				Crc32QuickHash.GenerateHashData("def.txt");
 			}
 			else if (clOption == CommandLineOptions.RebuildQuadtree) {
 				string mapName = Path.GetFileNameWithoutExtension(new FileInfo(clOption.Args[0]).FullName);
@@ -660,7 +642,7 @@ namespace GrfCL {
 				ByteReaderStream stream = new ByteReaderStream(filename);
 				string temporaryFile = TemporaryFilesManager.GetTemporaryFilePath("temp_rgz_{0:0000}.dat");
 
-				Compression.GZipDecompress(new ProgressObject(), stream, temporaryFile);
+				Compression.GZipCompression.DecompressFile(new ProgressObject(), stream.Stream, temporaryFile);
 				ByteReaderStream dataReader = new ByteReaderStream(temporaryFile);
 
 				while (dataReader.CanRead) {
@@ -832,14 +814,14 @@ namespace GrfCL {
 				if (_grf.Header.EncryptionKey == null)
 					throw new Exception("Encryption key file has not been set. Use the -setKey command first.");
 
-				_grf.Header.SetEncryption(_grf.Header.EncryptionKey, _grf);
+				_grf.Commands.EncryptAll();
 				CLHelper.Log = "All file entries have been encrypted.";
 			}
 			else if (clOption == CommandLineOptions.Decrypt) {
 				if (_grf.Header.EncryptionKey == null)
 					throw new Exception("Encryption key file has not been set. Use the -setKey command first.");
 
-				_grf.Header.SetDecryption(_grf.Header.EncryptionKey, _grf);
+				_grf.Commands.DecryptAll();
 				CLHelper.Log = "All file entries have been decrypted.";
 			}
 			else {

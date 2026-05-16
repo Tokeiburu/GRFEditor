@@ -329,15 +329,15 @@ namespace GRF.ContainerFormat {
 		private int _writeMetadata(Stream output, GrfHeader header, IEnumerable<FileEntry> entries, bool overwriteFlags = true) {
 			int tableSizeCompressed;
 
-			using (MemoryStream stream = new MemoryStream()) {
+			using (BinaryWriter writer = new BinaryWriter(new MemoryStream())) {
 				foreach (FileEntry entry in entries) {
-					entry.WriteMetadata(header, stream, overwriteFlags);
+					entry.WriteMetadata(header, writer, overwriteFlags);
 				}
 
-				stream.Seek(0, SeekOrigin.Begin);
+				writer.Seek(0, SeekOrigin.Begin);
 
-				int tableSize = (int) stream.Length;
-				byte[] dataCompressed = Compression.CompressDotNet(stream);
+				int tableSize = (int) writer.BaseStream.Length;
+				byte[] dataCompressed = Compression.CompressZlibDotNet(writer.BaseStream);
 				tableSizeCompressed = dataCompressed.Length;
 
 				output.Write(BitConverter.GetBytes(tableSizeCompressed), 0, 4);

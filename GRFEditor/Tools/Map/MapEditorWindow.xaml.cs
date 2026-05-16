@@ -320,7 +320,7 @@ namespace GRFEditor.Tools.Map {
 		}
 
 		protected void _buttonOk_Click(object sender, RoutedEventArgs e) {
-			_asyncOperation.SetAndRunOperation(new GrfThread(_generate, this, 200, null));
+			_asyncOperation.SetAndRunOperation(new GrfThread(_generate, this, null));
 			_buttonGenerate.IsEnabled = false;
 			_tabItemOptions.IsEnabled = false;
 			_tabItemTexture.IsEnabled = false;

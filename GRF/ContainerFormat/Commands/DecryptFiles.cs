@@ -27,8 +27,7 @@ namespace GRF.ContainerFormat.Commands {
 
 			((GrfHeader) container.Header).IsEncrypted = container.Table.Entries.OfType<FileEntry>().Any(p => p.Encrypted);
 
-			if (_callback != null)
-				_callback(_files, true);
+			_callback?.Invoke(_files, true);
 		}
 
 		public void Undo(ContainerAbstract<TEntry> container) {
@@ -37,8 +36,7 @@ namespace GRF.ContainerFormat.Commands {
 			_entries.ForEach(p => container.Table.DeleteEntry(p.RelativePath));
 			_entries.ForEach(p => container.Table.AddEntry(p));
 
-			if (_callback != null)
-				_callback(_files, false);
+			_callback?.Invoke(_files, false);
 		}
 
 		public string CommandDescription {

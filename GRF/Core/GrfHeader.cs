@@ -94,23 +94,14 @@ namespace GRF.Core {
 		public bool EncryptFileTable { get; private set; }
 		public bool DecryptFileTable { get; internal set; }
 		internal Container Container { get; private set; }
+		public ThorSettings ThorSettings = new ThorSettings();
 
 		public string Key { get; set; }
 		public long FileTableOffset { get; set; }
 		public int Seed { get; set; }
-		private int _filesCount { get; set; }
+		private int _filesCount;
 		internal int RealFilesCount { get; set; }
 		public GrfFormatView FormatView => GrfFormatViews.Get(MajorVersion, MinorVersion);
-
-		/// <summary>
-		/// Gets or sets a value indicating whether the GrfWriter should encrypt all data using the assigned encryption key.
-		/// </summary>
-		public bool IsEncrypting { get; set; }
-
-		/// <summary>
-		/// Gets or sets a value indicating whether the GrfWriter should decrypt all data using the assigned encryption key.
-		/// </summary>
-		public bool IsDecrypting { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the GRF should enable the encryption feature. It is enabled if the hidden encryption file is present (GrfStrings.EncryptionFilename) or if the EncryptFiles/DecryptFiles commands have been used. Do not set manually, and rather use EncryptionCheckFlag for personal use.
@@ -131,12 +122,19 @@ namespace GRF.Core {
 		/// If disabled, the encryption feature will not be available.
 		/// GRF Editor will turn off this flag after scanning the entire GRF for encrypted files and will use a different system to check whether an entry is encrypted or not. Therefore, this flag is only relevant if you aren't using the UI and rather the GRF library directly.
 		/// </summary>
-		public bool EncryptionCheckFlag { get; set; }
+		internal bool EncryptionCheckFlag { get; set; }
+
+		/// <summary>
+		/// If enabled, FileEntry will check for potential encrypted content when being decompressed.
+		/// </summary>
+		internal bool EncryptionManualSet { get; set; }
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the FileTable requires decryption.
 		/// </summary>
 		public bool FileTableRequiresDecryption { get; private set; }
+		
+		internal uint EncryptionHashValue;
 
 		public ReadOnlyCollection<string> Errors {
 			get { return _errors.AsReadOnly(); }
@@ -188,9 +186,9 @@ namespace GRF.Core {
 
 				if (fileTable.Contains(GrfStrings.EncryptionFilename) && !fileTable[GrfStrings.EncryptionFilename].Added) {
 					if (fileTable[GrfStrings.EncryptionFilename].SizeDecompressed == 0)
-						throw GrfExceptions.__UnsupportedEncryption.Create();
+						throw GrfExceptions.__UnsupportedEncryptionOperation.Create();
 
-					if (Crc32.Compute(key) != BitConverter.ToUInt32(fileTable[GrfStrings.EncryptionFilename].GetDecompressedData(), 0))
+					if (Crc32.Compute(key) != EncryptionHashValue)
 						throw GrfExceptions.__WrongKeyFile.Create();
 				}
 			}
@@ -205,48 +203,13 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
-		/// Sets the encryption key for encrypting the entire GRF. This is a special function only used for forcing the the GrfWriter to encrypt all the entries after saving.
-		/// Since it ignores the command stack, the GRF should be reloaded after using this function.
-		/// </summary>
-		/// <param name="key">The 256-byte encryption key.</param>
-		/// <param name="grf">The GRF.</param>
-		public void SetEncryption(byte[] key, GrfHolder grf) {
-			try {
-				IsDecrypting = false;
-				IsEncrypting = true;
-				SetKey(key, grf);
-			}
-			catch (Exception ex) {
-				IsDecrypting = false;
-				IsEncrypting = false;
-				throw new Exception(GrfStrings.EncryptionNotSet, ex);
-			}
-		}
-
-		/// <summary>
-		/// Sets the encryption key for decrypting the entire GRF. This is a special function only used for forcing the the GrfWriter to decrypt all the entries after saving.
-		/// Since it ignores the command stack, the GRF should be reloaded after using this function.
-		/// </summary>
-		/// <param name="key">The 256-byte encryption key.</param>
-		/// <param name="grf">The GRF.</param>
-		public void SetDecryption(byte[] key, GrfHolder grf) {
-			try {
-				IsDecrypting = true;
-				IsEncrypting = false;
-				SetKey(key, grf);
-			}
-			catch (Exception ex) {
-				IsDecrypting = false;
-				IsEncrypting = false;
-				throw new Exception(GrfStrings.DecryptionNotSet, ex);
-			}
-		}
-
-		/// <summary>
 		/// Sets whether or not the file table should be encrypted.
 		/// </summary>
 		/// <param name="value">Flag.</param>
 		public void SetFileTableEncryption(bool value) {
+			if (Version < 2.0)
+				throw GrfExceptions.__UnsupportedEncryptionOperation.Create();
+
 			EncryptFileTable = value;
 		}
 	}

@@ -253,7 +253,7 @@ namespace GRF.Core {
 					metaDataStream.Seek(0, SeekOrigin.Begin);
 
 					int tableSize = (int)metaDataStream.Length;
-					var tableCompressed = Compression.CompressDotNet(metaDataStream);
+					var tableCompressed = Compression.CompressZlibDotNet(metaDataStream);
 
 					byte[] tableHeader = new byte[8];
 					Buffer.BlockCopy(BitConverter.GetBytes(tableCompressed.Length), 0, tableHeader, 0, 4);

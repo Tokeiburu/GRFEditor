@@ -20,8 +20,6 @@ namespace GRF.IO {
 
 		private void _start() {
 			try {
-				long offset;
-
 				using (var originalStream = _grfData.GetSourceStream()) {
 					byte[] data;
 					int toIndex = 0;
@@ -38,7 +36,7 @@ namespace GRF.IO {
 					while (toIndex < indexMax) {
 						fromIndex = toIndex;
 
-						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value);
+						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value, out _);
 
 						for (int i = fromIndex; i < toIndex; i++) {
 							if (_grfData.IsCancelling)
@@ -49,12 +47,10 @@ namespace GRF.IO {
 
 							entry = sortedEntries[i];
 
-							offset = entry.TemporaryOffset + 1;
-
 							if (entry.SizeCompressed >= 2) {
-								if (data[offset - 1] == 0) {
-									entry.Flags |= EntryType.CustomCompressed;
-									entry.OnPropertyChanged("CustomCompressed");
+								if (data[entry.TemporaryOffset] == 0) {
+									entry.Flags |= EntryType.LzmaCompressed;
+									entry.OnPropertyChanged("LzmaCompressed");
 								}
 							}
 

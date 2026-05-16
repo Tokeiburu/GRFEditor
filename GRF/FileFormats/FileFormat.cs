@@ -75,39 +75,4 @@ namespace GRF.FileFormats {
 			return ToFilter();
 		}
 	}
-
-	//[Flags]
-	//public enum Format : long {
-	//	Ebm = 1 << 1,
-	//	Pal = 1 << 2,
-	//	AllContainers = 1 << 3,
-	//	Grf = 1 << 4,
-	//	Gpf = 1 << 5,
-	//	Rgz = 1 << 6,
-	//	Cde = 1 << 8,
-	//	PalAndSpr = 1 << 9,
-	//	Spr = 1 << 10,
-	//	Exe = 1 << 11,
-	//	Image = 1 << 12,
-	//	Txt = 1 << 13,
-	//	Lua = 1 << 14,
-	//	Log = 1 << 15,
-	//	Xml = 1 << 16,
-	//	Ezv = 1 << 17,
-	//	All = 1 << 18,
-	//	GrfKey = 1 << 19,
-	//	Gat = 1 << 20,
-	//	Gif = 1 << 21,
-	//	Thor = 1 << 22,
-	//	Sde = 1 << 23,
-	//	Act = 1 << 24,
-	//	PaletteContainers = 1 << 25,
-	//	Lub = 1 << 26,
-	//	Str = 1 << 27,
-	//	Json = 1 << 28,
-	//	Bson = 1 << 29,
-	//	Rsm = 1 << 30,
-	//	Rsm2 = 1 << 31,
-	//	Csv = 1 << 32,
-	//}
 }

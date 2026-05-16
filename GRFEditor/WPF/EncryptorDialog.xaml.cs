@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Controls;
 using Encryption;
 using ErrorManager;
-using GRF;
 using GRF.Core;
 using GRF.FileFormats;
 using GRF.IO;
@@ -286,9 +285,9 @@ namespace GRFEditor.WPF {
 				if (_tbEncryptionPassword.Text.Length < 4)
 					throw new Exception("The encryption password must contain at least 4 characters.");
 
-				_grf.Header.SetEncryption(_getKeyFromFile(), _grf);
-				//_grf.Header.SetFileTableEncryption(_cbEncryptTable.IsChecked == true);
-				ao.SetAndRunOperation(new GrfThread(() => _grf.Save(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName))), _grf, 200, null), _grfSavedFinished);
+				_grf.SetEncryptionKeyFile(_getKeyFromFile());
+				_grf.Commands.EncryptAll();
+				ao.SetAndRunOperation(new GrfThread(() => _grf.SaveAs(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName))), _grf, null), _grfSavedFinished);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -297,11 +296,8 @@ namespace GRFEditor.WPF {
 
 		private void _grfSavedFinished(object state) {
 			try {
-				_grf.FileTable.DeleteFile(GrfStrings.EncryptionFilename);
-				//_grf.Header.SetFileTableEncryption(false);
-				_grf.Header.IsDecrypting = false;
-				_grf.Header.IsEncrypting = false;
-				OpeningService.FileOrFolder(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName)));
+				if (_grf.ProcessSaveResult())
+					OpeningService.FileOrFolder(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName)));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -338,8 +334,9 @@ namespace GRFEditor.WPF {
 				if (_tbEncryptionPassword.Text.Length < 4)
 					throw new Exception("The encryption password must contain at least 4 characters.");
 
-				_grf.Header.SetDecryption(_getKeyFromFile(), _grf);
-				ao.SetAndRunOperation(new GrfThread(() => _grf.Save(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName))), _grf, 200, null), _grfSavedFinished);
+				_grf.SetEncryptionKeyFile(_getKeyFromFile());
+				_grf.Commands.DecryptAll();
+				ao.SetAndRunOperation(new GrfThread(() => _grf.SaveAs(Path.Combine(GrfEditorConfiguration.EncryptorPath, Path.GetFileName(_grf.FileName))), _grf, null), _grfSavedFinished);
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);

@@ -92,7 +92,7 @@ namespace GRFEditor {
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-N", "GrfEditor.New"), () => _menuItemNewGrf_Click(null, null), this);
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-O", "GrfEditor.Open"), () => _menuItemOpenFrom_Click(null, null), this);
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-S", "GrfEditor.Save"), () => _menuItemSave_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Shift-S", "GrfEditor.Defragment"), () => _menuItemCompress_Click(null, null), this);
+				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Shift-S", "GrfEditor.Defragment"), () => _menuItemDefragment_Click(null, null), this);
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Alt-S", "GrfEditor.Compact"), () => _menuItemCompact_Click(null, null), this);
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Z", "GrfEditor.Undo"), () => _buttonUndo_Click(null, null), this);
 				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Y", "GrfEditor.Redo"), () => _buttonRedo_Click(null, null), this);
@@ -136,14 +136,14 @@ namespace GRFEditor {
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "RelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "CustomCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_items, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
 				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "DisplayRelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "CustomCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
 
 			WpfUtilities.AddDragDropEffects(_items);
 			WpfUtilities.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf"));
@@ -153,7 +153,7 @@ namespace GRFEditor {
 			_treeView.DoDragDropCustomMethod = delegate {
 				VirtualFileDataObjectProgress vfop = new VirtualFileDataObjectProgress();
 				VirtualFileDataObject virtualFileDataObject = new VirtualFileDataObject(
-					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, 500, null)),
+					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, null)),
 					_ => vfop.Finished = true
 					);
 
@@ -305,7 +305,7 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _menuItemCompress_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Compress);
+		private void _menuItemDefragment_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Defragment);
 		private void _menuItemCompact_Click(object sender, RoutedEventArgs e) => _save(GrfEditorSaveMode.Compact);
 
 		#region Window events
@@ -420,7 +420,7 @@ namespace GRFEditor {
 							_grfHolder.Header.SetKey(dialog.Key, _grfHolder);
 
 							if (!fromLoading) {
-								_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(true), _grfHolder, 300, null, true));
+								_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(true), _grfHolder, null, true));
 							}
 						}
 					}

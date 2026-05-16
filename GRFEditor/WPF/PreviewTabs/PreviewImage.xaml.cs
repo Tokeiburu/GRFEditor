@@ -112,8 +112,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 					throw;
 				}
 
-				if (err == GrfExceptions.__ContainerBusy)
+				if (err == GrfExceptions.__ContainerBusy) {
+					_imagePreview.Dispatch(p => p.Source = null);
 					return (null, null);
+				}
 
 				throw;
 			}

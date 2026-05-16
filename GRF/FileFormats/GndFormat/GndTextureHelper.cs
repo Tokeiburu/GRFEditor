@@ -1,7 +1,6 @@
 ﻿using GRF.FileFormats.GatFormat;
 using GRF.Image;
 using System.Threading.Tasks;
-using Utilities;
 
 namespace GRF.FileFormats.GndFormat {
 	internal static class GndTextureHelper {

@@ -158,7 +158,7 @@ namespace GRFEditor.WPF {
 
 			_grfAdd.Close();
 
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfSource.Save(fileName), _grfSource, 200, _grfSource), _syncFinished);
+			_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfSource.SaveAs(fileName), _grfSource, _grfSource), _syncFinished);
 		}
 
 		private void _syncFinished(object grfSource) {
@@ -168,21 +168,10 @@ namespace GRFEditor.WPF {
 				_buttonOK.Dispatch(p => p.IsEnabled = true);
 				_textBoxOutputName.Dispatch(p => p.IsEnabled = true);
 
-				string fileName = Path.Combine(Methods.ApplicationPath, _textBoxOutputName.Dispatch(p => p.Text));
-				OpeningService.FileOrFolder(fileName);
-
-				//if (_fileNameOriginal == _grfSource.FileName) {
-				//	_editor._grfLoadingSettings.FileName = _editor._grfHolder.FileName;
-				//	_editor.Load();
-				//
-				//	// This is necessary because the encrypted GRFs add commands
-				//	((GrfHolder) grfSource).Commands.ClearCommands();
-				//}
-				//else {
-				//	// This is necessary because the encrypted GRFs add commands
-				//	((GrfHolder) grfSource).Commands.ClearCommands();
-				//	((GrfHolder) grfSource).Close();
-				//}
+				if (_grfSource.ProcessSaveResult()) {
+					string fileName = Path.Combine(Methods.ApplicationPath, _textBoxOutputName.Dispatch(p => p.Text));
+					OpeningService.FileOrFolder(fileName);
+				}
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);

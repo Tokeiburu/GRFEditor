@@ -133,6 +133,18 @@
 						</StackPanel>
 					</StackPanel>
 				</TabItem>
+				<TabItem Header="Shell integration" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<StackPanel>
+						<StackPanel>
+							<Label Content="{Binding Path=Header, RelativeSource={RelativeSource AncestorType={x:Type TabItem}}}" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+						</StackPanel>
+						<StackPanel>
+							<TextBlock Text="Associate these file extensions with GRF Editor." Margin="3" />
+							<CheckBox x:Name="_cbExtensions" Content=".grf .gpf .rgz .grfkey .thor" ToolTip="Associates GRF Editor with these extensions." IsChecked="{Binding Path=(ApplicationConfiguration:GrfEditorConfiguration.GrfFilesAssociated), Mode=TwoWay}" Click="_cbExtensions_Click" />
+						</StackPanel>
+					</StackPanel>
+				</TabItem>
 				<TabItem Header="Resources" Style="{DynamicResource TabItemStyled}" Foreground="{DynamicResource TextForeground}">
 					<Grid>
 						<Grid.RowDefinitions>

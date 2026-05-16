@@ -4,11 +4,11 @@ namespace GRF.Core {
 		/// <summary>
 		/// Save the container as a GRF archive. This flag creates a new temporary file and then overwrites the original one (if no issues occur).
 		/// </summary>
-		GrfSave,
+		FileCopy,
 		/// <summary>
 		/// Save the container as a GRF archive. This flag edits the source GRF (default behavior of GRF Editor).
 		/// </summary>
-		QuickMerge,
+		FileEdit,
 		/// <summary>
 		/// Decompress and then recompress all the data in the container.
 		/// </summary>

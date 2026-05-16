@@ -72,6 +72,17 @@ namespace Utilities {
 			}
 		}
 
+		public static void ResetAndStart(int opId, bool display = false) {
+			if (_watches.ContainsKey(opId)) {
+				if (display) {
+					Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
+				}
+
+				_watches[opId].Reset();
+				_watches[opId].Start();
+			}
+		}
+
 		public static void StopAndDisplayAll() {
 			foreach (var watch in _watches.OrderBy(p => p.Key)) {
 				watch.Value.Stop();
@@ -447,239 +458,7 @@ namespace Utilities {
 		}
 
 		public static string GetReadableRuntimeVersion() {
-			return GetReadableRuntimeVersion(Path.GetFileName(RuntimeEnvironment.GetSystemVersion()));
-		}
-		public static string GetReadableRuntimeVersion(string version, bool lastTry = false) {
-			try {
-				if (version == null)
-					return "";
-
-				string cleanedVersion = version.Where(t => t == '.' || (t >= '0' && t <= '9')).Aggregate("", (current, t) => current + t);
-
-				switch (cleanedVersion) {
-					case "1.0.2204.21":
-						return "1.0 Beta 1";
-					case "1.0.2914.0":
-						return "1.0 Beta 2";
-					case "1.0.3705.0":
-						return "1.0 RTM";
-					case "1.0.3705.209":
-						return "1.0 SP1";
-					case "1.0.3705.288":
-						return "1.0 SP2";
-					case "1.0.3705.6018":
-						return "1.0 SP3";
-					case "1.1.4322.510":
-						return "1.1 Final Beta";
-					case "1.1.4322.573":
-						return "1.1 RTM";
-					case "1.1.4322.2032":
-						return "1.1 SP1";
-					case "1.1.4322.2300":
-						return "1.1 SP1 (Server 2003)";
-					case "1.1.4322.2310":
-						return "1.1 (KB893251)";
-					case "1.1.4322.2407":
-						return "1.1 (KB927495)";
-					case "1.1.4322.2443":
-						return "1.1 (KB953297)";
-					case "2.0.40607.16":
-						return "2.0 Beta 1";
-					case "2.0.50215.44":
-						return "2.0 Beta 2";
-					case "2.0.50727.42":
-						return "2.0 RTM (x86)";
-					case "2.0.50727.312":
-						return "2.0 RTM (Vista)";
-					case "2.0.50727.832":
-						return "2.0 (KB928365)";
-					case "2.0.50727.1433":
-						return "2.0 SP1 (x86)";
-					case "2.0.50727.1434":
-						return "2.0 SP1 (Server 2008 andVista SP1)";
-					case "2.0.50727.3053":
-						return "2.0 SP2 (installed with 3.5 SP1)";
-					case "2.0.50727.3082":
-						return "2.0 SP2 (x86) (installed with3.5 Family Update)";
-					case "2.0.50727.3603":
-						return "2.0 SP2 (KB974417)";
-					case "2.0.50727.3607":
-						return "2.0 SP2 (KB976569)";
-					case "2.0.50727.3615":
-						return "2.0 SP2 (KB983583)";
-					case "2.0.50727.4016":
-						return "2.0 SP2 (Windows Vista SP2 / Server 2008 SP2)";
-					case "2.0.50727.4918":
-						return "2.0 SP2 (installed with Windows 7 RC)";
-					case "2.0.50727.4927":
-						return "2.0 SP2 (installed with Windows 7 RTM)";
-					case "2.0.50727.4952":
-						return "2.0 SP2 (KB983590)";
-					case "3.0.4506.30":
-						return "3.0 RTM";
-					case "3.0.4506.26":
-						return "3.0 RTM (Vista)";
-					case "3.0.4506.590":
-						return "3.0 SP1 Beta";
-					case "3.0.4506.648":
-						return "3.0 SP1";
-					case "3.0.4506.2123":
-						return "3.0 SP2";
-					case "3.0.4506.2254":
-						return "3.0 SP2 (installed with 3.5 SP1)";
-					case "3.5.20404.0":
-						return "3.5 Beta 1";
-					case "3.5.20706.1":
-						return "3.5 Beta 2";
-					case "3.5.21022.8":
-						return "3.5 RTM";
-					case "3.5.30428.1":
-						return "3.5 SP1 Beta";
-					case "3.5.30729.01":
-						return "3.5 SP1 RTM";
-					case "3.5.30729.4926":
-						return "3.5 SP1 (Windows 7 Edition)";
-					case "4.0.20506":
-						return "4.0 Beta 1";
-					case "4.0.21006":
-						return "4.0 Beta 2";
-					case "4.0.30128.1":
-						return "4.0 RC";
-					case "4.0.30319.1":
-						return "4.0 RTM";
-					case "4.5.40805":
-						return "4.5 Developer Preview";
-					case "4.0.30319.17020":
-						return "4.5 Developer Preview";
-					case "4.5.50131":
-						return "4.5 Beta (Consumer Preview)";
-					case "4.0.30319.17379":
-						return "4.5 Beta (Consumer Preview)";
-					case "4.5.50501":
-						return "4.5 RC (Release Preview)";
-					case "4.0.30319.17626":
-						return "4.5 RC (Release Preview)";
-					case "4.5.50709":
-						return "4.5 RTM";
-					case "4.0.30319.17929":
-						return "4.5 RTM";
-					default:
-						return GetCloseReadableRuntimeVersion(cleanedVersion);
-				}
-			}
-			catch {
-				return "Unknown .NET Framework";
-			}
-		}
-		public static string GetCloseReadableRuntimeVersion(string cleanedVersion) {
-			if ("1.0.2204.21".StartsWith(cleanedVersion))
-				return "1.0 Beta 1";
-			if ("1.0.2914.0".StartsWith(cleanedVersion))
-				return "1.0 Beta 2";
-			if ("1.0.3705.0".StartsWith(cleanedVersion))
-				return "1.0 RTM";
-			if ("1.0.3705.209".StartsWith(cleanedVersion))
-				return "1.0 SP1";
-			if ("1.0.3705.288".StartsWith(cleanedVersion))
-				return "1.0 SP2";
-			if ("1.0.3705.6018".StartsWith(cleanedVersion))
-				return "1.0 SP3";
-			if ("1.1.4322.510".StartsWith(cleanedVersion))
-				return "1.1 Final Beta";
-			if ("1.1.4322.573".StartsWith(cleanedVersion))
-				return "1.1 RTM";
-			if ("1.1.4322.2032".StartsWith(cleanedVersion))
-				return "1.1 SP1";
-			if ("1.1.4322.2300".StartsWith(cleanedVersion))
-				return "1.1 SP1 (Server 2003)";
-			if ("1.1.4322.2310".StartsWith(cleanedVersion))
-				return "1.1 (KB893251)";
-			if ("1.1.4322.2407".StartsWith(cleanedVersion))
-				return "1.1 (KB927495)";
-			if ("1.1.4322.2443".StartsWith(cleanedVersion))
-				return "1.1 (KB953297)";
-			if ("2.0.40607.16".StartsWith(cleanedVersion))
-				return "2.0 Beta 1";
-			if ("2.0.50215.44".StartsWith(cleanedVersion))
-				return "2.0 Beta 2";
-			if ("2.0.50727.42".StartsWith(cleanedVersion))
-				return "2.0 RTM (x86)";
-			if ("2.0.50727.312".StartsWith(cleanedVersion))
-				return "2.0 RTM (Vista)";
-			if ("2.0.50727.832".StartsWith(cleanedVersion))
-				return "2.0 (KB928365)";
-			if ("2.0.50727.1433".StartsWith(cleanedVersion))
-				return "2.0 SP1 (x86)";
-			if ("2.0.50727.1434".StartsWith(cleanedVersion))
-				return "2.0 SP1 (Server 2008 andVista SP1)";
-			if ("2.0.50727.3053".StartsWith(cleanedVersion))
-				return "2.0 SP2 (installed with 3.5 SP1)";
-			if ("2.0.50727.3082".StartsWith(cleanedVersion))
-				return "2.0 SP2 (x86) (installed with3.5 Family Update)";
-			if ("2.0.50727.3603".StartsWith(cleanedVersion))
-				return "2.0 SP2 (KB974417)";
-			if ("2.0.50727.3607".StartsWith(cleanedVersion))
-				return "2.0 SP2 (KB976569)";
-			if ("2.0.50727.3615".StartsWith(cleanedVersion))
-				return "2.0 SP2 (KB983583)";
-			if ("2.0.50727.4016".StartsWith(cleanedVersion))
-				return "2.0 SP2 (Windows Vista SP2 / Server 2008 SP2)";
-			if ("2.0.50727.4918".StartsWith(cleanedVersion))
-				return "2.0 SP2 (installed with Windows 7 RC)";
-			if ("2.0.50727.4927".StartsWith(cleanedVersion))
-				return "2.0 SP2 (installed with Windows 7 RTM)";
-			if ("2.0.50727.4952".StartsWith(cleanedVersion))
-				return "2.0 SP2 (KB983590)";
-			if ("3.0.4506.30".StartsWith(cleanedVersion))
-				return "3.0 RTM";
-			if ("3.0.4506.26".StartsWith(cleanedVersion))
-				return "3.0 RTM (Vista)";
-			if ("3.0.4506.590".StartsWith(cleanedVersion))
-				return "3.0 SP1 Beta";
-			if ("3.0.4506.648".StartsWith(cleanedVersion))
-				return "3.0 SP1";
-			if ("3.0.4506.2123".StartsWith(cleanedVersion))
-				return "3.0 SP2";
-			if ("3.0.4506.2254".StartsWith(cleanedVersion))
-				return "3.0 SP2 (installed with 3.5 SP1)";
-			if ("3.5.20404.0".StartsWith(cleanedVersion))
-				return "3.5 Beta 1";
-			if ("3.5.20706.1".StartsWith(cleanedVersion))
-				return "3.5 Beta 2";
-			if ("3.5.21022.8".StartsWith(cleanedVersion))
-				return "3.5 RTM";
-			if ("3.5.30428.1".StartsWith(cleanedVersion))
-				return "3.5 SP1 Beta";
-			if ("3.5.30729.01".StartsWith(cleanedVersion))
-				return "3.5 SP1 RTM";
-			if ("3.5.30729.4926".StartsWith(cleanedVersion))
-				return "3.5 SP1 (Windows 7 Edition)";
-			if ("4.0.20506".StartsWith(cleanedVersion))
-				return "4.0 Beta 1";
-			if ("4.0.21006".StartsWith(cleanedVersion))
-				return "4.0 Beta 2";
-			if ("4.0.30128.1".StartsWith(cleanedVersion))
-				return "4.0 RC";
-			if ("4.0.30319.1".StartsWith(cleanedVersion))
-				return "4.0 RTM";
-			if ("4.5.40805".StartsWith(cleanedVersion))
-				return "4.5 Developer Preview";
-			if ("4.0.30319.17020".StartsWith(cleanedVersion))
-				return "4.5 Developer Preview";
-			if ("4.5.50131".StartsWith(cleanedVersion))
-				return "4.5 Beta (Consumer Preview)";
-			if ("4.0.30319.17379".StartsWith(cleanedVersion))
-				return "4.5 Beta (Consumer Preview)";
-			if ("4.5.50501".StartsWith(cleanedVersion))
-				return "4.5 RC (Release Preview)";
-			if ("4.0.30319.17626".StartsWith(cleanedVersion))
-				return "4.5 RC (Release Preview)";
-			if ("4.5.50709".StartsWith(cleanedVersion))
-				return "4.5 RTM";
-			if ("4.0.30319.17929".StartsWith(cleanedVersion))
-				return "4.5 RTM";
-
-			return "Unknown .NET Framework";
+			return RuntimeInformation.FrameworkDescription + " | " + Environment.Version.ToString();
 		}
 		public static string CutFileName(string fileName, int cut = 60) {
 			try {

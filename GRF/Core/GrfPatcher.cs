@@ -36,7 +36,7 @@ namespace GRF.Core {
 				grf2.Progress = i / (float) entries1.Count * 100f;
 			}
 
-			grf2.Save(outputFilename, null, SavingMode.GrfSave, SyncMode.Synchronous);
+			grf2.Save(outputFilename, null, SavingMode.FileCopy, SyncMode.Synchronous);
 			grf2.Close();
 			grf1.Close();
 		}

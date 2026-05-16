@@ -11,7 +11,6 @@ using ErrorManager;
 using GRF.Core;
 using GRF.Image;
 using GRF.Image.Decoders;
-using GRF.GrfSystem;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
@@ -240,35 +239,26 @@ namespace GRFEditor.WPF {
 					if (!_multiInit.OperationAborted) {
 						_multiInit.IsPrivateAsync = true;
 						_multiInit.PrimaryMethod = () => {
-							_grf.Commands.AddFilesInDirectory("", _option.Args[1]);
-							string temp = TemporaryFilesManager.GetTemporaryFilePath("container_{0:0000}" + _grf.FileName.GetExtension());
-							string oldFileName = _grf.FileName;
-							_grf.Save(temp, SyncMode.Asynchronous);
-
-							while (_grf.IsBusy) {
-								Progress = _grf.Progress >= 100f ? 99.99f : _grf.Progress;
-							}
-
 							try {
-								_grf.Close();
+								_grf.Commands.AddFilesInDirectory("", _option.Args[1]);
+								_grf.SaveAs(null, SyncMode.Asynchronous);
 
-								if (File.Exists(oldFileName)) {
-									File.Delete(oldFileName);
+								while (_grf.IsBusy) {
+									Progress = _grf.Progress >= 100f ? 99.99f : _grf.Progress;
 								}
 
-								File.Move(temp, oldFileName);
+								_grf.ProcessSaveResult();
 							}
-							catch (Exception err) {
-								ErrorHandler.HandleException(err);
-
+							finally {
 								try {
-									File.Exists(temp);
+									_grf.Close();
 								}
-								catch {
+								catch (Exception err) {
+									ErrorHandler.HandleException(err);
 								}
-							}
 
-							Progress = 100f;
+								Progress = 100f;
+							}
 						};
 						_tbUpdate.Text = "Saving container...";
 					}
@@ -431,7 +421,7 @@ namespace GRFEditor.WPF {
 				_asyncOperation.Cancelling += _ => this.Dispatch(p => p._button.IsEnabled = false);
 
 				if (_multiInit.IsPrivateAsync) {
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _async(_multiInit.PrimaryMethod), this, 200, null, true, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => _async(_multiInit.PrimaryMethod), this, null, true, true));
 				}
 				else {
 					_multiInit.PrimaryMethod();

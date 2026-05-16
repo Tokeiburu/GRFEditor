@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -26,9 +27,29 @@ namespace Utilities.Hash {
 			}
 		}
 
+		public string ComputeHash(byte[] data, int offset, int length) {
+			using (MD5 md5 = new MD5CryptoServiceProvider()) {
+				byte[] ba = md5.ComputeHash(data, offset, length);
+				
+				StringBuilder sb = new StringBuilder(ba.Length * 2);
+
+				foreach (byte b in ba) {
+					sb.AppendFormat("{0:x2}", b);
+				}
+
+				return sb.ToString();
+			}
+		}
+
 		public byte[] ComputeByteHash(byte[] data) {
 			using (MD5 md5 = new MD5CryptoServiceProvider()) {
 				return md5.ComputeHash(data);
+			}
+		}
+
+		public byte[] ComputeByteHash(byte[] data, int offset, int length) {
+			using (MD5 md5 = new MD5CryptoServiceProvider()) {
+				return md5.ComputeHash(data, offset, length);
 			}
 		}
 

@@ -24,7 +24,7 @@ namespace ExampleProject {
 			InitializeComponent();
 			
 			progressBar1.Style = ProgressBarStyle.Marquee;
-			_thread = new GrfThread(action, caller, 200, null);
+			_thread = new GrfThread(action, caller, null);
 			button1.Click += (o, e) => _thread.Cancel();
 		}
 

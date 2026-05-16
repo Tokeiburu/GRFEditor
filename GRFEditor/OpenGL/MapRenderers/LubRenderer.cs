@@ -374,151 +374,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			}
 		}
 
-		private void _renderAnimatedGroup(OpenGLViewport viewport, List<Texture> textures, float interval) {
-			//int vboIndex = 0;
-			//var rie = _animatedGroup;
-			//var ri = rie.RenderInfo;
-			//
-			//if (ri.Vao == 0) {
-			//	ri.CreateVao();
-			//	ri.Vbo = new Vbo();
-			//	ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.DynamicDraw, LubEffectVertexSize);
-			//	GL.EnableVertexAttribArray(0);
-			//	GL.EnableVertexAttribArray(1);
-			//	GL.EnableVertexAttribArray(2);
-			//	GL.VertexAttribPointer(0, 2, VertexAttribPointerType.Float, false, LubEffectVertexSize * sizeof(float), 0);
-			//	GL.VertexAttribPointer(1, 1, VertexAttribPointerType.Float, false, LubEffectVertexSize * sizeof(float), 2 * sizeof(float));
-			//	GL.VertexAttribPointer(2, 3, VertexAttribPointerType.Float, false, LubEffectVertexSize * sizeof(float), 3 * sizeof(float));
-			//}
-			//
-			//foreach (var effect in rie.Effects) {
-			//	effect.EmitTime -= interval;
-			//
-			//	for (int i = 0; i < effect.Particles.Count; i++) {
-			//		var p = effect.Particles[i];
-			//
-			//		p.Life -= interval;
-			//		p.TextureLife -= interval;
-			//
-			//		if (p.Life < 0) {
-			//			effect.Particles.RemoveAt(i);
-			//			i--;
-			//			continue;
-			//		}
-			//
-			//		if (p.TextureLife < 0) {
-			//			p.TextureLife += 0.2f;
-			//			p.TextureIndex++;
-			//
-			//			if (p.TextureType == 0 && p.TextureIndex > 3)
-			//				p.TextureIndex = 0;
-			//			else if (p.TextureType == 1 && p.TextureIndex > 6)
-			//				p.TextureIndex = 4;
-			//		}
-			//
-			//		p.Position += p.Dir * interval * effect.Speed + p.Speed * interval;
-			//		p.Speed += effect.Speed * effect.Gravity * interval;
-			//
-			//		if (p.StartLife > 1) {
-			//			float t = p.StartLife - p.Life;
-			//			
-			//			if (t < 1) {
-			//				p.Alpha = t;
-			//			}
-			//			else if (p.Life < 1) {
-			//				p.Alpha = p.Life;
-			//			}
-			//
-			//			p.Alpha = (float)GLHelper.Clamp(0, 1, p.Alpha);
-			//		}
-			//	}
-			//
-			//	if (effect.EmitTime < 0 && effect.Particles.Count < effect.Maxcount) {
-			//		Particle p = new Particle();
-			//
-			//		p.Position = new Vector3(
-			//			TkRandom.Rand(-effect.Radius.X, -effect.Radius.X + 2 * Math.Abs(effect.Radius.X)),
-			//			TkRandom.Rand(-effect.Radius.Y, -effect.Radius.Y + 2 * Math.Abs(effect.Radius.Y)),
-			//			TkRandom.Rand(-effect.Radius.Z, -effect.Radius.Z + 2 * Math.Abs(effect.Radius.Z)));
-			//		p.Dir = new Vector3(
-			//			TkRandom.Rand(effect.Dir1.X, effect.Dir2.X),
-			//			TkRandom.Rand(effect.Dir1.Y, effect.Dir2.Y),
-			//			TkRandom.Rand(effect.Dir1.Z, effect.Dir2.Z));
-			//		p.Life = TkRandom.Rand(effect.Life.X, effect.Life.Y);
-			//		p.StartLife = p.Life;
-			//		p.Size = TkRandom.Rand(effect.Size.X, effect.Size.Y);
-			//		effect.Particles.Add(p);
-			//		effect.EmitTime = 1f / TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
-			//		p.TextureType = TkRandom.Next() % 2;
-			//		p.TextureLife = 0.2f;
-			//
-			//		if (p.TextureType == 0)
-			//			p.TextureIndex = TkRandom.Next() % 4;
-			//		else
-			//			p.TextureIndex = (TkRandom.Next() % 3) + 4;
-			//	}
-			//
-			//	for (int i = 0; i < effect.Particles.Count; i++) {
-			//		var p = effect.Particles[i];
-			//		float alpha = p.Alpha;
-			//
-			//		ri.RawVertices[vboIndex + 24 * i + 0] = -p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 1] = -p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 2] = alpha;
-			//		ri.RawVertices[vboIndex + 24 * i + 3] = p.Position.X;
-			//		ri.RawVertices[vboIndex + 24 * i + 4] = p.Position.Y;
-			//		ri.RawVertices[vboIndex + 24 * i + 5] = p.Position.Z;
-			//
-			//		ri.RawVertices[vboIndex + 24 * i + 6] = -p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 7] = p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 8] = alpha;
-			//		ri.RawVertices[vboIndex + 24 * i + 9] = p.Position.X;
-			//		ri.RawVertices[vboIndex + 24 * i + 10] = p.Position.Y;
-			//		ri.RawVertices[vboIndex + 24 * i + 11] = p.Position.Z;
-			//
-			//		ri.RawVertices[vboIndex + 24 * i + 12] = p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 13] = p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 14] = alpha;
-			//		ri.RawVertices[vboIndex + 24 * i + 15] = p.Position.X;
-			//		ri.RawVertices[vboIndex + 24 * i + 16] = p.Position.Y;
-			//		ri.RawVertices[vboIndex + 24 * i + 17] = p.Position.Z;
-			//
-			//		ri.RawVertices[vboIndex + 24 * i + 18] = p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 19] = -p.Size;
-			//		ri.RawVertices[vboIndex + 24 * i + 20] = alpha;
-			//		ri.RawVertices[vboIndex + 24 * i + 21] = p.Position.X;
-			//		ri.RawVertices[vboIndex + 24 * i + 22] = p.Position.Y;
-			//		ri.RawVertices[vboIndex + 24 * i + 23] = p.Position.Z;
-			//	}
-			//
-			//	vboIndex += LubEffectVertexSize * effect.Maxcount * 4;
-			//}
-			//
-			//vboIndex = 0;
-			//
-			//ri.BindVao();
-			//ri.Vbo.SetData(ri.RawVertices, BufferUsageHint.DynamicDraw, LubEffectVertexSize);
-			//
-			//foreach (var effect in rie.Effects) {
-			//	Shader.SetMatrix4("m", ref effect.ModelMatrix);
-			//	Shader.SetVector4("color", ref effect.Color);
-			//	Shader.SetFloat("billboard_off", effect.Billboard_off);
-			//	GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(effect.Srcmode), GLHelper.GetOpenGlBlendFromDirectXDest(effect.Destmode));
-			//	
-			//	foreach (var particle in effect.Particles) {
-			//		textures[particle.TextureIndex].Bind();
-			//		GL.DrawArrays(PrimitiveType.Quads, vboIndex, 4);
-#if DEBUG	//
-			//		viewport.Stats.DrawArrays_Calls++;
-			//		viewport.Stats.DrawArrays_Calls_VertexLength += 4;
-#endif		//
-			//		vboIndex += 4;
-			//	}
-			//
-			//	vboIndex += (effect.Maxcount - effect.Particles.Count) * 4;
-			//}
-		}
-
 		private void _parseEmitter(SimplifiedLuaElement lua, bool isAnimated) {
 			foreach (var effectKeyValue in lua.KeyValues) {
 				LubEffect effect = new LubEffect();
@@ -560,7 +415,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 							break;
 						case "color":
 							effect.Color = new Vector4(pv[0].Cast<float>() / 255f, pv[1].Cast<float>() / 255f, pv[2].Cast<float>() / 255f, pv[3].Cast<float>() / 255f);
-							//effect.Color = new Vector4(pv[0].Cast<float>() / 255f, pv[1].Cast<float>() / 255f, pv[2].Cast<float>() / 255f, 1f);
 							break;
 						case "rate":
 							effect.Rate = new Vector2(pv[0].Cast<float>(), pv[1].Cast<float>());
@@ -610,7 +464,6 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					effect.Gravity.Z *= -1;
 				}
 
-				//effect.NextEmitTick = TkRandom.Rand(effect.Rate.X, effect.Rate.Y);
 				effect.NextEmitTick = 0;
 				effect.IsAnimated = isAnimated;
 			}

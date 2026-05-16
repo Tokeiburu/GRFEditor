@@ -21,8 +21,6 @@ using GRFEditor.ApplicationConfiguration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Media.Imaging;
-using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
 

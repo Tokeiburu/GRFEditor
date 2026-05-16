@@ -330,12 +330,11 @@ namespace GRF.Core.GroupedGrf {
 			try {
 				foreach (var container in Containers) {
 					if (container.Value.IsModified) {
-						container.Value.QuickSave();
+						container.Value.Save();
 
-						if (container.Value.CancelReload)
+						if (!container.Value.ProcessSaveResult()) {
 							throw new OperationCanceledException();
-
-						container.Value.Reload();
+						}
 					}
 				}
 			}
@@ -348,10 +347,11 @@ namespace GRF.Core.GroupedGrf {
 			try {
 				foreach (var container in Containers) {
 					if (container.Value.IsModified) {
-						container.Value.QuickSave();
+						container.Value.Save();
 
-						if (container.Value.CancelReload)
+						if (!container.Value.ProcessSaveResult()) {
 							throw new OperationCanceledException();
+						}
 					}
 				}
 			}

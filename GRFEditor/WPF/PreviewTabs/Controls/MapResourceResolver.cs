@@ -1,16 +1,19 @@
 ﻿using GRF;
 using GRF.FileFormats.GndFormat;
+using GRF.FileFormats.LubFormat;
 using GRF.FileFormats.RsmFormat;
 using GRF.FileFormats.RswFormat;
 using GRF.FileFormats.StrFormat;
 using GRF.IO;
 using GRFEditor.ApplicationConfiguration;
+using Lua;
+using Lua.Structure;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Utilities.Extension;
+using Utilities.Services;
 
 namespace GRFEditor.WPF.PreviewTabs.Controls {
 	public class MapResourcePath {
@@ -35,7 +38,6 @@ namespace GRFEditor.WPF.PreviewTabs.Controls {
 				case ".rsm2":
 					_addRsmResources(resources, grfPath);
 					break;
-				case ".lub":
 				case ".gat":
 					// Attempt to read file
 					if (GrfEditorConfiguration.Resources.MultiGrf.GetData(grfPath) == null) {
@@ -51,6 +53,9 @@ namespace GRFEditor.WPF.PreviewTabs.Controls {
 				case ".str":
 					_addStrResources(resources, resource.ParentDirectory, grfPath);
 					break;
+				case ".lub":
+					_addLubEffectToolResources(resources, resource.ParentDirectory, grfPath);
+					break;
 			}
 
 			return resources;
@@ -61,6 +66,44 @@ namespace GRFEditor.WPF.PreviewTabs.Controls {
 
 			foreach (string texture in str.Textures) {
 				resources.Add(new MapResourcePath(parentDirectory, texture));
+			}
+		}
+
+		private void _addLubEffectToolResources(List<MapResourcePath> resources, string parentDirectory, string grfPath) {
+			var lubData = GrfEditorConfiguration.Resources.MultiGrf.GetData(grfPath);
+			
+			if (lubData == null)
+				throw new Exception("Cannot read the file. It is either encrypted or corrupted.");
+
+			if (Lub.IsCompiled(lubData)) {
+				Lub lub = new Lub(lubData);
+				var text = lub.Decompile();
+				lubData = EncodingService.DisplayEncoding.GetBytes(text);
+			}
+
+			SimplifiedLuaElement lua;
+
+			using (LuaReader reader = new LuaReader(new MemoryStream(lubData))) {
+				lua = reader.ReadSimplified();
+			}
+
+			HashSet<string> textures = new HashSet<string>();
+
+			// Look through emitter
+			foreach (var entry in lua.KeyValues) {
+				if (entry.Key.Contains("_emitterInfo")) {
+					foreach (var emitterEntry in entry.Value.KeyValues) {
+						var lubEffect = emitterEntry.Value.KeyValues;
+
+						if (lubEffect.ContainsKey("texture")) {
+							textures.Add(lubEffect["texture"].Value.Trim('\"', '[', ']').Replace("\\\\", "\\"));
+						}	
+					}
+				}
+			}
+
+			foreach (string texture in textures) {
+				resources.Add(new MapResourcePath(@"data\texture\", texture));
 			}
 		}
 

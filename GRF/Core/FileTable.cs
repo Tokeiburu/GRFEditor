@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Encryption;
 using GRF.ContainerFormat;
 using GRF.IO;
@@ -272,9 +273,12 @@ namespace GRF.Core {
 			}
 
 			_header.RealFilesCount = filesCount;
+
 			if (_indexedEntries.ContainsKey(GrfStrings.EncryptionFilename)) {
 				_indexedEntries[GrfStrings.EncryptionFilename].Modification |= Modification.Removed;
 			}
+
+			_indexedEntries.HasBeenModified = true;
 		}
 
 		private byte[] _uncompressFileTable(ByteReaderStream grfStream) {
@@ -374,15 +378,15 @@ namespace GRF.Core {
 		/// <returns>The new size of the file table (compressed)</returns>
 		public int WriteMetadata(GrfHeader header, Stream grfStream) {
 			if (header.IsCompatibleWith(2, 0)) {
-				using (MemoryStream stream = new MemoryStream()) {
+				using (BinaryWriter writer = new BinaryWriter(new MemoryStream())) {
 					foreach (FileEntry entry in Entries) {
-						entry.WriteMetadata(header, stream);
+						entry.WriteMetadata(header, writer);
 					}
 
-					stream.Seek(0, SeekOrigin.Begin);
+					writer.Seek(0, SeekOrigin.Begin);
 
-					TableSize = (int) stream.Length;
-					byte[] dataCompressed = Compression.CompressDotNet(stream);
+					TableSize = (int)writer.BaseStream.Length;
+					byte[] dataCompressed = Compression.CompressZlib(writer.BaseStream);
 
 					TableSizeCompressed = dataCompressed.Length;
 
@@ -406,20 +410,19 @@ namespace GRF.Core {
 
 				return TableSizeCompressed + 8 + (header.IsCompatibleWith(3, 0) ? 4 : 0); // 8 is for the 2 int (table size and table compressed size)
 			}
-
-			if (header.IsCompatibleWith(1, 0)) {
-				using (MemoryStream stream = new MemoryStream()) {
+			else if (header.IsCompatibleWith(1, 0)) {
+				using (BinaryWriter writer = new BinaryWriter(new MemoryStream())) {
 					foreach (FileEntry entry in Entries.OrderBy(p => p.TemporaryOffset)) {
-						entry.WriteMetadata(header, stream);
+						entry.WriteMetadata(header, writer);
 					}
 
-					stream.Seek(0, SeekOrigin.Begin);
+					writer.Seek(0, SeekOrigin.Begin);
 
-					TableSize = (int) stream.Length;
+					TableSize = (int)writer.BaseStream.Length;
 					TableSizeCompressed = TableSize;
 
 					byte[] data = new byte[TableSize];
-					stream.Read(data, 0, data.Length);
+					writer.BaseStream.Read(data, 0, data.Length);
 					grfStream.Write(data, 0, TableSize);
 				}
 
@@ -430,7 +433,7 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
-		/// Writes the actual compressed data. Optimized.
+		/// Writes the actual compressed data.
 		/// </summary>
 		/// <param name="grf">The GRF.</param>
 		/// <param name="originalStream">The original stream.</param>
@@ -447,7 +450,7 @@ namespace GRF.Core {
 		/// <param name="originalStream">The original stream.</param>
 		/// <param name="grfStream">The GRF stream.</param>
 		internal void WriteDataRepack(Container grf, Stream originalStream, Stream grfStream) {
-			GrfWriter.WriteDataRepack(grf, originalStream, grfStream);
+			GrfWriter.WriteRepack(grf, originalStream, grfStream);
 		}
 
 		/// <summary>
@@ -468,8 +471,8 @@ namespace GRF.Core {
 		/// <param name="originalStream">The original stream.</param>
 		/// <param name="grfStream">The GRF stream.</param>
 		/// <returns>The file table end offset.</returns>
-		internal long WriteDataCompact(Container grf, Stream originalStream, Stream grfStream) {
-			return GrfWriter.WriteCompact(grf, originalStream, grfStream);
+		internal void WriteDataCompact(Container grf, Stream originalStream, Stream grfStream) {
+			GrfWriter.WriteCompact(grf, originalStream, grfStream);
 		}
 
 		public virtual List<FileEntry> FindEntriesFromFileName(string fileName) {
@@ -639,6 +642,12 @@ namespace GRF.Core {
 
 		public void Clear() {
 			_indexedEntries.Clear();
+		}
+
+		internal void ResetTemporaryOffsets() {
+			foreach (var entry in Entries.Where(p => !p.IsAdded)) {
+				entry.TemporaryOffset = 0;
+			}
 		}
 	}
 }

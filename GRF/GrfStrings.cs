@@ -38,6 +38,7 @@ namespace GRF {
 		#region Compression DLL
 		public const string DisplayGravityDll =  "Zlib (Gravity)";
 		public const string DisplayGrfEditorDll = "Zlib (GRF Editor)";
+		public const string DisplayGZip = "GZip";
 		public const string DisplayLzmaDll = "Lzma (by Curiosity)";
 		public const string DisplayNullCompression = "No compression (debug mode)";
 		public const string RecoveryCompression = "Force decompression (Recovery)";
@@ -46,7 +47,6 @@ namespace GRF {
 		#endregion
 
 		#region Encryption
-		public const string FailedHeaderEncrypted = "GRF encryption can only be used for THOR, GRF and GPF files which use the 0x200 format.";
 		public const string EncryptionNotSet = "Couldn't set the encryption key. The key must be the same as the one used for the encryption. If you're trying to encrypt a GRF again with a different key, then you must decrypt the entire content first.";
 		public const string DecryptionNotSet = "Couldn't set the decryption key. The key must be the same as the one used for the encryption.";
 		#endregion

@@ -216,7 +216,7 @@ namespace GrfToWpfBridge {
 				Action action = () => ActImaging.Imaging.SaveAsGif(filename, act, actionIndex, dum);
 
 				if (asyncOperation != null) {
-					GrfThread thread = new GrfThread(action, dum, 200, null, true, true);
+					GrfThread thread = new GrfThread(action, dum, null, true, true);
 
 					string fileNameClosure = filename;
 					thread.Finished += delegate {

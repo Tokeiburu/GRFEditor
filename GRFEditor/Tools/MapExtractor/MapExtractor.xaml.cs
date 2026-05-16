@@ -61,7 +61,7 @@ namespace GRFEditor.Tools.MapExtractor {
 				_itemsResources.LoadResourcesInfo();
 				
 				if (!_asyncOperation.IsRunning)
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, 200, null, false, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, null, false, true));
 			};
 			_itemsResources.LoadResourcesInfo();
 			_itemsResources.CanDeleteMainGrf = false;
@@ -77,7 +77,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			_treeViewMapExtractor.DoDragDropCustomMethod = delegate {
 				VirtualFileDataObjectProgress vfop = new VirtualFileDataObjectProgress();
 				VirtualFileDataObject virtualFileDataObject = new VirtualFileDataObject(
-					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, 500, null)),
+					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, null)),
 					_ => vfop.Finished = true
 				);
 
@@ -373,7 +373,7 @@ namespace GRFEditor.Tools.MapExtractor {
 		public void Export() {
 			_userDestination = false;
 			_destinationPath = Configuration.OverrideExtractionPath ? Configuration.DefaultExtractingPath : Path.GetDirectoryName(new FileInfo(_grf.FileName).FullName);
-			_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
+			_asyncOperation.SetAndRunOperation(new GrfThread(_export, this), _openFolderCallback);
 		}
 
 		public void ExportAt() {
@@ -382,7 +382,7 @@ namespace GRFEditor.Tools.MapExtractor {
 			if (path != null) {
 				_userDestination = true;
 				_destinationPath = path;
-				_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
+				_asyncOperation.SetAndRunOperation(new GrfThread(_export, this), _openFolderCallback);
 			}
 		}
 

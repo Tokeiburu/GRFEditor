@@ -57,13 +57,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			_asyncOperation = new AsyncOperation(_progressBarComponent);
 
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
+			_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, null, false, true));
 			_quickPreview.Set(_asyncOperation);
 
 			_tree.DoDragDropCustomMethod = delegate {
 				VirtualFileDataObjectProgress vfop = new VirtualFileDataObjectProgress();
 				VirtualFileDataObject virtualFileDataObject = new VirtualFileDataObject(
-					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, 500, null)),
+					_ => _asyncOperation.SetAndRunOperation(new GrfThread(vfop.Update, vfop, null)),
 					_ => vfop.Finished = true
 					);
 
@@ -102,7 +102,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_reloadIndex = true;
 
 				if (!_asyncOperation.IsRunning)
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
+					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, null, false, true));
 			};
 			_itemsResources2.LoadResourcesInfo();
 			_itemsResources2.CanDeleteMainGrf = false;
@@ -244,7 +244,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private void _buttonRebuild_Click(object sender, RoutedEventArgs e) {
 			_indexer.DeleteIndexes();
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
+			_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, null, false, true));
 		}
 
 		private void _tree_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e) {
@@ -286,7 +286,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			if (selectedItem is FileEntry) {
 				_fileName = ((FileEntry) selectedItem).RelativePath;
 				_labelHeader.Dispatch(p => p.Text = "Searching usages of " + Path.GetFileName(_fileName));
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, 200, null, false, true));
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, () => this.IsCancelling), this, null, false, true));
 			}
 		}
 
@@ -362,7 +362,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		public void Export() {
 			_destinationPath = GrfEditorConfiguration.OverrideExtractionPath ? GrfEditorConfiguration.DefaultExtractingPath : Path.GetDirectoryName(new FileInfo(_grf.FileName).FullName);
-			_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
+			_asyncOperation.SetAndRunOperation(new GrfThread(_export, this), _openFolderCallback);
 		}
 
 		public void ExportAt() {
@@ -370,7 +370,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			if (path != null) {
 				_destinationPath = path;
-				_asyncOperation.SetAndRunOperation(new GrfThread(_export, this, 200), _openFolderCallback);
+				_asyncOperation.SetAndRunOperation(new GrfThread(_export, this), _openFolderCallback);
 			}
 		}
 

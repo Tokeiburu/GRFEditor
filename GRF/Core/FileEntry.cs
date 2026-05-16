@@ -232,8 +232,8 @@ namespace GRF.Core {
 			}
 		}
 
-		public bool CustomCompressed {
-			get { return (Flags & EntryType.CustomCompressed) == EntryType.CustomCompressed; }
+		public bool LzmaCompressed {
+			get { return (Flags & EntryType.LzmaCompressed) == EntryType.LzmaCompressed; }
 		}
 
 		public bool Removed {
@@ -297,7 +297,7 @@ namespace GRF.Core {
 					throw GrfExceptions.__NoKeyFileSet.Create();
 				}
 			}
-			else if (Header.EncryptionCheckFlag) {
+			else if (Header.EncryptionCheckFlag || Header.EncryptionManualSet) {
 				// Fix : 2015-04-04
 				// This header property means that the flags haven't been all set yet.
 				// (The flags are set asynchronously to avoid UI lags)
@@ -327,8 +327,8 @@ namespace GRF.Core {
 			// Compression detection.
 			if (Compression.IsNormalCompression || Compression.IsLzma || Compression.IsCustom) {
 				if (data.Length > 1 && data[0] == 0) {
-					Flags |= EntryType.CustomCompressed;
-					OnPropertyChanged("CustomCompressed");
+					Flags |= EntryType.LzmaCompressed;
+					OnPropertyChanged("LzmaCompressed");
 
 					if (Compression.IsCustom)
 						return Compression.Decompress(data, SizeCompressed, SizeDecompressed);
@@ -405,11 +405,14 @@ namespace GRF.Core {
 			return NewSizeDecompressed == 0;
 		}
 
-		internal void WriteMetadata(GrfHeader header, Stream fileEntryBuffer, bool overwriteFlags = true) {
+		internal void WriteMetadata(GrfHeader header, BinaryWriter writer, bool overwriteFlags = true) {
 			if (overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
 				// The entry added is removed, only the Thor maker sets the overwriteFlags to false
 				return;
 			}
+
+			if ((Modification & Modification.Removed) == Modification.Removed)
+				return;
 
 			// Fix : 2015-04-06
 			// Negative offsets are no longer possible
@@ -422,71 +425,63 @@ namespace GRF.Core {
 			}
 
 			if (header.IsMajorVersion(1)) {
-				if (!Modification.HasFlags(Modification.Removed)) {
-					string realString = EncodingService.GetAnsiString(GetFixedFileName()) + "\0";
-					while (realString.Length % 8 != 0) {
-						realString += "\0";
-					}
-					realString = DesDecryption.EncodeFileName(EncodingService.Ansi.GetBytes(realString));
-					byte[] fileName = EncodingService.Ansi.GetBytes(realString);
-					byte[] data = new byte[fileName.Length + 27];
-
-					Buffer.BlockCopy(BitConverter.GetBytes(realString.Length + 6), 0, data, 0, 4);
-					Buffer.BlockCopy(fileName, 0, data, 6, fileName.Length);
-					Buffer.BlockCopy(BitConverter.GetBytes(NewSizeCompressed + NewSizeDecompressed + 715), 0, data, fileName.Length + 10, 4);
-					Buffer.BlockCopy(BitConverter.GetBytes(TemporarySizeCompressedAlignment + 37579), 0, data, fileName.Length + 14, 4);
-					Buffer.BlockCopy(BitConverter.GetBytes(NewSizeDecompressed), 0, data, fileName.Length + 18, 4);
-
-					if (!overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
-						data[fileName.Length + 22] = (byte) (EntryType.File | EntryType.RemoveFile);
-					}
-					else {
-						if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
-							data[fileName.Length + 22] = 0;
-						}
-						else if (Flags.HasFlag(EntryType.GravityEncryptedFile)) {
-							data[fileName.Length + 13] = (byte)EntryType.GravityEncryptedFile;
-						}
-						else {
-							data[fileName.Length + 22] = (byte)EntryType.File;
-						}
-					}
-
-					Buffer.BlockCopy(BitConverter.GetBytes((uint)TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 23, 4);
-
-					fileEntryBuffer.Write(data, 0, data.Length);
+				string realString = EncodingService.GetAnsiString(GetFixedFileName()) + "\0";
+				while (realString.Length % 8 != 0) {
+					realString += "\0";
 				}
-			}
-			else {
-				if (!Modification.HasFlags(Modification.Removed)) {
-					byte[] fileName = EncodingService.Ansi.GetBytes(EncodingService.GetAnsiString(GetFixedFileName()));
-					byte[] data = new byte[18 + fileName.Length + (header.IsCompatibleWith(3, 0) ? 4 : 0)];
+				realString = DesDecryption.EncodeFileName(EncodingService.Ansi.GetBytes(realString));
+				byte[] fileName = EncodingService.Ansi.GetBytes(realString);
 
-					Buffer.BlockCopy(fileName, 0, data, 0, fileName.Length);
-					Buffer.BlockCopy(BitConverter.GetBytes(NewSizeCompressed), 0, data, fileName.Length + 1, 4);
-					Buffer.BlockCopy(BitConverter.GetBytes(TemporarySizeCompressedAlignment), 0, data, fileName.Length + 5, 4);
-					Buffer.BlockCopy(BitConverter.GetBytes(NewSizeDecompressed), 0, data, fileName.Length + 9, 4);
+				writer.Write(realString.Length + 6);
+				writer.Write((ushort)0);
+				writer.Write(fileName);
+				writer.Write(0);
+				writer.Write(NewSizeCompressed + NewSizeDecompressed + 715);
+				writer.Write(TemporarySizeCompressedAlignment + 37579);
+				writer.Write(NewSizeDecompressed);
 
-					EntryType baseFlag = ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) ? EntryType.Directory : EntryType.File;
-
-					if (!overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
-						data[fileName.Length + 13] = (byte)(baseFlag | EntryType.RemoveFile);
+				if (!overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
+					writer.Write((byte)(EntryType.File | EntryType.RemoveFile));
+				}
+				else {
+					if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) {
+						writer.Write((byte)0);
 					}
 					else if (Flags.HasFlag(EntryType.GravityEncryptedFile)) {
-						data[fileName.Length + 13] = (byte)EntryType.GravityEncryptedFile;
+						writer.Write((byte)EntryType.GravityEncryptedFile);
 					}
 					else {
-						data[fileName.Length + 13] = (byte)baseFlag;
+						writer.Write((byte)EntryType.File);
 					}
+				}
 
-					if (header.IsCompatibleWith(3, 0)) {
-						Buffer.BlockCopy(BitConverter.GetBytes(TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 14, 8);
-					}
-					else {
-						Buffer.BlockCopy(BitConverter.GetBytes((uint)TemporaryOffset - GrfHeader.DataByteSize), 0, data, fileName.Length + 14, 4);
-					}
+				writer.Write((uint)TemporaryOffset - GrfHeader.DataByteSize);
+			}
+			else {
+				var fileName = EncodingService.Ansi.GetBytes(EncodingService.GetAnsiString(GetFixedFileName()));
+				writer.Write(fileName);
+				writer.Write((byte)0);
+				writer.Write(NewSizeCompressed);
+				writer.Write(TemporarySizeCompressedAlignment);
+				writer.Write(NewSizeDecompressed);
 
-					fileEntryBuffer.Write(data, 0, data.Length);
+				EntryType baseFlag = ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile) ? EntryType.Directory : EntryType.File;
+
+				if (!overwriteFlags && (Flags & EntryType.RemoveFile) == EntryType.RemoveFile) {
+					writer.Write((byte)(baseFlag | EntryType.RemoveFile));
+				}
+				else if ((Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile) {
+					writer.Write((byte)EntryType.GravityEncryptedFile);
+				}
+				else {
+					writer.Write((byte)baseFlag);
+				}
+
+				if (header.IsCompatibleWith(3, 0)) {
+					writer.Write(TemporaryOffset - GrfHeader.DataByteSize);
+				}
+				else {
+					writer.Write((uint)TemporaryOffset - GrfHeader.DataByteSize);
 				}
 			}
 		}
@@ -528,6 +523,7 @@ namespace GRF.Core {
 		internal void DesDecryptPrealigned(byte[] dataStream, int dataOffset) {
 			if (Cycle >= 0) {
 				DesDecryption.DecryptFileData(dataStream, Cycle == 0, Cycle, dataOffset, TemporarySizeCompressedAlignment);
+				Cycle = -1;
 			}
 		}
 
@@ -621,11 +617,14 @@ namespace GRF.Core {
 					if (Ee322.ad0bbddf4b9c6de7b6f99a036deb2be2(dataTmp) || dataTmp[0] == 0x0)
 						Encryption.Decrypt(Header.EncryptionKey, dataTmp, NewSizeDecompressed);
 				}
+
+				Modification &= ~Modification.Encrypt;
+				Flags |= EntryType.GrfEditorCrypted;
 			}
 		}
 
 		internal bool GrfEditorEncrypt(byte[] dataStream, int offset) {
-			if (Header.IsEncrypting || (Modification & Modification.Encrypt) == Modification.Encrypt) {
+			if ((Modification & Modification.Encrypt) == Modification.Encrypt) {
 				if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
 					return false;
 
@@ -652,7 +651,7 @@ namespace GRF.Core {
 		}
 
 		internal void GrfEditorDecrypt(byte[] dataStream, int offset) {
-			if (Header.IsDecrypting || (Modification & Modification.Decrypt) == Modification.Decrypt) {
+			if ((Modification & Modification.Decrypt) == Modification.Decrypt) {
 				byte[] dataTmp = new byte[SizeCompressedAlignment];
 				Buffer.BlockCopy(dataStream, offset, dataTmp, 0, offset + dataTmp.Length > dataStream.Length ? dataStream.Length - offset : dataTmp.Length);
 
@@ -670,7 +669,7 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
-		/// Determines wheter or not this file's can be read with the current encryption.
+		/// Determines wheter or not this file can be read with the current encryption.
 		/// </summary>
 		/// <returns>True if the file can be read with the encryption.</returns>
 		public bool EncryptionSafe() {

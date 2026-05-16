@@ -41,7 +41,7 @@
                 <MenuItem Name="_menuItemSave" TokeiLibrary:WpfProperties.ImagePath="save.png" Header="Save" InputGestureText="Ctrl-S" Click="_menuItemSave_Click" />
                 <MenuItem Name="_menuItemSaveAs" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Save as..." Click="_menuItemSaveAs_Click" />
                 <MenuItem Header="Save advanced" TokeiLibrary:WpfProperties.ImagePath="empty.png">
-                    <MenuItem Name="_menuItemCompress" TokeiLibrary:WpfProperties.ImagePath="defrag.png" Header="Defragment (quick)" Click="_menuItemCompress_Click" InputGestureText="Ctrl-Shift-S" />
+                    <MenuItem Name="_menuItemDefragment" TokeiLibrary:WpfProperties.ImagePath="defrag.png" Header="Defragment (quick)" Click="_menuItemDefragment_Click" InputGestureText="Ctrl-Shift-S" />
                     <MenuItem Name="_menuItemCompact" TokeiLibrary:WpfProperties.ImagePath="redirect.png" Header="Compact (redirect indexes)" Click="_menuItemCompact_Click" InputGestureText="Ctrl-Alt-S" />
                     <MenuItem Name="_menuItemRepack" TokeiLibrary:WpfProperties.ImagePath="pack.png" Header="Repack (recompress)" Click="_menuItemRepack_Click" />
                     <MenuItem Name="_menuItemEncryptTable" TokeiLibrary:WpfProperties.ImagePath="lock.png" Header="Encrypt File Table" Click="_menuItemTableEncrypt_Click" />

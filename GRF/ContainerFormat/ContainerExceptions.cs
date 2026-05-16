@@ -1,10 +1,8 @@
 ﻿using System;
 using GRF.Core;
-using GRF.IO;
 
 namespace GRF.ContainerFormat {
 	public static class GrfExceptions {
-// ReSharper disable InconsistentNaming
 		public static readonly FormattedExceptionMessage __NullPathException = "Path cannot be null or empty.\r\n{0}";
 		public static readonly FormattedExceptionMessage __InvalidTextEncoding = "Text encoding invalid.\r\n{0}";
 		public static readonly FormattedExceptionMessage __PathNotFound = "Path not found in the container.\r\n{0}";
@@ -68,13 +66,12 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __FailedToCompressData = "Failed to compress data.";
 		public static readonly FormattedExceptionMessage __FailedToDecompressData = "Failed to decompress data.";
 		public static readonly FormattedExceptionMessage __MergeVersionEncryptionException = "The destination GRF must have a version higher than 0x100 when merging with an ecrypted GRF.";
-		public static readonly FormattedExceptionMessage __MergeNotSupported = "Attempted to merge a GRF by using a method that doesn't support this feature.";
+		public static readonly FormattedExceptionMessage __MergeNotSupported = "Attempted to merge a GRF on a container format that doesn't support this feature.";
 		public static readonly FormattedExceptionMessage __CouldNotLoadGrf = "Couldn't load the GRF.";
 		public static readonly FormattedExceptionMessage __ContainerNotSavedForRepack = "The container must be saved before repacking its content.";
 		public static readonly FormattedExceptionMessage __OperationNotAllowed = "The container cannot execute the operation requested.";
 		public static readonly FormattedExceptionMessage __ContainerNotSavedForCompact = "The container must be saved before redirecting its content.";
 		public static readonly FormattedExceptionMessage __AddedGrfModified = "The GRF to add has been modified, save it first.";
-		public static readonly FormattedExceptionMessage __UnsupportedEncryption = "The encryption feature is incompatible with the version used on this GRF. Decrypt your GRF from an older version and encrypt it again.";
 		public static readonly FormattedExceptionMessage __ChangeVersionNotAllowed = "Operation not allowed: you cannot change the GRF version manually, use the ChangeVersion() command instead.";
 		public static readonly FormattedExceptionMessage __GrfAccessViolationOpened = "Attempted to perform an operation on an opened GRF.";
 		public static readonly FormattedExceptionMessage __GrfAccessViolationClosed = "Attempted to perform an operation on an closed GRF.";
@@ -86,98 +83,12 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __ThorFileDeleted = "The file '{0}' is a special GRF entry used by patchers to signal its deletion. It has no content.";
 		public static readonly FormattedExceptionMessage __SprSizeLimitReached = "Image [index: {2}, {0}x{1}] has too many pixels (max: {3}), the limit is 65536. Consider converting the image to Bgra32 (no size limit).";
 		public static readonly FormattedExceptionMessage __SprRleBufferOverflowException = "Buffer overflow while executing the Rle compression or decompressing.";
-
-		internal static GrfException Create(FormattedExceptionMessage exception, params object[] items) {
-			return new GrfException(exception, String.Format(exception.Message, items));
-		}
-
-		internal static Exception ThrowNullPathException(string path) {
-			throw Create(__NullPathException, path);
-		}
-
-		internal static Exception ThrowInvalidTextEncoding(string path) {
-			throw Create(__InvalidTextEncoding, path);
-		}
-
-		internal static Exception ThrowPathNotFound(string path) {
-			throw Create(__PathNotFound, path);
-		}
-
-		internal static Exception ThrowPathsIdentical(string path1, string path2) {
-			throw Create(__PathsIdentical, path1, path2);
-		}
-
-		internal static void ThrowInvalidCharactersInPath(string path) {
-			throw Create(__InvalidCharactersInPath, path);
-		}
-
-		internal static void ThrowDestIsSubfolder() {
-			throw Create(__DestIsSubfolder);
-		}
-
-		internal static void ThrowDestMustBeFolder(string path1, string path2) {
-			throw Create(__DestMustBeFolder, path1, path2);
-		}
-
-		internal static void ThrowDestMustBeFile(string path1, string path2) {
-			throw Create(__DestMustBeFile, path1, path2);
-		}
-
-		internal static void ThrowFolderNameAlreadyExists(string path) {
-			throw Create(__FolderNameAlreadyExists, path);
-		}
-
-		internal static void ThrowHiddenFolderConflict(string path) {
-			throw Create(__HiddenFolderConflict, path);
-		}
-
-		internal static void ThrowFileNameAlreadyExists(string path) {
-			throw Create(__FileNameAlreadyExists, path);
-		}
-
-		internal static void ThrowDoubleSlashPath(string path) {
-			throw Create(__DoubleSlashPath, path);
-		}
+		public static readonly FormattedExceptionMessage __UnsupportedEncryptionOperation = "The encryption operation is incompatible with the version used on this GRF.";
+		public static readonly FormattedExceptionMessage __UnsupportedEncryptionVersion = "GRF encryption can only be used for THOR, GRF and GPF files which use the 0x200 or 0x300 format.";
 
 		internal static void IfNullThrow(object value, string name) {
 			if (value == null)
-				throw Create(__ArgumentNullValue, name);
-		}
-
-		internal static void ThrowInvalidContainerFormat(string path, string expectedFormat) {
-			throw Create(__InvalidContainerFormat, path, expectedFormat);
-		}
-
-		internal static void ThrowFileNotFound(string path) {
-			throw Create(__FileNotFound, path);
-		}
-
-		internal static void ThrowHeaderLengthInvalid(int length, int expected) {
-			throw Create(__HeaderLengthInvalid, length, expected);
-		}
-
-		internal static void ThrowReadContainerNotOpened() {
-			throw Create(__ReadContainerNotOpened);
-		}
-
-		internal static void ThrowReadContainerNotProperlyLoaded() {
-			throw Create(__ReadContainerNotProperlyLoaded);
-		}
-
-		internal static void ThrowNonInstiatedContainer() {
-			throw Create(__NonInstiatedContainer);
-		}
-
-		internal static void Throw(string message) {
-			throw Create(message);
-		}
-
-		internal static void ThrowFileLocked(string path) {
-			throw Create(__FileLocked, path);
-		}
-
-		internal static void ThrowAccessContainerNotOpened() {
-			throw Create(__AccessContainerNotOpened);
+				throw __ArgumentNullValue.Create(name);
 		}
 
 		internal static void IfSavingThrow<T>(ContainerAbstract<T> container) where T : ContainerEntry {
@@ -185,185 +96,60 @@ namespace GRF.ContainerFormat {
 				var t = container.Commands;
 			}
 			catch {
-				throw Create(__ContainerClosed);
+				throw __ContainerClosed.Create();
 			}
 
 			if (container.IsBusy || container.Commands.IsLocked)
-				throw Create(__ContainerBusy);
+				throw __ContainerBusy.Create();
 		}
 
 		internal static void IfTrueThrowContainerSaving(bool value) {
 			if (value)
-				throw Create(__ContainerSaving);
+				throw __ContainerSaving.Create();
 		}
 
 		internal static void ThrowUnsupportedFileFormat(string value) {
-			throw Create(__UnsupportedFileFormat);
+			throw __UnsupportedFileFormat.Create();
 		}
 
 		internal static void IfTrueThrowClosedImage(bool value) {
 			if (value)
-				throw Create(__ClosedImage);
+				throw __ClosedImage.Create();
 		}
 
 		internal static void IfNullThrowNonLoadedImage(object value) {
 			if (value == null)
-				throw Create(__NonLoadedImage);
+				throw __NonLoadedImage.Create();
 		}
 
 		internal static void IfLtZeroThrowUnsupportedImageFormat(int value) {
 			if (value < 0)
-				throw Create(__UnsupportedImageFormat);
+				throw __UnsupportedImageFormat.Create();
 		}
 
 		internal static void IfLtZeroThrowInvalidImagePosition(string name, int value) {
 			if (value < 0)
-				throw Create(__InvalidImagePosition, name, value);
+				throw __InvalidImagePosition.Create(name, value);
 		}
 
 		public static void IfOutOfRangeThrow(float tolerance, string name, float minInclude, float maxInclude) {
 			if (tolerance < minInclude)
-				throw Create(__ArgumentOutOfRangeMin, name, minInclude);
+				throw __ArgumentOutOfRangeMin.Create(name, minInclude);
 
 			if (tolerance > maxInclude)
-				throw Create(__ArgumentOutOfRangeMax, name, maxInclude);
-		}
-
-		public static void IfOutOfRangeThrow(double tolerance, string name, double minInclude, double maxInclude) {
-			if (tolerance < minInclude)
-				throw Create(__ArgumentOutOfRangeMin, name, minInclude);
-
-			if (tolerance > maxInclude)
-				throw Create(__ArgumentOutOfRangeMax, name, maxInclude);
-		}
-
-		public static void IfOutOfRangeThrow(int tolerance, string name, int minInclude, int maxInclude) {
-			if (tolerance < minInclude)
-				throw Create(__ArgumentOutOfRangeMin, name, minInclude);
-
-			if (tolerance > maxInclude)
-				throw Create(__ArgumentOutOfRangeMax, name, maxInclude);
-		}
-
-		internal static void ThrowNoKeyFileSet() {
-			throw Create(__NoKeyFileSet);
-		}
-
-		internal static void ThrowLzmaCompression() {
-			throw Create(__LzmaCompression);
-		}
-
-		internal static void ThrowCompressionDllGuard() {
-			throw Create(__CompressionDllGuard);
-		}
-
-		internal static void ThrowCannotConvertWithErrors() {
-			throw Create(__CannotConvertWithErrors);
+				throw __ArgumentOutOfRangeMax.Create(name, maxInclude);
 		}
 
 		public static void IfEncryptionCheckFlagThrow(GrfHolder grf) {
 			if (grf != null && grf.IsOpened && grf.Header.EncryptionCheckFlag) {
-				throw Create(__EncryptionCheckFlagInProgress);
+				throw __EncryptionCheckFlagInProgress.Create();
 			}
 		}
 
 		internal static void IfEncryptionCheckFlagThrow(Container grf) {
 			if (grf != null && grf.InternalHeader.EncryptionCheckFlag) {
-				throw Create(__EncryptionCheckFlagInProgress);
+				throw __EncryptionCheckFlagInProgress.Create();
 			}
-		}
-
-		internal static void ThrowRepackInstead() {
-			throw Create(__RepackInstead);
-		}
-
-		internal static void ThrowContainerNotSavedForRepack() {
-			throw Create(__ContainerNotSavedForRepack);
-		}
-
-		internal static void ThrowOperationNotAllowed() {
-			throw Create(__OperationNotAllowed);
-		}
-
-		internal static void ThrowContainerNotSavedForCompact() {
-			throw Create(__ContainerNotSavedForCompact);
-		}
-
-		internal static void ThrowEntryDataInvalid(string path) {
-			throw Create(__EntryDataInvalid, path);
-		}
-
-		public static void ThrowFileFormatException(string ext) {
-			throw Create(__FileFormatException, ext);
-		}
-
-		public static void ThrowFileFormatException(string ext, string extra) {
-			throw Create(__FileFormatException2, ext, extra);
-		}
-
-		internal static void ThrowUnsupportedPixelFormat(byte bits) {
-			throw Create(__UnsupportedPixelFormat, bits);
-		}
-
-		internal static void ThrowUnknownHashAlgorithm() {
-			throw Create(__UnknownHashAlgorithm);
-		}
-
-		public static void ThrowUnsupportedFileVersion() {
-			throw Create(__UnsupportedFileVersion);
-		}
-
-		internal static void ThrowFailedToCompressData() {
-			throw Create(__FailedToCompressData);
-		}
-
-		internal static void ThrowFailedToDecompressData() {
-			throw Create(__FailedToDecompressData);
-		}
-
-		internal static void ThrowLoadLibraryFailed(string dllName, int lastError) {
-			throw Create(__LoadLibraryFailed, dllName ?? "NULL", lastError, lastError);
-		}
-
-		internal static void ThrowMergeVersionEncryptionException() {
-			throw Create(__MergeVersionEncryptionException);
-		}
-
-		internal static void ThrowAddedGrfModified() {
-			throw new InvalidOperationException(__AddedGrfModified);
-		}
-
-		internal static void ThrowMergeNotSupported() {
-			throw Create(__MergeNotSupported);
-		}
-
-		internal static void ThrowUnsupportedEncryption() {
-			throw Create(__UnsupportedEncryption);
-		}
-
-		internal static void ThrowWrongKeyFile() {
-			throw Create(__WrongKeyFile);
-		}
-
-		internal static void ThrowInvalidRepairArguments() {
-			throw Create(__InvalidRepairArguments);
-		}
-
-		internal static void ValidateHeaderLength(IBinaryReader reader, string type, int length) {
-			if (reader.Length < length)
-				throw Create(__InvalidFileHeaderLength, type, length);
-		}
-
-		internal static void ThrowUnsupportedImageFormat() {
-			throw Create(__UnsupportedImageFormat);
-		}
-
-		internal static void ThrowNoFilesSelected() {
-			throw Create(__NoFilesSelected);
-		}
-
-		internal static void ThrowChecksumFailed() {
-			throw Create(__ChecksumFailed);
 		}
 	}
 
@@ -373,23 +159,15 @@ namespace GRF.ContainerFormat {
 		private readonly int _id;
 		private readonly string _message;
 
-		public FormattedExceptionMessage(string message) {
+		internal FormattedExceptionMessage(string message) {
 			_message = message;
 			_errorId++;
 			_id = _errorId;
 		}
 
-		public string Message {
-			get { return _message; }
-		}
-
-		protected bool Equals(FormattedExceptionMessage other) {
-			return _id == other._id;
-		}
-
-		public override int GetHashCode() {
-			return _id;
-		}
+		public string Message => _message;
+		protected bool Equals(FormattedExceptionMessage other) => _id == other._id;
+		public override int GetHashCode() => _id;
 
 		public string Display(params object[] args) {
 			return String.Format(Message, args);
@@ -411,7 +189,7 @@ namespace GRF.ContainerFormat {
 		}
 
 		public GrfException Create(params object[] items) {
-			return GrfExceptions.Create(this, items);
+			return new GrfException(this, String.Format(Message, items));
 		}
 	}
 
@@ -422,9 +200,7 @@ namespace GRF.ContainerFormat {
 			_format = format;
 		}
 
-		public FormattedExceptionMessage Format {
-			get { return _format; }
-		}
+		public FormattedExceptionMessage Format => _format;
 
 		protected bool Equals(FormattedExceptionMessage other) {
 			return Equals(_format, other);
@@ -453,10 +229,6 @@ namespace GRF.ContainerFormat {
 			return exp1.Equals(exp2);
 		}
 
-		public static bool operator !=(GrfException exp1, GrfException exp2) {
-			return !(exp1 == exp2);
-		}
-
 		public static bool operator ==(GrfException exp1, FormattedExceptionMessage exp2) {
 			if (ReferenceEquals(exp1, null) && ReferenceEquals(exp2, null)) return true;
 			if (ReferenceEquals(exp1, null) || ReferenceEquals(exp2, null)) return false;
@@ -464,8 +236,15 @@ namespace GRF.ContainerFormat {
 			return exp1.Equals(exp2);
 		}
 
-		public static bool operator !=(GrfException exp1, FormattedExceptionMessage exp2) {
-			return !(exp1 == exp2);
+		public static bool operator ==(FormattedExceptionMessage exp1, GrfException exp2) {
+			if (ReferenceEquals(exp1, null) && ReferenceEquals(exp2, null)) return true;
+			if (ReferenceEquals(exp1, null) || ReferenceEquals(exp2, null)) return false;
+
+			return exp1.Equals(exp2);
 		}
+
+		public static bool operator !=(GrfException exp1, FormattedExceptionMessage exp2) => !(exp1 == exp2);
+		public static bool operator !=(GrfException exp1, GrfException exp2) => !(exp1 == exp2);
+		public static bool operator !=(FormattedExceptionMessage exp1, GrfException exp2) => !(exp1 == exp2);
 	}
 }

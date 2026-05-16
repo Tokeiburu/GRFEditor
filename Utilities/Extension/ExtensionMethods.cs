@@ -658,6 +658,9 @@ namespace Utilities.Extension {
 		}
 
 		public static bool IsExtension(this String text, params string[] exts) {
+			if (text == null)
+				return false;
+
 			string ext = text.GetExtension();
 			return exts.Any(p => p == ext);
 		}

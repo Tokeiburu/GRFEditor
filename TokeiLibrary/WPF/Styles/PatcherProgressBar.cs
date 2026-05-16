@@ -4,12 +4,14 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using Utilities;
 
 namespace TokeiLibrary.WPF.Styles {
-	public class TkProgressBar : UserControl {
+	public class PatcherProgressBar : UserControl {
 		#region Delegates
 
 		public delegate void ProgressBarDisplayDelegate(float value);
@@ -27,17 +29,69 @@ namespace TokeiLibrary.WPF.Styles {
 
 		#endregion
 
-		internal bool EventsEnabled => _eventsEnabled;
+		internal bool EventsEnabled {
+			get { return _eventsEnabled; }
+			set { _eventsEnabled = value; }
+		}
 
 		public float Progress {
-			get => _progress;
+			get { return _progress; }
 			set {
 				this.BeginDispatch(() => this.SetValue(ProgressProperty, value));
 			}
 		}
 
+		public float RefreshUpdate { get; set; }
+
+		public Image BackImage = new Image { IsHitTestVisible = false };
+		public Image FrontImage = new Image { IsHitTestVisible = false };
+
+		public ProgressBar __ProgressBar {
+			get { return _bar; }
+		}
+		
+		public BitmapSource BackBitmapSource {
+			get { return (BitmapSource)GetValue(BackBitmapSourceProperty); }
+			set { SetValue(BackBitmapSourceProperty, value); }
+		}
+		public static DependencyProperty BackBitmapSourceProperty = DependencyProperty.Register("BackBitmapSource", typeof(BitmapSource), typeof(PatcherProgressBar), new PropertyMetadata(new PropertyChangedCallback(OnBackBitmapSourceChanged)));
+
+		private static void OnBackBitmapSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			PatcherProgressBar bar = d as PatcherProgressBar;
+
+			if (bar != null) {
+				var source = e.NewValue as BitmapSource;
+				bar.BackImage.Source = source;
+				bar.BackImage.Width = source.PixelWidth;
+				bar.BackImage.Height = source.PixelHeight;
+				bar._bar.Visibility = Visibility.Collapsed;
+				OnProgressChanged(d, new DependencyPropertyChangedEventArgs(ProgressProperty, bar.Progress, bar.Progress));
+			}
+		}
+		
+		public BitmapSource FrontBitmapSource {
+			get { return (BitmapSource)GetValue(FrontBitmapSourceProperty); }
+			set { SetValue(FrontBitmapSourceProperty, value); }
+		}
+		public static DependencyProperty FrontBitmapSourceProperty = DependencyProperty.Register("FrontBitmapSource", typeof(BitmapSource), typeof(PatcherProgressBar), new PropertyMetadata(new PropertyChangedCallback(OnFrontBitmapSourceChanged)));
+
+		private static void OnFrontBitmapSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			PatcherProgressBar bar = d as PatcherProgressBar;
+
+			if (bar != null) {
+				var source = e.NewValue as BitmapSource;
+				bar.FrontImage.Source = source;
+				bar.FrontImage.Width = source.PixelWidth;
+				bar.FrontImage.Height = source.PixelHeight;
+				bar.Background = Brushes.Transparent;
+				bar.FrontImage.SetValue(ClipProperty, new RectangleGeometry(new Rect(0, 0, 0, bar.FrontImage.Height)));
+				bar._bar.Visibility = Visibility.Collapsed;
+				OnProgressChanged(d, new DependencyPropertyChangedEventArgs(ProgressProperty, bar.Progress, bar.Progress));
+			}
+		}
+
 		private static void _showBlurEffectChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkProgressBar bar = d as TkProgressBar;
+			PatcherProgressBar bar = d as PatcherProgressBar;
 
 			if (bar != null) {
 				var value = (bool)e.NewValue;
@@ -50,7 +104,7 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		private static void _enableBarTextEffectChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkProgressBar bar = d as TkProgressBar;
+			PatcherProgressBar bar = d as PatcherProgressBar;
 
 			if (bar != null) {
 				var value = (bool)e.NewValue;
@@ -68,15 +122,16 @@ namespace TokeiLibrary.WPF.Styles {
 			}
 		}
 
-		public static DependencyProperty ProgressProperty = DependencyProperty.Register("Progress", typeof(float), typeof(TkProgressBar), new PropertyMetadata(new PropertyChangedCallback(OnProgressChanged)));
-		public static readonly DependencyProperty ShowCancelButtonProperty = DependencyProperty.Register("ShowCancelButton", typeof(bool), typeof(TkProgressBar), new FrameworkPropertyMetadata(true));
-		public static readonly DependencyProperty ShowBlurEffectProperty = DependencyProperty.Register("ShowBlurEffect", typeof(bool), typeof(TkProgressBar), new FrameworkPropertyMetadata(true, _showBlurEffectChanged));
-		public static readonly DependencyProperty EnableBarTextProperty = DependencyProperty.Register("EnableBarText", typeof(bool), typeof(TkProgressBar), new FrameworkPropertyMetadata(true, _enableBarTextEffectChanged));
-		public static readonly DependencyProperty SmoothProgressProperty = DependencyProperty.Register("SmoothProgress", typeof(bool), typeof(TkProgressBar), new FrameworkPropertyMetadata(false));
-		public static readonly DependencyProperty ForegroundColorProperty = DependencyProperty.Register("ForegroundColor", typeof(Brush), typeof(TkProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 0, 211, 40)), _foregroundChanged));
-		public static readonly DependencyProperty CancelBrushProperty = DependencyProperty.Register("CancelBrush", typeof(Brush), typeof(TkProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)), _normalBrushChanged));
-		public static readonly DependencyProperty NormalBrushProperty = DependencyProperty.Register("NormalBrush", typeof(Brush), typeof(TkProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 0, 211, 40))));
-		public static readonly DependencyProperty ErrorBrushProperty = DependencyProperty.Register("ErrorBrush", typeof(Brush), typeof(TkProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 83, 83, 83))));
+		public static DependencyProperty ProgressProperty = DependencyProperty.Register("Progress", typeof(float), typeof(PatcherProgressBar), new PropertyMetadata(new PropertyChangedCallback(OnProgressChanged)));
+		public static readonly DependencyProperty ShowCancelButtonProperty = DependencyProperty.Register("ShowCancelButton", typeof(bool), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(true));
+		public static readonly DependencyProperty ShowBlurEffectProperty = DependencyProperty.Register("ShowBlurEffect", typeof(bool), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(true, _showBlurEffectChanged));
+		public static readonly DependencyProperty EnableBarTextProperty = DependencyProperty.Register("EnableBarText", typeof(bool), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(true, _enableBarTextEffectChanged));
+		public static readonly DependencyProperty SmoothProgressProperty = DependencyProperty.Register("SmoothProgress", typeof(bool), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(false));
+		public static readonly DependencyProperty ForegroundColorProperty = DependencyProperty.Register("ForegroundColor", typeof(Brush), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 0, 211, 40)), _foregroundChanged));
+		public static readonly DependencyProperty CancelBrushProperty = DependencyProperty.Register("CancelBrush", typeof(Brush), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 255, 0, 0)), _normalBrushChanged));
+		public static readonly DependencyProperty NormalBrushProperty = DependencyProperty.Register("NormalBrush", typeof(Brush), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 0, 211, 40))));
+		public static readonly DependencyProperty ErrorBrushProperty = DependencyProperty.Register("ErrorBrush", typeof(Brush), typeof(PatcherProgressBar), new FrameworkPropertyMetadata(new SolidColorBrush(Color.FromArgb(255, 83, 83, 83))));
+		public static readonly DependencyProperty ClippingWidthProperty = DependencyProperty.Register("ClippingWidth", typeof(double), typeof(PatcherProgressBar), new FrameworkPropertyMetadata((double)0, _clipWidthChanged));
 		public ProgressBarDisplayDelegate DisplayProgress;
 		private Button _buttonCancel;
 		private Image _buttonError;
@@ -89,7 +144,7 @@ namespace TokeiLibrary.WPF.Styles {
 		private Rectangle _rect;
 		private bool _eventsEnabled = true;
 
-		public TkProgressBar() {
+		public PatcherProgressBar() {
 			DisplayProgress = _displayProgress;
 		}
 
@@ -108,6 +163,11 @@ namespace TokeiLibrary.WPF.Styles {
 			set { SetValue(ShowBlurEffectProperty, value); }
 		}
 
+		public double ClippingWidth {
+			get { return (double)GetValue(ClippingWidthProperty); }
+			set { SetValue(ClippingWidthProperty, value); }
+		}
+		
 		public bool SmoothProgress {
 			get { return (bool)GetValue(SmoothProgressProperty); }
 			set { SetValue(SmoothProgressProperty, value); }
@@ -154,7 +214,7 @@ namespace TokeiLibrary.WPF.Styles {
 			}
 		}
 
-		private static void _forceUpdate(TkProgressBar bar, float newValue) {
+		private static void _forceUpdate(PatcherProgressBar bar, float newValue) {
 			if (bar.DisplayProgress == null)
 				bar.DisplayProgress = bar._displayProgress;
 
@@ -162,11 +222,98 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		private static void OnProgressChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkProgressBar bar = d as TkProgressBar;
+			PatcherProgressBar bar = d as PatcherProgressBar;
 
 			if (bar != null && bar.EventsEnabled) {
 				_forceUpdate(bar, (float) e.NewValue);
 			}
+		}
+
+		public float ProgressOnly {
+			get { return _progress; }
+			set {
+				if (value == _progress)
+					return;
+
+				_progress = value;
+
+				if (_states.ContainsKey(value)) {
+					Display = _states[value];
+					_setIsIndterminate(true);
+				}
+				else if (_progress == -5) {
+					Display = "Indexing content";
+					_setIsIndterminate(true);
+				}
+				else if (_progress == -2) {
+					Display = "Scanning encrypted content";
+					_setIsIndterminate(true);
+				}
+				else if (_progress < 0) {
+					Display = "Processing";
+					_setIsIndterminate(true);
+				}
+				else if (_progress == 0) {
+					_setIsIndterminate(false);
+					_setProg(value);
+				}
+				else if (_progress >= 100.0f) {
+					_setIsIndterminate(false);
+					Display = "Finished";
+					_setProg(value);
+				}
+				else {
+					_setIsIndterminate(false);
+					_setProg(value);
+				}
+			}
+		}
+
+		private void _setIsIndterminate(bool value) {
+			this.Dispatch(delegate {
+				if (FrontImage.Source != null) {
+					FrontImage.Visibility = value ? Visibility.Hidden : Visibility.Visible;
+				}
+				else {
+					IsIndeterminate = value;
+				}
+			});
+		}
+
+		private void _setClipWidth(double value) {
+			FrontImage.SetValue(ClipProperty, new RectangleGeometry(new Rect(0, 0, value / 100f * FrontImage.Width, FrontImage.Height)));
+		}
+
+		private void _setProg(float value) {
+			this.Dispatch(delegate {
+				if (FrontImage.Source != null) {
+					if (SmoothProgress && RefreshUpdate > 50 && value > 0 && _previousValue < value) {
+						if (_story == null) {
+							_story = new Storyboard();
+							_animation = new DoubleAnimation();
+							_story.Children.Add(_animation);
+							Storyboard.SetTarget(_animation, this);
+							Storyboard.SetTargetProperty(_animation, new PropertyPath(ClippingWidthProperty));
+						}
+
+						_animation.Duration = TimeSpan.FromMilliseconds(RefreshUpdate);
+						_animation.From = _previousValue;
+						_animation.To = value;
+						_story.Begin();
+					}
+					else {
+						if (_story != null)
+							_story.Stop();
+
+						FrontImage.SetValue(ClipProperty, new RectangleGeometry(new Rect(0, 0, value / 100f * FrontImage.Width, FrontImage.Height)));
+					}
+
+					_previousValue = value;
+				}
+				else {
+					_progressBar.Value = value;
+				}
+			});
 		}
 
 		public event RoutedEventHandler Cancel;
@@ -187,7 +334,7 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		static void _foregroundChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkProgressBar bar = d as TkProgressBar;
+			PatcherProgressBar bar = d as PatcherProgressBar;
 
 			if (bar != null) {
 				if (bar._progressBar != null)
@@ -196,13 +343,21 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		static void _normalBrushChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-			TkProgressBar bar = d as TkProgressBar;
+			PatcherProgressBar bar = d as PatcherProgressBar;
 
 			if (bar != null) {
 				if (bar._progressBar != null)
 					bar._progressBar.Foreground = (Brush)e.NewValue;
 
 				bar.NormalBrush = (Brush)e.NewValue;
+			}
+		}
+
+		static void _clipWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+			PatcherProgressBar bar = d as PatcherProgressBar;
+
+			if (bar != null) {
+				bar._setClipWidth((double)e.NewValue);
 			}
 		}
 
@@ -218,75 +373,89 @@ namespace TokeiLibrary.WPF.Styles {
 
 				if (_states.ContainsKey(value)) {
 					Display = _states[value];
-					IsIndeterminate = true;
-				}
-				else if (_progress == -7) {
-					Display = "Copying file...";
-					IsIndeterminate = true;
+					_setIsIndterminate(true);
 				}
 				else if (_progress == -5) {
 					Display = "Indexing content";
-					IsIndeterminate = true;
+					_setIsIndterminate(true);
 				}
 				else if (_progress == -2) {
 					Display = "Scanning encrypted content";
-					IsIndeterminate = true;
+					_setIsIndterminate(true);
 				}
 				else if (_progress < 0) {
 					Display = "Processing";
-					IsIndeterminate = true;
+					_setIsIndterminate(true);
 				}
 				else if (_progress == 0) {
-					IsIndeterminate = false;
+					_setIsIndterminate(false);
 					Display = "";
-					_progressBar.Value = value;
+					_setProg(value);
 				}
 				else if (_progress >= 100.0f) {
+					_setIsIndterminate(false);
+					Display = "Finished";
 					SetSpecialState(ProgressStatus.Finished);
+					_setProg(value);
 				}
 				else {
-					IsIndeterminate = false;
+					_setIsIndterminate(false);
 					Display = String.Format("{0:0.00} %", _progress);
-					_progressBar.Value = value;
+					_setProg(value);
 				}
 			});
 		}
 
 		public void SetSpecialState(ProgressStatus state) {
-			this.Dispatch(delegate {
-				_buttonError.Visibility = Visibility.Collapsed;
-				_progress = 100f;
-				_progressBar.Value = 100f;
+			this.Dispatch(p => p._buttonError.Visibility = Visibility.Collapsed);
+
+			try {
+				EventsEnabled = false;
+
+				_setProg(100f);
+				Progress = 100f;
+				_progressBar.Dispatch(p => p.Value = 100f);
 
 				switch (state) {
 					case ProgressStatus.Finished:
-						IsIndeterminate = false;
-						ForegroundColor = NormalBrush;
+						_setIsIndterminate(false);
+						this.Dispatch(p => p.ForegroundColor = NormalBrush);
 						Display = "Finished";
 						break;
 					case ProgressStatus.ErrorsDetected:
-						IsIndeterminate = false;
+						_setIsIndterminate(false);
 						Display = "Errors were detected";
-						_buttonError.Visibility = Visibility.Visible;
-						ForegroundColor = ErrorBrush;
+						this.Dispatch(p => p._buttonError.Visibility = Visibility.Visible);
+						this.Dispatch(p => p.ForegroundColor = ErrorBrush);
 						break;
 					case ProgressStatus.FileLoaded:
-						IsIndeterminate = false;
+						_setIsIndterminate(false);
 						Display = "File loaded successfully";
-						ForegroundColor = NormalBrush;
+						this.Dispatch(p => p.ForegroundColor = NormalBrush);
 						break;
 					case ProgressStatus.Cancelling:
-						IsIndeterminate = true;
+						_setIsIndterminate(true);
 						Display = "Cancelling...";
-						ForegroundColor = CancelBrush;
+						this.Dispatch(p => p.ForegroundColor = CancelBrush);
 						break;
 				}
-			});
+			}
+			finally {
+				EventsEnabled = true;
+			}
+		}
+
+		public void SetInternal(float value) {
+			_progress = value;
+			_progressBar.Dispatch(p => p.Value = value);
 		}
 
 		private readonly Dictionary<float, string> _states = new Dictionary<float, string>();
 		private readonly Dictionary<string, float> _statesValue = new Dictionary<string, float>();
 		private ProgressBar _bar;
+		private Storyboard _story;
+		private float _previousValue;
+		private DoubleAnimation _animation;
 
 		public void SetIntermediateState(string value) {
 			if (_statesValue.ContainsKey(value)) {
@@ -400,17 +569,23 @@ namespace TokeiLibrary.WPF.Styles {
 			lab2.VerticalAlignment = VerticalAlignment.Center;
 
 			if (!EnableBarText) {
-				lab1.Visibility = Visibility.Collapsed;
-				lab2.Visibility = Visibility.Collapsed;
+				lab1.Visibility = System.Windows.Visibility.Collapsed;
+				lab2.Visibility = System.Windows.Visibility.Collapsed;
 			}
 
 			if (ShowBlurEffect) mainGrid.Children.Add(_rect);
 			mainGrid.Children.Add(_bar);
 			if (ShowCancelButton) mainGrid.Children.Add(button);
+			mainGrid.Children.Add(BackImage);
+			mainGrid.Children.Add(FrontImage);
 			mainGrid.Children.Add(lab1);
 			mainGrid.Children.Add(lab2);
 			mainGrid.Children.Add(image);
 			Content = mainGrid;
+
+			if (FrontImage.Source != null || BackImage.Source != null) {
+				_bar.Visibility = Visibility.Collapsed;
+			}
 
 			_progressBar = _bar;
 			_lab1 = lab1;

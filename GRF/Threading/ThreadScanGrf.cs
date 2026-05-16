@@ -51,7 +51,7 @@ namespace GRF.Threading {
 
 					while (toIndex < indexMax) {
 						fromIndex = toIndex;
-						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value);
+						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value, out _);
 
 						for (int i = fromIndex; i < toIndex; i++) {
 							if (Cancelling)

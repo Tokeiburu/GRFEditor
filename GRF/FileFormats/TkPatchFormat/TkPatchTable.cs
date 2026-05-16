@@ -17,7 +17,7 @@ namespace GRF.FileFormats.TkPatchFormat {
 		public TkPatchTable(TkPatch tkPatch, ByteReaderStream reader) {
 			reader.Position = tkPatch.Header.FileTableOffset;
 
-			byte[] tableDecompressed = Compression.DecompressDotNet(reader.Bytes(reader.Length - reader.Position));
+			byte[] tableDecompressed = Compression.DecompressZlibDotNet(reader.Bytes(reader.Length - reader.Position));
 
 			ByteReader bReader = new ByteReader(tableDecompressed);
 

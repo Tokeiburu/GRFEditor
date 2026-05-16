@@ -72,13 +72,13 @@
 
     <!-- GRF Editor style overrides - ListView property colors -->
     <Color x:Key="UIThemePropertyDefaultColor">Black</Color>
-    <Color x:Key="UIThemePropertyCustomCompressedColor">#CE6ACB</Color>
+	<Color x:Key="UIThemePropertyLzmaCompressedColor">#CE6ACB</Color>
     <Color x:Key="UIThemePropertyEncryptedColor">#F68D00</Color>
     <Color x:Key="UIThemePropertyRemovedColor">#FF5858</Color>
     <Color x:Key="UIThemePropertyAddedColor">#A2A2FF</Color>
 
     <SolidColorBrush x:Key="CellBrushDefault" Color="{StaticResource UIThemePropertyDefaultColor}"/>
-    <SolidColorBrush x:Key="CellBrushCustomCompression" Color="{StaticResource UIThemePropertyCustomCompressedColor}"/>
+	<SolidColorBrush x:Key="CellBrushCustomCompression" Color="{StaticResource UIThemePropertyLzmaCompressedColor}"/>
     <SolidColorBrush x:Key="CellBrushEncrypted" Color="{StaticResource UIThemePropertyEncryptedColor}"/>
     <SolidColorBrush x:Key="CellBrushRemoved" Color="{StaticResource UIThemePropertyRemovedColor}"/>
     <SolidColorBrush x:Key="CellBrushAdded" Color="{StaticResource UIThemePropertyAddedColor}"/>

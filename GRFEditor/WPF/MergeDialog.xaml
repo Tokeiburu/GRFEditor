@@ -17,8 +17,8 @@
                 <RowDefinition />
                 <RowDefinition />
             </Grid.RowDefinitions>
-            <Label Content="Older GRF" VerticalAlignment="Center" />
-            <Label Content="Newer GRF" VerticalAlignment="Center" Grid.Row="1" Grid.Column="0" />
+            <Label Content="Base GRF" VerticalAlignment="Center" />
+            <Label Content="Added GRF" VerticalAlignment="Center" Grid.Row="1" />
             <Styles:PathBrowser BrowseMode="File"  Name="_pathBrowserOldGrf" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserOldGrf_TextChanged" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge old - " MaxWidth="350" MinWidth="350" />
             <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserNewGrf" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserNewGrf_TextChanged" Grid.Row="1" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
             <Styles:TkProgressBar x:Name="_progressBarComponent" Grid.Row="3" Grid.Column="1" Margin="3" />

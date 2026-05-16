@@ -75,7 +75,8 @@ namespace GRF.ContainerFormat.Commands {
 			GrfExceptions.IfSavingThrow(_container);
 			GrfExceptions.IfNullThrow(grfFile, "grfFile");
 			GrfExceptions.IfNullThrow(fileOrFolder, "fileOrFolder");
-			if (!File.Exists(fileOrFolder)) GrfExceptions.ThrowFileNotFound(fileOrFolder);
+			if (!File.Exists(fileOrFolder))
+				throw GrfExceptions.__FileNotFound.Create(fileOrFolder);
 
 			if (!EncodingService.IsCompatible(grfFile, EncodingService.DisplayEncoding))
 				throw GrfExceptions.__InvalidTextEncoding.Create(grfFile);
@@ -505,7 +506,7 @@ namespace GRF.ContainerFormat.Commands {
 
 				// This is no longer allowed. Use the MergeFolders method instead
 				if (_container.Table.Directories.Contains(newPath))
-					GrfExceptions.ThrowFolderNameAlreadyExists(newPath);
+					throw GrfExceptions.__FolderNameAlreadyExists.Create(newPath);
 
 				StoreAndExecute(new RenameFolder<TEntry>(oldPath, newPath, callback));
 			}
@@ -746,6 +747,15 @@ namespace GRF.ContainerFormat.Commands {
 		/// <summary>
 		/// Encrypts GRF files.
 		/// </summary>
+		/// <param name="grfFile">The GRF file.</param>
+		/// <param name="callback">The callback.</param>
+		public void EncryptFile(string grfFile, CCallbacks.EncryptFilesCallback callback = null) {
+			EncryptFiles(new List<string> { grfFile }, callback);
+		}
+
+		/// <summary>
+		/// Encrypts GRF files.
+		/// </summary>
 		/// <param name="grfFiles">The GRF files.</param>
 		/// <param name="callback">The callback.</param>
 		public void EncryptFiles(IEnumerable<string> grfFiles, CCallbacks.EncryptFilesCallback callback = null) {
@@ -758,6 +768,23 @@ namespace GRF.ContainerFormat.Commands {
 				return;
 
 			StoreAndExecute(new EncryptFiles<TEntry>(files, callback));
+		}
+
+		/// <summary>
+		/// Encrypts all GRF files.
+		/// </summary>
+		/// <param name="callback">The callback.</param>
+		public void EncryptAll(CCallbacks.EncryptFilesCallback callback = null) {
+			EncryptFiles(_container.Table.Files, callback);
+		}
+
+		/// <summary>
+		/// Decrypts GRF files.
+		/// </summary>
+		/// <param name="grfFile">The GRF file.</param>
+		/// <param name="callback">The callback.</param>
+		public void DecryptFile(string grfFile, CCallbacks.EncryptFilesCallback callback = null) {
+			DecryptFiles(new List<string> { grfFile }, callback);
 		}
 
 		/// <summary>
@@ -775,6 +802,14 @@ namespace GRF.ContainerFormat.Commands {
 				return;
 
 			StoreAndExecute(new DecryptFiles<TEntry>(files, callback));
+		}
+
+		/// <summary>
+		/// Decrypts all GRF files.
+		/// </summary>
+		/// <param name="callback">The callback.</param>
+		public void DecryptAll(CCallbacks.EncryptFilesCallback callback = null) {
+			DecryptFiles(_container.Table.Files, callback);
 		}
 
 		/// <summary>

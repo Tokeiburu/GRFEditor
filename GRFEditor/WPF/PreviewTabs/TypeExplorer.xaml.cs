@@ -11,6 +11,7 @@ using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.Graphics;
 using GRF.Image;
 using GrfToWpfBridge.TreeViewManager;
+using Utilities;
 
 namespace GRFEditor.WPF.PreviewTabs {
 	/// <summary>

@@ -74,9 +74,9 @@
   <ItemGroup>
     <Compile Include="BasicErrorHandler.cs" />
     <Compile Include="CommandLineOptions.cs" />
+    <Compile Include="Crc32QuickHash.cs" />
     <Compile Include="GrfCL.cs" />
     <Compile Include="GrfCLCommands.cs" />
-    <Compile Include="GrfCLCommands2.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
@@ -167,7 +167,7 @@
   </Target>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

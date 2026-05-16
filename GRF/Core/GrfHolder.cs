@@ -13,6 +13,7 @@ using GRF.Threading;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
+using Encryption;
 
 namespace GRF.Core {
 	/// <summary>
@@ -96,59 +97,46 @@ namespace GRF.Core {
 		/// <summary>
 		/// Gets a value indicating whether this container is closed.
 		/// </summary>
-		public virtual bool IsClosed {
-			get { return _grfClosed; }
-		}
+		public virtual bool IsClosed => _grfClosed;
 
 		/// <summary>
 		/// Gets a value indicating whether this container is opened.
 		/// </summary>
-		public virtual bool IsOpened {
-			get { return !_grfClosed; }
-		}
+		public virtual bool IsOpened => !_grfClosed;
 
 		/// <summary>
 		/// Gets the header.
 		/// </summary>
-		public virtual GrfHeader Header {
-			get { return _grf.InternalHeader; }
-		}
+		public virtual GrfHeader Header => _grf.InternalHeader;
 
 		/// <summary>
 		/// Gets the file table.
 		/// </summary>
-		public virtual FileTable FileTable {
-			get { return _grf.InternalTable; }
-		}
+		public virtual FileTable FileTable => _grf.InternalTable;
 
 		/// <summary>
 		/// Gets a value indicating whether this container has been modified.
 		/// </summary>
-		public bool IsModified {
-			get { return _grf.IsModified; }
-		}
+		public bool IsModified => _grf.IsModified;
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the reload should be cancelled.
+		/// Gets or sets the last SaveResult outcome of a save operation.
 		/// </summary>
-		public virtual bool CancelReload {
-			get { return _grf.CancelReload; }
-			set { _grf.CancelReload = value; }
+		public ContainerSaveResult LastSaveResult {
+			get => _grf.SaveResult;
 		}
 
 		/// <summary>
 		/// Gets the name of the opened file.
 		/// </summary>
-		public virtual string FileName {
-			get { return _grf.FileName; }
-		}
+		public virtual string FileName => _grf.FileName;
 
 		/// <summary>
 		/// Gets or sets a value indicating whether this instance is a new file.
 		/// </summary>
 		public virtual bool IsNewGrf {
-			get { return _grf.IsNewGrf; }
-			set { _grf.IsNewGrf = value; }
+			get => _grf.IsNewGrf;
+			set => _grf.IsNewGrf = value;
 		}
 
 		private Container _grf {
@@ -166,16 +154,12 @@ namespace GRF.Core {
 			}
 		}
 
-		internal Container Container {
-			get { return _grf; }
-		}
+		internal Container Container => _grf;
 
 		/// <summary>
 		/// Main component to execute commands on the GRF.
 		/// </summary>
-		public CommandsHolder<FileEntry> Commands {
-			get { return _grf.Commands; }
-		}
+		public CommandsHolder<FileEntry> Commands => _grf.Commands;
 
 		#region IDisposable Members
 
@@ -255,6 +239,37 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
+		/// Sets the encryption key using the direct password.
+		/// </summary>
+		/// <param name="keypass">The keypass.</param>
+		public void SetEncryptionPassword(string keypass) {
+			_validateOperation(Condition.Opened);
+
+			SetEncryptionKey(Ee322.fc598f9d7ea7a3dfb74fd71f285c0d77(Ee322.fec67f91f4ef59f498874efbdd21c1c1(keypass)));
+		}
+
+		/// <summary>
+		/// Sets the encryption key using the .grfkey file.
+		/// </summary>
+		/// <param name="key">The key.</param>
+		public void SetEncryptionKeyFile(byte[] key) {
+			_validateOperation(Condition.Opened);
+
+			SetEncryptionKey(Ee322.fc598f9d7ea7a3dfb74fd71f285c0d77(key));
+		}
+
+		/// <summary>
+		/// Sets the 256 byte encryption key.
+		/// </summary>
+		/// <param name="key">The key.</param>
+		public void SetEncryptionKey(byte[] key) {
+			_validateOperation(Condition.Opened);
+
+			Header.SetKey(key, this);
+			Header.EncryptionManualSet = true;
+		}
+
+		/// <summary>
 		/// Detects the encrypted files and sets the flag.
 		/// </summary>
 		public void SetEncryptionFlag(bool forceSet = false) {
@@ -270,39 +285,30 @@ namespace GRF.Core {
 					using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
 						if (grf.FileTable.ContainsFile(file)) {
 							var encryptedFiles = Encoding.Default.GetString(grf.FileTable[file].GetDecompressedData());
-					
+						
 							foreach (var line in encryptedFiles.Split(new char[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries)) {
 								if (!string.IsNullOrEmpty(line)) {
 									var entry = _grf.Table.TryGet(line);
-									if (entry != null) {
+									if (entry != null && ((entry.Flags & EntryType.GravityEncryptedFile) != EntryType.GravityEncryptedFile)) {
 										entry.Flags |= EntryType.GrfEditorCrypted;
 										entry.OnPropertyChanged("Encrypted");
 									}
 								}
 							}
-					
+						
 							if (IsOpened)
 								Header.EncryptionCheckFlag = false;
-					
+						
 							return;
 						}
 					}
 
 					AProgress.Init(_grf);
 					GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
-					pool.Initialize<ThreadSetEncryption>(_grf, FileTable.Entries, 1);
+					pool.Initialize<ThreadSetEncryption>(_grf, FileTable.Entries.OrderBy(p => p.FileExactOffset).ToList(), 1);
 					pool.Start(v => _grf.Progress = v, () => _grf.IsCancelling);
 
-					using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
-						StringBuilder files = new StringBuilder();
-					
-						foreach (var entry in FileTable.Entries.Where(p => p.Encrypted)) {
-							files.AppendLine(entry.RelativePath);
-						}
-					
-						grf.Commands.AddFile(file, Encoding.Default.GetBytes(files.ToString()));
-						grf.QuickSave();
-					}
+					WriteEncryptionIndex(_grf, file);
 				}
 				catch (Exception) {
 					//ErrorHandler.HandleException(err);
@@ -315,6 +321,24 @@ namespace GRF.Core {
 
 			if (IsOpened)
 				Header.EncryptionCheckFlag = false;
+		}
+
+		internal static void WriteEncryptionIndex(Container container, string fileUid) {
+			try {
+				using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
+					StringBuilder files = new StringBuilder();
+
+					foreach (var entry in container.Table.Entries.Where(p => p.Encrypted)) {
+						files.AppendLine(entry.RelativePath);
+					}
+
+					grf.Commands.AddFile(fileUid, Encoding.Default.GetBytes(files.ToString()));
+					grf.Save();
+				}
+			}
+			catch {
+				// Ignore any potential errors
+			}
 		}
 
 		/// <summary>
@@ -368,16 +392,8 @@ namespace GRF.Core {
 		/// <summary>
 		/// Repacks the GRF synchronously.
 		/// </summary>
-		public void Repack() {
-			Repack(null, SyncMode.Synchronous);
-		}
-
-		/// <summary>
-		/// Repacks the GRF synchronously.
-		/// </summary>
-		/// <param name="fileName">Name of the file.</param>
-		public void Repack(string fileName) {
-			Repack(fileName, SyncMode.Synchronous);
+		public ContainerSaveResult Repack() {
+			return RepackAs(null, SyncMode.Synchronous);
 		}
 
 		/// <summary>
@@ -385,22 +401,16 @@ namespace GRF.Core {
 		/// </summary>
 		/// <param name="fileName">Name of the file.</param>
 		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
-		public void Repack(string fileName, SyncMode syncMode) {
+		public ContainerSaveResult RepackAs(string fileName, SyncMode syncMode = SyncMode.Synchronous) {
 			_validateOperation(Condition.Opened);
-			_internalGrf.Save(fileName, null, SavingMode.Repack, syncMode);
-		}
-
-		/// <summary>
-		/// Saves the GRF synchronously.
-		/// </summary>
-		public void Save() {
-			Save(SyncMode.Synchronous);
+			return _internalGrf.Save(fileName, null, SavingMode.Repack, syncMode);
 		}
 
 		/// <summary>
 		/// Saves the GRF.
 		/// </summary>
-		public ContainerSaveResult Save(SyncMode syncMode) {
+		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
+		public ContainerSaveResult Save(SyncMode syncMode = SyncMode.Synchronous) {
 			_validateOperation(Condition.Opened);
 
 			string extension = _grf.FileName.GetExtension();
@@ -415,7 +425,7 @@ namespace GRF.Core {
 					mode = SavingMode.Thor;
 					break;
 				default:
-					mode = SavingMode.GrfSave;
+					mode = SavingMode.FileEdit;
 					break;
 			}
 
@@ -423,23 +433,14 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
-		/// Saves the GRF synchronously.
-		/// </summary>
-		/// <param name="fileName">Name of the file.</param>
-		public void Save(string fileName) {
-			Save(fileName, SyncMode.Synchronous);
-		}
-
-		/// <summary>
 		/// Saves the GRF.
 		/// </summary>
 		/// <param name="fileName">Name of the file.</param>
 		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
-		public void Save(string fileName, SyncMode syncMode) {
+		public ContainerSaveResult SaveAs(string fileName, SyncMode syncMode = SyncMode.Synchronous) {
 			_validateOperation(Condition.Opened);
 
-			string extension = fileName.GetExtension();
-
+			string extension = (fileName ?? _internalGrf.FileName).GetExtension();
 			SavingMode mode;
 
 			switch (extension) {
@@ -450,11 +451,37 @@ namespace GRF.Core {
 					mode = SavingMode.Thor;
 					break;
 				default:
-					mode = SavingMode.GrfSave;
+					mode = SavingMode.FileCopy;
 					break;
 			}
 
-			_internalGrf.Save(fileName, null, mode, syncMode);
+			return _internalGrf.Save(fileName, null, mode, syncMode);
+		}
+
+		/// <summary>
+		/// Defragment the GRF by copying all its content doing a SaveAs.
+		/// </summary>
+		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
+		public ContainerSaveResult Defragment(SyncMode syncMode = SyncMode.Synchronous) => SaveAs(null, syncMode);
+
+		/// <summary>
+		/// Defragment the GRF by copying all its content doing a SaveAs.
+		/// </summary>
+		/// <param name="fileName">Name of the file.</param>
+		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
+		public ContainerSaveResult DefragmentAs(string fileName, SyncMode syncMode = SyncMode.Synchronous) => SaveAs(fileName, syncMode);
+
+		/// <summary>
+		/// Redirects identical entries in the GRF table to save space.
+		/// </summary>
+		public ContainerSaveResult Compact() => CompactAs(null);
+
+		/// <summary>
+		/// Redirects identical entries in the GRF table to save space.
+		/// </summary>
+		public ContainerSaveResult CompactAs(string fileName) {
+			_validateOperation(Condition.Opened);
+			return _grf.Save(fileName, null, SavingMode.Compact, SyncMode.Synchronous);
 		}
 
 		private void _validateOperation(Condition condition) {
@@ -487,7 +514,7 @@ namespace GRF.Core {
 		/// </summary>
 		/// <param name="fileName">Name of the file.</param>
 		public void Open(string fileName) {
-			Open(fileName, 0);
+			Open(fileName ?? FileName, 0);
 		}
 
 		public void Open(string fileName, GrfLoadOptions options) {
@@ -495,6 +522,7 @@ namespace GRF.Core {
 		}
 
 		public void Open(string fileName, GrfLoadOptions options, GrfLoadData loadData) {
+			Close();
 			_validateOperation(Condition.Closed);
 
 			try {
@@ -533,79 +561,34 @@ namespace GRF.Core {
 		}
 
 		/// <summary>
-		/// Merges the GRF synchronously.
-		/// </summary>
-		/// <param name="grfAdd">The GRF add.</param>
-		public void Merge(GrfHolder grfAdd) {
-			Merge(grfAdd, SyncMode.Synchronous);
-		}
-
-		/// <summary>
-		/// Merges the GRF.
+		/// Merges the current GRF with another GRF.
 		/// </summary>
 		/// <param name="grfAdd">The GRF add.</param>
 		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
-		public void Merge(GrfHolder grfAdd, SyncMode syncMode) {
-			_grf.Save(null, grfAdd.Container, SavingMode.GrfSave, syncMode);
-		}
-
-		/// <summary>
-		/// Saves the GRF synchronously (does not repack).<para></para>
-		/// This method uses the QuickMerge feature if it's available.
-		/// </summary>
-		public bool QuickSave() {
+		public ContainerSaveResult Merge(GrfHolder grfAdd, SyncMode syncMode = SyncMode.Synchronous) {
 			switch (FileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
-					_grf.Save(null, null, SavingMode.QuickMerge, SyncMode.Synchronous);
-					return true;
+					return _grf.Save(null, grfAdd?.Container, SavingMode.FileEdit, syncMode);
 				default:
-					Save(SyncMode.Synchronous);
-					return false;
+					throw GrfExceptions.__MergeNotSupported.Create();
 			}
 		}
 
 		/// <summary>
-		/// Saves the GRF synchronously (does not repack).
-		/// This method uses the QuickMerge feature if it's available.
+		/// Merges the current GRF with another GRF to a specific destination.
 		/// </summary>
-		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
-		public bool QuickSave(SyncMode syncMode) {
-			switch (FileName.GetExtension()) {
-				case ".grf":
-				case ".gpf":
-					_grf.Save(null, null, SavingMode.QuickMerge, syncMode);
-					return true;
-				default:
-					Save(syncMode);
-					return false;
-			}
-		}
-
-		/// <summary>
-		/// Merges the GRF synchronously (does not repack).
-		/// </summary>
+		/// <param name="fileName">Name of the file.</param>
 		/// <param name="grfAdd">The GRF add.</param>
-		public bool QuickMerge(GrfHolder grfAdd) {
+		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
+		public ContainerSaveResult MergeAs(string fileName, GrfHolder grfAdd, SyncMode syncMode = SyncMode.Synchronous) {
 			switch (FileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
-					_grf.Save(null, grfAdd == null ? null : grfAdd.Container, SavingMode.QuickMerge, SyncMode.Synchronous);
-					return true;
+					return _grf.Save(fileName, grfAdd?.Container, SavingMode.FileCopy, syncMode);
 				default:
-					Save(SyncMode.Synchronous);
-					return false;
+					throw GrfExceptions.__MergeNotSupported.Create();
 			}
-		}
-
-		//public void AnySave( string path)
-
-		/// <summary>
-		/// Redirects identical entries in the GRF table to save space.
-		/// </summary>
-		public void Compact() {
-			_validateOperation(Condition.Opened);
-			_grf.Save(null, null, SavingMode.Compact, SyncMode.Synchronous);
 		}
 
 		/// <summary>
@@ -614,23 +597,6 @@ namespace GRF.Core {
 		/// <returns></returns>
 		public List<Utilities.Extension.Tuple<string, string>> GetSizes() {
 			return _grf.GetFileCompressedSizes();
-		}
-
-		/// <summary>
-		/// Merges the GRF (does not repack).
-		/// </summary>
-		/// <param name="grfAdd">The GRF add.</param>
-		/// <param name="syncMode">Synchronization mode (executed on a different thread if asynchronous).</param>
-		public bool QuickMerge(GrfHolder grfAdd, SyncMode syncMode) {
-			switch (FileName.GetExtension()) {
-				case ".grf":
-				case ".gpf":
-					_grf.Save(null, grfAdd == null ? null : grfAdd.Container, SavingMode.QuickMerge, syncMode);
-					return true;
-				default:
-					Save(syncMode);
-					return false;
-			}
 		}
 
 		/// <summary>
@@ -838,8 +804,7 @@ namespace GRF.Core {
 						new DirectoryInfo(folder).Create();
 				}
 
-				int numOfThreads = entries.Count / 50;
-				numOfThreads = numOfThreads <= 0 ? 1 : numOfThreads > Settings.MaximumNumberOfThreads ? Settings.MaximumNumberOfThreads : numOfThreads;
+				int numOfThreads = Methods.Clamp(entries.Count / 50, 1, Settings.MaximumNumberOfThreads);
 
 				if ((options & ExtractOptions.SingleThreaded) == ExtractOptions.SingleThreaded) {
 					numOfThreads = 1;
@@ -850,7 +815,32 @@ namespace GRF.Core {
 				entries = entries.OrderBy(p => p.FileExactOffset).ToList();
 				var pool = new GrfThreadPool<FileEntry>();
 				pool.Initialize<GrfThreadExtract>(_grf, entries, numOfThreads);
-				pool.Start(v => Progress = v, () => IsCancelling, !overrideCpuPerf, true);
+				pool.Start(v => Progress = v, () => IsCancelling, !overrideCpuPerf, true, errorHandling: false);
+
+				List<ExtractionResult> results = new List<ExtractionResult>();
+				Exception exception = null;
+
+				foreach (var t in pool.Threads.OfType<GrfThreadExtract>()) {
+					results.AddRange(t.ErrorResults);
+					
+					if (exception == null && t.Exception != null)
+						exception = t.Exception;
+				}
+
+				if (results.Count > 0) {
+					StringBuilder b = new StringBuilder();
+
+					b.AppendLine("Some files could not be extracted:");
+
+					foreach (var result in results) {
+						b.AppendLine("#" + result.Entry.RelativePath + " - " + result.Reason);
+					}
+
+					ErrorHandler.HandleException(b.ToString());
+				}
+				else if (exception != null) {
+					ErrorHandler.HandleException("Generic failure: a task in the thread pool has failed to finish properly. The current operation will be cancelled.", exception);
+				}
 			}
 			catch (OperationCanceledException) {
 			}
@@ -1103,6 +1093,45 @@ namespace GRF.Core {
 				header.Write(output);
 				output.SetLength(header.FileTableOffset + GrfHeader.DataByteSize + tableSize);
 			}
+		}
+
+		public override string ToString() {
+			try {
+				if (!IsOpened) {
+					return "Closed GRF";
+				}
+
+				if (_internalGrf == null)
+					return "No loaded GRF";
+
+				return _internalGrf.FileName + " | " + _internalGrf.InternalHeader.FormatView;
+			}
+			catch {
+				return "Invalid GRF";
+			}
+		}
+
+		public bool ProcessSaveResult(bool handle = true) {
+			var result = LastSaveResult;
+
+			if (result.Error != null) {
+				if (handle)
+					ErrorHandler.HandleException(result.Error);
+				else
+					throw result.Error;
+			}
+
+			if (result.RequiresReload)
+				Open(result.NewFileName);
+
+			if (result.IsCancelled) {
+				if (handle)
+					return false;
+				else
+					throw new OperationCanceledException();
+			}
+
+			return result.Success;
 		}
 	}
 

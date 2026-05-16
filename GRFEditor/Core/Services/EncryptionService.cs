@@ -99,7 +99,7 @@ namespace GRFEditor.Core.Services {
 			EncryptorInputKeyDialog dialog = new EncryptorInputKeyDialog("No encryption key has been set.");
 			dialog.Owner = Application.Current.MainWindow;
 			dialog.ShowDialog();
-
+			
 			if (dialog.Result == MessageBoxResult.OK) {
 				grfHolder.Header.SetKey(dialog.Key, grfHolder);
 			}

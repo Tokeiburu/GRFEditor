@@ -99,8 +99,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			switch (_grfData.FileName.GetExtension()) {
 				case ".thor":
-					_textBoxTargetGrf.Text = _grfData.GetAttachedProperty<string>("Thor.TargetGrf") ?? "";
-					_comboBoxPatchMode.SelectedIndex = _grfData.GetAttachedProperty<bool>("Thor.UseGrfMerging") ? 1 : 0;
+					_textBoxTargetGrf.Text = _grfData.Header.ThorSettings.TargetGrf ?? "";
+					_comboBoxPatchMode.SelectedIndex = _grfData.Header.ThorSettings.UseGrfMerging ? 1 : 0;
 					_labelPropertyType.Content = "Thor type properties";
 					_gridThor.Visibility = Visibility.Visible;
 					break;
@@ -114,7 +114,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					_gridGrf.Visibility = Visibility.Visible;
 
 					_comboBoxFormat.SelectionChanged -= _comboBoxFormat_SelectionChanged;
-					_comboBoxFormat.SelectedItem = _grfData.Header.FormatView;
+					Debug.Ignore(() => _comboBoxFormat.SelectedItem = _grfData.Header.FormatView);
 					_comboBoxFormat.SelectionChanged += _comboBoxFormat_SelectionChanged;
 					break;
 			}
@@ -127,7 +127,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 			try {
 				bool directoryPatchMode = _comboBoxPatchMode.SelectedIndex == 0;
 
-				_grfData.Attached["Thor.UseGrfMerging"] = !directoryPatchMode;
+				_grfData.Header.ThorSettings.UseGrfMerging = !directoryPatchMode;
 				var visibility = directoryPatchMode ? Visibility.Collapsed : Visibility.Visible;
 				_tbTarget.Visibility = visibility;
 				_textBoxTargetGrf.Visibility = visibility;
@@ -139,7 +139,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		private void _textBoxTargetGrf_TextChanged(object sender, TextChangedEventArgs e) {
-			_grfData.Attached["Thor.TargetGrf"] = _textBoxTargetGrf.Text;
+			_grfData.Header.ThorSettings.TargetGrf = _textBoxTargetGrf.Text;
 			_tkInfo.Visibility = _textBoxTargetGrf.Text == "" && _textBoxTargetGrf.Visibility == Visibility.Visible ? Visibility.Visible : Visibility.Collapsed;
 		}
 		#endregion

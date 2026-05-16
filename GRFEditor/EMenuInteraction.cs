@@ -70,7 +70,7 @@ namespace GRFEditor {
 			SaveAs,
 			Repack,
 			TableEncrypt,
-			Compress,
+			Defragment,
 			Compact,
 		};
 
@@ -82,7 +82,7 @@ namespace GRFEditor {
 				}
 
 				switch (mode) {
-					case GrfEditorSaveMode.Compress:
+					case GrfEditorSaveMode.Defragment:
 					case GrfEditorSaveMode.Compact:
 					case GrfEditorSaveMode.QuickSave:
 						if (_grfHolder.IsNewGrf) {
@@ -122,46 +122,51 @@ namespace GRFEditor {
 						break;
 				}
 
-				string oldFileName = _grfHolder.FileName;
-				string newFileName = file ?? oldFileName;
+				ContainerSaveResult result = null;
 
 				_asyncOperation.ProgressBar.Progress = 0;
 				_asyncOperation.ProgressBar.Progress = -1;
 				_asyncOperation.SetAndRunOperation(new GrfThread(() => {
 					switch (mode) {
 						case GrfEditorSaveMode.QuickSave:
-							_grfHolder.QuickSave();
+							result = _grfHolder.Save();
 							break;
 						case GrfEditorSaveMode.SaveAs:
-							_grfHolder.Save(file);
+							result = _grfHolder.SaveAs(file);
 							break;
-						case GrfEditorSaveMode.Compress:
-							_grfHolder.Save();
+						case GrfEditorSaveMode.Defragment:
+							result = _grfHolder.Defragment();
 							break;
 						case GrfEditorSaveMode.Repack:
-							_grfHolder.Repack(file);
+							result = _grfHolder.RepackAs(file);
 							break;
 						case GrfEditorSaveMode.Compact:
-							_grfHolder.Compact();
+							result = _grfHolder.Compact();
 							break;
 					}
-				}, _grfHolder, 250), delegate {
+				}, _grfHolder), delegate {
 					try {
-						// Finished saving...
-						if (_grfHolder.CancelReload) {
-							_grfHolder.CancelReload = false;
+						if (result == null)
+							return;
+
+						if (!result.Success) {
+							if (result.Error != null)
+								ErrorHandler.HandleException(result.Error);
+							if (result.RequiresReload)
+								Load(result.NewFileName, _grfHolder.Header.EncryptionKey);
+							if (result.IsCancelled)
+								return;
 							return;
 						}
 
-						_recentFilesManager.AddRecentFile(newFileName);
+						_recentFilesManager.AddRecentFile(result.NewFileName);
 
-						// The format changed, reload visuals
-						if (oldFileName != newFileName &&
-							oldFileName.GetExtension() != newFileName.GetExtension()) {
-							Load(newFileName, _grfHolder.Header.EncryptionKey);
-						}
-						else {
-							_reloadContainer(newFileName);
+						if (result.RequiresReload) {
+							// Both methods reload the GRF, however Load() resets the tree view and other elements
+							if (result.NewFileName.GetExtension() != result.OldFileName.GetExtension())
+								Load(result.NewFileName, _grfHolder.Header.EncryptionKey);
+							else
+								_reloadContainer(result.NewFileName);
 						}
 					}
 					catch (Exception err) {
@@ -427,7 +432,7 @@ namespace GRFEditor {
 					return false;
 				}
 
-				if (_grfHolder.IsOpened && (_grfHolder.IsModified || _grfHolder.IsBusy || _grfHolder.CancelReload)) {
+				if (_grfHolder.IsOpened && (_grfHolder.IsModified || _grfHolder.IsBusy)) {
 					ErrorHandler.HandleException("Cannot change the display encoding while a GRF is modified or is being saved. Save your GRF first.");
 					return false;
 				}

@@ -50,11 +50,11 @@ namespace GrfToWpfBridge {
 		}
 
 		public void Start(Action action, Func<float> progress) {
-			_async.SetAndRunOperation(new GrfThread(() => _start(action, progress), this, 200, null, true, true));
+			_async.SetAndRunOperation(new GrfThread(() => _start(action, progress), this, null, true, true));
 		}
 
 		public void Start(Action<Func<bool>> action, Func<float> progress) {
-			_async.SetAndRunOperation(new GrfThread(() => _start(action, progress), this, 200, null, true, true));
+			_async.SetAndRunOperation(new GrfThread(() => _start(action, progress), this, null, true, true));
 		}
 
 		public void SetUpdate(string message) {
@@ -64,7 +64,7 @@ namespace GrfToWpfBridge {
 		private void _start(Action<Func<bool>> action, Func<float> progress) {
 			Progress = -1;
 
-			var grfThread = new GrfThread(() => action(() => IsCancelling), this, 200, null, true, true);
+			var grfThread = new GrfThread(() => action(() => IsCancelling), this, null, true, true);
 
 			grfThread.Finished += delegate {
 				Progress = 100f;
@@ -91,7 +91,7 @@ namespace GrfToWpfBridge {
 		private void _start(Action action, Func<float> progress) {
 			Progress = -1;
 
-			var grfThread = new GrfThread(action, this, 200, null, true, true);
+			var grfThread = new GrfThread(action, this, null, true, true);
 
 			grfThread.Finished += delegate {
 				Progress = 100f;
@@ -101,7 +101,7 @@ namespace GrfToWpfBridge {
 			grfThread.Start();
 
 			while (progress() < 100f && grfThread.IsRunning) {
-				Thread.Sleep(200);
+				Thread.Sleep(100);
 				var prog = progress();
 				Progress = prog <= 0 ? -1 : prog;
 

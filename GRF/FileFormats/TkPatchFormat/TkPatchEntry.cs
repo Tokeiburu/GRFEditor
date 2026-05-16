@@ -67,7 +67,7 @@ namespace GRF.FileFormats.TkPatchFormat {
 			}
 
 			if (SourceFilePath != null) {
-				return Compression.CompressDotNet(File.ReadAllBytes(SourceFilePath));
+				return Compression.CompressZlibDotNet(File.ReadAllBytes(SourceFilePath));
 			}
 
 			_stream.PositionLong = Offset;

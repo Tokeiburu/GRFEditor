@@ -61,7 +61,7 @@ namespace GRFEditor.WPF {
 			Binder.Bind(_cbRegex);
 			Binder.Bind(_cbWholeWord);
 			Binder.Bind(_tbSearchPattern);
-			Binder.Bind(_tbFilePattern, "*.txt;*.lua;*.log;*.xml;*.ini");
+			Binder.Bind(_tbFilePattern, "*.txt;*.lua;*.log;*.xml;*.ini;*.lub");
 
 			_tbSearchPattern_LostFocus(null, null);
 			_tbFilePattern_LostFocus(null, null);
@@ -302,7 +302,7 @@ namespace GRFEditor.WPF {
 		}
 
 		private void _search() {
-			_async.SetAndRunOperation(new GrfThread(_searchSub, this, 200));
+			_async.SetAndRunOperation(new GrfThread(_searchSub, this));
 		}
 
 		private void _buttonOpenSubMenu_Click(object sender, RoutedEventArgs e) {
@@ -326,7 +326,7 @@ namespace GRFEditor.WPF {
 		public bool IsCancelled { get; set; }
 
 		private void _fbReset_Click(object sender, RoutedEventArgs e) {
-			_tbFilePattern.Text = "*.txt;*.lua;*.log;*.xml;*.ini";
+			_tbFilePattern.Text = "*.txt;*.lua;*.log;*.xml;*.ini;*.lub";
 		}
 
 		private void _miExtract_Click(object sender, RoutedEventArgs e) {
@@ -338,7 +338,7 @@ namespace GRFEditor.WPF {
 													 GrfEditorConfiguration.DefaultExtractingPath, 
 													 (GrfEditorConfiguration.AlwaysOpenAfterExtraction ? ExtractOptions.OpenAfterExtraction : ExtractOptions.Normal) |
 													 (GrfEditorConfiguration.OverrideExtractionPath ? ExtractOptions.UseAppDataPathToExtract : ExtractOptions.Normal),
-													 SyncMode.Synchronous), this, 200, null, true));
+													 SyncMode.Synchronous), this, null, true));
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
@@ -357,7 +357,7 @@ namespace GRFEditor.WPF {
 														 (GrfEditorConfiguration.AlwaysOpenAfterExtraction ? ExtractOptions.OpenAfterExtraction : ExtractOptions.Normal) |
 														 (GrfEditorConfiguration.OverrideExtractionPath ? ExtractOptions.UseAppDataPathToExtract : ExtractOptions.Normal) |
 														 ExtractOptions.ExtractAllInSameFolder,
-						                                 SyncMode.Synchronous), this, 200, null, true));
+						                                 SyncMode.Synchronous), this, null, true));
 				}
 			}
 			catch (Exception err) {

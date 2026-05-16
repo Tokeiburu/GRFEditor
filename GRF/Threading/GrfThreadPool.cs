@@ -49,7 +49,7 @@ namespace GRF.Threading {
 			Start(progressUpdate, isCancelling, true, true);
 		}
 
-		public void Start(Action<float> progressUpdate, Func<bool> isCancelling, bool enableCpuPerformance, bool startThreads) {
+		public void Start(Action<float> progressUpdate, Func<bool> isCancelling, bool enableCpuPerformance, bool startThreads, bool errorHandling = true) {
 			const int DelayThreads = 2;
 
 			if (startThreads) {
@@ -124,9 +124,10 @@ namespace GRF.Threading {
 				}
 			}
 
-			if (isCancelling()) throw new OperationCanceledException();
+			if (isCancelling())
+				throw new OperationCanceledException();
 
-			if (_threads.Any(p => p.Error)) {
+			if (errorHandling && _threads.Any(p => p.Error)) {
 				ErrorHandler.HandleException("Generic failure: a task in the thread pool has failed to finish properly. The current operation will be cancelled.", _threads.First(p => p.Error).Exception);
 				throw new OperationCanceledException();
 			}
@@ -136,48 +137,35 @@ namespace GRF.Threading {
 		}
 
 		public long Dump(FileHeader header, Stream grfStream, long offset = GrfHeader.DataByteSize, long grfAddTotalSize = 0) {
-			try {
-				const int BufferCopyLength = 2097152;
-				byte[] buffer = new byte[BufferCopyLength];
-				long totalLength = offset;
+			const int BufferCopyLength = 2097152;
+			byte[] buffer = new byte[BufferCopyLength];
+			long totalLength = offset;
 
-				// Validate total length
-				foreach (GrfWriterThread<TEntry> t in Threads) {
-					totalLength += new FileInfo(t.FileName).Length;
-				}
-
-				if (header.IsNotCompatibleWith(3, 0) && totalLength + grfAddTotalSize > uint.MaxValue) {
-					throw GrfExceptions.__GrfSizeLimitReached.Create();
-				}
-
-				foreach (GrfWriterThread<TEntry> t in Threads) {
-					if (t.OutputFileStream != null) {
-						t.OutputFileStream.Close();
-					}
-
-					using (FileStream file = new FileStream(t.FileName, FileMode.Open)) {
-						int len;
-						while ((len = file.Read(buffer, 0, BufferCopyLength)) > 0) {
-							grfStream.Write(buffer, 0, len);
-						}
-					}
-					File.Delete(t.FileName);
-				}
-
-				foreach (TEntry grfentry in Entries) {
-					grfentry.TemporaryOffset = offset;
-					offset += grfentry.TemporarySizeCompressedAlignment;
-				}
-
-				return offset;
+			// Validate total length
+			foreach (GrfWriterThread<TEntry> t in Threads) {
+				totalLength += new FileInfo(t.FileName).Length;
 			}
-			finally {
-				foreach (GrfWriterThread<TEntry> t in Threads) {
-					if (t.OutputFileStream != null) {
-						t.OutputFileStream.Close();
+
+			if (header.Version < 3.0 && totalLength + grfAddTotalSize > uint.MaxValue) {
+				throw GrfExceptions.__GrfSizeLimitReached.Create();
+			}
+
+			foreach (GrfWriterThread<TEntry> t in Threads) {
+				using (FileStream file = new FileStream(t.FileName, FileMode.Open)) {
+					int len;
+					while ((len = file.Read(buffer, 0, BufferCopyLength)) > 0) {
+						grfStream.Write(buffer, 0, len);
 					}
 				}
+				File.Delete(t.FileName);
 			}
+
+			foreach (TEntry grfentry in Entries) {
+				grfentry.TemporaryOffset = offset;
+				offset += grfentry.TemporarySizeCompressedAlignment;
+			}
+
+			return offset;
 		}
 	}
 

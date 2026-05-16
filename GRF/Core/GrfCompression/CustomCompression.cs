@@ -139,7 +139,7 @@ namespace GRF.Core.GrfCompression {
 
 						if (this is CpsCompression || (this is LzmaCompression && compressed.Length > 0 && compressed[0] != 0)) {
 							try {
-								Compression.DecompressDotNet(compressed);
+								Compression.DecompressZlibDotNet(compressed);
 							}
 							catch {
 								error = true;
@@ -152,7 +152,7 @@ namespace GRF.Core.GrfCompression {
 					}
 					else if (this is CpsCompression || (this is LzmaCompression && compressed.Length > 0 && compressed[0] != 0)) {
 						try {
-							return Compression.DecompressDotNet(compressed);
+							return Compression.DecompressZlibDotNet(compressed);
 						}
 						catch {
 						}

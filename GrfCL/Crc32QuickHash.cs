@@ -1,18 +1,17 @@
-﻿using System;
+﻿using GRF.Core;
+using GRF.IO;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using GRF.Core;
-using GRF.IO;
 using Utilities;
 using Utilities.CommandLine;
 
 namespace GrfCL {
-	static partial class GrfCL {
-		public static class Crc32QuickHash {
-			private static uint[] kCrc32Table = new uint[256] {
+	public static class Crc32QuickHash {
+		private static uint[] kCrc32Table = new uint[256] {
 				0x00000000, 0x77073096, 0xee0e612c, 0x990951ba,
 				0x076dc419, 0x706af48f, 0xe963a535, 0x9e6495a3,
 				0x0edb8832, 0x79dcb8a4, 0xe0d5e91e, 0x97d2d988,
@@ -79,48 +78,46 @@ namespace GrfCL {
 				0xb40bbe37, 0xc30c8ea1, 0x5a05df1b, 0x2d02ef8d,
 			}; // kCrc32Table
 
-			private static uint _crc;
+		private static uint _crc;
 
-			public static uint GetCrc32(byte[] pData) {
-				unchecked {
-					_crc = (uint) ~0;
-					for (int i = 0; i < pData.Length; i++) {
-						_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
-					}
-					return ~_crc;
+		public static uint GetCrc32(byte[] pData) {
+			unchecked {
+				_crc = (uint)~0;
+				for (int i = 0; i < pData.Length; i++) {
+					_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
 				}
-			}
-
-			public static uint GetCrc32Quick(byte[] pData) {
-				unchecked {
-					_crc = (uint)~0;
-
-					if (pData.Length > 4096) {
-						for (int i = 0; i < 2048; i++) {
-							_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
-						}
-
-						for (int i = pData.Length - 2048; i < pData.Length; i++) {
-							_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
-						}
-
-						for (int i = 0; i < 4; i++) {
-							int ival = pData.Length >> (i * 8);
-							_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ ival) & 0xff];
-						}
-					}
-					else {
-						for (int i = 0; i < pData.Length; i++) {
-							_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
-						}
-					}
-					return ~_crc;
-				}
+				return ~_crc;
 			}
 		}
 
+		public static uint GetCrc32Quick(byte[] pData) {
+			unchecked {
+				_crc = (uint)~0;
 
-		static byte[] _generateHashData(string hashFile) {
+				if (pData.Length > 4096) {
+					for (int i = 0; i < 2048; i++) {
+						_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
+					}
+
+					for (int i = pData.Length - 2048; i < pData.Length; i++) {
+						_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
+					}
+
+					for (int i = 0; i < 4; i++) {
+						int ival = pData.Length >> (i * 8);
+						_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ ival) & 0xff];
+					}
+				}
+				else {
+					for (int i = 0; i < pData.Length; i++) {
+						_crc = (_crc >> 8) ^ kCrc32Table[(_crc ^ pData[i]) & 0xff];
+					}
+				}
+				return ~_crc;
+			}
+		}
+
+		public static byte[] GenerateHashData(string hashFile) {
 			Dictionary<string, List<string>> lines = new Dictionary<string, List<string>>();
 			var ansi = Encoding.GetEncoding(1252);
 
@@ -209,10 +206,10 @@ namespace GrfCL {
 							try {
 								d++;
 								var fileData = grf.FileTable[file].GetDecompressedData();
-								writer.Write((byte) file.Length);
+								writer.Write((byte)file.Length);
 								writer.Write(file + "\0");
 								writer.Write(Crc32QuickHash.GetCrc32Quick(fileData));
-								CLHelper.Progress = (float) d / filesToProcess.Count * 100f;
+								CLHelper.Progress = (float)d / filesToProcess.Count * 100f;
 								c++;
 							}
 							catch {

@@ -31,9 +31,6 @@ namespace GRF.FileFormats.RswFormat {
 		/// </summary>
 		/// <param name="reader">The reader.</param>
 		public Rsw(IBinaryReader reader) {
-			Objects = new List<RswObject>();
-			LubEffects = new List<Effect>();
-
 			Header = new RswHeader(reader);
 			Water = new RswWater(reader, Header);
 			Light = new RswLight(reader, Header);
@@ -79,22 +76,22 @@ namespace GRF.FileFormats.RswFormat {
 		/// <summary>
 		/// Gets the quad tree.
 		/// </summary>
-		public QuadTree QuadTree {
-			get { return _quadTree; }
-			set {
-				_quadTree = value;
-			}
-		}
+		public QuadTree QuadTree => _quadTree;
 
 		/// <summary>
 		/// Gets or sets the objects.
 		/// </summary>
-		public List<RswObject> Objects { get; set; }
+		public List<RswObject> Objects { get; set; } = new List<RswObject>();
 
 		/// <summary>
 		/// Gets or sets the lub effects.
 		/// </summary>
-		public List<Effect> LubEffects { get; private set; }
+		public List<Effect> LubEffects { get; private set; } = new List<Effect>();
+
+		/// <summary>
+		/// Gets or sets the str effects.
+		/// </summary>
+		public List<Effect> StrEffects { get; private set; } = new List<Effect>();
 		
 		/// <summary>
 		/// Gets or sets the model resources.
@@ -210,8 +207,13 @@ namespace GRF.FileFormats.RswFormat {
 					case RswObjectType.Effect:
 						obj = new Effect(reader);
 
-						if (((Effect)obj).EffectNumber == 974) {
+						int effectNumber = ((Effect)obj).EffectNumber;
+						
+						if (effectNumber == 974) {
 							LubEffects.Add((Effect)obj);
+						}
+						else if (effectNumber == 1412) {
+							StrEffects.Add((Effect)obj);
 						}
 
 						break;
@@ -229,6 +231,7 @@ namespace GRF.FileFormats.RswFormat {
 		public void RemoveObjects() {
 			Objects.Clear();
 			LubEffects.Clear();
+			StrEffects.Clear();
 		}
 
 		/// <summary>
@@ -262,6 +265,7 @@ namespace GRF.FileFormats.RswFormat {
 			rsw.Objects = new List<RswObject>();
 
 			rsw.LubEffects = new List<Effect>();
+			rsw.StrEffects = new List<Effect>();
 			rsw.Water = new RswWater();
 			rsw.Water.SetUndergroundValues();
 			rsw.Light = new RswLight();

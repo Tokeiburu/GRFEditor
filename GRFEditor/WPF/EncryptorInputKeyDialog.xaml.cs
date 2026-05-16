@@ -8,7 +8,6 @@ using GRF.FileFormats;
 using GRFEditor.ApplicationConfiguration;
 using GrfToWpfBridge.Application;
 using TokeiLibrary.WPF.Styles;
-using Utilities;
 
 namespace GRFEditor.WPF {
 	/// <summary>

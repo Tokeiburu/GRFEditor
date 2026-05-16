@@ -188,7 +188,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 					writer.Flush();
 
 					stream.Seek(0, SeekOrigin.Begin);
-					byte[] compressed = Compression.CompressDotNet(stream);
+					byte[] compressed = Compression.CompressZlibDotNet(stream);
 					File.WriteAllBytes(fileName, compressed);
 				}
 			}
@@ -196,7 +196,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private bool _load(string fileName, string sourceGrfFileName) {
 			string file = TemporaryFilesManager.GetTemporaryFilePath("db_{0:0000}.db");
-			File.WriteAllBytes(file, Compression.DecompressDotNet(File.ReadAllBytes(fileName)));
+			File.WriteAllBytes(file, Compression.DecompressZlibDotNet(File.ReadAllBytes(fileName)));
 
 			List<string[]> lines = File.ReadAllLines(file, EncodingService.Ansi).Select(p => p.Split(':')).ToList();
 

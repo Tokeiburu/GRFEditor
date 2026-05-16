@@ -320,7 +320,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Program's configuration and information
 
 		public static string PublicVersion {
-			get { return "1.9.0.7"; }
+			get { return "1.9.0.8"; }
 		}
 
 		public static string Author {
@@ -685,6 +685,11 @@ namespace GRFEditor.ApplicationConfiguration {
 					ConfigAsker["[GRFEditor - Maximum number of threads]"] = value.ToString(CultureInfo.InvariantCulture);
 				}
 			}
+		}
+
+		public static bool GrfFilesAssociated {
+			get { return Boolean.Parse(ConfigAsker["[GRFEditor - GrfFilesAssociated]", false.ToString()]); }
+			set { ConfigAsker["[GRFEditor - GrfFilesAssociated]"] = value.ToString(); }
 		}
 
 		public static FileAssociation FileShellAssociated {

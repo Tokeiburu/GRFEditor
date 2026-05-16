@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -55,7 +54,7 @@ namespace GRFEditor.WPF {
 			_comboBoxFormat.SelectedIndex = -1;
 
 			if (_grfData.IsOpened) {
-				_comboBoxFormat.SelectedItem = _grfData.Header.FormatView;
+				Debug.Ignore(() => _comboBoxFormat.SelectedItem = _grfData.Header.FormatView);
 			}
 
 			_comboBoxEncoding.Init(null, new TypeSetting<int>(v => GrfEditorConfiguration.EncodingCodepage = v, () => GrfEditorConfiguration.EncodingCodepage), new TypeSetting<Encoding>(v => EncodingService.DisplayEncoding = v, () => EncodingService.DisplayEncoding));
@@ -72,7 +71,7 @@ namespace GRFEditor.WPF {
 			try {
 				_tbConfig.Text = Path.GetFileName(GrfEditorConfiguration.ConfigAsker.ConfigFile);
 				_tbPixelIndexation.Text = Methods.CanUseIndexed8 ? "Directly handled by GDI" : "Manually converted to Bgra32";
-				_tbFramework.Text = RuntimeEnvironment.GetSystemVersion() + " - " + Methods.GetReadableRuntimeVersion();
+				_tbFramework.Text = Methods.GetReadableRuntimeVersion();
 			}
 			catch {
 			}
@@ -150,6 +149,9 @@ namespace GRFEditor.WPF {
 					}
 				}
 			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
 			finally {
 				_grfData.Commands.End();
 			}
@@ -218,6 +220,26 @@ namespace GRFEditor.WPF {
 		private void _comboBoxEncoding_EncodingChanged(object sender, GrfToWpfBridge.Application.EncodingArgs enc) {
 			if (!_editor.SetEncoding(enc.Encoding.CodePage)) {
 				enc.Cancel = true;
+			}
+		}
+
+		private void _cbExtensions_Click(object sender, RoutedEventArgs e) {
+			try {
+				if (GrfEditorConfiguration.GrfFilesAssociated) {
+					FileAssociationHelper.Register(".grf", "Gravity Archive File", Methods.ApplicationFullPath);
+					FileAssociationHelper.Register(".gpf", "Gravity Patch File", Methods.ApplicationFullPath);
+					FileAssociationHelper.Register(".rgz", "Gravity Patch GZip File", Methods.ApplicationFullPath);
+					FileAssociationHelper.Register(".grfkey", "GRF Editor Encryption Key File", Methods.ApplicationFullPath, iconPath: null, openWithEditor: false);
+				}
+				else {
+					FileAssociationHelper.Unregister(".grf", Methods.ApplicationFullPath);
+					FileAssociationHelper.Unregister(".gpf", Methods.ApplicationFullPath);
+					FileAssociationHelper.Unregister(".rgz", Methods.ApplicationFullPath);
+					FileAssociationHelper.Unregister(".grfkey", Methods.ApplicationFullPath);
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
 			}
 		}
 	}

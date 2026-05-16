@@ -65,7 +65,7 @@
                         </Grid>
                     </Grid>
                 </Border>
-                <TextBlock Margin="3 0 3 3" TextWrapping="Wrap">
+				<TextBlock Margin="3 0 3 3" TextWrapping="Wrap">
                     Renaming cps.dll is slightly more secure. However, make sure the previous version of cps.dll isn't present in your RO folder.
                     <LineBreak />
                     <LineBreak />
@@ -76,13 +76,8 @@
                     <LineBreak />
                     <LineBreak />
                     If you are using the 'Restore loading cps.dll' patch from 4144, you'll need to copy the 'Decompress function' value in the NEMO's input box.
-                </TextBlock>
-                <!--  Alternatively, you can encrypt your entire GRF by using the Encrypt GRF button below. -->
-                <!--  <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">
-                    <Button Name="_buttonDecryptGrf" Click="_buttonDecryptGrf_Click" Content="Decrypt GRF" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" />
-                    <Button Name="_buttonEncryptGrf" Content="Encrypt GRF" Margin="3" Width="100" Height="24" HorizontalAlignment="Right" Click="_buttonEncryptGrf_Click" />
-                </DockPanel>-->
-            </StackPanel>
+				</TextBlock>
+			</StackPanel>
         </StackPanel>
 		<Grid TokeiLibrary:WpfProperties.IsDraggable="True" Height="40" Background="{DynamicResource UIDialogBackground}">
             <DockPanel HorizontalAlignment="Right" Margin="0 0 3 0">

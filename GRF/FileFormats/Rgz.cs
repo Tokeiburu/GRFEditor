@@ -4,11 +4,11 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using ErrorManager;
+using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.Core.GrfCompression;
 using GRF.GrfSystem;
 using GRF.Threading;
-using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
 
@@ -19,7 +19,7 @@ namespace GRF.FileFormats {
 			progress.Progress = -1;
 
 			try {
-				Compression.GZipDecompress(progress, fileName, decompressedFileName);
+				Compression.GZipCompression.DecompressFile(progress, fileName, decompressedFileName);
 				byte[] arrDecompressed = File.ReadAllBytes(decompressedFileName);
 
 				int offset = 0;
@@ -86,26 +86,22 @@ namespace GRF.FileFormats {
 			}
 		}
 
-		private static string _checkCompression() {
-			if (Compression.IsNormalCompression) {
-				return null;
-			}
+		private static void _checkCompression(ref ICompression compression) {
+			if (Compression.IsNormalCompression)
+				return;
 
 			if (ErrorHandler.YesNoRequest("You are trying to compress a patch file using a custom compression method. The files identified are not going to be merged into a GRF and their extraction will most likely fail.\r\n\r\nDo you wish to change the compression back to zlib? (Press 'No' to ignore this warning).", "Suspicious compression")) {
-				var oldCompression = ((CustomCompression) Compression.CompressionAlgorithm).FilePath;
-				Compression.CompressionAlgorithm = new CpsCompression();
-				return oldCompression;
+				compression = Compression.ZlibGravity;
 			}
-
-			return null;
 		}
 
 // ReSharper disable AccessToDisposedClosure
-		internal static void SaveRgz(Container grfData, string fileName) {
-			string compressionMethod = _checkCompression();
+		internal static void SaveRgz(Container grfData, string fileName, ContainerSaveResult result) {
+			ICompression oldCompression = Compression.CompressionAlgorithm;
+			_checkCompression(ref oldCompression);
 
 			try {
-				using (GZipStream compressing = new GZipStream(new FileStream(fileName, FileMode.Create, FileAccess.Write), CompressionMode.Compress)) {
+				using (GZipStream output = new GZipStream(new FileStream(fileName, FileMode.Create, FileAccess.Write), CompressionMode.Compress)) {
 					grfData.ThreadOperation(p => { grfData.Progress = p; }, () => grfData.IsCancelling, (entry, data) => {
 						if (!entry.Modification.HasFlags(Modification.Added) && entry.NewSizeDecompressed == 0) return;
 						string name = EncodingService.GetAnsiString(entry.RelativePath);
@@ -117,22 +113,22 @@ namespace GRF.FileFormats {
 							string directoryName = Path.GetDirectoryName(printedName);
 							if (String.IsNullOrEmpty(directoryName)) {
 								// This is a root file
-								_writeString('f', printedName, compressing);
+								_writeString('f', printedName, output);
 
-								compressing.Write(BitConverter.GetBytes(data.Length), 0, 4);
-								compressing.Write(data, 0, data.Length);
+								output.Write(BitConverter.GetBytes(data.Length), 0, 4);
+								output.Write(data, 0, data.Length);
 							}
 							else {
 								// This is a file inside a folder
 								string directory = Path.GetDirectoryName(printedName);
 
 								if (!string.IsNullOrEmpty(directory))
-									_writeString('d', Path.GetDirectoryName(printedName), compressing);
+									_writeString('d', Path.GetDirectoryName(printedName), output);
 
-								_writeString('f', printedName, compressing);
+								_writeString('f', printedName, output);
 
-								compressing.Write(BitConverter.GetBytes(data.Length), 0, 4);
-								compressing.Write(data, 0, data.Length);
+								output.Write(BitConverter.GetBytes(data.Length), 0, 4);
+								output.Write(data, 0, data.Length);
 							}
 						}
 						else {
@@ -140,22 +136,22 @@ namespace GRF.FileFormats {
 							string directory = Path.GetDirectoryName(name);
 
 							if (!string.IsNullOrEmpty(directory))
-								_writeString('d', Path.GetDirectoryName(name), compressing);
+								_writeString('d', Path.GetDirectoryName(name), output);
 
-							_writeString('f', name, compressing);
+							_writeString('f', name, output);
 
-							compressing.Write(BitConverter.GetBytes(data.Length), 0, 4);
-							compressing.Write(data, 0, data.Length);
+							output.Write(BitConverter.GetBytes(data.Length), 0, 4);
+							output.Write(data, 0, data.Length);
 						}
 					}, 1);
 
-					_writeString('e', "end", compressing);
+					_writeString('e', "end", output);
 				}
+
+				result.RequiresReload = true;
 			}
 			finally {
-				if (compressionMethod != null) {
-					Compression.CompressionAlgorithm = new CustomCompression(compressionMethod, new Setting(v => { }, () => false));
-				}
+				Compression.CompressionAlgorithm = oldCompression;
 			}
 		}
 
@@ -171,7 +167,7 @@ namespace GRF.FileFormats {
 			string decompressedFileName = Path.Combine(Settings.TempPath, Path.GetRandomFileName());
 
 			try {
-				Compression.GZipDecompress(container, fileName, decompressedFileName);
+				Compression.GZipCompression.DecompressFile(container, fileName, decompressedFileName);
 				byte[] arrDecompressed = File.ReadAllBytes(decompressedFileName);
 
 				int offset = 0;

@@ -115,7 +115,14 @@ namespace GrfCL {
 			grf1.Merge(grf2, SyncMode.Asynchronous);
 
 			_showProgress(grf1);
-			CLHelper.Log = "Merged " + grf1.FileName + " with " + grf2.FileName;
+
+			if (grf1.ProcessSaveResult()) {
+				CLHelper.Log = "Merged " + grf1.FileName + " with " + grf2.FileName;
+			}
+			else {
+				CLHelper.Log = "Merged failed";
+			}
+
 			grf1.Close();
 			grf2.Close();
 		}
@@ -123,7 +130,7 @@ namespace GrfCL {
 		private static void _showProgress(GrfHolder grf) {
 			while (grf.IsBusy) {
 				CLHelper.Progress = grf.Progress;
-				Thread.Sleep(200);
+				Thread.Sleep(100);
 			}
 			CLHelper.ProgressEnded();
 		}

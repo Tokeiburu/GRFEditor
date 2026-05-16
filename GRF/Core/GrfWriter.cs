@@ -2,392 +2,351 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using GRF.ContainerFormat;
 using GRF.IO;
-using GRF.GrfSystem;
 using GRF.Threading;
 using Utilities;
-using Utilities.Extension;
-using Utilities.Hash;
-using Utilities.Tools;
+using GRF.Core.GrfWriters;
+using GRF.GrfSystem;
 
 namespace GRF.Core {
 	internal static class GrfWriter {
-		internal const int BufferSize = 8388608;
+		internal const int BufferSize = 1 << 25; // Roughly 32MB in memory
 
-		private static Container _grf;
+		public static void WriteRepack(Container grf, Stream originalStream, Stream outputStream) {
+			// Setup progress
+			var tieredProgress = new TieredProgress(grf);
+			tieredProgress.SetSpecialState(TieredProgress.SpecialPending);
 
-		public static float Progress {
-			get { return _grf.Progress < 0 ? 0 : _grf.Progress; }
-			set { _grf.Progress = value >= 99.99f ? 99.99f : value; }
-		}
+			outputStream.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
 
-		public static void WriteDataRepack(Container grf, Stream originalStream, Stream grfStream) {
-			_grf = grf;
-			Progress = -1;
-
-			grfStream.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
-
+			// Retrieve entries
 			List<FileEntry> sortedEntries = grf.Table.Entries.OrderBy(p => p.FileExactOffset).ToList();
 
+			// Calculate progress
+			tieredProgress.AddWeightedTier(sortedEntries.Count);
+
+			// Apply operations
 			if (sortedEntries.Count > 0) {
-				GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
-				pool.Initialize<ThreadRepack>(grf, sortedEntries);
-				pool.Start(v => Progress = v, () => grf.IsCancelling);
-				pool.Dump(grf.Header, grfStream);
+				var pool = new GrfThreadPool<FileEntry>();
+
+				try {
+					pool.Initialize<ThreadRepack>(grf, sortedEntries);
+					pool.Start(v => tieredProgress.SetTierProgress(v / 100.0f), () => grf.IsCancelling);
+					pool.Dump(grf.Header, outputStream);
+				}
+				catch {
+					foreach (var thread in pool.Threads.OfType<ThreadRepack>()) {
+						GrfPath.Delete(thread.FileName);
+					}
+
+					throw;
+				}
 			}
+
+			tieredProgress.CompleteTier();
 		}
 
-		public static long WriteCompact(Container grf, Stream originalStream, Stream grfStream) {
-			_grf = grf;
-			Progress = -5;
-			Dictionary<string, FileEntry> hashedEntries = new Dictionary<string, FileEntry>();
-			Md5Hash hash = new Md5Hash();
-			List<FileEntry> deletedEntries = new List<FileEntry>();
+		public static void WriteCompact(Container grf, Stream originalStream, Stream outputStream) {
+			// Setup progress
+			var tieredProgress = new TieredProgress(grf);
+			tieredProgress.SetSpecialState(TieredProgress.SpecialIndexingContent);
 
-			int i = 0;
-			var entries = grf.Table.Entries;
+			// This is done is three steps:
+			// 1: Delete "duplicate" entries
+			// 2: Copy GRF normally
+			// 3: Restore deleted "duplicate" entries and fix their offsets
 
-			_encryption(grf);
+			// Step 1
+			tieredProgress.AddWeightedTier(grf.Table.Entries.Count);
+			WriterHelper.CompactHashAndDelete(tieredProgress, grf, originalStream, grf.Table.Entries.OrderBy(p => p.FileExactOffset).ToList(), out var deletedEntries, out var redirectedEntries);
 
-			foreach (var entry in entries) {
-				string key = entry.GetDataHashFromCompressed(hash);
+			try {
+				// Step 2
+				WriteData(grf, originalStream, outputStream);
 
-				if (hashedEntries.ContainsKey(key)) {
-					grf.Table.DeleteEntry(entry.RelativePath);
-					deletedEntries.Add(entry);
-				}
-				else {
-					hashedEntries[key] = entry;
-				}
-				i++;
-				Progress = (float) i / entries.Count * 100f;
+				// Step 3
+				WriterHelper.CompactRedirectHashedOffsets(grf, deletedEntries, redirectedEntries);
 			}
+			catch {
+				// Revert deleted entries!
+				foreach (var entry in deletedEntries)
+					grf.Table.AddEntry(entry);
 
-			grf.Table.InvalidateInternalSets();
-
-			int numberOfFilesToCopy = grf.Table.Entries.Count;
-			long offset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.DataByteSize);
-			_newFilesCopy(grf, numberOfFilesToCopy, grfStream, offset);
-
-			foreach (var entry in deletedEntries) {
-				string key = entry.GetDataHashFromCompressed(hash);
-				var dEntry = hashedEntries[key];
-
-				entry.FileExactOffset = dEntry.FileExactOffset;
-				entry.Offset = dEntry.Offset;
-				entry.TemporaryOffset = dEntry.TemporaryOffset;
-
-				grf.Table.AddEntry(entry);
+				throw;
 			}
-
-			return offset;
 		}
 
 		/// <summary>
-		/// This method only rewrites the file table without modifying any of the content.
+		/// This method only modifies the original data stream rather than creating a new file.
 		/// </summary>
 		/// <param name="grf">The GRF.</param>
 		/// <param name="originalStream">The original stream, opened with write access.</param>
 		/// <param name="grfAdd"> </param>
 		public static long WriteDataQuick(Container grf, Stream originalStream, Container grfAdd = null) {
+			// Setup progress
+			var tieredProgress = new TieredProgress(grf);
+			tieredProgress.SetSpecialState(TieredProgress.SpecialPending);
+
 			FileTable table = grf.InternalTable;
 			grf.Close();
-			_grf = grf;
-			Progress = -1;
 
 			if (grfAdd != null) {
-				List<string> entriesToDelete = grfAdd.Table.Entries.Where(p => (p.Flags & EntryType.RemoveFile) == EntryType.RemoveFile).Select(p => p.RelativePath).ToList();
-
 				if (grfAdd.InternalHeader.IsEncrypted) {
-					grfAdd.Table.UndoDeleteFile(GrfStrings.EncryptionFilename);
-					grfAdd.Table.InvalidateInternalSets();
+					WriterHelper.RestoreEncryptionHashFile(grfAdd);
 				}
 
-				foreach (string file in entriesToDelete) {
-					grfAdd.Table.DeleteEntry(file);
-
-					Regex regex = new Regex(Methods.WildcardToRegex(file), RegexOptions.IgnoreCase);
-
-					foreach (string match in table.Files.Where(p => regex.IsMatch(p))) {
-						table.DeleteFile(match);
-					}
-				}
-
-				foreach (var entry in grfAdd.Table.Entries) {
-					table.DeleteFile(entry.RelativePath);
-				}
-
-				table.InvalidateInternalSets();
+				WriterHelper.ApplyDeleteFiles(table, grfAdd);
 			}
 
-			List<FileEntry> sortedEntries = table.Entries.OrderBy(p => p.FileExactOffset).ToList();
-			QuickMergeHelper helper = new QuickMergeHelper(grf);
-			long endStreamOffset = sortedEntries.Count > 0 ? sortedEntries.Last().FileExactOffset + (uint) sortedEntries.Last().TemporarySizeCompressedAlignment : GrfHeader.DataByteSize;
-			byte[] data;
+			// Retrieve entries
+			_getEntries(grf, out _, out var continuousEntries, out var addedEntries, out var mergeEntries, out var encryptedEntries);
 
-			if (endStreamOffset < GrfHeader.DataByteSize) {
-				// This will happen for new GRFs
-				endStreamOffset = GrfHeader.DataByteSize;
+			QuickMergeHelper helper = new QuickMergeHelper(grf, continuousEntries);
 
-				if (originalStream.Length < endStreamOffset) {
-					originalStream.SetLength(endStreamOffset);
-				}
-			}
+			long offset = WriterHelper.EnsureStreamSize(originalStream, continuousEntries);
+			long grfAddTotalSize = mergeEntries.Sum(p => (long)p.SizeCompressedAlignment);
 
-			List<FileEntry> entriesGrfAdd = new List<FileEntry>();
-			long grfAddTotalSize = 0;
-
-			if (grfAdd != null) {
-				entriesGrfAdd = grfAdd.Table.Entries.OrderBy(p => p.FileExactOffset).Select(p => new FileEntry(p)).ToList(); // Copy
-				grfAddTotalSize = entriesGrfAdd.Sum(p => (long)p.SizeCompressedAlignment);
-			}
-
-			List<FileEntry> entriesAdded = grf.Table.Entries.Where(p => (p.Modification & Modification.Added) == Modification.Added).ToList();
-
-			// Fix : 2017-03-15
-			// We have to check if the current entries from 0x200 are DES encrypted,
-			// otherwise the file table writer will create issues on these entries.
-			bool shouldRepack = false;
-
-			if (grf.Header.IsCompatibleWith(2, 0)) {
-				foreach (var entry in grf.Table.Entries) {
-					if (!entry.Added && !entry.Removed) {
-						if (entry.Cycle > -1) {
-							shouldRepack = true;
-							break;
-						}
-					}
-				}
-			}
-
-			if (shouldRepack || helper.ShouldRepackInstead(entriesGrfAdd, entriesAdded) || (grf.Header.IsNotCompatibleWith(3, 0) && grfAddTotalSize + grf.InternalHeader.FileTableOffset > uint.MaxValue)) {
+			if (helper.ShouldRepackInstead(mergeEntries, addedEntries) || (grf.Header.Version < 3.0 && grfAddTotalSize + grf.InternalHeader.FileTableOffset > uint.MaxValue)) {
 				grf.IsBusy = false;
 				originalStream.Close();
 				grf.Reader.SetStream(grf.GetSharedStream());
-				
-				grf.Save(null, grfAdd, SavingMode.GrfSave, SyncMode.Synchronous);
+				grf.Save(null, grfAdd, SavingMode.FileCopy, SyncMode.Synchronous);
 				throw GrfExceptions.__RepackInstead.Create();
 			}
 
-			int totalEntriesCount = entriesGrfAdd.Count + entriesAdded.Count;
+			// Prepare the stream length to make the copy faster; even if the file is larger it will get resized correctly afterwards.
+			if (originalStream.Length < offset + grfAddTotalSize)
+				originalStream.SetLength(offset + grfAddTotalSize);
 
-			if (entriesAdded.Count > 0) {
-				originalStream.Seek(endStreamOffset, SeekOrigin.Begin);
-				endStreamOffset = _newFilesCopy(grf, totalEntriesCount, originalStream, endStreamOffset, grfAddTotalSize);
-			}
+			// Calculate progress
+			tieredProgress.AddWeightedTier(addedEntries.Count);
+			tieredProgress.AddWeightedTier(mergeEntries.Count);
+			tieredProgress.AddWeightedTier(encryptedEntries.Count);
 
-			float currentProgress = Progress;
+			// Apply operations
+			_newFilesCopy(tieredProgress, addedEntries, grf, originalStream, ref offset, grfAddTotalSize);
+			_continousCopy(tieredProgress, mergeEntries, grf, grfAdd, null, originalStream, ref offset, canCancel: false, helper);
+			_encryptEntries(tieredProgress, encryptedEntries, grf, originalStream, ref offset);
+			return offset;
+		}
 
-			if (grfAdd != null) {
-				int mode =
-					grf.Header.IsMajorVersion(1) && grfAdd.Header.Is(2, 0) ? 0 :
-					grf.Header.Is(2, 0) && grfAdd.Header.IsMajorVersion(1) ? 1 :
-					grf.Header.IsMajorVersion(1) && grfAdd.Header.IsMajorVersion(1) ? 2 : 3;
+		public static void WriteData(Container grf, Stream originalStream, Stream outputStream, Container grfAdd = null) {
+			// Setup progress
+			var tieredProgress = new TieredProgress(grf);
+			tieredProgress.SetSpecialState(TieredProgress.SpecialPending);
 
-				for (int index = 0; index < entriesGrfAdd.Count; index++) {
-					FileEntry entry = entriesGrfAdd[index];
+			// Retrieve entries
+			_getEntries(grf, out _, out var continuousEntries, out var addedEntries, out var mergeEntries, out _);
 
-					if (mode == 0) {
-						data = grfAdd.GetStreamRawData(entry);
-						entry.DesEncrypt(data, false);
-					}
-					else if (mode == 1) {
-						data = grfAdd.GetRawData(entry);
-						entry.Cycle = -1;
-					}
-					else if (mode == 2) {
-						// Fix : 2015-04-06
-						// The 0x100 merged with a 0x100 wasn't being handled.
-						data = grfAdd.GetStreamRawData(entry);
-						entry.DesEncrypt(data, false);
-					}
-					else {
-						data = grfAdd.GetStreamRawData(entry);
+			// Calculate progress
+			tieredProgress.AddWeightedTier(continuousEntries.Count);
+			tieredProgress.AddWeightedTier(addedEntries.Count);
+			tieredProgress.AddWeightedTier(mergeEntries.Count);
 
-						// Fix : 2015-01-17
-						// Some GRFs with the 0x200 version has DES encrypted
-						// data, which is by itself invalid. The following line
-						// fixes that issue.
-						entry.DesDecrypt(data, 0);
-					}
+			long offset = GrfHeader.DataByteSize;
+
+			// Apply operations
+			_continousCopy(tieredProgress, continuousEntries, grf, grf, originalStream, outputStream, ref offset, canCancel: true);
+			_newFilesCopy(tieredProgress, addedEntries, grf, outputStream, ref offset);
+			_continousCopy(tieredProgress, mergeEntries, grf, grfAdd, null, outputStream, ref offset, canCancel: true);
+		}
+
+		private static void _encryptEntries(TieredProgress tieredProgress, List<FileEntry> entries, Container grf, Stream originalStream, ref long offset) {
+			byte[] data;
+
+			for (int i = 0; i < entries.Count; i++) {
+				FileEntry entry = entries[i];
+
+				try {
+					originalStream.Position = entry.FileExactOffset;
+					data = new byte[entry.SizeCompressedAlignment];
+					originalStream.Read(data, 0, entry.SizeCompressedAlignment);
 
 					entry.GrfEditorEncrypt(data);
 					entry.GrfEditorDecrypt(data, 0);
 
-					helper.Write(originalStream, ref endStreamOffset, data, entry);
-					table.AddEntry(entry);
-					entry.SetStream(null); // Setting the stream to null will forcibly reassign the value later
-
-					Progress = (index + 1f) / totalEntriesCount * 100f + currentProgress;
-					//Progress = (index + 1f) / totalEntriesCount * 100f;
+					originalStream.Position = entry.FileExactOffset;
+					originalStream.Write(data, 0, entry.SizeCompressedAlignment);
+				}
+				catch {
+					// ??
+					// Not sure what would happen to trigger this, but the stream cannot be canceled mid write for quick merge
 				}
 
-				//// 
-				//bool hasEncryption = false;
-				//if (_grf.InternalHeader.IsEncrypted && !_grf.InternalHeader.EncryptFileTable) hasEncryption = true;
-				//if (_grf.InternalHeader.EncryptionKey != null && !_grf.InternalHeader.EncryptFileTable) hasEncryption = true;
-				//if (_grf.Table.Entries.Any(p => (p.Modification & Modification.Encrypt) == Modification.Encrypt || (p.Modification & Modification.Decrypt) == Modification.Decrypt)) hasEncryption = true;
-				//
-				//if (hasEncryption) {
-				//
-				//}
+				tieredProgress.SetTierProgress(i + 1);
 			}
 
-			return endStreamOffset;
+			tieredProgress.CompleteTier();
 		}
 
-		private static void _encryption(Container grf) {
-			if (grf.InternalHeader.IsEncrypting || grf.InternalHeader.IsEncrypted) {
-				byte[] data;
+		private static void _getEntries(Container grf, out List<FileEntry> sortedEntries, out List<FileEntry> continuousEntries, out List<FileEntry> addedEntries, out List<FileEntry> mergeEntries, out List<FileEntry> encryptedEntries) {
+			// Encryption file must be set or removed before looking up for the entries
+			WriterHelper.EncryptionCheck(grf);
 
-				if (grf.InternalHeader.EncryptionKey != null)
-					data = BitConverter.GetBytes(Crc32.Compute(grf.InternalHeader.EncryptionKey));
+			sortedEntries = grf.Table.Entries.OrderBy(p => p.FileExactOffset).ToList();
+			continuousEntries = new List<FileEntry>();
+			addedEntries = new List<FileEntry>();
+			mergeEntries = new List<FileEntry>();
+			encryptedEntries = new List<FileEntry>();
+			bool enableEncryption = grf.InternalHeader.EncryptionKey != null;
+
+			foreach (var entry in sortedEntries) {
+				if (entry.Modification.HasFlag(Modification.GrfMerge)) {
+					mergeEntries.Add(entry);
+				}
+				else if (entry.Modification.HasFlag(Modification.Added)) {
+					addedEntries.Add(entry);
+				}
 				else {
-					grf.Table[GrfStrings.EncryptionFilename].BypassSaveCheck = true;
-					data = grf.GetDecompressedData(grf.Table[GrfStrings.EncryptionFilename]);
+					if (enableEncryption && (entry.Modification.HasFlag(Modification.Encrypt) || entry.Modification.HasFlag(Modification.Decrypt)))
+						encryptedEntries.Add(entry);
+
+					continuousEntries.Add(entry);
 				}
-
-				using (BinaryWriter stream = new BinaryWriter(File.Create(Path.Combine(Settings.TempPath, GrfStrings.EncryptionFilename)))) {
-					stream.Write(data);
-				}
-
-				grf.Table.Add(GrfPath.Combine(grf.Table.Entries.Any(p => p.RelativePath.StartsWith(GrfStrings.RgzRoot)) ? GrfStrings.RgzRoot : "", GrfStrings.EncryptionFilename), Path.Combine(Settings.TempPath, GrfStrings.EncryptionFilename), true);
-			}
-
-			if (grf.InternalHeader.IsDecrypting || (!grf.InternalHeader.IsEncrypting && !grf.InternalHeader.IsEncrypted)) {
-				if (grf.Table.Contains(GrfStrings.EncryptionFilename))
-					grf.Table.DeleteFile(GrfStrings.EncryptionFilename);
 			}
 		}
 
-		public static void WriteData(Container grf, Stream originalStream, Stream grfStream, Container grfAdd = null) {
-			_grf = grf;
-			Progress = -1;
-			int numberOfFilesToCopy = grf.Table.Entries.Count;
-			long currentOffset;
+		private static void _newFilesCopy(TieredProgress tieredProgress, List<FileEntry> entries, Container grf, Stream outputStream, ref long currentOffset, long grfAddTotalSize = 0) {
+			outputStream.Seek(currentOffset, SeekOrigin.Begin);
 
-			_encryption(grf);
-			currentOffset = _continousCopy(grf, numberOfFilesToCopy, originalStream, grfStream, GrfHeader.DataByteSize);
-			currentOffset = _newFilesCopy(grf, numberOfFilesToCopy, grfStream, currentOffset);
-			_mergeGrf(grf, numberOfFilesToCopy, grfAdd, grfStream, currentOffset);
-		}
+			if (entries.Count > 0) {
+				int numberOfFilesToAdd = entries.Count;
 
-		private static long _mergeGrf(Container grf, int numberOfFilesToCopy, Container grfAdd, Stream grfStream, long currentOffset) {
-			// ** The grfAdd is only used to retrieve the actual file data, the output location
-			// should be in the current grf file table (with the GrfSource) attribute.
-			List<FileEntry> sortedEntries = grf.Table.Entries.Where(p => p.Modification.HasFlags(Modification.GrfMerge)).OrderBy(p => p.FileExactOffset).ToList();
-
-			if (grfAdd != null) {
-				if (grfAdd.InternalHeader.IsEncrypted && grf.Header.IsMajorVersion(1))
-					throw GrfExceptions.__MergeVersionEncryptionException.Create();
-
-				float currentProgress = Progress;
-				int toIndex = 0;
-				int fromIndex;
-				int indexMax = sortedEntries.Count;
-				byte[] data;
-				FileEntry entry;
-				StreamReadBlockInfo srb = new StreamReadBlockInfo(BufferSize);
-
-				using (var streamAdd = grfAdd.GetSourceStream()) {
-					while (toIndex < indexMax) {
-						fromIndex = toIndex;
-						data = srb.ReadAligned(sortedEntries, out toIndex, fromIndex, indexMax, streamAdd.Value);
-
-						for (int i = fromIndex; i < toIndex; i++) {
-							AProgress.IsCancelling(grf);
-							entry = sortedEntries[i];
-
-							if (entry.Cycle >= 0 && grf.Header.IsCompatibleWith(2, 0))
-								entry.DesDecryptPrealigned(data, (int) entry.TemporaryOffset);
-							else if (grf.Header.IsMajorVersion(1) && grfAdd.Header.IsCompatibleWith(2, 0))
-								entry.DesEncryptPrealigned(data, (int) entry.TemporaryOffset, false);
-
-							entry.TemporaryOffset = currentOffset;
-							currentOffset += (uint) entry.TemporarySizeCompressedAlignment;
-						}
-
-						grfStream.Write(data, 0, data.Length);
-						Progress = toIndex / (float) numberOfFilesToCopy * 100.0f + currentProgress;
-						AProgress.IsCancelling(grf);
-					}
-				}
-			}
-
-			return currentOffset;
-		}
-
-		private static long _newFilesCopy(Container grf, int numberOfFilesToCopy, Stream grfStream, long currentOffset, long grfAddTotalSize = 0) {
-			List<FileEntry> sortedEntries = grf.Table.Entries.Where(p => p.Modification.HasFlags(Modification.Added)).ToList();
-
-			if (sortedEntries.Count > 0) {
-				int numberOfFilesToAdd = sortedEntries.Count;
-				float currentProgress = Progress;
-
-				foreach (FileEntry fileEntry in sortedEntries) {
+				foreach (FileEntry fileEntry in entries) {
 					fileEntry.NewSizeDecompressed = fileEntry.GetSizeDecompressed();
 				}
 
 				Random rnd = new Random();
-				List<FileEntry> smallEntries = sortedEntries.Where(p => p.NewSizeDecompressed <= 2048).ToList();
-				sortedEntries = sortedEntries.Where(p => p.NewSizeDecompressed > 2048).OrderBy(p => rnd.Next()).ToList(); // Better spread
+				List<FileEntry> smallEntries = entries.Where(p => p.NewSizeDecompressed <= 2048).ToList();
+				entries = entries.Where(p => p.NewSizeDecompressed > 2048).OrderBy(p => rnd.Next()).ToList(); // Better spread
 
 				GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
-				pool.Initialize<ThreadCompressFiles>(grf, sortedEntries);
+				pool.Initialize<ThreadCompressFiles>(grf, entries);
 				pool.Initialize<ThreadCompressSmallFiles>(grf, smallEntries, smallEntries.Count == 0 ? 0 : (smallEntries.Count / 50000) + 1);
-				pool.Start(v => Progress = (v * numberOfFilesToAdd) / (float) numberOfFilesToCopy + currentProgress, () => grf.IsCancelling);
-				currentOffset = pool.Dump(grf.Header, grfStream, currentOffset, grfAddTotalSize);
+				pool.Start(v => tieredProgress.SetTierProgress(v / 100.0f), () => grf.IsCancelling);
+				currentOffset = pool.Dump(grf.Header, outputStream, currentOffset, grfAddTotalSize);
 			}
 
-			return currentOffset;
+			tieredProgress.CompleteTier();
 		}
 
-		private static long _continousCopy(Container grf, int numberOfFilesToCopy, Stream originalStream, Stream grfStream, long currentOffset) {
-			List<FileEntry> sortedEntries = grf.Table.Entries.Where(p => !p.Modification.HasFlags(Modification.Added) && !p.Modification.HasFlags(Modification.GrfMerge)).OrderBy(p => p.FileExactOffset).ToList();
-			grfStream.Seek(GrfHeader.DataByteSize, SeekOrigin.Begin);
+		public class BufferedStreamWriter {
+			private byte[] _buffer;
+			private int _bufferSize;
+			private Stream _output;
+			private int _bufferReadLength;
+			public int WriteCalls;
+
+			public BufferedStreamWriter(int bufferSize, Stream output) {
+				//bufferSize = bufferSize << 1;
+				_buffer = new byte[bufferSize];
+				_bufferSize = bufferSize;
+				_output = output;
+			}
+
+			public void Add(byte[] data, int length) {
+				if (length > _bufferSize) {
+					Flush();
+					_output.Write(data, 0, length);
+				}
+
+				if (length + _bufferReadLength > _bufferSize) {
+					Flush();
+				}
+
+				Buffer.BlockCopy(data, 0, _buffer, _bufferReadLength, length);
+				_bufferReadLength += length;
+			}
+
+			public void Flush() {
+				if (_bufferReadLength > 0) {
+					_output.Write(_buffer, 0, _bufferReadLength);
+					WriteCalls++;
+				}
+
+				_bufferReadLength = 0;
+			}
+		}
+
+		private static void _continousCopy(TieredProgress tieredProgress, List<FileEntry> entries, Container grfDst, Container grfSrc, Stream originalStream, Stream outputStream, ref long currentOffset, bool canCancel, QuickMergeHelper helper = null) {
+			if (grfSrc == null) {
+				tieredProgress.CompleteTier();
+				return;
+			}
+
+			if (grfSrc.InternalHeader.IsEncrypted && grfDst.Header.Version < 2.0)
+				throw GrfExceptions.__MergeVersionEncryptionException.Create();
+
+			outputStream.Seek(currentOffset, SeekOrigin.Begin);
 
 			byte[] data;
 			int toIndex = 0;
 			FileEntry entry;
 			int fromIndex;
-			int indexMax = sortedEntries.Count;
+			int indexMax = entries.Count;
 			StreamReadBlockInfo srb = new StreamReadBlockInfo(BufferSize);
+			bool desEncrypt = grfDst.Header.Version < 2.0;
 
-			if (grf.Header.IsMajorVersion(1)) {
-				foreach (var sEntry in sortedEntries) {
+			if (grfDst.Header.Version < 2.0) {
+				foreach (var sEntry in entries) {
 					sEntry.TemporarySizeCompressedAlignment = Methods.Align(sEntry.TemporarySizeCompressedAlignment);
 				}
 			}
 
-			while (toIndex < indexMax) {
-				fromIndex = toIndex;
-				data = srb.ReadAligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream);
+			DisposableScope<FileStream> sourceStream = null;
 
-				for (int i = fromIndex; i < toIndex; i++) {
-					AProgress.IsCancelling(grf);
-					entry = sortedEntries[i];
-
-					if (grf.Header.IsMajorVersion(1))
-						entry.DesEncryptPrealigned(data, (int) entry.TemporaryOffset);
-					else if (grf.Header.IsCompatibleWith(2, 0))
-						entry.DesDecryptPrealigned(data, (int) entry.TemporaryOffset);
-
-					// Won't apply the encryption/decryption if the flags aren't set.
-					entry.GrfEditorEncrypt(data, (int) entry.TemporaryOffset);
-					entry.GrfEditorDecrypt(data, (int) entry.TemporaryOffset);
-
-					entry.TemporaryOffset = currentOffset;
-					currentOffset += entry.TemporarySizeCompressedAlignment;
+			try {
+				// If no stream set, retrieve it from the grfSrc directly
+				if (originalStream == null) {
+					sourceStream = grfSrc.GetSourceStream();
+					originalStream = sourceStream.Value;
 				}
 
-				grfStream.Write(data, 0, data.Length);
+				BufferedStreamWriter bsw = null;
+				
+				if (helper == null)
+					bsw = new BufferedStreamWriter(BufferSize, outputStream);
 
-				Progress = toIndex / (float) numberOfFilesToCopy * 100.0f;
+				while (toIndex < indexMax) {
+					fromIndex = toIndex;
+					data = srb.ReadAligned(entries, out toIndex, fromIndex, indexMax, originalStream, out int dataLength);
+
+					for (int i = fromIndex; i < toIndex; i++) {
+						if (canCancel)
+							AProgress.IsCancelling(grfDst);
+
+						entry = entries[i];
+
+						if (desEncrypt)
+							entry.DesEncryptPrealigned(data, (int)entry.TemporaryOffset, false);
+						else
+							entry.DesDecryptPrealigned(data, (int)entry.TemporaryOffset);
+
+						// Won't apply the encryption/decryption if the flags aren't set.
+						entry.GrfEditorEncrypt(data, (int)entry.TemporaryOffset);
+						entry.GrfEditorDecrypt(data, (int)entry.TemporaryOffset);
+
+						if (helper != null) {
+							helper.Write(outputStream, ref currentOffset, data, (int)entry.TemporaryOffset, entry.TemporarySizeCompressedAlignment, entry);
+						}
+						else {
+							entry.TemporaryOffset = currentOffset;
+							currentOffset += entry.TemporarySizeCompressedAlignment;
+						}
+
+						tieredProgress.SetTierProgress(i + 1);
+					}
+
+					bsw?.Add(data, dataLength);
+				}
+
+				bsw?.Flush();
+				tieredProgress.CompleteTier();
 			}
-
-			return currentOffset;
+			finally {
+				sourceStream?.Dispose();
+			}
 		}
 	}
 }

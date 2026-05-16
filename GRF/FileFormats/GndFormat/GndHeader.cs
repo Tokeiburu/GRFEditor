@@ -30,7 +30,8 @@ namespace GRF.FileFormats.GndFormat {
 		/// </summary>
 		/// <param name="reader">The reader.</param>
 		public GndHeader(IBinaryReader reader) {
-			GrfExceptions.ValidateHeaderLength(reader, "GND", 26);
+			if (reader.Length < 26)
+				throw GrfExceptions.__InvalidFileHeaderLength.Create("GND", 26);
 
 			Magic = reader.StringANSI(4);
 

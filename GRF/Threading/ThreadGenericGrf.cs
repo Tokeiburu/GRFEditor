@@ -48,7 +48,7 @@ namespace GRF.Threading {
 
 					while (toIndex < indexMax) {
 						fromIndex = toIndex;
-						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value);
+						data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value, out _);
 
 						for (int i = fromIndex; i < toIndex; i++) {
 							if ((_isCancelling != null && _isCancelling()) || Cancelling)
@@ -75,7 +75,7 @@ namespace GRF.Threading {
 							try {
 								try {
 									if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile) {
-
+										
 									}
 									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);

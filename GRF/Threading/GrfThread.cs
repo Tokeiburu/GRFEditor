@@ -33,14 +33,13 @@ namespace GRF.Threading {
 		/// </summary>
 		/// <param name="action">The action (the action should be on the caller's object).</param>
 		/// <param name="caller">The caller is the object which can be 'monitered' (it has a progress value).</param>
-		/// <param name="updateFrequence">The update frequence. Each update will trigger the ProgressUpdate event.</param>
 		/// <param name="state">An object to be returned once the thread has finished.</param>
 		/// <param name="exitWhenFunctionIsOver"> </param>
 		/// <param name="isSTA"> </param>
-		public GrfThread(Action action, IProgress caller, int updateFrequence, object state = null, bool exitWhenFunctionIsOver = false, bool isSTA = false) {
+		public GrfThread(Action action, IProgress caller, object state = null, bool exitWhenFunctionIsOver = false, bool isSTA = false) {
 			_action = action;
 			_caller = caller;
-			_msDelay = updateFrequence;
+			_msDelay = 100;
 			_state = state;
 			_exitWhenFunctionIsOver = exitWhenFunctionIsOver;
 			_isSTA = isSTA;
@@ -67,10 +66,7 @@ namespace GRF.Threading {
 					_caller.IsCancelled = false;
 					_caller.IsCancelling = false;
 
-					if (ProgressUpdate != null) {
-						ProgressUpdate(_caller.Progress);
-						ProgressUpdate(_caller.Progress);
-					}
+					ProgressUpdate?.Invoke(_caller.Progress);
 
 					if (ActivateTimeElapsed) {
 						_watch = new Stopwatch();
