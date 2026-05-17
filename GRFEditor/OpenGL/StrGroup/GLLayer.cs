@@ -47,10 +47,6 @@ namespace GRFEditor.OpenGL.StrGroup {
 					if (entry != null) {
 						try {
 							image = new GrfImage(entry.GetDecompressedData());
-
-							if (entry.RelativePath.IsExtension(".tga")) {
-								image.Flip(FlipDirection.Vertical);
-							}
 						}
 						catch {
 							// 
