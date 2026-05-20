@@ -48,7 +48,7 @@ namespace GRF.Threading {
 				return null;
 			}
 
-			while (indexBufferStart == 0 && _readBuffer.Length < firstEntry.TemporarySizeCompressedAlignment)
+			while (indexBufferStart == 0 && _bufferSize < firstEntry.TemporarySizeCompressedAlignment)
 				_bufferSize *= 2;
 
 			if (_bufferSize != _readBuffer.Length)
