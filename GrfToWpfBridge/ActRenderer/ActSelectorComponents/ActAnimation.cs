@@ -96,8 +96,7 @@ namespace GrfToWpfBridge.ActRenderer.ActSelectorComponents {
 
 							selector.SelectedFrame++;
 
-							if (soundPlayer != null)
-								soundPlayer.PlaySound(act.TryGetSoundFile(selectedAction, selector.SelectedFrame));
+							soundPlayer?.PlaySound(act.TryGetSoundFile(selectedAction, selector.SelectedFrame));
 
 							if (!selector.IsPlaying)
 								return;

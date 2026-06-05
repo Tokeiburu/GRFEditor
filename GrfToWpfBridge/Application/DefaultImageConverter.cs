@@ -41,8 +41,7 @@ namespace GrfToWpfBridge.Application {
 					throw new Exception("Unsupported pixel format");
 			}
 
-			if (bitmap != null)
-				bitmap.Freeze();
+			bitmap?.Freeze();
 
 			return bitmap;
 		}

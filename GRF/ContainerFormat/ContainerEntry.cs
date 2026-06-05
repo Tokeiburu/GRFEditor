@@ -262,8 +262,7 @@ namespace GRF.ContainerFormat {
 		/// Clears the streams entirely from the entry.
 		/// </summary>
 		internal void RemoveStream() {
-			if (Stream != null)
-				Stream.Delete();
+			Stream?.Delete();
 
 			Stream = null;
 		}

@@ -187,8 +187,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			if (skyEffect.IsUnloaded)
 				return;
 
-			if (skyEffect.RenderInfo != null)
-				skyEffect.RenderInfo.Unload();
+			skyEffect.RenderInfo?.Unload();
 
 			skyEffect.Particles = null;
 			skyEffect.IsUnloaded = true;
@@ -555,14 +554,11 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		public override void Unload() {
 			IsUnloaded = true;
 
-			if (_cloudTex != null)
-				_cloudTex.Unload();
+			_cloudTex?.Unload();
 
-			if (_starTex != null)
-				_starTex.Unload();
+			_starTex?.Unload();
 
-			if (_fogTex != null)
-				_fogTex.Unload();
+			_fogTex?.Unload();
 
 			if (_uboHandle > 0)
 				GL.DeleteBuffer(_uboHandle);

@@ -9,7 +9,6 @@ namespace GRF.Image {
 	/// Image used by the GRF library
 	/// </summary>
 	public partial class GrfImage {
-		private bool _isClosed;
 		private int? _hashCode;
 
 		/// <summary>
@@ -150,7 +149,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="newPalette">The new palette.</param>
 		public void SetPalette(byte[] newPalette) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Palette = newPalette;
 			InvalidateHash();
 		}
@@ -161,18 +159,7 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="type">The type.</param>
 		public void SetGrfImageType(GrfImageType type) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfImageType = type;
-			InvalidateHash();
-		}
-
-		/// <summary>
-		/// Dispose the object immediatly.
-		/// </summary>
-		public void Close() {
-			_isClosed = true;
-			Pixels = null;
-			Palette = null;
 			InvalidateHash();
 		}
 
@@ -188,7 +175,6 @@ namespace GRF.Image {
 			if (x < 0) throw new ArgumentOutOfRangeException("x");
 			if (y < 0) throw new ArgumentOutOfRangeException("y");
 
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -242,7 +228,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <returns></returns>
 		public GrfImage Copy() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 
 			if (Palette != null) {
 				return new GrfImage(Methods.Copy(Pixels), Width, Height, GrfImageType, Methods.Copy(Palette)) { TransparentPixels = Methods.Copy(TransparentPixels) };
@@ -268,8 +253,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <typeparam name="T">The image parser</typeparam>
 		public void Self<T>() where T : class {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-
 			GrfImage image = ImageConverterManager.Self<T>(this);
 			SetGrfImageType(image.GrfImageType);
 
@@ -284,8 +267,6 @@ namespace GRF.Image {
 		/// Reads the image and converts it to a readable format by using the first image parser.
 		/// </summary>
 		public void SelfAny() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-
 			GrfImage image;
 
 			switch (GrfImageType) {
@@ -302,7 +283,6 @@ namespace GRF.Image {
 			}
 
 			GrfImageType = image.GrfImageType;
-
 			Pixels = image.Pixels;
 			Palette = image.Palette;
 			Width = image.Width;
@@ -317,8 +297,6 @@ namespace GRF.Image {
 		/// <typeparam name="T">Image format</typeparam>
 		/// <returns>The image converted</returns>
 		public T Cast<T>() where T : class {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-
 			return ImageConverterManager.Convert<T>(this);
 		}
 
@@ -328,8 +306,6 @@ namespace GRF.Image {
 		/// <param name="destinationFormat">The destination format.</param>
 		/// <param name="sourceFormat">The source format.</param>
 		public void Convert(IImageFormatConverter destinationFormat, IImageFormatConverter sourceFormat = null) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-
 			if (sourceFormat == null)
 				sourceFormat = ImageFormatProvider.GetFormatConverter(GrfImageType);
 
@@ -344,8 +320,6 @@ namespace GRF.Image {
 		/// <param name="newFormat">The new image format.</param>
 		/// <param name="palette">The palette used for Indexed8 conversion.</param>
 		public void Convert(GrfImageType newFormat, byte[] palette = null) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
-
 			switch (newFormat) {
 				case GrfImageType.Bgr24:
 					Convert(new Bgr24FormatConverter());
@@ -439,7 +413,6 @@ namespace GRF.Image {
 		public void InvalidateHash() => _hashCode = null;
 
 		public override string ToString() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			return String.Format("Width = {0}; Height = {1}; ImageType = {2}", Width, Height, GrfImageType);
 		}
 

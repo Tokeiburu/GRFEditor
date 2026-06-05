@@ -116,8 +116,7 @@ namespace ComponentAce.Compression.Libs.zlib {
 		
 		internal int inflateEnd(ZStream z)
 		{
-			if (blocks != null)
-				blocks.free(z);
+			blocks?.free(z);
 			blocks = null;
 			//    ZFREE(z, z->state);
 			return Z_OK;

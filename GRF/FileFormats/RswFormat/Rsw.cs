@@ -7,6 +7,7 @@ using GRF.Core;
 using GRF.FileFormats.GndFormat;
 using GRF.FileFormats.RswFormat.RswObjects;
 using GRF.IO;
+using Utilities;
 
 namespace GRF.FileFormats.RswFormat {
 	/// <summary>
@@ -92,6 +93,11 @@ namespace GRF.FileFormats.RswFormat {
 		/// Gets or sets the str effects.
 		/// </summary>
 		public List<Effect> StrEffects { get; private set; } = new List<Effect>();
+
+		/// <summary>
+		/// Gets or sets the evils paw effects.
+		/// </summary>
+		public List<Effect> EvilsPawEffects { get; private set; } = new List<Effect>();
 		
 		/// <summary>
 		/// Gets or sets the model resources.
@@ -215,6 +221,13 @@ namespace GRF.FileFormats.RswFormat {
 						else if (effectNumber == 1412) {
 							StrEffects.Add((Effect)obj);
 						}
+						else if (effectNumber == 1039) {
+							EvilsPawEffects.Add((Effect)obj);
+						}
+
+						//if (Math.Abs(obj.Position.X - 130.3) < 0.1) {
+						//	Z.F();
+						//}
 
 						break;
 					default:

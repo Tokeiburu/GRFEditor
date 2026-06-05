@@ -106,24 +106,20 @@ namespace GRF.Threading {
 							if (_caller.IsCancelled)
 								break;
 
-							if (Cancelling != null)
-								Cancelling(null);
+							Cancelling?.Invoke(null);
 						}
 						else {
-							if (ProgressUpdate != null)
-								ProgressUpdate(_caller.Progress);
+							ProgressUpdate?.Invoke(_caller.Progress);
 						}
 					}
 
 					if (_caller.IsCancelled) {
 						_caller.IsCancelling = false;
 
-						if (Cancelled != null)
-							Cancelled(_state);
+						Cancelled?.Invoke(_state);
 					}
 
-					if (Finished != null)
-						Finished(_state);
+					Finished?.Invoke(_state);
 
 				}
 				finally {

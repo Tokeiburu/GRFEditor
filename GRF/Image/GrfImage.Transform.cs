@@ -24,7 +24,6 @@ namespace GRF.Image {
 		/// <param name="y">The scale y.</param>
 		/// <param name="scalingMode">The scaling mode.</param>
 		public void Scale(float x, float y, GrfScalingMode scalingMode) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			switch (scalingMode) {
@@ -170,7 +169,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="direction">The direction.</param>
 		public unsafe void Flip(FlipDirection direction) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -319,7 +317,6 @@ namespace GRF.Image {
 		/// Trims this image by removing transparent pixels.
 		/// </summary>
 		public void Trim() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);

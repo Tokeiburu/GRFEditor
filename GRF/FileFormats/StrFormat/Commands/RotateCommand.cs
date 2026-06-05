@@ -1,41 +1,39 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class RotateCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class RotateCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private float _angle;
 		private float _oldAngle = float.NaN;
 
-		public RotateCommand(int layerIdx, int frameIdx, float angle) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
+
+		public RotateCommand(int layerIndex, int keyIndex, float angle) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 			_angle = angle;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Angle changed to " + _angle;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Angle changed to {_angle}";
 
 		public void Execute(Str str) {
 			if (float.IsNaN(_oldAngle)) {
-				_oldAngle = str[_layerIdx, _frameIdx].Angle;
+				_oldAngle = str[_layerIndex, _keyIndex].Angle;
 			}
 
-			str[_layerIdx, _frameIdx].Angle = _angle;
+			str[_layerIndex, _keyIndex].Angle = _angle;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].Angle = _oldAngle;
+			str[_layerIndex, _keyIndex].Angle = _oldAngle;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as RotateCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is RotateCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -43,8 +41,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as RotateCommand;
-			if (cmd != null) {
+			if (command is RotateCommand cmd) {
 				_angle = cmd._angle;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

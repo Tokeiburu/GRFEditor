@@ -39,7 +39,6 @@ namespace GRFEditor.WPF {
 
 			if (_primaryImage != null) {
 				if (_primaryImage.Image != null) {
-					_primaryImage.Image.Close();
 					_primaryImage.Image = null;
 				}
 
@@ -105,8 +104,7 @@ namespace GRFEditor.WPF {
 
 		private void _menuItemImageExport_Click(object sender, RoutedEventArgs e) {
 			if (_fileName != null) {
-				if (_primaryImage.Image != null)
-					_primaryImage.Image.SaveTo(_fileName, PathRequest.ExtractSetting);
+				_primaryImage.Image?.SaveTo(_fileName, PathRequest.ExtractSetting);
 			}
 		}
 

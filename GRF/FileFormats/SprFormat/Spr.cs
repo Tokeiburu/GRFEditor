@@ -48,10 +48,14 @@ namespace GRF.FileFormats.SprFormat {
 			Images = new List<GrfImage>();
 
 			if (spr.Palette != null)
-				Palette = new Pal(spr.Palette.BytePalette, Pal.FormatMode.NoTransparencyExceptFirstPixel);
+				Palette = new Pal(Methods.Copy(spr.Palette.BytePalette), Pal.FormatMode.NoTransparencyExceptFirstPixel);
 
+			// Ensure the image palettes share the same reference as the SPR palette
 			foreach (var image in spr.Images) {
-				Images.Add(image.Copy());
+				GrfImage newImage = new GrfImage(Methods.Copy(image.Pixels), image.Width, image.Height, image.GrfImageType, image.Palette);
+				if (newImage.GrfImageType == GrfImageType.Indexed8)
+					newImage.SetPalette(Palette.BytePalette);
+				Images.Add(newImage);
 			}
 		}
 

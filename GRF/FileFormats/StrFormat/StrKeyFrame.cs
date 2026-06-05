@@ -13,7 +13,7 @@ namespace GRF.FileFormats.StrFormat {
 			Color = new float[4];
 			Bezier = new float[4];
 
-			Offset = new TkVector2(319, 291);
+			Offset = new TkVector2(Str.OffsetX, Str.OffsetY);
 
 			Uv[0] = 0;
 			Uv[1] = 0;
@@ -151,7 +151,7 @@ namespace GRF.FileFormats.StrFormat {
 			keyFrame.Color[2] = 255;
 			keyFrame.Color[3] = 255;
 
-			keyFrame.Offset = new TkVector2(319, 291);
+			keyFrame.Offset = new TkVector2(Str.OffsetX, Str.OffsetY);
 			keyFrame.SourceAlpha = 5;
 			keyFrame.DestinationAlpha = 7;
 			return keyFrame;

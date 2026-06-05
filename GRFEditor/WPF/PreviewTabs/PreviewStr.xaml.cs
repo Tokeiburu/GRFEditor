@@ -271,9 +271,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		protected void Dispose(bool disposing) {
 			if (disposing) {
-				if (_animationThreadHandle != null) {
-					_animationThreadHandle.Close();
-				}
+				_animationThreadHandle?.Close();
 			}
 		}
 

@@ -10,11 +10,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			_maxFrame = maxFrame;
 		}
 
-		public string CommandDescription {
-			get {
-				return "Changed FPS to " + _maxFrame;
-			}
-		}
+		public string CommandDescription => $"Changed FPS to {_maxFrame}";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
@@ -23,10 +19,12 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			}
 
 			str.MaxKeyFrame = _maxFrame;
+			str.InvalidateIndex();
 		}
 
 		public void Undo(Str str) {
 			str.MaxKeyFrame = _oldMaxFrame;
+			str.InvalidateIndex();
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
@@ -34,8 +32,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as MaxFrameCommand;
-			if (cmd != null) {
+			if (command is MaxFrameCommand cmd) {
 				_maxFrame = cmd._maxFrame;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

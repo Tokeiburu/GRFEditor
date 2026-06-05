@@ -88,8 +88,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 		}
 
 		public void ExpandFirstNode() {
-			if (Primary != null)
-				Primary.Expand();
+			Primary?.Expand();
 		}
 
 		private void _select(string[] paths) {
@@ -133,9 +132,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 			TreeNode oldNode = GetNode(oldName);
 			TreeNode parent = oldNode.Parent;
 
-			if (parent != null) {
-				parent.Children.Remove(oldNode.Header);
-			}
+			parent?.Children.Remove(oldNode.Header);
 
 			oldNode.SetName(Path.GetFileName(newName.RelativePath));
 

@@ -2,57 +2,51 @@
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class BezierCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class BezierCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private bool _isSet = false;
 		private readonly float[] _vertices = new float[4];
 		private readonly float[] _oldVertices = new float[4];
 
-		public int LayerIdx {
-			get { return _layerIdx; }
-		}
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
 
-		public BezierCommand(int layerIdx, int frameIdx, float[] vertices) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public BezierCommand(int layerIdx, int keyIndex, float[] vertices) {
+			_layerIndex = layerIdx;
+			_keyIndex = keyIndex;
 
 			for (int i = 0; i < 4; i++) {
 				_vertices[i] = vertices[i];
 			}
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Bezier curve changed";
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Bezier curve changed";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
 				for (int i = 0; i < 4; i++) {
-					_oldVertices[i] = str[_layerIdx, _frameIdx].Bezier[i];
+					_oldVertices[i] = str[_layerIndex, _keyIndex].Bezier[i];
 				}
 
 				_isSet = true;
 			}
 
 			for (int i = 0; i < 4; i++) {
-				str[_layerIdx, _frameIdx].Bezier[i] = _vertices[i];
+				str[_layerIndex, _keyIndex].Bezier[i] = _vertices[i];
 			}
 		}
 
 		public void Undo(Str str) {
 			for (int i = 0; i < 4; i++) {
-				str[_layerIdx, _frameIdx].Bezier[i] = _oldVertices[i];
+				str[_layerIndex, _keyIndex].Bezier[i] = _oldVertices[i];
 			}
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as BezierCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is BezierCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -60,12 +54,11 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as BezierCommand;
-			if (cmd != null) {
+			if (command is BezierCommand cmd) {
 				for (int i = 0; i < 4; i++) {
 					_vertices[i] = cmd._vertices[i];
 				}
-				
+
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}
 		}

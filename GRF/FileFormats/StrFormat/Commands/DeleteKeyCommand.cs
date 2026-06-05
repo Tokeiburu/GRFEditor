@@ -1,38 +1,31 @@
 ﻿namespace GRF.FileFormats.StrFormat.Commands {
-	public class DeleteKeyCommand : IStrCommand {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class DeleteKeyCommand : IStrCommand, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private StrKeyFrame _frame;
 
-		public int LayerIdx {
-			get { return _layerIdx; }
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
+
+		public DeleteKeyCommand(int layerIndex, int keyIndex) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 		}
 
-		public int FrameIdx {
-			get { return _frameIdx; }
-		}
-
-		public DeleteKeyCommand(int layerIdx, int frameIdx) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
-		}
-
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Deleted key at " + _frameIdx;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Deleted key at {_keyIndex}";
 
 		public void Execute(Str str) {
 			if (_frame == null) {
-				_frame = str[_layerIdx, _frameIdx];
+				_frame = str[_layerIndex, _keyIndex];
 			}
 
-			str[_layerIdx].KeyFrames.RemoveAt(_frameIdx);
+			str[_layerIndex].KeyFrames.RemoveAt(_keyIndex);
+			str[_layerIndex].InvalidateIndex();
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx].KeyFrames.Insert(_frameIdx, _frame);
+			str[_layerIndex].KeyFrames.Insert(_keyIndex, _frame);
+			str[_layerIndex].InvalidateIndex();
 		}
 	}
 }

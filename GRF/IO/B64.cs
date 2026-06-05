@@ -97,8 +97,7 @@ namespace GRF.IO {
 					return;
 				}
 				if (disposing) {
-					if (_stream != null)
-						_stream.Dispose();
+					_stream?.Dispose();
 				}
 				_stream = null;
 				_disposed = true;

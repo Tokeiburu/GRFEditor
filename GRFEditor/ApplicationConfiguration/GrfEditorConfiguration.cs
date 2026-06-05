@@ -31,22 +31,22 @@ namespace GRFEditor.ApplicationConfiguration {
 		private static ConfigAsker _configAsker;
 
 		public static ConfigAsker ConfigAsker {
-			get { return _configAsker ?? (_configAsker = new ConfigAsker(GrfPath.Combine(Configuration.ApplicationDataPath, ProgramName, "config.txt"))); }
-			set { _configAsker = value; }
+			get => _configAsker ?? (_configAsker = new ConfigAsker(GrfPath.Combine(Configuration.ApplicationDataPath, ProgramName, "config.txt")));
+			set => _configAsker = value;
 		}
 
 		public static Brush UIPanelPreviewBackground {
-			get { return (Brush) XamlReader.Parse(ConfigAsker["[Style - Panel preview background]", XamlWriter.Save(new SolidColorBrush(Colors.Transparent)).Replace(Environment.NewLine, "")]); }
-			set { ConfigAsker["[Style - Panel preview background]"] = XamlWriter.Save(value).Replace(Environment.NewLine, ""); }
+			get => (Brush)XamlReader.Parse(ConfigAsker["[Style - Panel preview background]", XamlWriter.Save(new SolidColorBrush(Colors.Transparent)).Replace(Environment.NewLine, "")]);
+			set => ConfigAsker["[Style - Panel preview background]"] = XamlWriter.Save(value).Replace(Environment.NewLine, "");
 		}
 
 		public static Brush UIPanelPreviewBackgroundStr {
-			get { return (Brush)XamlReader.Parse(ConfigAsker["[Style - Panel preview background str]", XamlWriter.Save(new SolidColorBrush(Color.FromArgb(150, 0, 0, 0))).Replace(Environment.NewLine, "")]); }
-			set { ConfigAsker["[Style - Panel preview background str]"] = XamlWriter.Save(value).Replace(Environment.NewLine, ""); }
+			get => (Brush)XamlReader.Parse(ConfigAsker["[Style - Panel preview background str]", XamlWriter.Save(new SolidColorBrush(Color.FromArgb(150, 0, 0, 0))).Replace(Environment.NewLine, "")]);
+			set => ConfigAsker["[Style - Panel preview background str]"] = XamlWriter.Save(value).Replace(Environment.NewLine, "");
 		}
 
 		public static Brush UIPanelPreviewBackgroundMap {
-			get { return (Brush)XamlReader.Parse(ConfigAsker["[Style - UIPanelPreviewBackgroundMap]", XamlWriter.Save(new SolidColorBrush(Color.FromArgb(204, 0, 0, 0))).Replace(Environment.NewLine, "")]); }
+			get => (Brush)XamlReader.Parse(ConfigAsker["[Style - UIPanelPreviewBackgroundMap]", XamlWriter.Save(new SolidColorBrush(Color.FromArgb(204, 0, 0, 0))).Replace(Environment.NewLine, "")]);
 			set {
 				ConfigAsker["[Style - UIPanelPreviewBackgroundMap]"] = XamlWriter.Save(value).Replace(Environment.NewLine, "");
 				if (value is SolidColorBrush) {
@@ -57,8 +57,8 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool StrEditorShowGrid {
-			get { return Boolean.Parse(ConfigAsker["[GrfEditor - StrEditorShowGrid]", true.ToString()]); }
-			set { ConfigAsker["[GrfEditor - StrEditorShowGrid]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GrfEditor - StrEditorShowGrid]", true.ToString()]);
+			set => ConfigAsker["[GrfEditor - StrEditorShowGrid]"] = value.ToString();
 		}
 
 		public class QuickColorSetting {
@@ -74,7 +74,7 @@ namespace GRFEditor.ApplicationConfiguration {
 			public void SetNull() {
 				_color = null;
 			}
-			
+
 			public void Set(Vector4 color) {
 				_color = color;
 				string old = _setting.Get();
@@ -97,10 +97,10 @@ namespace GRFEditor.ApplicationConfiguration {
 						_color = new Vector4(0, 0, 0, 150f / 255f);
 					}
 				}
-			
+
 				return _color.Value;
 			}
-			
+
 			public Vector4 Color {
 				get { return Get(); }
 			}
@@ -112,38 +112,38 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region TreeBehavior
 
 		public static bool TreeBehaviorSaveExpansion {
-			get { return Boolean.Parse(ConfigAsker["[TreeBehavior - Save expansion]", true.ToString()]); }
-			set { ConfigAsker["[TreeBehavior - Save expansion]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[TreeBehavior - Save expansion]", true.ToString()]);
+			set => ConfigAsker["[TreeBehavior - Save expansion]"] = value.ToString();
 		}
 
 		public static string TreeBehaviorSaveExpansionFolders {
-			get { return ConfigAsker["[TreeBehavior - Save expansion folders]", ""]; }
-			set { ConfigAsker["[TreeBehavior - Save expansion folders]"] = value; }
+			get => ConfigAsker["[TreeBehavior - Save expansion folders]", ""];
+			set => ConfigAsker["[TreeBehavior - Save expansion folders]"] = value;
 		}
-		
+
 		public static bool TreeBehaviorExpandSpecificFolders {
-			get { return Boolean.Parse(ConfigAsker["[TreeBehavior - Expand specific GRF paths]", true.ToString()]); }
-			set { ConfigAsker["[TreeBehavior - Expand specific GRF paths]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[TreeBehavior - Expand specific GRF paths]", true.ToString()]);
+			set => ConfigAsker["[TreeBehavior - Expand specific GRF paths]"] = value.ToString();
 		}
 
 		public static string TreeBehaviorSpecificFolders {
-			get { return ConfigAsker["[TreeBehavior - Specific folders]", "data,root,data\\Example"]; }
-			set { ConfigAsker["[TreeBehavior - Specific folders]"] = value; }
+			get => ConfigAsker["[TreeBehavior - Specific folders]", "data,root,data\\Example"];
+			set => ConfigAsker["[TreeBehavior - Specific folders]"] = value;
 		}
 
 		public static bool TreeBehaviorSelectLatest {
-			get { return Boolean.Parse(ConfigAsker["[TreeBehavior - Select latest node]", true.ToString()]); }
-			set { ConfigAsker["[TreeBehavior - Select latest node]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[TreeBehavior - Select latest node]", true.ToString()]);
+			set => ConfigAsker["[TreeBehavior - Select latest node]"] = value.ToString();
 		}
 
 		public static string TreeBehaviorSelectLatestFolders {
-			get { return ConfigAsker["[TreeBehavior - Select latest folders]", ""]; }
-			set { ConfigAsker["[TreeBehavior - Select latest folders]"] = value; }
+			get => ConfigAsker["[TreeBehavior - Select latest folders]", ""];
+			set => ConfigAsker["[TreeBehavior - Select latest folders]"] = value;
 		}
 
 		public static bool TreeBehaviorSortFolders {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - TreeBehaviorSortFolders]"] = value.ToString();
 		}
 
 		public sealed class GrfResources {
@@ -171,8 +171,8 @@ namespace GRFEditor.ApplicationConfiguration {
 			}
 
 			private static string _mapExtractorResources {
-				get { return ConfigAsker["[MapExtractor - Resources]", ""]; }
-				set { ConfigAsker["[MapExtractor - Resources]"] = value; }
+				get => ConfigAsker["[MapExtractor - Resources]", ""];
+				set => ConfigAsker["[MapExtractor - Resources]"] = value;
 			}
 
 			public MultiGrfReader MultiGrf {
@@ -189,7 +189,8 @@ namespace GRFEditor.ApplicationConfiguration {
 
 					return _multiGrf;
 				}
-				set { _multiGrf = value; }
+
+				set => _multiGrf = value;
 			}
 
 			public void SaveResources(string resources) {
@@ -307,39 +308,30 @@ namespace GRFEditor.ApplicationConfiguration {
 
 				return path;
 			}
-			set { ConfigAsker["[GRFEditor - Default extration path]"] = value; }
+
+			set => ConfigAsker["[GRFEditor - Default extration path]"] = value;
 		}
 
 		public static bool AutomaticallyPlaySoundFiles {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Automatically read sound files]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Automatically read sound files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Automatically read sound files]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Automatically read sound files]"] = value.ToString();
 		}
 
 		#endregion
 
 		#region Program's configuration and information
 
-		public static string PublicVersion {
-			get { return "1.9.0.8"; }
-		}
-
-		public static string Author {
-			get { return "Tokeiburu"; }
-		}
-
-		public static string ProgramName {
-			get {
-				return "GRF Editor";
-			}
-		}
+		public static string PublicVersion => "1.9.1.0";
+		public static string Author => "Tokeiburu";
+		public static string ProgramName => "GRF Editor";
 
 		public static string RealVersion {
 			get { return Assembly.GetEntryAssembly().GetName().Version.ToString(); }
 		}
 
 		public static int PatchId {
-			get { return Int32.Parse(ConfigAsker["[GRFEditor - Patch ID]", "0"]); }
-			set { ConfigAsker["[GRFEditor - Patch ID]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => Int32.Parse(ConfigAsker["[GRFEditor - Patch ID]", "0"]);
+			set => ConfigAsker["[GRFEditor - Patch ID]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		#endregion
@@ -357,22 +349,20 @@ namespace GRFEditor.ApplicationConfiguration {
 			}
 		}
 
-		public static string ProgramDataPath {
-			get { return GrfPath.Combine(Configuration.ApplicationDataPath, ProgramName); }
-		}
+		public static string ProgramDataPath => GrfPath.Combine(Configuration.ApplicationDataPath, ProgramName);
 
 		public static bool AlwaysReopenLatestGrf {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Always reopen latest Grf]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Always reopen latest Grf]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Always reopen latest Grf]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Always reopen latest Grf]"] = value.ToString();
 		}
 
 		public static bool SpecialDxhjVersionSupport {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - SpecialDxhjVersionSupport]"] = value.ToString();
 		}
 
 		public static bool LockFiles {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Lock added files]", false.ToString()]); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Lock added files]", false.ToString()]);
 			set {
 				ConfigAsker["[GRFEditor - Lock added files]"] = value.ToString();
 				Settings.LockFiles = value;
@@ -380,7 +370,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool AddHashFileForThor {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Add hash file for Thor]", false.ToString()]); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Add hash file for Thor]", false.ToString()]);
 			set {
 				ConfigAsker["[GRFEditor - Add hash file for Thor]"] = value.ToString();
 				Settings.AddHashFileForThor = value;
@@ -388,38 +378,38 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool GrfFileTableIgnoreCase {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - GrfFileTableIgnoreCase]"] = value.ToString();
 		}
 
 		public static bool AttemptingCustomDllLoad {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Loading custom DLL state]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Loading custom DLL state]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Loading custom DLL state]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - Loading custom DLL state]"] = value.ToString();
 		}
 
 		public static bool PreviewRawGrfProperties {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Preview service - Grf properties - Show raw view]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Preview service - Grf properties - Show raw view]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Preview service - Grf properties - Show raw view]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - Preview service - Grf properties - Show raw view]"] = value.ToString();
 		}
 
 		public static bool PreviewRawFileStructure {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Preview service - File structure - Show raw view]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Preview service - File structure - Show raw view]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Preview service - File structure - Show raw view]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - Preview service - File structure - Show raw view]"] = value.ToString();
 		}
 
 		public static bool PreviewSpritesWrap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Preview sprites wrapping]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Preview sprites wrapping]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Preview sprites wrapping]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Preview sprites wrapping]"] = value.ToString();
 		}
 
 		public static bool PreviewSpritesShowNames {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewSpritesShowNames]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - PreviewSpritesShowNames]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - PreviewSpritesShowNames]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - PreviewSpritesShowNames]"] = value.ToString();
 		}
 
 		public static bool ImConverterMakePinkTransparent {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - ImConverterMakePinkTransparent]"] = value.ToString();
 		}
 
 		public static int PreviewSpritesPerLine {
@@ -431,90 +421,91 @@ namespace GRFEditor.ApplicationConfiguration {
 					return 50;
 				return value;
 			}
-			set { ConfigAsker["[GRFEditor - Preview sprites per line]"] = value.ToString(CultureInfo.InvariantCulture); }
+
+			set => ConfigAsker["[GRFEditor - Preview sprites per line]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static string EncodingIndex {
-			get { return ConfigAsker["[GRFEditor - Encoding index]", "0"]; }
-			set { ConfigAsker["[GRFEditor - Encoding index]"] = value; }
+			get => ConfigAsker["[GRFEditor - Encoding index]", "0"];
+			set => ConfigAsker["[GRFEditor - Encoding index]"] = value;
 		}
 
 		public static bool SaveEditorPosition {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - SaveEditorPosition]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - SaveEditorPosition]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SaveEditorPosition]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - SaveEditorPosition]"] = value.ToString();
 		}
 
 		public static string EditorSavedPositions {
-			get { return ConfigAsker["[GRFEditor - EditorSavedPositions]", ""]; }
-			set { ConfigAsker["[GRFEditor - EditorSavedPositions]"] = value; }
+			get => ConfigAsker["[GRFEditor - EditorSavedPositions]", ""];
+			set => ConfigAsker["[GRFEditor - EditorSavedPositions]"] = value;
 		}
 
 		public static float PreviewImageZoom {
-			get { return FormatConverters.DefConverter(ConfigAsker["[GRFEditor - Preview zoom]", "1"], FormatConverters.SingleConverter); }
-			set { ConfigAsker["[GRFEditor - Preview zoom]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => FormatConverters.DefConverter(ConfigAsker["[GRFEditor - Preview zoom]", "1"], FormatConverters.SingleConverter);
+			set => ConfigAsker["[GRFEditor - Preview zoom]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static float PreviewPaletteZoom {
-			get { return FormatConverters.DefConverter(ConfigAsker["[GRFEditor - PreviewPaletteZoom]", "1"], FormatConverters.SingleConverter); }
-			set { ConfigAsker["[GRFEditor - PreviewPaletteZoom]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => FormatConverters.DefConverter(ConfigAsker["[GRFEditor - PreviewPaletteZoom]", "1"], FormatConverters.SingleConverter);
+			set => ConfigAsker["[GRFEditor - PreviewPaletteZoom]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static bool AlwaysOpenAfterExtraction {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - ExtractingService - Always open after extraction]"] = value.ToString();
 		}
 
 		public static bool AutomaticallyPlaceFiles {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - AutomaticallyPlaceFiles]"] = value.ToString();
 		}
 
 		public static bool FullFileTableEncryptionSupport {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - FullFileTableEncryptionSupport]", true.ToString()]); }
-			set { 
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - FullFileTableEncryptionSupport]", true.ToString()]);
+			set {
 				ConfigAsker["[GRFEditor - FullFileTableEncryptionSupport]"] = value.ToString();
 				Settings.FullFileTableEncryptionSupport = true;
 			}
 		}
 
 		public static int EncodingCodepage {
-			get { return Int32.Parse(ConfigAsker["[GRFEditor - Encoding codepage]", "1252"]); }
-			set { ConfigAsker["[GRFEditor - Encoding codepage]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => Int32.Parse(ConfigAsker["[GRFEditor - Encoding codepage]", "1252"]);
+			set => ConfigAsker["[GRFEditor - Encoding codepage]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static int ThemeIndex {
-			get { return Int32.Parse(ConfigAsker["[GRFEditor - ThemeIndex]", "0"]); }
-			set { ConfigAsker["[GRFEditor - ThemeIndex]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => Int32.Parse(ConfigAsker["[GRFEditor - ThemeIndex]", "0"]);
+			set => ConfigAsker["[GRFEditor - ThemeIndex]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static int GatPreviewMode {
-			get { return Int32.Parse(ConfigAsker["[GRFEditor - Gat preview - Mode]", "0"]); }
-			set { ConfigAsker["[GRFEditor - Gat preview - Mode]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => Int32.Parse(ConfigAsker["[GRFEditor - Gat preview - Mode]", "0"]);
+			set => ConfigAsker["[GRFEditor - Gat preview - Mode]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static bool GatPreviewRescale {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Rescale]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Gat preview - Rescale]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Rescale]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - Gat preview - Rescale]"] = value.ToString();
 		}
 
 		public static bool GatPreviewHideBorders {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Hide borders]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Gat preview - Hide borders]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Hide borders]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Gat preview - Hide borders]"] = value.ToString();
 		}
 
 		public static bool GatPreviewTransparent {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Transparent]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Gat preview - Transparent]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Gat preview - Transparent]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - Gat preview - Transparent]"] = value.ToString();
 		}
 
 		public static string ExtractingServiceLastPath {
-			get { return ConfigAsker["[GRFEditor - ExtractingService - Latest directory]", Configuration.ApplicationPath]; }
-			set { ConfigAsker["[GRFEditor - ExtractingService - Latest directory]"] = value; }
+			get => ConfigAsker["[GRFEditor - ExtractingService - Latest directory]", Configuration.ApplicationPath];
+			set => ConfigAsker["[GRFEditor - ExtractingService - Latest directory]"] = value;
 		}
 
 		public static string AppLastPath {
-			get { return ConfigAsker["[GRFEditor - Application latest file name]", Configuration.ApplicationPath]; }
-			set { ConfigAsker["[GRFEditor - Application latest file name]"] = value; }
+			get => ConfigAsker["[GRFEditor - Application latest file name]", Configuration.ApplicationPath];
+			set => ConfigAsker["[GRFEditor - Application latest file name]"] = value;
 		}
 
 		public static Setting AppLastPath_Config {
@@ -522,148 +513,148 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool OverrideExtractionPath {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - ExtractingService - Override extraction path]"] = value.ToString();
 		}
 
 		public static bool CpuPerformanceManagement {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Cpu performance management]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Cpu performance management]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Cpu performance management]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Cpu performance management]"] = value.ToString();
 		}
 
 		public static bool ShowGrfEditorHeader {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - Show header in text files]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - Show header in text files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - Show header in text files]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - Show header in text files]"] = value.ToString();
 		}
 
 		public static bool PreviewActScaleType {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActScaleType]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - PreviewActScaleType]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActScaleType]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - PreviewActScaleType]"] = value.ToString();
 		}
 
 		public static bool PreviewActShowGrid {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActShowGrid]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - PreviewActShowGrid]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - PreviewActShowGrid]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - PreviewActShowGrid]"] = value.ToString();
 		}
 
 		public static bool MapRendererGlobalLighting {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGlobalLighting]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererGlobalLighting]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGlobalLighting]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererGlobalLighting]"] = value.ToString();
 		}
 
 		public static bool MapRendererRotateCamera {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRotateCamera]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererRotateCamera]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRotateCamera]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererRotateCamera]"] = value.ToString();
 		}
 
 		public static bool MapRendererMipmap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererMipmap]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererMipmap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererMipmap]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererMipmap]"] = value.ToString();
 		}
 
 		public static bool MapRendererWater {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererWater]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererWater]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererWater]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererWater]"] = value.ToString();
 		}
 
 		public static bool MapRendererGround {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGround]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererGround]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererGround]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererGround]"] = value.ToString();
 		}
 
 		public static bool MapRendererObjects {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererObjects]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererObjects]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererObjects]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererObjects]"] = value.ToString();
 		}
 
 		public static bool MapRendererAnimateMap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererAnimateMap]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererAnimateMap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererAnimateMap]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererAnimateMap]"] = value.ToString();
 		}
 
 		public static bool MapRendererLightmap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererLightmap]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererLightmap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererLightmap]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererLightmap]"] = value.ToString();
 		}
 
 		public static bool MapRendererShadowmap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShadowmap]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererShadowmap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShadowmap]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererShadowmap]"] = value.ToString();
 		}
 
 		public static bool MapRendererShowFps {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShowFps]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererShowFps]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererShowFps]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererShowFps]"] = value.ToString();
 		}
 
 		public static bool MapRendererTileUp {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererTileUp]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererTileUp]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererTileUp]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererTileUp]"] = value.ToString();
 		}
 
 		public static bool MapRendererRenderLub {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRenderLub]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererRenderLub]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererRenderLub]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererRenderLub]"] = value.ToString();
 		}
 
 		public static bool MapRendererClientPov {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererClientPov]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererClientPov]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererClientPov]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererClientPov]"] = value.ToString();
 		}
 
 		public static bool MapRendererStickToGround {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererStickToGround]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRendererStickToGround]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRendererStickToGround]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRendererStickToGround]"] = value.ToString();
 		}
 
 		public static bool MapRenderSkyMap {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSkyMap]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderSkyMap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSkyMap]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderSkyMap]"] = value.ToString();
 		}
 
 		public static bool MapRenderSmoothCamera {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSmoothCamera]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderSmoothCamera]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderSmoothCamera]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderSmoothCamera]"] = value.ToString();
 		}
 
 		public static bool MapRenderUnlimitedFps {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderUnlimitedFps]"] = value.ToString();
 		}
 
 		public static int MapRenderFpsCap {
-			get { return int.Parse(ConfigAsker["[GRFEditor - MapRenderFpsCap]", "60"]); }
-			set { ConfigAsker["[GRFEditor - MapRenderFpsCap]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => int.Parse(ConfigAsker["[GRFEditor - MapRenderFpsCap]", "60"]);
+			set => ConfigAsker["[GRFEditor - MapRenderFpsCap]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static bool MapRenderMinimapEnableWaterOverride {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderMinimapEnableWaterOverride]"] = value.ToString();
 		}
 
 		public static int MapRendererMinimapMargin {
-			get { return int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapMargin]", "7"]); }
-			set { ConfigAsker["[GRFEditor - MapRendererMinimapMargin]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapMargin]", "7"]);
+			set => ConfigAsker["[GRFEditor - MapRendererMinimapMargin]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static int MapRendererMinimapBorderCut {
-			get { return int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]", "1"]); }
-			set { ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => int.Parse(ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]", "1"]);
+			set => ConfigAsker["[GRFEditor - MapRendererMinimapBorderCut]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		public static bool MapRenderEnableFaceCulling {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderEnableFaceCulling]"] = value.ToString();
 		}
 
 		public static bool MapRenderEnableFSAA {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFSAA]", true.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderEnableFSAA]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderEnableFSAA]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderEnableFSAA]"] = value.ToString();
 		}
 
 		public static bool MapRenderRenderGat {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderRenderGat]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - MapRenderRenderGat]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - MapRenderRenderGat]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - MapRenderRenderGat]"] = value.ToString();
 		}
 
 		public static int MaximumNumberOfThreads {
@@ -688,20 +679,21 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static bool GrfFilesAssociated {
-			get { return Boolean.Parse(ConfigAsker["[GRFEditor - GrfFilesAssociated]", false.ToString()]); }
-			set { ConfigAsker["[GRFEditor - GrfFilesAssociated]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - GrfFilesAssociated]", false.ToString()]);
+			set => ConfigAsker["[GRFEditor - GrfFilesAssociated]"] = value.ToString();
 		}
 
 		public static FileAssociation FileShellAssociated {
 			get {
 				try {
-					return (FileAssociation) Enum.Parse(typeof (FileAssociation), ConfigAsker["[GRFEditor - File type associated]", "0"]);
+					return (FileAssociation)Enum.Parse(typeof(FileAssociation), ConfigAsker["[GRFEditor - File type associated]", "0"]);
 				}
 				catch {
 					return 0;
 				}
 			}
-			set { ConfigAsker["[GRFEditor - File type associated]"] = value.ToString(); }
+
+			set => ConfigAsker["[GRFEditor - File type associated]"] = value.ToString();
 		}
 
 		#endregion
@@ -733,18 +725,18 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		public static string EncryptorClientPath {
-			get { return ConfigAsker["[Encryptor - Client path]", ""]; }
-			set { ConfigAsker["[Encryptor - Client path]"] = value; }
+			get => ConfigAsker["[Encryptor - Client path]", ""];
+			set => ConfigAsker["[Encryptor - Client path]"] = value;
 		}
 
 		public static string EncryptorWrapper {
-			get { return ConfigAsker["[Encryptor - Wrapper name]", "cps.dll"]; }
-			set { ConfigAsker["[Encryptor - Wrapper name]"] = value; }
+			get => ConfigAsker["[Encryptor - Wrapper name]", "cps.dll"];
+			set => ConfigAsker["[Encryptor - Wrapper name]"] = value;
 		}
 
 		public static bool RenameCps {
-			get { return Boolean.Parse(ConfigAsker["[Encryptor - RenameCps]", "true"]); }
-			set { ConfigAsker["[Encryptor - RenameCps]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Encryptor - RenameCps]", "true"]);
+			set => ConfigAsker["[Encryptor - RenameCps]"] = value.ToString();
 		}
 
 		#endregion
@@ -752,198 +744,198 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region FlatMapsMaker
 
 		public static string FlatMapsMakerInputTexturesPath {
-			get { return ConfigAsker["[FlatMapsMaker - Input textures path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\InputTextures")]; }
-			set { ConfigAsker["[FlatMapsMaker - Input textures path]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Input textures path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\InputTextures")];
+			set => ConfigAsker["[FlatMapsMaker - Input textures path]"] = value;
 		}
 
 		public static string FlatMapsMakerInputMapsPath {
-			get { return ConfigAsker["[FlatMapsMaker - Input maps path]", GrfPath.Combine(ProgramDataPath, "FlatMapsMaker\\InputMaps")]; }
-			set { ConfigAsker["[FlatMapsMaker - Input maps path]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Input maps path]", GrfPath.Combine(ProgramDataPath, "FlatMapsMaker\\InputMaps")];
+			set => ConfigAsker["[FlatMapsMaker - Input maps path]"] = value;
 		}
 
 		public static string FlatMapsMakerOutputMapsPath {
-			get { return ConfigAsker["[FlatMapsMaker - Output maps path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\OutputMaps\\maps.grf")]; }
-			set { ConfigAsker["[FlatMapsMaker - Output maps path]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Output maps path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\OutputMaps\\maps.grf")];
+			set => ConfigAsker["[FlatMapsMaker - Output maps path]"] = value;
 		}
 
 		public static string FlatMapsMakerOutputTexturesPath {
-			get { return ConfigAsker["[FlatMapsMaker - Output textures path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\OutputTextures")]; }
-			set { ConfigAsker["[FlatMapsMaker - Output textures path]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Output textures path]", Path.Combine(ProgramDataPath, "FlatMapsMaker\\OutputTextures")];
+			set => ConfigAsker["[FlatMapsMaker - Output textures path]"] = value;
 		}
 
 		public static string FlatMapsMakerId {
-			get { return ConfigAsker["[FlatMapsMaker - Maps id]", ""]; }
-			set { ConfigAsker["[FlatMapsMaker - Maps id]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Maps id]", ""];
+			set => ConfigAsker["[FlatMapsMaker - Maps id]"] = value;
 		}
 
 		public static bool ShowGutterLines {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Show gutter lines]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Show gutter lines]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Show gutter lines]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Show gutter lines]"] = value.ToString();
 		}
 
 		public static bool RemoveLight {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveLight]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - RemoveLight]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveLight]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - RemoveLight]"] = value.ToString();
 		}
 
 		public static bool RemoveShadow {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveShadow]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - RemoveShadow]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveShadow]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - RemoveShadow]"] = value.ToString();
 		}
 
 		public static bool RemoveColor {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveColor]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - RemoveColor]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - RemoveColor]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - RemoveColor]"] = value.ToString();
 		}
 
 		public static bool RemoveAllObjects {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Remove objects]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Remove objects]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Remove objects]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Remove objects]"] = value.ToString();
 		}
 
 		public static bool FlattenGround {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Flatten ground]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Flatten ground]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Flatten ground]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Flatten ground]"] = value.ToString();
 		}
 
 		public static bool UseCustomTextures {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Use custom textures]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Use custom textures]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Use custom textures]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Use custom textures]"] = value.ToString();
 		}
 
 		public static bool StickGatCellsToGround {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Stick gat cells to the ground]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Stick gat cells to the ground]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Stick gat cells to the ground]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Stick gat cells to the ground]"] = value.ToString();
 		}
 
 		public static bool RemoveWater {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Remove water]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Remove water]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Remove water]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Remove water]"] = value.ToString();
 		}
 
 		public static bool TextureWalls {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall custom]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Texture wall custom]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall custom]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Texture wall custom]"] = value.ToString();
 		}
 
 		public static bool TextureBlack {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall black]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Texture wall black]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall black]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Texture wall black]"] = value.ToString();
 		}
 
 		public static bool TextureOriginal {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall original]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Texture wall original]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Texture wall original]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Texture wall original]"] = value.ToString();
 		}
 
 		public static bool MatchShadowsWithGatCells {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - MatchShadowsWithGatCells]"] = value.ToString();
 		}
 
 		public static bool UseShadowsForQuadrants {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - UseShadowsForQuadrants]"] = value.ToString();
 		}
 
 		public static bool UseBitmapsForQuadrants {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]", false.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]", false.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - UseBitmapsForQuadrants]"] = value.ToString();
 		}
 
 		public static int BitmapQuadrantFactor {
-			get { return Int32.Parse(ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]", "64"]); }
-			set { ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]"] = value.ToString(); }
+			get => Int32.Parse(ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]", "64"]);
+			set => ConfigAsker["[FlatMapsMaker - BitmapQuadrantFactor]"] = value.ToString();
 		}
 
 		public static int ShadowQuadrantFactor {
-			get { return Int32.Parse(ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]", "64"]); }
-			set { ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]"] = value.ToString(); }
+			get => Int32.Parse(ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]", "64"]);
+			set => ConfigAsker["[FlatMapsMaker - ShadowQuadrantFactor]"] = value.ToString();
 		}
 
 		public static bool ResetGlobalLighting {
-			get { return Boolean.Parse(ConfigAsker["[FlatMapsMaker - Reset global lighting]", true.ToString()]); }
-			set { ConfigAsker["[FlatMapsMaker - Reset global lighting]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[FlatMapsMaker - Reset global lighting]", true.ToString()]);
+			set => ConfigAsker["[FlatMapsMaker - Reset global lighting]"] = value.ToString();
 		}
 
 		public static Color FlatMapsMakerC0 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 0]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 0]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 0]", GrfColor.ToHex(61, 61, 61)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 0]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC1 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 1]", GrfColor.ToHex(33, 33, 33)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 1]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 1]", GrfColor.ToHex(33, 33, 33)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 1]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC2 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 2]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 2]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 2]", GrfColor.ToHex(61, 61, 61)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 2]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC3 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 3]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 3]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 3]", GrfColor.ToHex(61, 61, 61)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 3]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC4 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 4]", GrfColor.ToHex(63, 238, 248)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 4]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 4]", GrfColor.ToHex(63, 238, 248)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 4]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC5 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 5]", GrfColor.ToHex(136, 136, 136)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 5]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 5]", GrfColor.ToHex(136, 136, 136)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 5]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerC6 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 6]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color 6]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color 6]", GrfColor.ToHex(61, 61, 61)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color 6]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerCwForeground {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color water foreground]", GrfColor.ToHex(148, 148, 148)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color water foreground]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color water foreground]", GrfColor.ToHex(148, 148, 148)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color water foreground]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerCwBackground {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color water background]", GrfColor.ToHex(61, 61, 61)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color water background]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color water background]", GrfColor.ToHex(61, 61, 61)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color water background]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerCWall {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color wall]", GrfColor.ToHex(33, 33, 33)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color wall]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color wall]", GrfColor.ToHex(33, 33, 33)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color wall]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerGutter1 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color gutter 1]", GrfColor.ToHex(255, 127, 39)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color gutter 1]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color gutter 1]", GrfColor.ToHex(255, 127, 39)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color gutter 1]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerGutter2 {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color gutter 2]", GrfColor.ToHex(223, 89, 0)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color gutter 2]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color gutter 2]", GrfColor.ToHex(223, 89, 0)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color gutter 2]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerCBorder {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color border]", GrfColor.ToHex(0, 0, 0)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color border]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color border]", GrfColor.ToHex(0, 0, 0)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color border]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static Color FlatMapsMakerCx {
-			get { return new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color reserved]", GrfColor.ToHex(255, 255, 255)])).ToColor(); }
-			set { ConfigAsker["[FlatMapsMaker - Cell color reserved]"] = GrfColor.ToHex(value.R, value.G, value.B); }
+			get => new GrfColor((ConfigAsker["[FlatMapsMaker - Cell color reserved]", GrfColor.ToHex(255, 255, 255)])).ToColor();
+			set => ConfigAsker["[FlatMapsMaker - Cell color reserved]"] = GrfColor.ToHex(value.R, value.G, value.B);
 		}
 
 		public static string FlatMapsCellWidth {
-			get { return ConfigAsker["[FlatMapsMaker - Cell border width]", "2"]; }
-			set { ConfigAsker["[FlatMapsMaker - Cell border width]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Cell border width]", "2"];
+			set => ConfigAsker["[FlatMapsMaker - Cell border width]"] = value;
 		}
 
 		public static string FlatMapsPreviewMapName {
-			get { return ConfigAsker["[FlatMapsMaker - Preview map name]", ""]; }
-			set { ConfigAsker["[FlatMapsMaker - Preview map name]"] = value; }
+			get => ConfigAsker["[FlatMapsMaker - Preview map name]", ""];
+			set => ConfigAsker["[FlatMapsMaker - Preview map name]"] = value;
 		}
 
 		public static int FlatMapsCellWidth2 {
@@ -961,136 +953,158 @@ namespace GRFEditor.ApplicationConfiguration {
 
 		#endregion
 
+		#region Grf Shrinker
+		public static bool SH_RemoveUnusedSpriteImages {
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SH_RemoveUnusedSpriteImages]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - SH_RemoveUnusedSpriteImages]"] = value.ToString();
+		}
+
+		public static bool SH_DowngradeTextures {
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SH_DowngradeTextures]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - SH_DowngradeTextures]"] = value.ToString();
+		}
+
+		public static bool SH_UseLzmaCompression {
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SH_UseLzmaCompression]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - SH_UseLzmaCompression]"] = value.ToString();
+		}
+
+		public static bool SH_Redirect {
+			get => Boolean.Parse(ConfigAsker["[GRFEditor - SH_Redirect]", true.ToString()]);
+			set => ConfigAsker["[GRFEditor - SH_Redirect]"] = value.ToString();
+		}
+		#endregion
+
 		#region Grf validation
 
 		public static bool FeNoExtension {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - No extension]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - No extension]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - No extension]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - No extension]"] = value.ToString();
 		}
 
 		public static bool FeMissingSprAct {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Missing spr or act files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Missing spr or act files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Missing spr or act files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Missing spr or act files]"] = value.ToString();
 		}
 
 		public static bool FeEmptyFiles {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Empty files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Empty files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Empty files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Empty files]"] = value.ToString();
 		}
 
 		public static bool FeDb {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Existing db files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Existing db files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Existing db files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Existing db files]"] = value.ToString();
 		}
 
 		public static bool FeSvn {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Existing svn files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Existing svn files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Existing svn files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Existing svn files]"] = value.ToString();
 		}
 
 		public static bool FeDuplicateFiles {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Duplicate files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Duplicate files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Duplicate files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Duplicate files]"] = value.ToString();
 		}
 
 		public static bool FeDuplicatePaths {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Duplicate paths]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Duplicate paths]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Duplicate paths]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Duplicate paths]"] = value.ToString();
 		}
 
 		public static bool FeSpaceSaved {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Find space saved by repacking]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Find space saved by repacking]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Find space saved by repacking]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Find space saved by repacking]"] = value.ToString();
 		}
 
 		public static bool FeInvalidFileTable {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Invalid file table]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Invalid file table]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Invalid file table]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Invalid file table]"] = value.ToString();
 		}
 
 		public static bool FeRootFiles {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Find errors - Root files]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Find errors - Root files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Find errors - Root files]", true.ToString()]);
+			set => ConfigAsker["[Validation - Find errors - Root files]"] = value.ToString();
 		}
 
 		public static bool VcLoadEntries {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Load entries]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Load entries]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Load entries]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Load entries]"] = value.ToString();
 		}
 
 		public static bool VcInvalidEntryMetadata {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect invalid entry metadata]"] = value.ToString();
 		}
 
 		public static bool VcInvalidImageFormat {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - VcInvalidImageFormat]"] = value.ToString();
 		}
 
 		public static bool VcSpriteIssues {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect sprite issues]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect sprite issues]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect sprite issues]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect sprite issues]"] = value.ToString();
 		}
 
 		public static bool VcSpriteIssuesRle {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect early ending RLE encoding]", false.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect early ending RLE encoding]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect early ending RLE encoding]", false.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect early ending RLE encoding]"] = value.ToString();
 		}
 
 		public static bool VcSpriteSoundIndex {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Invalid sound index]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Invalid sound index]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Invalid sound index]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Invalid sound index]"] = value.ToString();
 		}
 
 		public static bool VcSpriteSoundMissing {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect sound file not missing]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect sound file not missing]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect sound file not missing]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect sound file not missing]"] = value.ToString();
 		}
 
 		public static bool VcSpriteIndex {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Invalid sprite index]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Invalid sprite index]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Invalid sprite index]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Invalid sprite index]"] = value.ToString();
 		}
 
 		public static bool VcResourcesModelFiles {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect missing resources in model files]", false.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect missing resources in model files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect missing resources in model files]", false.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect missing resources in model files]"] = value.ToString();
 		}
 
 		public static bool VcResourcesMapFiles {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect missing resources in map files]", false.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect missing resources in map files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect missing resources in map files]", false.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect missing resources in map files]"] = value.ToString();
 		}
 
 		public static bool VcInvalidQuadTree {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid QuadTree]", false.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect invalid QuadTree]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid QuadTree]", false.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect invalid QuadTree]"] = value.ToString();
 		}
 
 		public static bool VcZlibChecksum {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid checksum]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate content - Detect invalid checksum]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate content - Detect invalid checksum]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate content - Detect invalid checksum]"] = value.ToString();
 		}
 
 		public static bool VeFilesNotFound {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate extraction - Ignore files not found]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate extraction - Ignore files not found]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate extraction - Ignore files not found]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate extraction - Ignore files not found]"] = value.ToString();
 		}
 
 		public static bool VeFilesDifferentSize {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Validate extraction - Ignore files with different size]", true.ToString()]); }
-			set { ConfigAsker["[Validation - Validate extraction - Ignore files with different size]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Validate extraction - Ignore files with different size]", true.ToString()]);
+			set => ConfigAsker["[Validation - Validate extraction - Ignore files with different size]"] = value.ToString();
 		}
 
 		public static bool ValidationRawView {
-			get { return Boolean.Parse(ConfigAsker["[Validation - Show raw view]", false.ToString()]); }
-			set { ConfigAsker["[Validation - Show raw view]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Validation - Show raw view]", false.ToString()]);
+			set => ConfigAsker["[Validation - Show raw view]"] = value.ToString();
 		}
 
 		public static string VeFolder {
-			get { return ConfigAsker["[Validation - Hard drive folder]", "C:\\RO\\data"]; }
-			set { ConfigAsker["[Validation - Hard drive folder]"] = value; }
+			get => ConfigAsker["[Validation - Hard drive folder]", "C:\\RO\\data"];
+			set => ConfigAsker["[Validation - Hard drive folder]"] = value;
 		}
 
 		#endregion
@@ -1098,38 +1112,38 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Lub decompiler
 
 		public static bool UseCustomDecompiler {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Use GRF Editor Decompiler]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Use GRF Editor Decompiler]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Use GRF Editor Decompiler]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Use GRF Editor Decompiler]"] = value.ToString();
 		}
 
 		public static bool AppendFunctionId {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Append function Id]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Append function Id]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Append function Id]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Append function Id]"] = value.ToString();
 		}
 
 		public static bool UseCodeReconstructor {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Use code reconstructor]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Use code reconstructor]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Use code reconstructor]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Use code reconstructor]"] = value.ToString();
 		}
 
 		public static bool DecodeInstructions {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Decode instructions]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Decode instructions]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Decode instructions]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Decode instructions]"] = value.ToString();
 		}
 
 		public static bool GroupIfAllValues {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all values]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Group if all values]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all values]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Group if all values]"] = value.ToString();
 		}
 
 		public static bool GroupIfAllKeyValues {
-			get { return Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all key values_]", true.ToString()]); }
-			set { ConfigAsker["[Lub decompiler - Group if all key values_]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Lub decompiler - Group if all key values_]", true.ToString()]);
+			set => ConfigAsker["[Lub decompiler - Group if all key values_]"] = value.ToString();
 		}
 
 		public static int TextLengthLimit {
-			get { return Int32.Parse(ConfigAsker["[Lub decompiler - Text length limit]", "80"]); }
-			set { ConfigAsker["[Lub decompiler - Text length limit]"] = value.ToString(CultureInfo.InvariantCulture); }
+			get => Int32.Parse(ConfigAsker["[Lub decompiler - Text length limit]", "80"]);
+			set => ConfigAsker["[Lub decompiler - Text length limit]"] = value.ToString(CultureInfo.InvariantCulture);
 		}
 
 		#endregion
@@ -1137,18 +1151,18 @@ namespace GRFEditor.ApplicationConfiguration {
 		#region Grf compression
 
 		public static bool CoIdenticalFiles {
-			get { return Boolean.Parse(ConfigAsker["[Compression - General compression - Remove identical files]", true.ToString()]); }
-			set { ConfigAsker["[Compression - General compression - Remove identical files]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Compression - General compression - Remove identical files]", true.ToString()]);
+			set => ConfigAsker["[Compression - General compression - Remove identical files]"] = value.ToString();
 		}
 
 		public static bool ShowRswObjects {
-			get { return Boolean.Parse(ConfigAsker["[Compression - ShowRswObjects]", false.ToString()]); }
-			set { ConfigAsker["[Compression - ShowRswObjects]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Compression - ShowRswObjects]", false.ToString()]);
+			set => ConfigAsker["[Compression - ShowRswObjects]"] = value.ToString();
 		}
 
 		public static bool EnableWordWrap {
-			get { return Boolean.Parse(ConfigAsker["[Compression - EnableWordWrap]", false.ToString()]); }
-			set { ConfigAsker["[Compression - EnableWordWrap]"] = value.ToString(); }
+			get => Boolean.Parse(ConfigAsker["[Compression - EnableWordWrap]", false.ToString()]);
+			set => ConfigAsker["[Compression - EnableWordWrap]"] = value.ToString();
 		}
 
 		#endregion

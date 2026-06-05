@@ -270,7 +270,7 @@ namespace GRF.Core {
 		}
 
 		private static void _continousCopy(TieredProgress tieredProgress, List<FileEntry> entries, Container grfDst, Container grfSrc, Stream originalStream, Stream outputStream, ref long currentOffset, bool canCancel, QuickMergeHelper helper = null) {
-			if (grfSrc == null) {
+			if (grfSrc == null || entries.Count == 0) {
 				tieredProgress.CompleteTier();
 				return;
 			}

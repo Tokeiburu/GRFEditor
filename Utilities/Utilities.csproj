@@ -9,6 +9,10 @@
     <FileVersion>1.2.0.0</FileVersion>
     <Version>1.2.0</Version>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="ConfigAsker - Copy.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="ErrorManager">
       <HintPath>$(SolutionDir)Libraries\ErrorManager.dll</HintPath>
@@ -27,8 +31,8 @@
 	</Target>
 	<Target Name="CopyBuildDll" BeforeTargets="AfterBuild">
 		<MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
-		<Message Text="$(ProjectName) -> $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
-		<Message Text="$(ProjectName) -> $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
+		<Message Text="$(ProjectName) -&gt; $([System.IO.Path]::GetFullPath('$(ExternalDllsPath)$(TargetFileName)'))" Importance="High" Condition="Exists('$(ExternalDllsPath)')" />
+		<Message Text="$(ProjectName) -&gt; $(GrfEditorDllsPath)$(TargetFileName)" Importance="High" Condition="Exists('$(GrfEditorDllsPath)')" />
 		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />
 		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(GrfEditorDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(GrfEditorDllsPath)')" />
 		<Copy SourceFiles="$(TargetPath);$(TargetDir)$(TargetName).pdb" DestinationFolder="$(ExternalDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />

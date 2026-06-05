@@ -8,6 +8,9 @@ using GRF.IO;
 
 namespace GRF.FileFormats.StrFormat {
 	public partial class Str : IPrintable, IWriteableFile {
+		public const int OffsetX = 320;
+		public const int OffsetY = 290;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="Str" /> class.
 		/// </summary>
@@ -21,7 +24,7 @@ namespace GRF.FileFormats.StrFormat {
 			Layers = new List<StrLayer>(Header.NumberOfLayers);
 
 			for (int i = 0, count = Header.NumberOfLayers; i < count; i++) {
-				Layers.Add(new StrLayer(reader));
+				Layers.Add(new StrLayer(this, reader));
 			}
 
 			Commands = new CommandsHolder(this);
@@ -42,7 +45,7 @@ namespace GRF.FileFormats.StrFormat {
 			Header.SetVersion(148, 0);
 
 			Layers = new List<StrLayer>();
-			Layers.Add(new StrLayer());
+			Layers.Add(new StrLayer(this));
 
 			Fps = 60;
 
@@ -91,9 +94,7 @@ namespace GRF.FileFormats.StrFormat {
 		public int Fps { get; set; }
 		public int MaxKeyFrame { get; set; }
 
-		public int KeyFrameCount {
-			get { return MaxKeyFrame + 1; }
-		}
+		public int KeyFrameCount => MaxKeyFrame + 1;
 
 		public CommandsHolder Commands { get; private set; }
 
@@ -188,6 +189,12 @@ namespace GRF.FileFormats.StrFormat {
 		public void Rotate(float angle) {
 			foreach (var layer in Layers) {
 				layer.Rotate(angle);
+			}
+		}
+
+		public void InvalidateIndex() {
+			foreach (var layer in Layers) {
+				layer.InvalidateIndex();
 			}
 		}
 	}

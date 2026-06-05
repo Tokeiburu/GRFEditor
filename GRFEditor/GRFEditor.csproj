@@ -97,6 +97,7 @@
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />
     <Compile Include="OpenGL\MapRenderers\GatRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\GatMinimapRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\BillboardRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\LubRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\RenderMode.cs" />
     <Compile Include="OpenGL\MapRenderers\RsmRenderer.cs" />
@@ -153,6 +154,9 @@
     <Compile Include="TestDecompression.cs" />
     <Compile Include="TestWindow.xaml.cs">
       <DependentUpon>TestWindow.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Tools\GrfShrinker\GrfShrinkerDialog.xaml.cs">
+      <DependentUpon>GrfShrinkerDialog.xaml</DependentUpon>
     </Compile>
     <Compile Include="Tools\GrfValidation\ValidateGenericErrors.cs" />
     <Compile Include="Tools\GrfValidation\Validation.cs" />
@@ -212,6 +216,7 @@
     <Compile Include="WPF\MagicEditDialog.xaml.cs">
       <DependentUpon>MagicEditDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="WPF\PreviewTabs\Controls\BinkNatives.cs" />
     <Compile Include="WPF\PreviewTabs\Controls\GifFormat.cs" />
     <Compile Include="WPF\PreviewTabs\Controls\ImageHelper.cs" />
     <Compile Include="WPF\PreviewTabs\Controls\MapResourceResolver.cs" />
@@ -222,6 +227,9 @@
     <Compile Include="WPF\PreviewTabs\Controls\PreviewRawStructureLoader.cs" />
     <Compile Include="WPF\PreviewTabs\OpenGLViewport.xaml.cs">
       <DependentUpon>OpenGLViewport.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="WPF\PreviewTabs\PreviewBink.xaml.cs">
+      <DependentUpon>PreviewBink.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\PreviewTabs\PreviewPalette.xaml.cs">
       <DependentUpon>PreviewPalette.xaml</DependentUpon>
@@ -411,6 +419,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Tools\GrfShrinker\GrfShrinkerDialog.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Tools\GrfValidation\ValidationDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -450,6 +462,10 @@
     <Page Include="WPF\PreviewTabs\OpenGLViewport.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="WPF\PreviewTabs\PreviewBink.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="WPF\PreviewTabs\PreviewPalette.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -1051,7 +1067,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
@@ -1098,6 +1114,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\stop2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\binkw64.dll" />
   </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />

@@ -1,43 +1,41 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class TextureCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class TextureCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private bool _isSet = false;
 		private int _textureId;
 		private int _oldTextureId;
 
-		public TextureCommand(int layerIdx, int frameIdx, int textureId) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
+
+		public TextureCommand(int layerIndex, int frameIndex, int textureId) {
+			_layerIndex = layerIndex;
+			_keyIndex = frameIndex;
 			_textureId = textureId;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Changed texture to " + _textureId;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Changed texture to {_textureId}";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
-				_oldTextureId = (int)str[_layerIdx, _frameIdx].TextureIndex;
+				_oldTextureId = (int)str[_layerIndex, _keyIndex].TextureIndex;
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].TextureIndex = _textureId;
+			str[_layerIndex, _keyIndex].TextureIndex = _textureId;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].TextureIndex = _oldTextureId;
+			str[_layerIndex, _keyIndex].TextureIndex = _oldTextureId;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as TextureCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is TextureCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -45,8 +43,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as TextureCommand;
-			if (cmd != null) {
+			if (command is TextureCommand cmd) {
 				_textureId = cmd._textureId;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

@@ -51,42 +51,54 @@ namespace GRF.FileFormats.ActFormat {
 				ToolTip = toolTip,
 			};
 
+			SetPropertyValue(property);
+
+			Properties[name] = property;
+		}
+
+		public void SetPropertyValue(EffectProperty property) {
+			var type = property.Type;
+
 			if (ConfigAsker.ContainsKey(property.SettingName)) {
 				try {
-					if (typeof(T) == typeof(GrfColor)) {
+					if (type == typeof(GrfColor)) {
 						property.Value = new GrfColor(ConfigAsker[property.SettingName]);
 					}
-					else if (typeof(T) == typeof(float)) {
+					else if (type == typeof(float)) {
 						property.Value = FormatConverters.SingleConverter(ConfigAsker[property.SettingName]);
 					}
-					else if (typeof(T) == typeof(int)) {
+					else if (type == typeof(int)) {
 						property.Value = FormatConverters.IntConverter(ConfigAsker[property.SettingName]);
 					}
-					else if (typeof(T) == typeof(bool)) {
+					else if (type == typeof(bool)) {
 						property.Value = Boolean.Parse(ConfigAsker[property.SettingName]);
 					}
-					else if (typeof(T) == typeof(string)) {
+					else if (type == typeof(string)) {
 						property.Value = ConfigAsker[property.SettingName];
 					}
-					else if (typeof(T) == typeof(TkVector2)) {
+					else if (type == typeof(TkVector2)) {
 						var data = ConfigAsker[property.SettingName].Trim('(', ')').Split(new string[] { ", " }, StringSplitOptions.RemoveEmptyEntries);
 						property.Value = new TkVector2(FormatConverters.SingleConverterNoThrow(data[0]), FormatConverters.SingleConverterNoThrow(data[1]));
 					}
 					else {
-						property.Value = defValue;
+						property.Value = property.DefValue;
 					}
 				}
 				catch {
 					// Invalid data, probably from changing the type in the script; erase the entry.
 					ConfigAsker.DeleteKey(property.SettingName);
-					property.Value = defValue;
+					property.Value = property.DefValue;
 				}
 			}
 			else {
-				property.Value = defValue;
+				property.Value = property.DefValue;
 			}
+		}
 
-			Properties[name] = property;
+		public void ReloadProperties() {
+			foreach (var property in Properties.Values) {
+				SetPropertyValue(property);
+			}
 		}
 
 		public void SetToolTip(string name, string toolTip) {

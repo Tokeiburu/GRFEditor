@@ -88,18 +88,18 @@
 							<Label Grid.Row="2" Content="Save format" ToolTip="The output format of the GRF." />
 							<Label Grid.Row="3" Content="Compression method" ToolTip="Determines how the container will be compressed." />
 							<Label Grid.Row="4" Content="Theme" ToolTip="Determines GRF Editor's UI style." />
-							<Label Grid.Row="5" VerticalAlignment="Center" Content="Maximum number of threads" ToolTip="Default value is 10. This feature enables you to run more threads for the services. Too many threads and the whole system lags though, so there's a limit of 50." />
+							<Label Grid.Row="5" VerticalAlignment="Center" Content="Maximum number of threads" ToolTip="Default value is 10. This feature enables you to run more threads for the services." />
 							<Label Grid.Row="6" Content="Preview panel background" ToolTip="The background color for previewing images." />
 							<CheckBox Name="_cbOverrideExtractionPath" Margin="3 3 3 1" Grid.ColumnSpan="2" Grid.Row="7" Content="Override the extraction path" ToolTip="Instead of extracting files to the current location of the GRF, files will be extracted at the path below." />
 							<Styles:PathBrowser Name="_pbExtration" Margin="20 0 0 3" Grid.Row="8" Grid.ColumnSpan="2" BrowseMode="Folder" />
-							<Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" EncodingChanged="_comboBoxEncoding_EncodingChanged"  />
+							<Application:EncodingPicker Grid.Column="1" Margin="3" Name="_comboBoxEncoding" IsReadOnly="True" EncodingChanged="_comboBoxEncoding_EncodingChanged" />
 							<ComboBox Grid.Row="2" Grid.Column="1" Name="_comboBoxFormat" VerticalAlignment="Center" Margin="3" ItemsSource="{Binding Source={x:Static GRF:GrfFormatViews.Formats}}" SelectionChanged="_comboBoxFormat_SelectionChanged" />
 							<ComboBox Grid.Row="4" Grid.Column="1" Name="_comboBoxStyles" VerticalAlignment="Center" Margin="3">
 								<ComboBoxItem Content="Default" />
 								<ComboBoxItem Content="Dark theme" />
 							</ComboBox>
 							<Application:CompressionMethodPicker Grid.Row="3" Grid.Column="1" Name="_comboBoxCompression" VerticalAlignment="Center" Margin="3" />
-							<TextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" Height="22" Name="_textBoxMaxThreads" HorizontalAlignment="Stretch" Margin="3" TextChanged="_textBoxMaxThreads_TextChanged" VerticalContentAlignment="Center" />
+							<ComboBox Grid.Row="5" Grid.Column="1" Name="_comboBoxMaxThreads" VerticalAlignment="Center" Margin="3" SelectionChanged="_comboBoxMaxThreads_SelectionChanged" IsEditable="True" TextBoxBase.TextChanged="_comboBoxMaxThreads_TextChanged" />
 							<WPF:QuickColorSelector Height="20" Margin="3" x:Name="_qcsBackground" Grid.Row="6" Grid.Column="1" ColorBrush="{x:Static ApplicationConfiguration:GrfEditorConfiguration.UIPanelPreviewBackground}" />
 						</Grid>
 						<StackPanel>

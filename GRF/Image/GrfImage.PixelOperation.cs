@@ -65,7 +65,6 @@ namespace GRF.Image {
 		/// <param name="pixelIndex">Index of the pixel.</param>
 		/// <returns>The requested color</returns>
 		public GrfColor GetColor(int pixelIndex) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			int bpp = GetBpp();
@@ -102,7 +101,6 @@ namespace GRF.Image {
 		/// <param name="y">Index pixel for height.</param>
 		/// <returns>The requested color</returns>
 		public unsafe byte* GetRawColor(int x, int y) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			int bpp = GetBpp();
@@ -127,7 +125,6 @@ namespace GRF.Image {
 		/// <param name="pixelIndex">Index of the pixel.</param>
 		/// <param name="color">The requested color.</param>
 		public void SetColor(int pixelIndex, in GrfColor color) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			int bpp = GetBpp();
@@ -146,7 +143,6 @@ namespace GRF.Image {
 		/// <param name="pixelIndex">Index of the pixel.</param>
 		/// <param name="paletteIndex">The requested color.</param>
 		public void SetColor(int pixelIndex, byte paletteIndex) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			int bpp = GetBpp();
@@ -192,7 +188,6 @@ namespace GRF.Image {
 		/// <param name="height">The height.</param>
 		/// <returns>The pixels in the specified zone</returns>
 		public byte[] CopyPixels(int left, int top, int width, int height) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			if (left + width > Width ||
@@ -230,7 +225,6 @@ namespace GRF.Image {
 			if (width * height <= 0 || width <= 0 || height <= 0)
 				return new byte[0];
 
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -328,7 +322,6 @@ namespace GRF.Image {
 		}
 
 		private unsafe void _setPixels(int left, int top, int width, int height, byte[] pixels, bool blendLayers) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			if (left + width > Width ||
@@ -425,7 +418,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="pixels">The pixels.</param>
 		public void SetPixels(ref byte[] pixels) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = pixels;
 			InvalidateHash();
 		}
@@ -437,7 +429,6 @@ namespace GRF.Image {
 		/// <param name="width">Width of the new image data.</param>
 		/// <param name="height">Height of the new image data.</param>
 		public void SetPixels(ref byte[] pixels, int width, int height) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = pixels;
 			Width = width;
 			Height = height;
@@ -449,7 +440,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="pixels">The pixels.</param>
 		public void SetPixels(byte[] pixels) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			Pixels = Methods.Copy(pixels);
 			InvalidateHash();
 		}
@@ -474,7 +464,6 @@ namespace GRF.Image {
 		/// <param name="overridePalette">If set, uses this palette for the image.</param>
 		public void SetPixelsUnrestricted(int left, int top, GrfImage image, bool blendLayers, byte[] overridePalette = null) {
 			//SetPixelsUnrestricted(left, top, image.Width, image.Height, image);
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);

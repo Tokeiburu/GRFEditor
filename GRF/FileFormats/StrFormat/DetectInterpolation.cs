@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using GRF.Graphics;
 
 namespace GRF.FileFormats.StrFormat {
@@ -20,6 +21,13 @@ namespace GRF.FileFormats.StrFormat {
 				for (int keyIndex = layer.KeyFrames.Count - 1; keyIndex >= 0; keyIndex--) {
 					if (layer[keyIndex].Type == 1) {
 						layer.KeyFrames.RemoveAt(keyIndex);
+					}
+				}
+
+				for (int keyIndex = 0; keyIndex < layer.KeyFrames.Count - 1; keyIndex++) {
+					if (layer[keyIndex].FrameIndex == layer[keyIndex + 1].FrameIndex) {
+						layer.KeyFrames.RemoveAt(keyIndex);
+						keyIndex--;
 					}
 				}
 			}
@@ -464,8 +472,6 @@ namespace GRF.FileFormats.StrFormat {
 				
 				var keyIndexF = (int)(0.33 * distance) + 0;
 				var keyIndexG = (int)(0.66 * distance) + 0;
-				//var f = new TkVector2(layer[startIndex + keyIndexF].Offset.X, layer[startIndex + keyIndexF].Offset.Y);
-				//var g = new TkVector2(layer[startIndex + keyIndexG].Offset.X, layer[startIndex + keyIndexG].Offset.Y);
 
 				var u = (float)keyIndexF / distance;
 				var v = (float)keyIndexG / distance;
@@ -482,9 +488,6 @@ namespace GRF.FileFormats.StrFormat {
 				var cx = layer[startIndex + keyIndexF].Offset.X - mu3 * p0.X - u * u * u * p3.X;
 				var cy = layer[startIndex + keyIndexF].Offset.Y - mu3 * p0.Y - u * u * u * p3.Y;
 
-				//var c = f - (1 - u) * (1 - u) * (1 - u) * p0 - u * u * u * p3;
-				//var d = g - (1 - v) * (1 - v) * (1 - v) * p0 - v * v * v * p3;
-
 				var a1 = 3 * mu * mu * u;
 				var a2 = 3 * mu * u * u;
 
@@ -500,9 +503,6 @@ namespace GRF.FileFormats.StrFormat {
 					(cy - a2 * p2.Y) / a1
 					);
 				
-				//var p2 = (d * a1 - c * b1) / (b2 * a1 - a2 * b1);
-				//var p1 = (c - a2 * p2) / a1;
-
 				p1.X = (float)Math.Round(p1.X, 4);
 				p1.Y = (float)Math.Round(p1.Y, 4);
 
@@ -537,7 +537,6 @@ namespace GRF.FileFormats.StrFormat {
 				if (double.IsNaN(temp2))
 					temp2 = 0;
 				
-				//if (temp1 < 0.01 && temp2 < 0.01) {
 				if (temp1 < 0.05 && temp2 < 0.05) {
 					return false;
 				}
@@ -547,7 +546,6 @@ namespace GRF.FileFormats.StrFormat {
 					continue;
 
 				bool fail = false;
-				//bool bezierImpact = false;
 
 				// Verify if other nodes match
 				for (int i = startIndex + 1; i < keyIndex; i++) {
@@ -565,26 +563,10 @@ namespace GRF.FileFormats.StrFormat {
 						fail = true;
 						break;
 					}
-
-					//p = new TkVector2(
-					//	(layer[keyIndex].Offset.X - layer[startIndex].Offset.X) * t + layer[startIndex].Offset.X,
-					//	(layer[keyIndex].Offset.Y - layer[startIndex].Offset.Y) * t + layer[startIndex].Offset.Y);
-					//
-					//if (Math.Abs(p.X - layer[i].Offset.X) > ToleranceBiasAverage ||
-					//	Math.Abs(p.Y - layer[i].Offset.Y) > ToleranceBiasAverage) {
-					//	bezierImpact = true;
-					//	break;
-					//}
 				}
 
 				if (fail)
 					continue;
-
-				//if (!bezierImpact)
-				//	continue;
-
-				//if (angle < 0.2 || double.IsNaN(angle))
-				//	continue;
 
 				offsetBiasOut = offsetBias;
 				bezier[0] = p1.X;
@@ -632,34 +614,34 @@ namespace GRF.FileFormats.StrFormat {
 		const float ToleranceBiasAverage = 0.01f;
 
 		public void DetectInterpolatedFrames() {
-			//GrfPath.Delete(@"C:\Games\debug.log");
-
 			// Check for potential candidates
-			for (int index = 0; index < Layers.Count; index++) {
-				var layer = Layers[index];
+			Parallel.For(0, Layers.Count, layerIndex => {
+			//for (int layerIndex = 1; layerIndex < Layers.Count; layerIndex++) {
+				var layer = Layers[layerIndex];
 
 				// Check the one with the least amount of frames
 				var layer1 = new StrLayer(layer);
 				var layer2 = new StrLayer(layer);
 
-				_detectInterpolatedOthers(1, index, layer1);
-				_detectInterpolatedBezier(1, index, layer1);
+				_detectInterpolatedOthers(1, layerIndex, layer1);
+				_detectInterpolatedBezier(1, layerIndex, layer1);
 
-				if (!_detectInterpolationHasMoreFrames(index, layer1)) {
-					Layers[index] = layer1;
-					continue;
+				if (!_detectInterpolationHasMoreFrames(layerIndex, layer1)) {
+					Layers[layerIndex] = layer1;
+					return;
 				}
 
-				_detectInterpolatedBezier(2, index, layer2);
-				_detectInterpolatedOthers(2, index, layer2);
+				_detectInterpolatedBezier(2, layerIndex, layer2);
+				_detectInterpolatedOthers(2, layerIndex, layer2);
 
 				if (layer1.KeyFrames.Count < layer2.KeyFrames.Count) {
-					Layers[index] = layer1;
+					Layers[layerIndex] = layer1;
 				}
 				else {
-					Layers[index] = layer2;
+					Layers[layerIndex] = layer2;
 				}
-			}
+			//}
+			});
 		}
 
 		private bool _detectInterpolationHasMoreFrames(int layerIndex, StrLayer layer) {

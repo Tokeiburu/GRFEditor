@@ -2,6 +2,18 @@
 using GRF.Graphics;
 
 namespace GRF.FileFormats.StrFormat {
+	public enum PointId {
+		TopLeft,
+		TopRight,
+		BottomRight,
+		BottomLeft,
+	}
+
+	public enum UvPointId {
+		TopLeft,
+		TopRight
+	}
+
 	public class InterpolatedKeyFrame {
 		public float Angle;
 		public float Delay;
@@ -473,6 +485,28 @@ namespace GRF.FileFormats.StrFormat {
 				currentFrame.KeyIndex = baseKeyIndex + 1;
 				currentFrame.Interpolated = false;
 			}
+		}
+
+		public TkVector2 GetXYVector(PointId point) {
+			int id = (int)point;
+			return new TkVector2(Vertices[id], Vertices[4 + id]);
+		}
+
+		public void SetXYVector(PointId point, in TkVector2 vector) {
+			int id = (int)point;
+			Vertices[id] = vector.X;
+			Vertices[id + 4] = vector.Y;
+		}
+
+		public TkVector2 GetUVVector(UvPointId point) {
+			int id = 2 * (int)point;
+			return new TkVector2(TextCoords[id + 0], TextCoords[id + 1]);
+		}
+
+		public void SetUVVector(UvPointId point, in TkVector2 vector) {
+			int id = 2 * (int)point;
+			TextCoords[id + 0] = vector.X;
+			TextCoords[id + 1] = vector.Y;
 		}
 	}
 }

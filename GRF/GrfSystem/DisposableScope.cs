@@ -27,13 +27,11 @@ namespace GRF.GrfSystem {
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (_disposable != null) {
-					//if (_disposable is FileStream) {
-					//	ByteReaderStream.Streams[((FileStream) (object) _disposable).Name]--;
-					//}
+				//if (_disposable is FileStream) {
+				//	ByteReaderStream.Streams[((FileStream) (object) _disposable).Name]--;
+				//}
 
-					_disposable.Dispose();
-				}
+				_disposable?.Dispose();
 			}
 		}
 	}

@@ -464,12 +464,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			TextureManager.UnloadTexture(_black.Resource, _request.Context);
 
-			if (_gndShadow != null)
-				_gndShadow.Unload();
-
-			if (_shadow != null)
-				_shadow.Close();
-
+			_gndShadow?.Unload();
 			_shadow = null;
 		}
 	}

@@ -96,7 +96,7 @@ namespace Utilities {
 		}
 
 		public static implicit operator string(TkPath path) {
-			return path == null ? null : path.GetFullPath();
+			return path?.GetFullPath();
 		}
 
 		public static implicit operator TkPath(string path) {

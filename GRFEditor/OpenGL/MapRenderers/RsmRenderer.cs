@@ -522,8 +522,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				TextureManager.UnloadTexture(texture.Resource, _request.Context);
 			}
 
-			if (Instance != null)
-				Instance.Unload();
+			Instance?.Unload();
 		}
 
 		public override int GetHashCode() {

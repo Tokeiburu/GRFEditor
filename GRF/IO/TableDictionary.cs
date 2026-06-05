@@ -234,21 +234,13 @@ namespace GRF.IO {
 		//}
 
 		public new void Clear() {
-			if (_files != null) {
-				_files.Clear();
-			}
+			_files?.Clear();
 
-			if (_fastAccessEntries != null) {
-				_fastAccessEntries.Clear();
-			}
+			_fastAccessEntries?.Clear();
 
-			if (_fastEntries != null) {
-				_fastEntries.Clear();
-			}
+			_fastEntries?.Clear();
 
-			if (_fastTupleAccessEntries != null) {
-				_fastTupleAccessEntries.Clear();
-			}
+			_fastTupleAccessEntries?.Clear();
 
 			base.Clear();
 		}

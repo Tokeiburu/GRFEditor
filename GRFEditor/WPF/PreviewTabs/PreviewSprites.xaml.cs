@@ -33,7 +33,10 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		private TkPath _currentPath;
 		private GrfHolder _grfData;
-		private string[] _previewFileExtensions = new string[] { ".spr", ".bmp", ".png", ".gat" };
+		private string[] _previewFileExtensions = new string[] { ".spr", ".bmp", ".png", ".gat", ".tga" };
+		public const int PositionIncrementCount = 12;
+		public const double StartMinimumPreviewWidth = 20;
+		public const double IncrementPreviewWidth = 20;
 
 		public PreviewSprites(EditorMainWindow editor) {
 			_editor = editor;
@@ -71,13 +74,13 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 			WpfUtilities.AddMouseInOutUnderline(_cbWrapImages, _cbShowNames);
 
-			_gpEase.SetPosition(0.2d, false);
+			_gpEase.SetPosition(1d / PositionIncrementCount * 4, false);
 
 			_gpEase.ValueChanged += delegate {
-				var value = Math.Round(_gpEase.Position * 10);
-				_gpEase.SetPosition(value / 10d, true);
+				var value = Math.Round(_gpEase.Position * PositionIncrementCount);
+				_gpEase.SetPosition(value / PositionIncrementCount, true);
 
-				int size = (int)value * 20 + 60;
+				int size = (int)(value * IncrementPreviewWidth + StartMinimumPreviewWidth);
 
 				if (_previewElementWidth == size)
 					return;
@@ -117,7 +120,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 		}
 
 		public void Update(bool clearImages) {
-			int size = (int)(_gpEase.Position * 10) * 20 + 60;
+			int size = (int)((int)(_gpEase.Position * PositionIncrementCount) * IncrementPreviewWidth + StartMinimumPreviewWidth);
 			_previewElementWidth = size;
 			_previewElementHeight = size + (GrfEditorConfiguration.PreviewSpritesShowNames ? 20 : 0);
 
@@ -146,6 +149,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 				_images.Clear();
 				_previewFiles.Clear();
+				previews = previews.OrderBy(p => p.RelativePath, StringComparer.OrdinalIgnoreCase).ToList();
 				_previewFiles.AddRange(previews);
 			}
 

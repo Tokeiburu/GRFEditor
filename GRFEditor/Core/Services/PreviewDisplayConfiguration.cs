@@ -12,6 +12,7 @@ namespace GRFEditor.Core.Services {
 			ShowTextEditor = false;
 			ShowRawStructureTextEditor = false;
 			ResetImagePreview = true;
+			ShowBik = false;
 			ShowImagePreview = false;
 			ShowPaletteImagePreview = false;
 			CenterImagePreview = false;
@@ -40,6 +41,7 @@ namespace GRFEditor.Core.Services {
 		public bool ShowTextEditor { get; set; }
 		public bool ShowRawStructureTextEditor { get; set; }
 		public bool ShowLubDecompiler { get; set; }
+		public bool ShowBik { get; set; }
 		public bool ResetImagePreview { get; set; }
 		public bool ShowImagePreview { get; set; }
 		public bool ShowPaletteImagePreview { get; set; }

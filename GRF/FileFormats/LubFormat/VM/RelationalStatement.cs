@@ -33,10 +33,8 @@ namespace GRF.FileFormats.LubFormat.VM {
 			}
 
 			public void Reverse() {
-				if (Left != null)
-					Left.Reverse();
-				if (Right != null)
-					Right.Reverse();
+				Left?.Reverse();
+				Right?.Reverse();
 
 				IsReversed = !IsReversed;
 			}

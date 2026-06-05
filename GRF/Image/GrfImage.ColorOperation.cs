@@ -32,7 +32,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="color">The color.</param>
 		public unsafe void Multiply(in GrfColor color) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -112,7 +111,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="color">The color.</param>
 		public unsafe void Add(in GrfColor color) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -164,7 +162,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="color">The color.</param>
 		public unsafe void Substract(in GrfColor color) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -216,7 +213,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="fact">The color factor to apply.</param>
 		public void Multiply(float fact) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -242,7 +238,6 @@ namespace GRF.Image {
 		/// Makes colors close to pink transparent.
 		/// </summary>
 		public unsafe void MakePinkShadeTransparent() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 			GrfExceptions.IfLtZeroThrowUnsupportedImageFormat(bpp);
@@ -295,7 +290,6 @@ namespace GRF.Image {
 		/// Makes the first pixel transparent.
 		/// </summary>
 		public void MakeFirstPixelTransparent() {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 
 			if (GrfImageType == GrfImageType.Indexed8) {
@@ -313,7 +307,6 @@ namespace GRF.Image {
 		/// </summary>
 		/// <param name="color">The color that will be made transparent.</param>
 		public unsafe void MakeColorTransparent(in GrfColor color) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 
@@ -366,7 +359,6 @@ namespace GRF.Image {
 		/// Makes a specified color transparent.
 		/// </summary>
 		public unsafe void Grayscale(GrayscaleMode mode = GrayscaleMode.MaxValue) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 
@@ -444,7 +436,6 @@ namespace GRF.Image {
 		}
 
 		public unsafe void ChangeIntoWhite(int paletteIndex = -1) {
-			GrfExceptions.IfTrueThrowClosedImage(_isClosed);
 			GrfExceptions.IfNullThrowNonLoadedImage(Pixels);
 			int bpp = GetBpp();
 

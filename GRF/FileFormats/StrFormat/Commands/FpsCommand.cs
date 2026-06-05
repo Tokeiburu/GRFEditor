@@ -10,11 +10,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			_fps = fps;
 		}
 
-		public string CommandDescription {
-			get {
-				return "Changed FPS to " + _fps;
-			}
-		}
+		public string CommandDescription => $"Changed FPS to {_fps}";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
@@ -34,8 +30,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as FpsCommand;
-			if (cmd != null) {
+			if (command is FpsCommand cmd) {
 				_fps = cmd._fps;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

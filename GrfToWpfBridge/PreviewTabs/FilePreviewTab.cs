@@ -81,8 +81,7 @@ namespace GrfToWpfBridge.PreviewTabs {
 						_oldEntry = entry;
 					}
 
-					if (ErrorPanel != null)
-						ErrorPanel.ClearError();
+					ErrorPanel?.ClearError();
 				}
 			}
 			catch (GrfException err) when (ErrorPanel != null) {

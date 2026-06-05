@@ -54,9 +54,7 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		private void _bar_Cancel(object sender, RoutedEventArgs e) {
-			if (_thread != null) {
-				_thread.Cancel();
-			}
+			_thread?.Cancel();
 		}
 
 		public void SetAndRunOperation(Action<ProgressObject> action, object returnState = null) {
@@ -78,10 +76,10 @@ namespace GrfToWpfBridge.Application {
 			}
 			else {
 				_thread = thread;
-				_thread.Cancelling += new GrfThread.GrfThreadEventHandler(_thread_Cancelling);
-				_thread.Cancelled += new GrfThread.GrfThreadEventHandler(_thread_Cancelled);
-				_thread.Finished += new GrfThread.GrfThreadEventHandler(_thread_Finished);
-				_thread.ProgressUpdate += new GrfThread.GrfThreadEventHandler(_thread_ProgressUpdate);
+				_thread.Cancelling += _thread_Cancelling;
+				_thread.Cancelled += _thread_Cancelled;
+				_thread.Finished += _thread_Finished;
+				_thread.ProgressUpdate += _thread_ProgressUpdate;
 				_thread.Start();
 			}
 		}
@@ -110,10 +108,10 @@ namespace GrfToWpfBridge.Application {
 			}
 			else {
 				_thread = thread;
-				_thread.Cancelling += new GrfThread.GrfThreadEventHandler(_thread_Cancelling);
-				_thread.Cancelled += new GrfThread.GrfThreadEventHandler(_thread_Cancelled);
-				_thread.Finished += new GrfThread.GrfThreadEventHandler(_thread_Finished);
-				_thread.ProgressUpdate += new GrfThread.GrfThreadEventHandler(_thread_ProgressUpdate);
+				_thread.Cancelling += _thread_Cancelling;
+				_thread.Cancelled += _thread_Cancelled;
+				_thread.Finished += _thread_Finished;
+				_thread.ProgressUpdate += _thread_ProgressUpdate;
 				_thread.Finished += finished;
 				_thread.Start();
 			}
@@ -160,8 +158,7 @@ namespace GrfToWpfBridge.Application {
 		}
 
 		public void Cancel() {
-			if (_thread != null)
-				_thread.Cancel();
+			_thread?.Cancel();
 		}
 
 		#region Nested type: IsRunningBlock

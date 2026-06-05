@@ -627,15 +627,13 @@ namespace TokeiLibrary {
 			element.MouseEnter += delegate {
 				Mouse.OverrideCursor = Cursors.Hand;
 				element.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
-				if (tb != null)
-					tb.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
+				tb?.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
 			};
 
 			element.MouseLeave += delegate {
 				Mouse.OverrideCursor = null;
 				element.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
-				if (tb != null)
-					tb.SetValue(TextBlock.TextDecorationsProperty, null);
+				tb?.SetValue(TextBlock.TextDecorationsProperty, null);
 			};
 		}
 	}

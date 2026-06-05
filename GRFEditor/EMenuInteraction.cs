@@ -28,6 +28,7 @@ using GRFEditor.WPF;
 using GrfToWpfBridge.Application;
 using TokeiLibrary;
 using TokeiLibrary.WPF;
+using TokeiLibrary.WPF.Styles;
 using Utilities;
 using Utilities.Extension;
 using Utilities.Services;
@@ -625,6 +626,7 @@ namespace GRFEditor {
 			}
 
 			_treeViewPathManager.ExpandFirstNode();
+			_asyncOperation.ProgressBar.SetSpecialState(TkProgressBar.ProgressStatus.Finished);
 			this.Dispatch(p => p.Title = GrfEditorConfiguration.ProgramName + " - new *");
 		}
 
@@ -697,6 +699,7 @@ namespace GRFEditor {
 			_miTreeDecrypt.Click += new RoutedEventHandler(_menuItemDecrypt_Click);
 			_miTreeSetEncryptionKey.Click += new RoutedEventHandler(_menuItemSetEncryptionKey_Click);
 			_miDecryptFileTable.Click += new RoutedEventHandler(_miDecryptFileTable_Click);
+			_miTreeClearEncryptionCache.Click += new RoutedEventHandler(_miTreeClearEncryptionCache_Click);
 			_miTreeSelectInExplorer.Click += new RoutedEventHandler(_menuItemSelect_Click);
 			_miTreeProperties.Click += new RoutedEventHandler(_menuItemProperties_Click);
 			_miTreeFlagRemove.Click += new RoutedEventHandler(_menuItemFlagRemove_Click);
@@ -718,6 +721,7 @@ namespace GRFEditor {
 			_miTreeEncryption.Items.Add(_miTreeDecrypt);
 			_miTreeEncryption.Items.Add(_miTreeSetEncryptionKey);
 			_miTreeEncryption.Items.Add(_miDecryptFileTable);
+			_miTreeEncryption.Items.Add(_miTreeClearEncryptionCache);
 			_contextMenuNodes.Items.Add(_miTreeProperties);
 			_contextMenuNodes.Items.Add(_miTreeSelectInExplorer);
 
@@ -773,6 +777,7 @@ namespace GRFEditor {
 		private readonly Separator _miTreeSeparator = new Separator();
 		private readonly MenuItem _miTreeSetEncryptionKey = new MenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
 		private readonly MenuItem _miDecryptFileTable = new MenuItem { Header = "Decrypt file table", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("diff.png"), Visibility = Visibility.Collapsed } };
+		private readonly MenuItem _miTreeClearEncryptionCache = new MenuItem { Header = "Clear cache", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
 		private readonly MenuItem _miUsage = new MenuItem { Header = "Find usages...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("help.png") } };
 
 		#endregion

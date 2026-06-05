@@ -20,8 +20,7 @@ namespace GRFEditor.OpenGL {
 			if (!LogEnabled)
 				return;
 
-			GLHelperEventHandler handler = Log;
-			if (handler != null) handler(null, message());
+			Log?.Invoke(null, message());
 		}
 
 		public static Dictionary<string, int> IndexedTextures = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);

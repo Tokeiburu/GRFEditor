@@ -3,11 +3,24 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Utilities.Commands {
+	public enum StackStatus {
+		Unknown,
+		Undo,
+		Redo,
+		Execute,
+		Restore,
+		SavingCommandIndex,
+		Store,
+		Clear,
+		SetCommandIndex,
+	}
+
 	/// <summary>
 	/// Defines an object with Undo and Redo operations.
 	/// </summary>
 	/// <typeparam name="T">The object type on which the commands are being executed</typeparam>
 	public abstract class AbstractCommand<T> {
+
 		/// <summary>
 		/// Gets a value indicating whether a command is being executed (locked).
 		/// </summary>
@@ -27,6 +40,8 @@ namespace Utilities.Commands {
 		protected int _commandIndexNonModified = -1;
 		private readonly List<T> _delayedCommands = new List<T>();
 		private IGroupCommand<T> _delayedCommandsCommand;
+
+		public StackStatus StackStatus { get; private set; } = StackStatus.Unknown;
 
 		/// <summary>
 		/// Gets the delayed commands.
@@ -144,6 +159,7 @@ namespace Utilities.Commands {
 		/// Saves this instance.
 		/// </summary>
 		public void SaveCommandIndex() {
+			StackStatus = StackStatus.SavingCommandIndex;
 			_commandIndexNonModified = _commandIndexCurrent;
 			_commandIndexModified = _commandIndexCurrent;
 			OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
@@ -188,6 +204,7 @@ namespace Utilities.Commands {
 						}
 					}
 
+					StackStatus = StackStatus.Store;
 					_commands.Add(command);
 					_commandIndexCurrent = _commands.Count - 1;
 					_commandIndexModified = _commandIndexCurrent;
@@ -224,7 +241,8 @@ namespace Utilities.Commands {
 					}
 
 					if (IsDelayed) {
-						_delayedCommands.Add(command);
+						if (!(command is INullCommand))
+							_delayedCommands.Add(command);
 						_delayedCommandsCommand?.Processing(command);
 						return;
 					}
@@ -239,6 +257,7 @@ namespace Utilities.Commands {
 						}
 					}
 
+					StackStatus = StackStatus.Execute;
 					OnPreviewCommandExecuted(command);
 					_execute(command);
 					_commands.Add(command);
@@ -249,6 +268,7 @@ namespace Utilities.Commands {
 					OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
 				catch (CancelAbstractCommand) {
+					StackStatus = StackStatus.Restore;
 					stack.Restore(this);
 					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
@@ -344,6 +364,7 @@ namespace Utilities.Commands {
 							throw new CancelAbstractCommand(new AbstractCommandArg {Cancel = true});
 						}
 
+						StackStatus = StackStatus.Execute;
 						_commandIndexCurrent = _commands.Count - 1;
 						_commandIndexModified = _commandIndexCurrent;
 						OnCommandExecuted(command);
@@ -352,6 +373,7 @@ namespace Utilities.Commands {
 					}
 				}
 				catch (CancelAbstractCommand) {
+					StackStatus = StackStatus.Restore;
 					stack.Restore(this);
 					OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				}
@@ -376,6 +398,7 @@ namespace Utilities.Commands {
 				try {
 					if (_commandIndexCurrent <= -1) return false;
 
+					StackStatus = StackStatus.Undo;
 					_commandIndexModified = _commandIndexCurrent;
 					OnPreviewCommandUndo(_commands[_commandIndexCurrent]);
 					_undo(_commands[_commandIndexCurrent]);
@@ -402,6 +425,7 @@ namespace Utilities.Commands {
 				try {
 					if (_commandIndexCurrent >= _commands.Count - 1) return false;
 
+					StackStatus = StackStatus.Redo;
 					_commandIndexCurrent++;
 					_commandIndexModified = _commandIndexCurrent;
 					OnPreviewCommandRedo(_commands[_commandIndexCurrent]);
@@ -434,8 +458,10 @@ namespace Utilities.Commands {
 			_setNonModifiedIndex(-1);
 			_commands.Clear();
 
-			if (oldIndex != _commandIndexCurrent || count > 0)
+			if (oldIndex != _commandIndexCurrent || count > 0) {
+				StackStatus = StackStatus.Clear;
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+			}
 		}
 
 		/// <summary>
@@ -457,6 +483,7 @@ namespace Utilities.Commands {
 			}
 
 			if (oldIndex != _commandIndexCurrent || numberRemoved > 0) {
+				StackStatus = StackStatus.Clear;
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
 				OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
@@ -465,6 +492,7 @@ namespace Utilities.Commands {
 
 		internal void RemoveLastCommand() {
 			if (_commands.Count > 0) {
+				StackStatus = StackStatus.Clear;
 				_commands.RemoveAt(_commands.Count - 1);
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
@@ -520,6 +548,7 @@ namespace Utilities.Commands {
 		}
 
 		public virtual void SetCommandIndex(int commandIndex) {
+			StackStatus = StackStatus.SetCommandIndex;
 			_commandIndexCurrent = commandIndex;
 			_commandIndexModified = _commandIndexCurrent;
 			OnCommandIndexChanged(_commandIndexCurrent <= -1 || _commandIndexCurrent < _commands.Count ? default : _commands[_commandIndexCurrent]);

@@ -25,12 +25,9 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public Ebo Ebo;
 
 		public void Unload() {
-			if (Vbo != null)
-				Vbo.Unload();
-			if (Ebo != null)
-				Ebo.Unload();
-			if (InstanceVbo != null)
-				InstanceVbo.Unload();
+			Vbo?.Unload();
+			Ebo?.Unload();
+			InstanceVbo?.Unload();
 			if (Vao > 0) {
 				GL.DeleteVertexArray(Vao);
 				OpenGLMemoryManager.DelVao(Vao);

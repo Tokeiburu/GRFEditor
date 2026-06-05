@@ -146,13 +146,11 @@ namespace GRFEditor.OpenGL.WPF {
 					menuItem.Click += delegate {
 						var cloudEdit = WpfUtilities.FindParentControl<CloudEditDialog>(this);
 
-						if (cloudEdit != null) {
-							cloudEdit.Tabs().ForEach(tab => {
+						cloudEdit?.Tabs().ForEach(tab => {
 								if (tab != this) {
 									tab.OnClose();
 								}
 							});
-						}
 					};
 					border2.ContextMenu.Items.Add(menuItem);
 
@@ -160,11 +158,9 @@ namespace GRFEditor.OpenGL.WPF {
 					menuItem.Click += delegate {
 						var cloudEdit = WpfUtilities.FindParentControl<CloudEditDialog>(this);
 
-						if (cloudEdit != null) {
-							cloudEdit.Tabs().ForEach(tab => {
+						cloudEdit?.Tabs().ForEach(tab => {
 								tab.OnClose();
 							});
-						}
 					};
 					border2.ContextMenu.Items.Add(menuItem);
 				}

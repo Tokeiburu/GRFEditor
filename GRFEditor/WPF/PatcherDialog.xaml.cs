@@ -123,11 +123,8 @@ namespace GRFEditor.WPF {
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (_olderGrf != null)
-					_olderGrf.Dispose();
-
-				if (_newerGrf != null)
-					_newerGrf.Dispose();
+				_olderGrf?.Dispose();
+				_newerGrf?.Dispose();
 			}
 		}
 	}

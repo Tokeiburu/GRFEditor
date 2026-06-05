@@ -180,8 +180,7 @@ namespace TokeiLibrary.WPF {
 			}
 
 			if ((e.KeyStates & DragDropKeyStates.LeftMouseButton) != DragDropKeyStates.LeftMouseButton) {
-				if (_previewItem != null)
-					_previewItem.Reset();
+				_previewItem?.Reset();
 			}
 
 			if (itemUnderMouse != null && !itemUnderMouse.CanBeDropped) {
@@ -214,8 +213,7 @@ namespace TokeiLibrary.WPF {
 		#region IDisposable Members
 
 		public void Dispose() {
-			if (Items != null)
-				Items.Clear();
+			Items?.Clear();
 		}
 
 		#endregion
@@ -361,18 +359,14 @@ namespace TokeiLibrary.WPF {
 		private void _treeView_Drop(object sender, DragEventArgs e) {
 			var item = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 
-			if (item != null) {
-				item.Reset();
-			}
+			item?.Reset();
 		}
 		private void _treeView_DragEnter(object sender, DragEventArgs e) {
 			var itemUnderMouse = _getTreeViewItemClicked((FrameworkElement)e.OriginalSource, this);
 
 			try {
 				if (itemUnderMouse != null && !Equals(itemUnderMouse, _previewItem)) {
-					if (_previewItem != null) {
-						_previewItem.Reset();
-					}
+					_previewItem?.Reset();
 
 					if (!itemUnderMouse.CanBeDropped) {
 						itemUnderMouse.UnableItem();

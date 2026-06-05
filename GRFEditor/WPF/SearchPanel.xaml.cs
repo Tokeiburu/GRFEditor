@@ -387,8 +387,7 @@ namespace GRFEditor.WPF {
 			bool hasFocus = IsKeyboardFocusWithin;
 
 			var layer = AdornerLayer.GetAdornerLayer(_textArea);
-			if (layer != null)
-				layer.Remove(_adorner);
+			layer?.Remove(_adorner);
 
 			_messageView.IsOpen = false;
 			_textArea.TextView.BackgroundRenderers.Remove(_renderer);

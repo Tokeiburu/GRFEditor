@@ -179,9 +179,7 @@ namespace TokeiLibrary {
 			if (e.LeftButton == MouseButtonState.Pressed) {
 				Window window = WpfUtilities.FindParentControl<Window>((DependencyObject)sender);
 
-				if (window != null) {
-					window.DragMove();
-				}
+				window?.DragMove();
 			}
 		}
 		#endregion

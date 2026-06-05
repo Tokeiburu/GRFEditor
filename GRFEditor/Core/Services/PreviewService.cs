@@ -32,9 +32,6 @@ namespace GRFEditor.Core.Services {
 		private readonly ListView _items;
 
 		private readonly Queue<PreviewItem> _previewItems = new Queue<PreviewItem>();
-		private Queue<PreviewItem> PreviewItems {
-			get => _previewItems;
-		}
 		private readonly object _previewLock = new object();
 		private readonly object _previewLockQuick = new object();
 		private readonly string[] _rawStructureTextEditorExtensions = new string[] { ".fna", ".imf", ".rsm", ".rsm2", ".lub", ".str", ".bson" };
@@ -333,6 +330,11 @@ namespace GRFEditor.Core.Services {
 												catch {
 												}
 												break;
+											case ".bik":
+												previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowBik = true, ShowHexEditor = true };
+												_readAsBik(node);
+												_readAsResources(node);
+												break;
 											default:
 												previewDisplayConfiguration = new PreviewDisplayConfiguration { ShowHexEditor = true };
 												_readAsResources(node);
@@ -424,6 +426,7 @@ namespace GRFEditor.Core.Services {
 			if (res.HasValueChanged(new { conf.ShowFolderStructurePreview })) _tabFolderStructurePreview.Dispatch(p => p.Visibility = conf.ShowFolderStructurePreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowGrfProperties })) _tabItemGrfPropertiesPreview.Dispatch(p => p.Visibility = conf.ShowGrfProperties ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowRawStructureTextEditor })) _tabItemRawStructurePreview.Dispatch(p => p.Visibility = conf.ShowRawStructureTextEditor ? Visibility.Visible : Visibility.Collapsed);
+			if (res.HasValueChanged(new { conf.ShowBik })) _tabItemBinkPreview.Dispatch(p => p.Visibility = conf.ShowBik ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowImagePreview })) _tabItemImagePreview.Dispatch(p => p.Visibility = conf.ShowImagePreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowPaletteImagePreview })) _tabItemPalettePreview.Dispatch(p => p.Visibility = conf.ShowPaletteImagePreview ? Visibility.Visible : Visibility.Collapsed);
 			if (res.HasValueChanged(new { conf.ShowMapExtractor })) _tabItemMapExtractorPreview.Dispatch(p => p.Visibility = conf.ShowMapExtractor ? Visibility.Visible : Visibility.Collapsed);
@@ -496,8 +499,7 @@ namespace GRFEditor.Core.Services {
 					if (tab != null) {
 						var fileTabItem = tab.Content as IPreviewTab;
 
-						if (fileTabItem != null)
-							fileTabItem.Update(true);
+						fileTabItem?.Update(true);
 					}
 
 					_firstPreview = false;

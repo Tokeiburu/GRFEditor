@@ -18,7 +18,7 @@ namespace Utilities {
 
 				if (t.HasDefaultConstructor())
 					return Expression.Lambda<Func<T>>(Expression.New(t)).Compile();
-
+				
 				return () => (T)FormatterServices.GetUninitializedObject(t);
 			}
 		}

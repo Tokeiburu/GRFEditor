@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using GRF.Image;
 using GRF.IO;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRF.FileFormats.StrFormat {
@@ -9,11 +12,15 @@ namespace GRF.FileFormats.StrFormat {
 	/// The layer of a STR object.
 	/// </summary>
 	public class StrLayer : IWriteableObject {
+		public Str StrSource;
+
 		/// <summary>
 		/// Initializes a new instance of the <see cref="StrLayer" /> class.
 		/// </summary>
+		/// <param name="str">The STR source.</param>
 		/// <param name="reader">The reader.</param>
-		public StrLayer(IBinaryReader reader) {
+		public StrLayer(Str str, IBinaryReader reader) {
+			StrSource = str;
 			int count = reader.Int32();
 			TextureNames = new List<string>(count);
 
@@ -29,25 +36,19 @@ namespace GRF.FileFormats.StrFormat {
 			}
 		}
 
-		public StrLayer() {
+		public StrLayer(Str str) {
+			StrSource = str;
 			TextureNames = new List<string>();
 			KeyFrames = new List<StrKeyFrame>();
 		}
 
 		public StrLayer(StrLayer layer) {
+			StrSource = layer.StrSource;
 			TextureNames = new List<string>();
 			KeyFrames = new List<StrKeyFrame>();
 
 			for (int i = 0; i < layer.KeyFrames.Count; i++) {
 				KeyFrames.Add(new StrKeyFrame(layer[i]));
-			}
-
-			if (layer.FrameIndex2KeyIndex != null) {
-				FrameIndex2KeyIndex = new List<int>();
-
-				for (int i = 0; i < layer.FrameIndex2KeyIndex.Count; i++) {
-					FrameIndex2KeyIndex.Add(layer.FrameIndex2KeyIndex[i]);
-				}
 			}
 
 			for (int i = 0; i < layer.TextureNames.Count; i++) {
@@ -145,7 +146,7 @@ namespace GRF.FileFormats.StrFormat {
 				return -1;
 			}
 
-			for (int i = frameIndex; i < FrameIndex2KeyIndex.Count; i++) {
+			for (int i = frameIndex; i < FrameIndex2KeyIndex.Length; i++) {
 				if (FrameIndex2KeyIndex[i] != -1)
 					return FrameIndex2KeyIndex[i];
 			}
@@ -172,7 +173,7 @@ namespace GRF.FileFormats.StrFormat {
 				return -1;
 			}
 
-			for (int i = frameIndex; i >= FrameIndex2KeyIndex.Count; i--) {
+			for (int i = frameIndex; i >= 0; i--) {
 				if (FrameIndex2KeyIndex[i] != -1)
 					return FrameIndex2KeyIndex[i];
 			}
@@ -180,46 +181,87 @@ namespace GRF.FileFormats.StrFormat {
 			return -1;
 		}
 
-		public void Index(int frameCount) {
-			FrameIndex2KeyIndex = new List<int>();
-			
-			int listIdx = 0;
-			int previous = -1;
+		public int GetKeyFrameLength(int keyIndex) {
+			var keyFrame = this[keyIndex];
+			var nextKeyFrame = this[keyIndex + 1];
 
-			if (KeyFrames.Count > 0) {
-				for (int i = 0; i < KeyFrames[0].FrameIndex; i++) {
-					FrameIndex2KeyIndex.Add(-1);
-					listIdx++;
-				}
+			if (keyFrame == null)
+				return 0;
 
-				for (int i = 0; i < KeyFrames.Count; i++) {
-					for (int j = listIdx; j < KeyFrames[i].FrameIndex; j++) {
-						FrameIndex2KeyIndex.Add(previous);
-						listIdx++;
+			if (nextKeyFrame != null)
+				return nextKeyFrame.FrameIndex - keyFrame.FrameIndex;
+
+			if (keyFrame.IsInterpolated)
+				return StrSource.KeyFrameCount - keyFrame.FrameIndex;
+
+			return 1;
+		}
+
+		public unsafe void RebuildIndex() {
+			int frameCount = StrSource.KeyFrameCount;
+
+			_frameIndexToKeyIndex = new int[frameCount];
+
+			fixed (int* pDstBase = _frameIndexToKeyIndex) {
+				int* pDst = pDstBase;
+				NativeMethods.memset((IntPtr)pDst, -1, (UIntPtr)(frameCount * sizeof(int)));
+
+				int listIdx = 0;
+				int previous = 0;
+				
+				if (KeyFrames.Count > 0) {
+					listIdx += KeyFrames[0].FrameIndex;
+
+					for (int i = 1; i < KeyFrames.Count; i++) {
+						int count = KeyFrames[i].FrameIndex - listIdx;
+
+						if (count == 1) {
+							pDst[listIdx] = previous;
+						}
+						else {
+							for (int j = listIdx; j < KeyFrames[i].FrameIndex; j++) {
+								pDst[j] = previous;
+							}
+						}
+
+						listIdx += count;
+						previous = i;
 					}
 
-					previous = i;
-				}
-
-				if (KeyFrames.Last().IsInterpolated) {
-					for (int j = listIdx; j < frameCount; j++) {
-						FrameIndex2KeyIndex.Add(previous);
-						listIdx++;
+					if (KeyFrames.Last().IsInterpolated) {
+						for (int j = listIdx; j < frameCount; j++) {
+							pDst[j] = previous;
+						}
+					}
+					else {
+						pDst[listIdx] = previous;
 					}
 				}
-				else {
-					FrameIndex2KeyIndex.Add(previous);
-					listIdx++;
-				}
-			}
-
-			// Fill empty
-			for (int j = listIdx; j < frameCount; j++) {
-				FrameIndex2KeyIndex.Add(-1);
 			}
 		}
 
-		public List<int> FrameIndex2KeyIndex;
+		private int[] _frameIndexToKeyIndex;
+		private bool _indexDirty = true;
+		public bool FrameIndexDirty => _indexDirty;
+
+		public int[] FrameIndex2KeyIndex {
+			get {
+				EnsureIndexed();
+				return _frameIndexToKeyIndex;
+			}
+		}
+
+		private void EnsureIndexed() {
+			if (!_indexDirty)
+				return;
+
+			RebuildIndex();
+			_indexDirty = false;
+		}
+
+		public void InvalidateIndex() {
+			_indexDirty = true;
+		}
 
 		public StrKeyFrame this[int keyIndex] {
 			get {
@@ -252,6 +294,54 @@ namespace GRF.FileFormats.StrFormat {
 			foreach (var frame in KeyFrames) {
 				frame.Rotate(angle);
 			}
+		}
+
+		public enum RangeSearchMode {
+			Intersect,
+			Contained
+		}
+
+		public List<int> GetKeyIndexesInRange(int frameIndexStart, int frameCount, RangeSearchMode mode = RangeSearchMode.Intersect) {
+			int frameIndexEnd = frameIndexStart + frameCount;
+
+			if (frameIndexStart < 0)
+				frameIndexStart = 0;
+
+			if (frameIndexEnd > StrSource.KeyFrameCount)
+				frameIndexEnd = StrSource.KeyFrameCount;
+
+			List<int> indexes = new List<int>();
+
+			if (frameIndexEnd - frameIndexStart == 0)
+				return indexes;
+
+			EnsureIndexed();
+			var frameIndex2KeyIndex = _frameIndexToKeyIndex;
+
+			int keyIndex = frameIndex2KeyIndex[frameIndexStart];
+
+			if (keyIndex == -1) {
+				for (int i = frameIndexStart; i < frameIndex2KeyIndex.Length && keyIndex == -1; i++) {
+					keyIndex = frameIndex2KeyIndex[i];
+				}
+			}
+
+			if (keyIndex == -1)
+				return indexes;
+
+			for (int i = keyIndex; i < KeyFrames.Count; i++) {
+				if (KeyFrames[i].FrameIndex < frameIndexEnd)
+					indexes.Add(i);
+				else
+					break;
+			}
+
+			if (mode == RangeSearchMode.Contained) {
+				if (indexes.Count > 0 && KeyFrames[indexes[0]].FrameIndex < frameIndexStart)
+					indexes.RemoveAt(0);
+			}
+
+			return indexes;
 		}
 	}
 }

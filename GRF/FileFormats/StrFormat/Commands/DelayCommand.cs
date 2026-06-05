@@ -1,43 +1,41 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class DelayCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class DelayCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private bool _isSet = false;
 		private float _delay;
 		private float _oldDelay;
 
-		public DelayCommand(int layerIdx, int frameIdx, float delay) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
+
+		public DelayCommand(int layerIndex, int keyIndex, float delay) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 			_delay = delay;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Changed delay to " + (1 / _delay).ToString("0.##");
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Changed delay to {(1 / _delay):0.##}";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
-				_oldDelay = str[_layerIdx, _frameIdx].Delay;
+				_oldDelay = str[_layerIndex, _keyIndex].Delay;
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].Delay = _delay;
+			str[_layerIndex, _keyIndex].Delay = _delay;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].Delay = _oldDelay;
+			str[_layerIndex, _keyIndex].Delay = _oldDelay;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as DelayCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is DelayCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -45,8 +43,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as DelayCommand;
-			if (cmd != null) {
+			if (command is DelayCommand cmd) {
 				_delay = cmd._delay;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

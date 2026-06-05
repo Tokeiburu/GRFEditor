@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using GRF.IO;
+using System;
+using System.Collections.Generic;
 
 namespace GRF {
 	/// <summary>
@@ -49,6 +51,8 @@ namespace GRF {
 		#region Encryption
 		public const string EncryptionNotSet = "Couldn't set the encryption key. The key must be the same as the one used for the encryption. If you're trying to encrypt a GRF again with a different key, then you must decrypt the entire content first.";
 		public const string DecryptionNotSet = "Couldn't set the decryption key. The key must be the same as the one used for the encryption.";
+		public const string EncryptionDbFile = "_encryptiondb.grf";
+		public static string EncryptionDbPath => GrfPath.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "GRF Editor", EncryptionDbFile);
 		#endregion
 
 		#region Errors
@@ -72,7 +76,6 @@ namespace GRF {
 		public const string CurrentlyOpenedGrfTag = "CURRENTLY_LOADED";	// Used by MultiGrfReader
 		public const string NoExceptions = "No exceptions.";
 		public const string DataStreamId = "[data stream]";
-		public const string EncryptionDbFile = "_encryptiondb.grf";
 		public const string GenderMale = "³²";
 		public const string GenderFemale = "¿©";
 		public static List<string> Genders = new List<string> { GenderMale, GenderFemale };
@@ -82,6 +85,5 @@ namespace GRF {
 			Female
 		}
 		#endregion
-
 	}
 }

@@ -199,12 +199,10 @@ namespace GRFEditor.WPF {
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
 				if (_originalGrf != _grfSource) {
-					if (_grfSource != null)
-						_grfSource.Dispose();
+					_grfSource?.Dispose();
 				}
 
-				if (_grfAdd != null)
-					_grfAdd.Dispose();
+				_grfAdd?.Dispose();
 			}
 		}
 	}

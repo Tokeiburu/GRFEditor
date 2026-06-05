@@ -167,8 +167,13 @@ namespace GRF.FileFormats.SprFormat {
 					Buffer.BlockCopy(Palette.BytePalette, 0, palette, 0, 1024);
 				}
 
-				palette[3] = 255;
-				writer.Write(palette);
+				// Changing the palette will affect images relying on this palette, so instead,
+				// write the first 4 bytes directly without changing the palette[3] alpha back to 255.
+				writer.Write(palette[0]);
+				writer.Write(palette[1]);
+				writer.Write(palette[2]);
+				writer.Write(255);
+				writer.Write(palette, 4, 1020);
 			}
 		}
 

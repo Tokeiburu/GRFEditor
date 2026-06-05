@@ -302,8 +302,7 @@ namespace TokeiLibrary.WPF.Styles {
 						_story.Begin();
 					}
 					else {
-						if (_story != null)
-							_story.Stop();
+						_story?.Stop();
 
 						FrontImage.SetValue(ClipProperty, new RectangleGeometry(new Rect(0, 0, value / 100f * FrontImage.Width, FrontImage.Height)));
 					}
@@ -356,9 +355,7 @@ namespace TokeiLibrary.WPF.Styles {
 		static void _clipWidthChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			PatcherProgressBar bar = d as PatcherProgressBar;
 
-			if (bar != null) {
-				bar._setClipWidth((double)e.NewValue);
-			}
+			bar?._setClipWidth((double)e.NewValue);
 		}
 
 		private void _displayProgress(float value) {

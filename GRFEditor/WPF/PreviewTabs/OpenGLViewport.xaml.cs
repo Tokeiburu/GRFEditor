@@ -103,7 +103,6 @@ namespace GRFEditor.WPF.PreviewTabs {
 			Str.ConvertInterpolatedFrames();
 
 			for (int i = 0; i < Str.Layers.Count; i++) {
-				Str.Layers[i].Index(Str.KeyFrameCount);
 				var glLayer = new GLLayer(Str.Layers[i], i, _shaderPrimary);
 				glLayer.Load(this);
 				_objects.Add(glLayer);

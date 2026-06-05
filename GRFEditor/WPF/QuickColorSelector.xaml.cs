@@ -63,8 +63,7 @@ namespace GRFEditor.WPF {
 				if (handler != null) handler(this, lastColor);
 			}
 
-			if (_timer != null)
-				_timer.Stop();
+			_timer?.Stop();
 		}
 
 		public Thickness InnerMargin {

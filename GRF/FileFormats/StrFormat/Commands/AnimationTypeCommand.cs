@@ -1,47 +1,41 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class AnimationTypeCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class AnimationTypeCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private bool _isSet = false;
 		private int _animType;
 		private int _oldAnimType;
 
-		public int LayerIdx {
-			get { return _layerIdx; }
-		}
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
 
-		public AnimationTypeCommand(int layerIdx, int frameIdx, int animType) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public AnimationTypeCommand(int layerIndex, int keyIndex, int animType) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 			_animType = animType;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Changed anim type to " + _animType;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Changed anim type to {_animType}";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
-				_oldAnimType = str[_layerIdx, _frameIdx].AnimationType;
+				_oldAnimType = str[_layerIndex, _keyIndex].AnimationType;
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].AnimationType = _animType;
+			str[_layerIndex, _keyIndex].AnimationType = _animType;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].AnimationType = _oldAnimType;
+			str[_layerIndex, _keyIndex].AnimationType = _oldAnimType;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as AnimationTypeCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is AnimationTypeCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -49,8 +43,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as AnimationTypeCommand;
-			if (cmd != null) {
+			if (command is AnimationTypeCommand cmd) {
 				_animType = cmd._animType;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

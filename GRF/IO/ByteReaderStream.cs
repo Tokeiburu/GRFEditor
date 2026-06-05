@@ -297,9 +297,7 @@ namespace GRF.IO {
 		}
 
 		public void Close() {
-			if (Stream != null) {
-				Stream.Close();
-			}
+			Stream?.Close();
 		}
 
 		public void Open(string file) {

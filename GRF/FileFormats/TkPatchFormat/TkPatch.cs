@@ -48,13 +48,9 @@ namespace GRF.FileFormats.TkPatchFormat {
 		#region IDisposable Members
 
 		public void Dispose() {
-			if (_reader != null) {
-				_reader.Close();
-			}
+			_reader?.Close();
 
-			if (Table != null) {
-				Table.Clear();
-			}
+			Table?.Clear();
 		}
 
 		#endregion

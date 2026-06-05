@@ -251,25 +251,19 @@ namespace GRF.FileFormats.LubFormat.VM {
 			}
 
 			private void SetTerminated() {
-				if (True != null)
-					True.Parents.Remove(this);
-				if (False != null)
-					False.Parents.Remove(this);
+				True?.Parents.Remove(this);
+				False?.Parents.Remove(this);
 
 				True = null;
 				False = null;
 			}
 
 			private void Unlink(ConditionNode parent, ConditionNode current, ConditionNode newLink) {
-				if (True != null)
-					True.Parents.Remove(current);
-				if (False != null)
-					False.Parents.Remove(current);
-				if (current != null)
-					current.Parents.Remove(parent);
+				True?.Parents.Remove(current);
+				False?.Parents.Remove(current);
+				current?.Parents.Remove(parent);
 
-				if (newLink != null)
-					newLink.Parents.Add(parent);
+				newLink?.Parents.Add(parent);
 
 				if (parent.True == current)
 					parent.True = newLink;

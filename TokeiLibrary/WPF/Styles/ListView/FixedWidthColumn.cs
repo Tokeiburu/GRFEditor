@@ -33,8 +33,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 		private static void OnFixedWidthChanged(DependencyObject o, DependencyPropertyChangedEventArgs e) {
 			FixedWidthColumn fwc = o as FixedWidthColumn;
-			if (fwc != null)
-				fwc.CoerceValue(WidthProperty);
+			fwc?.CoerceValue(WidthProperty);
 		}
 		#endregion
 

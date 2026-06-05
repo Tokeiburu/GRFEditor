@@ -43,13 +43,13 @@ namespace GRFEditor.WPF {
 			_initializeGeneralSettings();
 			_initializeApplicationSettings();
 			_initializeResourcesSettings();
+			_initializeMaxThreadOptions();
 		}
 
 		private void _initializeGeneralSettings() {
 			_comboBoxCompression.Init();
 			_comboBoxEncryption.Init();
 			_comboBoxWarningLevel.SelectedIndex = (int)Configuration.WarningLevel;
-			_textBoxMaxThreads.Text = GrfEditorConfiguration.MaximumNumberOfThreads.ToString(CultureInfo.InvariantCulture);
 
 			_comboBoxFormat.SelectedIndex = -1;
 
@@ -92,6 +92,35 @@ namespace GRFEditor.WPF {
 			GrfEditorConfiguration.Resources.Modified += () => _mViewer.LoadResourcesInfo();
 			_mViewer.LoadResourcesInfo();
 			_mViewer.CanDeleteMainGrf = false;
+		}
+
+		public class ThreadCountView {
+			public int Count;
+			public string Display;
+			public override string ToString() => Display;
+		}
+
+		private void _initializeMaxThreadOptions() {
+			var options = new List<ThreadCountView>();
+			int maxThreads = Environment.ProcessorCount;
+
+			for (int i = 1; i <= maxThreads; i *= 2)
+				options.Add(new ThreadCountView { Count = i, Display = i.ToString() });
+
+			if (!options.Any(p => p.Count == maxThreads))
+				options.Add(new ThreadCountView { Count = maxThreads, Display = maxThreads.ToString() });
+
+			int lastIdx = options.Count - 1;
+			options[lastIdx].Display += " (System Max)";
+
+			_comboBoxMaxThreads.ItemsSource = options;
+
+			int index = options.FindIndex(p => p.Count == GrfEditorConfiguration.MaximumNumberOfThreads);
+
+			if (index != -1)
+				_comboBoxMaxThreads.SelectedIndex = index;
+			else
+				_comboBoxMaxThreads.Text = GrfEditorConfiguration.MaximumNumberOfThreads.ToString();
 		}
 
 		private void _changeStyle(int themeIndex) {
@@ -157,12 +186,33 @@ namespace GRFEditor.WPF {
 			}
 		}
 
-		protected void _textBoxMaxThreads_TextChanged(object sender, TextChangedEventArgs e) {
-			try {
-				Settings.MaximumNumberOfThreads = GrfEditorConfiguration.MaximumNumberOfThreads = Int32.Parse(((TextBox)sender).Text);
+		private void _comboBoxMaxThreads_SelectionChanged(object sender, SelectionChangedEventArgs e) {
+			if (!IsLoaded || _comboBoxMaxThreads.SelectedItem == null)
+				return;
+
+			_setMaxThread(((ThreadCountView)_comboBoxMaxThreads.SelectedItem).Count);
+		}
+
+		private void _comboBoxMaxThreads_TextChanged(object sender, TextChangedEventArgs e) {
+			if (!IsLoaded)
+				return;
+
+			if (Int32.TryParse(_comboBoxMaxThreads.Text, out int result)) {
+				_setMaxThread(result);
 			}
-			catch {
-			}
+		}
+
+		private void _setMaxThread(int count) {
+			count = Math.Min(count, Environment.ProcessorCount);
+
+			Settings.MaximumNumberOfThreads = GrfEditorConfiguration.MaximumNumberOfThreads = count;
+
+			int index = ((List<ThreadCountView>)_comboBoxMaxThreads.ItemsSource).FindIndex(p => p.Count == GrfEditorConfiguration.MaximumNumberOfThreads);
+
+			if (index != -1)
+				_comboBoxMaxThreads.SelectedIndex = index;
+			else
+				_comboBoxMaxThreads.Text = GrfEditorConfiguration.MaximumNumberOfThreads.ToString();
 		}
 
 		private void _buttonTreeExpandSpecific_Click(object sender, RoutedEventArgs e) {

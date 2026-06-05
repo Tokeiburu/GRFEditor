@@ -39,8 +39,7 @@ namespace TokeiLibrary.WPF {
 
 		private static void _selectAllText(object sender, RoutedEventArgs e) {
 			var textBox = e.OriginalSource as TextBox;
-			if (textBox != null)
-				textBox.SelectAll();
+			textBox?.SelectAll();
 		}
 	}
 }

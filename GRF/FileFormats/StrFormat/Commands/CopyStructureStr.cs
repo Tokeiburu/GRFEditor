@@ -31,6 +31,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 					if (_changedLayers != null) {
 						foreach (var pair in _changedLayers) {
 							str.Layers[pair.Key] = new StrLayer(pair.Value);
+							str.Layers[pair.Key].InvalidateIndex();
 						}
 					}
 					else {
@@ -54,6 +55,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 					for (int i = 0; i < str.Layers.Count; i++) {
 						if (!str[i].Equals(Layers[i])) {
 							_changedLayers[i] = Layers[i];
+							str[i].InvalidateIndex();
 						}
 					}
 

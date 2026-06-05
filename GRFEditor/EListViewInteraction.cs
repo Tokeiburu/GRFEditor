@@ -155,7 +155,7 @@ namespace GRFEditor {
 		private void _menuItemsUsage_Click(object sender, RoutedEventArgs e) {
 			if (_previewResourceIndexer == null || !_previewResourceIndexer.IsVisible) {
 				try {
-					if (_previewResourceIndexer != null) _previewResourceIndexer.Close();
+					_previewResourceIndexer?.Close();
 				}
 				catch {
 				}

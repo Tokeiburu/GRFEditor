@@ -1,38 +1,33 @@
 ﻿namespace GRF.FileFormats.StrFormat.Commands {
-	public class SetInterpolatedCommand : IStrCommand {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class SetInterpolatedCommand : IStrCommand, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private bool _isSet = false;
 		private bool _isInterpolated;
 		private bool _oldIsInterpolated;
 
-		public int LayerIdx {
-			get { return _layerIdx; }
-		}
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
 
-		public SetInterpolatedCommand(int layerIdx, int frameIdx, bool isInterpolated) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public SetInterpolatedCommand(int layerIndex, int frameIndex, bool isInterpolated) {
+			_layerIndex = layerIndex;
+			_keyIndex = frameIndex;
 			_isInterpolated = isInterpolated;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Changed interpolation";
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Changed interpolation";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
-				_oldIsInterpolated = str[_layerIdx, _frameIdx].IsInterpolated;
+				_oldIsInterpolated = str[_layerIndex, _keyIndex].IsInterpolated;
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].IsInterpolated = _isInterpolated;
+			str[_layerIndex, _keyIndex].IsInterpolated = _isInterpolated;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].IsInterpolated = _oldIsInterpolated;
+			str[_layerIndex, _keyIndex].IsInterpolated = _oldIsInterpolated;
 		}
 	}
 }

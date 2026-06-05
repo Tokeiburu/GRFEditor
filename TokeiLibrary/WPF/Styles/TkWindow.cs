@@ -40,9 +40,7 @@ namespace TokeiLibrary.WPF.Styles {
 					if (Owner == null)
 						Owner = Application.Current.MainWindow;
 
-					if (Owner != null) {
-						Owner.Activate();
-					}
+					Owner?.Activate();
 				}
 				catch (Exception err) {
 					ErrorHandler.HandleException(err);

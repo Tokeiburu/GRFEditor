@@ -53,9 +53,7 @@ namespace GrfToWpfBridge.TreeViewManager {
 
 			BaseTreeNode parent = oldNode.Parent;
 
-			if (parent != null) {
-				parent.Children.Remove(oldNode.Header);
-			}
+			parent?.Children.Remove(oldNode.Header);
 
 			oldNode.SetName(Path.GetFileName(newName.RelativePath));
 

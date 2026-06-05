@@ -385,14 +385,11 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		protected virtual void Dispose(bool disposing) {
 			if (disposing) {
-				if (_indexer != null)
-					_indexer.Clear();
+				_indexer?.Clear();
 
-				if (_tree != null)
-					_tree.Dispose();
+				_tree?.Dispose();
 
-				if (_quickPreview != null)
-					_quickPreview.Dispose();
+				_quickPreview?.Dispose();
 			}
 		}
 	}

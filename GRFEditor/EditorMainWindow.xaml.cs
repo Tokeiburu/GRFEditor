@@ -30,6 +30,7 @@ using Configuration = GRFEditor.ApplicationConfiguration.GrfEditorConfiguration;
 using OpeningService = GRFEditor.Core.Services.OpeningService;
 using GRFEditor.ApplicationConfiguration;
 using System.Threading.Tasks;
+using TokeiLibrary.WPF.Styles;
 
 namespace GRFEditor {
 	/// <summary>
@@ -63,6 +64,10 @@ namespace GRFEditor {
 
 			if (_lastLoadSettings != null) {
 				Load(_lastLoadSettings);
+			}
+			else {
+				_lastLoadSettings = new GrfLoadSettings();
+				_newWithDataFolder(true);
 			}
 		}
 

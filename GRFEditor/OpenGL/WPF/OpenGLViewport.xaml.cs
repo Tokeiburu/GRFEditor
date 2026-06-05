@@ -295,8 +295,7 @@ namespace GRFEditor.OpenGL.WPF {
 				return;
 
 			glGnd.Load(this);
-			if (glGat != null)
-				glGat.Load(this);
+			glGat?.Load(this);
 			glWater.Load(this);
 
 			MapRenderer mapRenderer = new MapRenderer(request, Shader_rsm, rsw);

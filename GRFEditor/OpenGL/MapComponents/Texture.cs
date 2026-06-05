@@ -377,7 +377,6 @@ namespace GRFEditor.OpenGL.MapComponents {
 				pinnedArray.Free();
 				IsLoaded = true;
 				Size = Image.Pixels.Length;
-				Image.Close();
 				Image = null;
 
 				GLHelper.OnLog(() => "Loaded: \"" + Resource + "\", Message: texID " + Id + ".");

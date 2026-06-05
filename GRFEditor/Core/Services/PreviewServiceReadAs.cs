@@ -24,6 +24,7 @@ namespace GRFEditor.Core.Services {
 		private TabItem _tabItemEditSpritePreview;
 		private TabItem _tabItemGndPreview;
 		private TabItem _tabItemGrfPropertiesPreview;
+		private TabItem _tabItemBinkPreview;
 		private TabItem _tabItemImagePreview;
 		private TabItem _tabItemPalettePreview;
 		private TabItem _tabItemLubPreview;
@@ -117,6 +118,10 @@ namespace GRFEditor.Core.Services {
 			_readAs<PreviewResource>(node, _tabItemResourcePreview);
 		}
 
+		private void _readAsBik(FileEntry node) {
+			_readAs<PreviewBink>(node, _tabItemBinkPreview);
+		}
+
 		private void _readAsImage(FileEntry node) {
 			_readAs<PreviewImage>(node, _tabItemImagePreview);
 		}
@@ -172,6 +177,7 @@ namespace GRFEditor.Core.Services {
 			_tabItemMapExtractorPreview = new TabItem { Header = "Extract resources", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemMapGatPreview = new TabItem { Header = "Minimap preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemResourcePreview = new TabItem { Header = "Resource preview", Style = tabStyle, Visibility = Visibility.Collapsed };
+			_tabItemBinkPreview = new TabItem { Header = "Bink preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemImagePreview = new TabItem { Header = "Image preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemPalettePreview = new TabItem { Header = "Palette preview", Style = tabStyle, Visibility = Visibility.Collapsed };
 			_tabItemDbPreview = new TabItem { Header = "Thumbnail preview", Style = tabStyle, Visibility = Visibility.Collapsed };
@@ -194,6 +200,7 @@ namespace GRFEditor.Core.Services {
 
 			_tabControlPreview.Items.Add(_tabItemStrPreview);
 			_tabControlPreview.Items.Add(_tabItemActPreview);
+			_tabControlPreview.Items.Add(_tabItemBinkPreview);
 			_tabControlPreview.Items.Add(_tabItemImagePreview);
 			_tabControlPreview.Items.Add(_tabItemPalettePreview);
 			_tabControlPreview.Items.Add(_tabItemEditSpritePreview);

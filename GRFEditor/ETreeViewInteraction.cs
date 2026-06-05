@@ -125,6 +125,19 @@ namespace GRFEditor {
 			_checkIfEncrypted(false);
 		}
 
+		private void _miTreeClearEncryptionCache_Click(object sender, RoutedEventArgs e) {
+			try {
+				_grfHolder.ClearEncryptionCache();
+
+				if (_grfHolder.Header.IsEncrypted) {
+					_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(false), _grfHolder, null, true));
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
 		private void _miDecryptFileTable_Click(object sender, RoutedEventArgs e) {
 			try {
 				if (!_grfHolder.Header.FoundErrors) {

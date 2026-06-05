@@ -11,8 +11,7 @@
 
 			try {
 				_isSetting = true;
-				ConfigAskerSettingEventHandler handler = PropertyChanged;
-				if (handler != null) handler(this, oldvalue, newvalue);
+				PropertyChanged?.Invoke(this, oldvalue, newvalue);
 			}
 			finally {
 				_isSetting = false;
@@ -22,13 +21,15 @@
 		private bool _isSetting = false;
 
 		public void OnPreviewPropertyChanged(string oldvalue, string newvalue) {
-			ConfigAskerSettingEventHandler handler = PreviewPropertyChanged;
-			if (handler != null) handler(this, oldvalue, newvalue);
+			PreviewPropertyChanged?.Invoke(this, oldvalue, newvalue);
 		}
 
 		private readonly ConfigAsker _configAsker;
-		public string Default { get; private set; }
-		public string Name { get; private set; }
+		public string Default { get; internal set; }
+		public string Name { get; internal set; }
+
+		public ConfigAskerSetting(ConfigAsker configAsker) {
+		}
 
 		public ConfigAskerSetting(ConfigAsker configAsker, string name, string defaultValue) {
 			_configAsker = configAsker;

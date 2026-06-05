@@ -3,47 +3,45 @@ using GRF.Graphics;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class OffsetCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class OffsetCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private float _x;
 		private float _y;
 		private bool _isSet = false;
 		private float _oldX;
 		private float _oldY;
 
-		public OffsetCommand(int layerIdx, int frameIdx, float x, float y) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
+
+		public OffsetCommand(int layerIndex, int frameIndex, float x, float y) {
+			_layerIndex = layerIndex;
+			_keyIndex = frameIndex;
 			_x = x;
 			_y = y;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Offset changed to (" + String.Format("{0:0.00}", _x) + ", " + String.Format("{0:0.00}", _y) + ")";
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Offset changed to ({_x:0.00}, {_y:0.00})";
 
 		public void Execute(Str str) {
 			if (!_isSet) {
-				_oldX = str[_layerIdx, _frameIdx].Offset.X;
-				_oldY = str[_layerIdx, _frameIdx].Offset.Y;
+				_oldX = str[_layerIndex, _keyIndex].Offset.X;
+				_oldY = str[_layerIndex, _keyIndex].Offset.Y;
 				_isSet = true;
 			}
 
-			str[_layerIdx, _frameIdx].Offset = new TkVector2(_x, _y);
+			str[_layerIndex, _keyIndex].Offset = new TkVector2(_x, _y);
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].Offset = new TkVector2(_oldX, _oldY);
+			str[_layerIndex, _keyIndex].Offset = new TkVector2(_oldX, _oldY);
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as OffsetCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is OffsetCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -51,8 +49,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as OffsetCommand;
-			if (cmd != null) {
+			if (command is OffsetCommand cmd) {
 				_x = cmd._x;
 				_y = cmd._y;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);

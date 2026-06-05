@@ -16,9 +16,7 @@ namespace TokeiLibrary.WPF.Styles {
 		private static void OnTextChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
 			var th = d as TabHeader;
 
-			if (th != null) {
-				th.Dispatch(p => p._header.Text = e.NewValue.ToString());
-			}
+			th?.Dispatch(p => p._header.Text = e.NewValue.ToString());
 		}
 
 		public TabHeader() {

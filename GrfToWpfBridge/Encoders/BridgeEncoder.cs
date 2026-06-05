@@ -26,8 +26,8 @@ namespace GrfToWpfBridge.Encoders {
 		public void Save(Stream stream) {
 			if (_encoder != null)
 				_encoder.Save(stream);
-			else if (_wpfEncoder != null)
-				_wpfEncoder.Save(stream);
+			else
+				_wpfEncoder?.Save(stream);
 		}
 
 		public static BridgeEncoder GetEncoder(PixelFormatInfo info) {

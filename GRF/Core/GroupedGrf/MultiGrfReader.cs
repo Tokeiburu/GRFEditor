@@ -243,9 +243,7 @@ namespace GRF.Core.GroupedGrf {
 		protected void Dispose(bool disposing) {
 			if (!_disposed) {
 				if (disposing) {
-					if (_containers != null) {
-						_containers.Clear();
-					}
+					_containers?.Clear();
 				}
 
 				_disposed = true;

@@ -4,8 +4,6 @@ using Utilities;
 
 namespace GRF.FileFormats {
 	public sealed class FileFormat {
-		public static List<FileFormat> AllFileFormats = new List<FileFormat>();
-
 		public static FileFormat AllContainers = new FileFormat(".grf;.rgz;.gpf;.thor", "Container");
 		public static FileFormat Act = new FileFormat(".act", "Animation");
 		public static FileFormat Pal = new FileFormat(".pal", "Palette");
@@ -42,11 +40,10 @@ namespace GRF.FileFormats {
 		public static FileFormat Tga = new FileFormat(".tga", "Targa");
 		public static FileFormat Jpeg = new FileFormat(".jpg", "Jpeg");
 
-		private FileFormat(string extension, string name) {
+		public FileFormat(string extension, string name) {
 			Extension = extension;
 			Name = name;
 			Filter = Extension.Replace(".", "*.");
-			AllFileFormats.Add(this);
 			Extensions = extension.Split(';').ToArray();
 		}
 

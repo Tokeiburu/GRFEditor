@@ -53,8 +53,7 @@ namespace Utilities.Parsers.Lua {
 				return;
 			}
 			if (disposing) {
-				if (_writer != null)
-					_writer.Dispose();
+				_writer?.Dispose();
 			}
 			_writer = null;
 			_disposed = true;

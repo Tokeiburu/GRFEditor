@@ -5,6 +5,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 	public class StrGroupCommand : IGroupCommand<IStrCommand>, IStrCommand {
 		private readonly Str _str;
 		private readonly List<IStrCommand> _commands = new List<IStrCommand>();
+		private readonly List<IStrCommand> _nullCommands = new List<IStrCommand>();
 		private readonly bool _executeCommandsOnStore;
 		private bool _firstTimeExecuted = true;
 
@@ -72,14 +73,21 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			get { return _commands; }
 		}
 
+		public List<IStrCommand> NullCommands {
+			get { return _nullCommands; }
+		}
+
 		public void Close() {
 		}
 
 		public void Add(IStrCommand command) {
-			_commands.Add(command);
+				_commands.Add(command);
 		}
 
 		public void Processing(IStrCommand command) {
+			if (command is INullCommand)
+				_nullCommands.Add(command);
+			
 			if (_executeCommandsOnStore)
 				command.Execute(_str);
 		}

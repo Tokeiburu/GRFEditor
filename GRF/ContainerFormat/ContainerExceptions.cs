@@ -33,7 +33,6 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __UnsupportedCompression = "The compression method does not support compressing files. It is meant for extracting the GRF's file content from their offset directly.";
 		public static readonly FormattedExceptionMessage __ArgumentOutOfRangeMin = "The argument {0} is below the minimum value {1}.";
 		public static readonly FormattedExceptionMessage __ArgumentOutOfRangeMax = "The argument {0} is above the maximum value {1}.";
-		public static readonly FormattedExceptionMessage __ClosedImage = "The image component has been closed.";
 		public static readonly FormattedExceptionMessage __NonLoadedImage = "Pixel data hasn't been set (invalid image format?).";
 		public static readonly FormattedExceptionMessage __UnsupportedImageFormat = "The image format doesn't support this operation.";
 		public static readonly FormattedExceptionMessage __UnsupportedImageFormatMethod = "The image format doesn't support this operation '{1}'.";
@@ -110,11 +109,6 @@ namespace GRF.ContainerFormat {
 
 		internal static void ThrowUnsupportedFileFormat(string value) {
 			throw __UnsupportedFileFormat.Create();
-		}
-
-		internal static void IfTrueThrowClosedImage(bool value) {
-			if (value)
-				throw __ClosedImage.Create();
 		}
 
 		internal static void IfNullThrowNonLoadedImage(object value) {

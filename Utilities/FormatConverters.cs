@@ -25,6 +25,10 @@ namespace Utilities {
 			return 0;
 		}
 
+		public static bool SingleConverterTryParse(string arg, out float value) {
+			return float.TryParse(arg.Replace(",", "."), NumberStyles.Any, CultureInfo.InvariantCulture, out value);
+		}
+
 		public static float SingleConverterNoThrow(string arg) {
 			float value;
 

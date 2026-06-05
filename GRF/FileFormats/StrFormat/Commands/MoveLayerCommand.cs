@@ -1,57 +1,37 @@
 ﻿namespace GRF.FileFormats.StrFormat.Commands {
 	public class MoveLayerCommand : IStrCommand {
-		private readonly int _layerIdxSource;
-		private readonly int _layerIdxDest;
+		private readonly int _layerIndexSrc;
+		private readonly int _layerIndexDst;
 		private bool _isExecute;
 
-		public bool IsExecute {
-			get { return _isExecute; }
+		public bool IsExecute => _isExecute;
+		public int LayerIndexSource => _layerIndexSrc;
+		public int LayerIndexDestination => _layerIndexDst;
+
+		public MoveLayerCommand(int layerIndexSource, int layerIndexDest) {
+			_layerIndexSrc = layerIndexSource;
+			_layerIndexDst = layerIndexDest;
 		}
 
-		public int LayerIndexSource {
-			get { return _layerIdxSource; }
-		}
-
-		public int LayerIndexDestination {
-			get { return _layerIdxDest; }
-		}
-
-		//public int LayerIdx {
-		//	get { return _layerIdx; }
-		//}
-		//
-		//public int FrameIdx {
-		//	get { return _frameIdx; }
-		//}
-
-		public MoveLayerCommand(int layerIdxSource, int layerIdxDest) {
-			_layerIdxSource = layerIdxSource;
-			_layerIdxDest = layerIdxDest;
-		}
-
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdxSource + "] to [" + _layerIdxDest + "] layer moved";
-			}
-		}
+		public string CommandDescription => $"[{_layerIndexSrc}] to [{_layerIndexDst}] layer moved";
 
 		public void Execute(Str str) {
-			var layer = str[_layerIdxSource];
-			str.Layers.RemoveAt(_layerIdxSource);
+			var layer = str[_layerIndexSrc];
+			str.Layers.RemoveAt(_layerIndexSrc);
 
-			if (_layerIdxDest > _layerIdxSource) {
-				str.Layers.Insert(_layerIdxDest - 1, layer);
+			if (_layerIndexDst > _layerIndexSrc) {
+				str.Layers.Insert(_layerIndexDst - 1, layer);
 			}
 			else {
-				str.Layers.Insert(_layerIdxDest, layer);
+				str.Layers.Insert(_layerIndexDst, layer);
 			}
 
 			_isExecute = true;
 		}
 
 		public void Undo(Str str) {
-			var src = _layerIdxDest;
-			var dst = _layerIdxSource;
+			var src = _layerIndexDst;
+			var dst = _layerIndexSrc;
 
 			if (dst > src) {
 				var layer = str[src];

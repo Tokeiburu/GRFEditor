@@ -366,8 +366,7 @@ namespace TokeiLibrary {
 
 		public static void AddContextMenu(string application, string extension, params string[] keys) {
 			using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(extension)) {
-				if (key != null)
-					key.SetValue(null, application + extension);
+				key?.SetValue(null, application + extension);
 			}
 
 			using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(application + extension + "\\shell\\CascadeMenu")) {
@@ -393,8 +392,7 @@ namespace TokeiLibrary {
 
 		public static void AddContextMenuRegistry(string application, string extension, IEnumerable<string>[] listKeys) {
 			using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(extension)) {
-				if (key != null)
-					key.SetValue(null, application + extension);
+				key?.SetValue(null, application + extension);
 			}
 
 			foreach (string[] keys in listKeys) {
@@ -541,18 +539,15 @@ namespace TokeiLibrary {
 				application = "grfeditor";
 
 				using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(extension)) {
-					if (key != null)
-						key.SetValue(null, application + extension);
+					key?.SetValue(null, application + extension);
 				}
 
 				using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(application + extension)) {
-					if (key != null)
-						key.SetValue(null, fileName);
+					key?.SetValue(null, fileName);
 				}
 
 				using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(application + extension + "\\DefaultIcon")) {
-					if (key != null)
-						key.SetValue(null, iconPath ?? Path.Combine(Methods.ApplicationPath, extension.Substring(1, extension.Length - 1)) + ".ico");
+					key?.SetValue(null, iconPath ?? Path.Combine(Methods.ApplicationPath, extension.Substring(1, extension.Length - 1)) + ".ico");
 				}
 
 				if (openWithGrfEditor) {
@@ -560,8 +555,7 @@ namespace TokeiLibrary {
 					Registry.ClassesRoot.CreateSubKey(application + extension + "\\shell\\open");
 
 					using (RegistryKey key = Registry.ClassesRoot.CreateSubKey(application + extension + "\\shell\\open\\command")) {
-						if (key != null)
-							key.SetValue(null, "\"" + Process.GetCurrentProcess().MainModule.FileName + "\" \"%1\"");
+						key?.SetValue(null, "\"" + Process.GetCurrentProcess().MainModule.FileName + "\" \"%1\"");
 					}
 				}
 

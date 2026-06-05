@@ -98,9 +98,7 @@ namespace GRF.FileFormats.LubFormat.Types {
 			for (int i = 0; i < l.Count; i++) {
 				var v = l[i] as LubReferenceType;
 
-				if (v != null) {
-					v.Push();
-				}
+				v?.Push();
 			}
 
 			_scope.Push(l);
@@ -126,9 +124,7 @@ namespace GRF.FileFormats.LubFormat.Types {
 			for (int i = 0; i < _stack.Count; i++) {
 				var v = _stack[i] as LubReferenceType;
 
-				if (v != null) {
-					v.Pop();
-				}
+				v?.Pop();
 			}
 
 			_stackAssigned = _scopeAssigned.Pop();

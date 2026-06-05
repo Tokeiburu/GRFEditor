@@ -90,8 +90,8 @@ namespace GRFEditor.OpenGL.StrGroup {
 			Matrix4 rotation = Matrix4.CreateRotationZ(GLHelper.ToRad(-Inter.Angle));
 
 			Model = rotation;
-			Model[3, 0] = Inter.Offset.X - 319;
-			Model[3, 1] = -Inter.Offset.Y + 291;
+			Model[3, 0] = Inter.Offset.X - Str.OffsetX;
+			Model[3, 1] = -(Inter.Offset.Y - Str.OffsetY);
 
 			if (Inter.TextureIndex < 0 || Inter.TextureIndex >= _textureIds.Count || _textureIds[Inter.TextureIndex] < 0)
 				return;

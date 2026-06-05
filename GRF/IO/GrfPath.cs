@@ -480,5 +480,9 @@ namespace GRF.IO {
 
 			return GrfPath.Combine(parent, GrfPath.GetFileName(sprPath));
 		}
+
+		public static string Combine(string v, object value) {
+			throw new NotImplementedException();
+		}
 	}
 }

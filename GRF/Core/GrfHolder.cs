@@ -282,7 +282,7 @@ namespace GRF.Core {
 				try {
 					string file = File.GetLastWriteTimeUtc(_grf.FileName).ToFileTimeUtc() + "\\files.enc";
 
-					using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
+					using (GrfHolder grf = new GrfHolder(GrfStrings.EncryptionDbPath, GrfLoadOptions.OpenOrNew)) {
 						if (grf.FileTable.ContainsFile(file)) {
 							var encryptedFiles = Encoding.Default.GetString(grf.FileTable[file].GetDecompressedData());
 						
@@ -325,7 +325,7 @@ namespace GRF.Core {
 
 		internal static void WriteEncryptionIndex(Container container, string fileUid) {
 			try {
-				using (GrfHolder grf = new GrfHolder(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), GrfStrings.EncryptionDbFile), GrfLoadOptions.OpenOrNew)) {
+				using (GrfHolder grf = new GrfHolder(GrfStrings.EncryptionDbPath, GrfLoadOptions.OpenOrNew)) {
 					StringBuilder files = new StringBuilder();
 
 					foreach (var entry in container.Table.Entries.Where(p => p.Encrypted)) {
@@ -380,8 +380,7 @@ namespace GRF.Core {
 				_internalGrf.InternalHeader.EncryptionCheckFlag = false;
 			_internalGrf.Dispose();
 
-			if (FileTable != null)
-				FileTable.Delete();
+			FileTable?.Delete();
 
 			_grfClosed = true;
 			_internalGrf = null;
@@ -1132,6 +1131,29 @@ namespace GRF.Core {
 			}
 
 			return result.Success;
+		}
+
+		public void ClearEncryptionCache() {
+			if (Header.EncryptionCheckFlag)
+				throw new Exception("Cannot clear cache while the GRF is being processed.");
+
+			string file = File.GetLastWriteTimeUtc(_grf.FileName).ToFileTimeUtc() + "\\files.enc";
+
+			using (GrfHolder grf = new GrfHolder(GrfStrings.EncryptionDbPath, GrfLoadOptions.OpenOrNew)) {
+				if (grf.FileTable.ContainsFile(file)) {
+					grf.Commands.RemoveFile(file);
+					grf.Save();
+				}
+			}
+
+			foreach (var entry in _grf.Table.Entries) {
+				if (entry != null && ((entry.Flags & EntryType.GravityEncryptedFile) != EntryType.GravityEncryptedFile)) {
+					if ((entry.Flags & EntryType.GrfEditorCrypted) == EntryType.GrfEditorCrypted) {
+						entry.Flags &= ~EntryType.GrfEditorCrypted;
+						entry.OnPropertyChanged("Encrypted");
+					}
+				}
+			}
 		}
 	}
 

@@ -1,45 +1,39 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class RotateBiasCommand : IStrCommand, IAutoReverse {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class RotateBiasCommand : IStrCommand, IAutoReverse, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private float _bias;
 		private float _oldBias = float.NaN;
 
-		public int LayerIdx {
-			get { return _layerIdx; }
-		}
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
 
-		public RotateBiasCommand(int layerIdx, int frameIdx, float bias) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public RotateBiasCommand(int layerIndex, int keyIndex, float bias) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 			_bias = bias;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Angle bias changed to " + _bias;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Angle bias changed to {_bias}";
 
 		public void Execute(Str str) {
 			if (float.IsNaN(_oldBias)) {
-				_oldBias = str[_layerIdx, _frameIdx].AngleBias;
+				_oldBias = str[_layerIndex, _keyIndex].AngleBias;
 			}
 
-			str[_layerIdx, _frameIdx].AngleBias = _bias;
+			str[_layerIndex, _keyIndex].AngleBias = _bias;
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx, _frameIdx].AngleBias = _oldBias;
+			str[_layerIndex, _keyIndex].AngleBias = _oldBias;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			var cmd = command as RotateBiasCommand;
-			if (cmd != null) {
-				if (cmd._layerIdx == _layerIdx &&
-					cmd._frameIdx == _frameIdx)
+			if (command is RotateBiasCommand cmd) {
+				if (cmd._layerIndex == _layerIndex &&
+					cmd._keyIndex == _keyIndex)
 					return true;
 			}
 
@@ -47,8 +41,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			var cmd = command as RotateBiasCommand;
-			if (cmd != null) {
+			if (command is RotateBiasCommand cmd) {
 				_bias = cmd._bias;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

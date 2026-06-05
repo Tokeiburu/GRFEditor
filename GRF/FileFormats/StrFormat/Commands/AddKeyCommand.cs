@@ -1,39 +1,28 @@
 ﻿namespace GRF.FileFormats.StrFormat.Commands {
-	public class AddKeyCommand : IStrCommand {
-		private readonly int _layerIdx;
-		private readonly int _frameIdx;
+	public class AddKeyCommand : IStrCommand, IPosCommand {
+		private readonly int _layerIndex;
+		private readonly int _keyIndex;
 		private readonly StrKeyFrame _frame;
 
-		public int LayerIdx {
-			get { return _layerIdx; }
-		}
+		public int LayerIndex => _layerIndex;
+		public int KeyIndex => _keyIndex;
 
-		public int FrameIdx {
-			get { return _frameIdx; }
-		}
-
-		public AddKeyCommand(int layerIdx, int frameIdx, StrKeyFrame frame) {
-			_layerIdx = layerIdx;
-			_frameIdx = frameIdx;
+		public AddKeyCommand(int layerIndex, int keyIndex, StrKeyFrame frame) {
+			_layerIndex = layerIndex;
+			_keyIndex = keyIndex;
 			_frame = frame;
 		}
 
-		public string CommandDescription {
-			get {
-				return "[" + _layerIdx + "," + _frameIdx + "] Added key at " + _frameIdx;
-			}
-		}
+		public string CommandDescription => $"[{_layerIndex},{_keyIndex}] Added key at {_keyIndex}";
 
 		public void Execute(Str str) {
-			//if (float.IsNaN(_oldAngle)) {
-			//	_oldAngle = str[_layerIdx, _frameIdx].Angle;
-			//}
-
-			str[_layerIdx].KeyFrames.Insert(_frameIdx, _frame);
+			str[_layerIndex].KeyFrames.Insert(_keyIndex, _frame);
+			str[_layerIndex].InvalidateIndex();
 		}
 
 		public void Undo(Str str) {
-			str[_layerIdx].KeyFrames.RemoveAt(_frameIdx);
+			str[_layerIndex].KeyFrames.RemoveAt(_keyIndex);
+			str[_layerIndex].InvalidateIndex();
 		}
 	}
 }
