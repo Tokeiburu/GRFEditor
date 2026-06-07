@@ -66,7 +66,7 @@ namespace GRF.FileFormats.StrFormat {
 			int endComp = 8;
 
 			for (int i = 0; i < 8; i++) {
-				diff[i] = layer[keyIndex].Xy[i] - layer[startIndex].Xy[i];
+				diff[i] = layer[keyIndex].Positions[i] - layer[startIndex].Positions[i];
 				previousBias[i] = 0;
 
 				if (diff[i] != 0)
@@ -95,8 +95,8 @@ namespace GRF.FileFormats.StrFormat {
 				// Nothing to do
 				for (int i = startIndex + 1; i < keyIndex; i++) {
 					for (int j = 0; j < 8; j++) {
-						if (Math.Abs(layer[i].Xy[j] - layer[startIndex].Xy[j]) > ToleranceBias ||
-							Math.Abs(layer[i].Xy[j] - layer[startIndex].Xy[j]) > ToleranceBias)
+						if (Math.Abs(layer[i].Positions[j] - layer[startIndex].Positions[j]) > ToleranceBias ||
+							Math.Abs(layer[i].Positions[j] - layer[startIndex].Positions[j]) > ToleranceBias)
 							return false;
 					}
 				}
@@ -108,7 +108,7 @@ namespace GRF.FileFormats.StrFormat {
 						int middle = startIndex + (int)(0.5 * distance);
 
 						for (int j = startComp; j < endComp; j++) {
-							previousBias[j] = method(layer[middle].Xy[j] - layer[startIndex].Xy[j], diff[j], (float)(middle - startIndex) / distance);
+							previousBias[j] = method(layer[middle].Positions[j] - layer[startIndex].Positions[j], diff[j], (float)(middle - startIndex) / distance);
 
 							if (double.IsNaN(previousBias[j])) {
 								previousBias[j] = 0;
@@ -124,7 +124,7 @@ namespace GRF.FileFormats.StrFormat {
 					float[] biasA = new float[8];
 
 					for (int j = startComp; j < endComp; j++) {
-						biasA[j] = method(layer[i].Xy[j] - layer[startIndex].Xy[j], diff[j], t);
+						biasA[j] = method(layer[i].Positions[j] - layer[startIndex].Positions[j], diff[j], t);
 					}
 
 					bool noChange = true;
@@ -140,7 +140,7 @@ namespace GRF.FileFormats.StrFormat {
 						noChange = true;
 
 						for (int j = 0; j < 8; j++) {
-							if (Math.Abs(_applyBias(previousBias[j], diff[j], layer[startIndex].Xy[j], t) - layer[i].Xy[j]) >= ToleranceBias) {
+							if (Math.Abs(_applyBias(previousBias[j], diff[j], layer[startIndex].Positions[j], t) - layer[i].Positions[j]) >= ToleranceBias) {
 								noChange = false;
 								break;
 							}
@@ -801,14 +801,14 @@ namespace GRF.FileFormats.StrFormat {
 						continue;
 					}
 
-					layer[keyIndex].Bezier[2] = bezier[0] - layer[keyIndex].Offset.X;
-					layer[keyIndex].Bezier[3] = bezier[1] - layer[keyIndex].Offset.Y;
+					layer[keyIndex].BezierPositions[2] = bezier[0] - layer[keyIndex].Offset.X;
+					layer[keyIndex].BezierPositions[3] = bezier[1] - layer[keyIndex].Offset.Y;
 					layer[keyIndex].OffsetBias = biasOffset;
 					layer[keyIndex].AngleBias = biasAngle;
 					layer[keyIndex].ScaleBias = biasScale;
 
-					layer[startKeyIndex + distance].Bezier[0] = bezier[2] - layer[startKeyIndex + distance].Offset.X;
-					layer[startKeyIndex + distance].Bezier[1] = bezier[3] - layer[startKeyIndex + distance].Offset.Y;
+					layer[startKeyIndex + distance].BezierPositions[0] = bezier[2] - layer[startKeyIndex + distance].Offset.X;
+					layer[startKeyIndex + distance].BezierPositions[1] = bezier[3] - layer[startKeyIndex + distance].Offset.Y;
 
 					layer[keyIndex].IsInterpolated = true;
 

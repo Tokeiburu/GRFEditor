@@ -3,7 +3,7 @@ using GRF.Graphics;
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class OffsetCommand : IStrCommand, IAutoReverse, IPosCommand {
+	public class SetOffsetCommand : IStrCommand, IPosCommand {
 		private readonly int _layerIndex;
 		private readonly int _keyIndex;
 		private float _x;
@@ -15,7 +15,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		public int LayerIndex => _layerIndex;
 		public int KeyIndex => _keyIndex;
 
-		public OffsetCommand(int layerIndex, int frameIndex, float x, float y) {
+		public SetOffsetCommand(int layerIndex, int frameIndex, float x, float y) {
 			_layerIndex = layerIndex;
 			_keyIndex = frameIndex;
 			_x = x;
@@ -39,7 +39,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			if (command is OffsetCommand cmd) {
+			if (command is SetOffsetCommand cmd) {
 				if (cmd._layerIndex == _layerIndex &&
 					cmd._keyIndex == _keyIndex)
 					return true;
@@ -49,7 +49,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			if (command is OffsetCommand cmd) {
+			if (command is SetOffsetCommand cmd) {
 				_x = cmd._x;
 				_y = cmd._y;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);

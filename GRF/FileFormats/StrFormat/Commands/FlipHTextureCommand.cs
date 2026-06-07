@@ -16,25 +16,25 @@
 		public void Execute(Str str) {
 			var layer = str[_layerIndex, _keyIndex];
 			
-			float t0 = layer.Xy[0];
-			float t2 = layer.Xy[2];
+			float t0 = layer.Positions[0];
+			float t2 = layer.Positions[2];
 
-			layer.Xy[0] = layer.Xy[1];
-			layer.Xy[1] = t0;
-			layer.Xy[2] = layer.Xy[3];
-			layer.Xy[3] = t2;
+			layer.Positions[0] = layer.Positions[1];
+			layer.Positions[1] = t0;
+			layer.Positions[2] = layer.Positions[3];
+			layer.Positions[3] = t2;
 		}
 
 		public void Undo(Str str) {
 			var layer = str[_layerIndex, _keyIndex];
 
-			float t0 = layer.Xy[0];
-			float t2 = layer.Xy[2];
+			float t0 = layer.Positions[0];
+			float t2 = layer.Positions[2];
 
-			layer.Xy[0] = layer.Xy[1];
-			layer.Xy[1] = t0;
-			layer.Xy[2] = layer.Xy[3];
-			layer.Xy[3] = t2;
+			layer.Positions[0] = layer.Positions[1];
+			layer.Positions[1] = t0;
+			layer.Positions[2] = layer.Positions[3];
+			layer.Positions[3] = t2;
 		}
 	}
 }

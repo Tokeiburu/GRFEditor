@@ -15,14 +15,14 @@
 
 		public void Execute(Str str) {
 			// Self transformation
-			str[_layerIndex, _keyIndex].Uv[0] += str[_layerIndex, _keyIndex].Uv[2];
-			str[_layerIndex, _keyIndex].Uv[2] = -str[_layerIndex, _keyIndex].Uv[2];
+			str[_layerIndex, _keyIndex].UVs[0] += str[_layerIndex, _keyIndex].UVs[2];
+			str[_layerIndex, _keyIndex].UVs[2] = -str[_layerIndex, _keyIndex].UVs[2];
 		}
 
 		public void Undo(Str str) {
 			// Self transformation
-			str[_layerIndex, _keyIndex].Uv[0] += str[_layerIndex, _keyIndex].Uv[2];
-			str[_layerIndex, _keyIndex].Uv[2] = -str[_layerIndex, _keyIndex].Uv[2];
+			str[_layerIndex, _keyIndex].UVs[0] += str[_layerIndex, _keyIndex].UVs[2];
+			str[_layerIndex, _keyIndex].UVs[2] = -str[_layerIndex, _keyIndex].UVs[2];
 		}
 	}
 }

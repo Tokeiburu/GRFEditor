@@ -14,6 +14,49 @@ namespace GRF.FileFormats.StrFormat {
 		TopRight
 	}
 
+	public enum KeyFrameValueType {
+		OffsetX,
+		OffsetY,
+		OffsetXY,
+		P1X,
+		P1Y,
+		P2X,
+		P2Y,
+		P3X,
+		P3Y,
+		P4X,
+		P4Y,
+		P1,
+		P2,
+		P3,
+		P4,
+		Points,
+		Angle,
+		Scale,
+		UV1X,
+		UV1Y,
+		UV2X,
+		UV2Y,
+		UV1,
+		UV2,
+		UVs,
+		BezierP1,
+		BezierP2,
+		Bezier,
+		OffsetBias,
+		ScaleBias,
+		AngleBias,
+	}
+
+	public enum AnimationType {
+		Stop,
+		Interpolation,
+		Once,
+		Loop,
+		ReverseLoop,
+		BiLoop
+	}
+
 	public class InterpolatedKeyFrame {
 		public float Angle;
 		public float Delay;
@@ -23,14 +66,14 @@ namespace GRF.FileFormats.StrFormat {
 		public TkVector2 Scale;
 		public int TextureIndex;
 		public int TextureIndexStrKeyFrame;
-		public int AnimationType;
-		public int SourceAlpha;
-		public int DestinationAlpha;
+		public AnimationType AnimationType;
+		public int BlendSrc;
+		public int BlendDst;
 		public int FrameIndex;
-		public float[] Vertices = new float[8];
-		public float[] TextCoords = new float[8];
-		public float[] Bezier = new float[4];
-		public float[] BezierAdjacent = new float[4];
+		public float[] Positions = new float[8];
+		public float[] UVs = new float[8];
+		public float[] BezierPositions = new float[4];
+		public float[] BezierAdjacentPositions = new float[4];
 		public float OffsetBias;
 		public float ScaleBias;
 		public float AngleBias;
@@ -42,6 +85,10 @@ namespace GRF.FileFormats.StrFormat {
 		public StrKeyFrame InterpolateNextKeyFrame;
 		public int LayerIdx;
 		public int KeyIndex;
+
+		public delegate void ValueChangedEventHandler(KeyFrameValueType arg);
+		public event ValueChangedEventHandler ValueChanged;
+		public void OnValueChanged(KeyFrameValueType arg) => ValueChanged?.Invoke(arg);
 
 		public InterpolatedKeyFrame() {
 		}
@@ -58,16 +105,15 @@ namespace GRF.FileFormats.StrFormat {
 			StrKeyFrame frame = new StrKeyFrame();
 			frame.Angle = Angle;
 			frame.TextureIndex = TextureIndexStrKeyFrame;
-			//frame.AnimationType
 
 			for (int i = 0; i < 4; i++) {
 				frame.Color[i] = Color[i];
-				frame.Bezier[i] = Bezier[i];
+				frame.BezierPositions[i] = BezierPositions[i];
 			}
 
 			for (int i = 0; i < 8; i++) {
-				frame.Xy[i] = Vertices[i];
-				frame.Uv[i] = TextCoords[i];
+				frame.Positions[i] = Positions[i];
+				frame.UVs[i] = UVs[i];
 			}
 
 			frame.AnimationType = AnimationType;
@@ -79,8 +125,8 @@ namespace GRF.FileFormats.StrFormat {
 			frame.TextureIndex = TextureIndex;
 
 			if (type == 0 || type == 2) {
-				frame.SourceAlpha = SourceAlpha;
-				frame.DestinationAlpha = DestinationAlpha;
+				frame.BlendSrc = BlendSrc;
+				frame.BlendDst = BlendDst;
 			}
 
 			frame.Type = 0;
@@ -137,10 +183,10 @@ namespace GRF.FileFormats.StrFormat {
 
 			time = EaseTime((float)time, frames[0].OffsetBias);
 
-			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].Bezier[2], frames[0].Bezier[3]);
-			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].Bezier[0], frames[1].Bezier[1]);
+			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].BezierPositions[2], frames[0].BezierPositions[3]);
+			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].BezierPositions[0], frames[1].BezierPositions[1]);
 
-			if (frames[0].Bezier[2] != 0 || frames[0].Bezier[3] != 0 || frames[1].Bezier[0] != 0 || frames[1].Bezier[1] != 0) {
+			if (frames[0].BezierPositions[2] != 0 || frames[0].BezierPositions[3] != 0 || frames[1].BezierPositions[0] != 0 || frames[1].BezierPositions[1] != 0) {
 				inter.Offset = _getBezier((float)time, frames[0].Offset, p1, p2, frames[1].Offset);
 			}
 			else {
@@ -168,12 +214,12 @@ namespace GRF.FileFormats.StrFormat {
 				inter.Color[3] = frames[0].Color[3];
 
 				for (int i = 0; i < 8; i++) {
-					inter.Vertices[i] = frames[0].Xy[i];
-					inter.TextCoords[i] = frames[0].Uv[i];
+					inter.Positions[i] = frames[0].Positions[i];
+					inter.UVs[i] = frames[0].UVs[i];
 				}
 
 				for (int i = 0; i < 4; i++) {
-					inter.Bezier[i] = frames[0].Bezier[i];
+					inter.BezierPositions[i] = frames[0].BezierPositions[i];
 				}
 
 				inter.AngleBias = frames[0].AngleBias;
@@ -182,8 +228,8 @@ namespace GRF.FileFormats.StrFormat {
 				inter.Delay = frames[0].Delay;
 				inter.AnimationType = frames[0].AnimationType;
 				inter.TextureIndex = (int)frames[0].TextureIndex;
-				inter.SourceAlpha = frames[0].SourceAlpha;
-				inter.DestinationAlpha = frames[0].DestinationAlpha;
+				inter.BlendSrc = frames[0].BlendSrc;
+				inter.BlendDst = frames[0].BlendDst;
 				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 				inter.KeyIndex = str.Layers[layerIdx].FrameIndex2KeyIndex[frameIdx];
 				inter.KeyFrame = frames[0];
@@ -206,37 +252,82 @@ namespace GRF.FileFormats.StrFormat {
 			inter.Color[3] = (float)((frames[1].Color[3] - frames[0].Color[3]) * time + frames[0].Color[3] * subMult);
 
 			for (int i = 0; i < 8; i++) {
-				inter.Vertices[i] = _ease(frames[0].Xy[i], frames[1].Xy[i], (float)time, frames[0].ScaleBias, subMult);
-				inter.TextCoords[i] = (float)((frames[1].Uv[i] - frames[0].Uv[i]) * time + frames[0].Uv[i] * subMult);
+				inter.Positions[i] = _ease(frames[0].Positions[i], frames[1].Positions[i], (float)time, frames[0].ScaleBias, subMult);
+				inter.UVs[i] = (float)((frames[1].UVs[i] - frames[0].UVs[i]) * time + frames[0].UVs[i] * subMult);
 			}
 
-			inter.TextureIndex = (int)frames[0].TextureIndex;
+			int textureCount = str[layerIdx].TextureNames.Count;
 
-			if (frames[0].AnimationType == 3 || frames[0].AnimationType == 2) {
-				var rate = frames[0].Delay * (frameIdx - frames[0].FrameIndex) + frames[0].TextureIndex;
-				inter.TextureIndex = (int)rate;
+			switch (frames[0].AnimationType) {
+				default:
+				case AnimationType.Stop:
+					// [KeyFrame.TextureIndex]
+					// Uses the keyframe texture continuously.
+					inter.TextureIndex = (int)frames[0].TextureIndex;
+					break;
+				case AnimationType.Interpolation:
+					// Unsure, requires more testing.
+					// There is no bias setting saved in the STR structure, so this mode is most likely never going to appear.
+					// It needs to be rasterized when saving the STR file, and then detected back when loading it. Quite a nightmare,
+					// let's just ignore for now.
+					inter.TextureIndex = (int)((frames[1].TextureIndex - frames[0].TextureIndex) * time + frames[0].TextureIndex);
+					break;
+				case AnimationType.Once:
+					// [KeyFrame.TextureIndex..Layer.TextureCount]
+					// Goes from the keyframe texture to the last texture in the layer's list.
+					// Note: It does not care about the next keyframe's texture index at all.
+					inter.TextureIndex = (int)(frames[0].Delay * (frameIdx - frames[0].FrameIndex) + frames[0].TextureIndex);
 
-				if (frames[0].AnimationType == 2 && inter.TextureIndex >= str[layerIdx].TextureNames.Count) {
-					inter.TextureIndex = str[layerIdx].TextureNames.Count - 1;
-				}
-				else {
-					inter.TextureIndex = ((int)rate) % str[layerIdx].TextureNames.Count;
-				}
+					if (inter.TextureIndex >= str[layerIdx].TextureNames.Count)
+						inter.TextureIndex = str[layerIdx].TextureNames.Count - 1;
+					break;
+				case AnimationType.Loop:
+					// [KeyFrame.TextureIndex..Layer.TextureCount] -> REPEAT [0..Layer.TextureCount]
+					// Goes from the keyframe texture to the last texture in the layer's list, then repeat at frame 0.
+					// Note: It does not care about the next keyframe's texture index at all.
+					inter.TextureIndex = (int)(frames[0].Delay * (frameIdx - frames[0].FrameIndex) + frames[0].TextureIndex);
+					inter.TextureIndex = inter.TextureIndex % str[layerIdx].TextureNames.Count;
+					break;
+				case AnimationType.ReverseLoop:
+					// [KeyFrame.TextureIndex..0] -> REPEAT [Layer.TextureCount..0]
+					// Goes from the keyframe texture to minus infinity's index.
+					// The first frame is changed instantly with this mode, and that's intended. It's how the client does it...
+					inter.TextureIndex = (int)(frames[0].TextureIndex - frames[0].Delay * (frameIdx - frames[0].FrameIndex));
+					inter.TextureIndex = ((inter.TextureIndex % textureCount) + textureCount) % textureCount;
+					break;
+				case AnimationType.BiLoop:
+					// This does Loop + ReverseLoop, on repeat.
+					if (textureCount <= 1) {
+						inter.TextureIndex = 0;
+						break;
+					}
+
+					int rawIndex = (int)(frames[0].Delay * (frameIdx - frames[0].FrameIndex) + frames[0].TextureIndex);
+
+					int cycleLength = (textureCount - 1) * 2;
+
+					int pingPong = rawIndex % cycleLength;
+
+					if (pingPong >= textureCount)
+						pingPong = cycleLength - pingPong;
+
+					inter.TextureIndex = pingPong;
+					break;
 			}
 
 			inter.Delay = frames[0].Delay;
 			inter.DelayStrKeyFrame = frames[0].Delay;
 			inter.AnimationType = frames[0].AnimationType;
 			inter.TextureIndexStrKeyFrame = 0;
-			inter.SourceAlpha = frames[0].SourceAlpha;
-			inter.DestinationAlpha = frames[0].DestinationAlpha;
+			inter.BlendSrc = frames[0].BlendSrc;
+			inter.BlendDst = frames[0].BlendDst;
 
 			time = EaseTime((float)time, frames[0].OffsetBias);
 
-			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].Bezier[2], frames[0].Bezier[3]);
-			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].Bezier[0], frames[1].Bezier[1]);
+			TkVector2 p1 = frames[0].Offset + new TkVector2(frames[0].BezierPositions[2], frames[0].BezierPositions[3]);
+			TkVector2 p2 = frames[1].Offset + new TkVector2(frames[1].BezierPositions[0], frames[1].BezierPositions[1]);
 
-			if (frames[0].Bezier[2] != 0 || frames[0].Bezier[3] != 0 || frames[1].Bezier[0] != 0 || frames[1].Bezier[1] != 0) {
+			if (frames[0].BezierPositions[2] != 0 || frames[0].BezierPositions[3] != 0 || frames[1].BezierPositions[0] != 0 || frames[1].BezierPositions[1] != 0) {
 				inter.Offset = _getBezier((float)time, frames[0].Offset, p1, p2, frames[1].Offset);
 				
 				// Bezier property fix
@@ -250,15 +341,15 @@ namespace GRF.FileFormats.StrFormat {
 				TkVector2 p0_ii = (p1_i - p0_i) * (float)time + p0_i * subMult - inter.Offset;
 				TkVector2 p1_ii = (p2_i - p1_i) * (float)time + p1_i * subMult - inter.Offset;
 			
-				inter.Bezier[0] = p0_ii.X;
-				inter.Bezier[1] = p0_ii.Y;
-				inter.Bezier[2] = p1_ii.X;
-				inter.Bezier[3] = p1_ii.Y;
+				inter.BezierPositions[0] = p0_ii.X;
+				inter.BezierPositions[1] = p0_ii.Y;
+				inter.BezierPositions[2] = p1_ii.X;
+				inter.BezierPositions[3] = p1_ii.Y;
 
-				inter.BezierAdjacent[0] = p0_i.X - p0.X;
-				inter.BezierAdjacent[1] = p0_i.Y - p0.Y;
-				inter.BezierAdjacent[2] = p2_i.X - p3.X;
-				inter.BezierAdjacent[3] = p2_i.Y - p3.Y;
+				inter.BezierAdjacentPositions[0] = p0_i.X - p0.X;
+				inter.BezierAdjacentPositions[1] = p0_i.Y - p0.Y;
+				inter.BezierAdjacentPositions[2] = p2_i.X - p3.X;
+				inter.BezierAdjacentPositions[3] = p2_i.Y - p3.Y;
 			}
 			else {
 				inter.Offset = new TkVector2((frames[1].Offset.X - frames[0].Offset.X) * time + frames[0].Offset.X * subMult, (frames[1].Offset.Y - frames[0].Offset.Y) * time + frames[0].Offset.Y * subMult);
@@ -412,12 +503,12 @@ namespace GRF.FileFormats.StrFormat {
 				inter.Color[3] = frames[0].Color[3];
 
 				for (int i = 0; i < 8; i++) {
-					inter.Vertices[i] = frames[0].Xy[i];
-					inter.TextCoords[i] = frames[0].Uv[i];
+					inter.Positions[i] = frames[0].Positions[i];
+					inter.UVs[i] = frames[0].UVs[i];
 				}
 
 				for (int i = 0; i < 4; i++) {
-					inter.Bezier[i] = frames[0].Bezier[i];
+					inter.BezierPositions[i] = frames[0].BezierPositions[i];
 				}
 
 				inter.AngleBias = frames[0].AngleBias;
@@ -426,8 +517,8 @@ namespace GRF.FileFormats.StrFormat {
 				inter.Delay = frames[0].Delay;
 				inter.AnimationType = frames[0].AnimationType;
 				inter.TextureIndex = (int)frames[0].TextureIndex;
-				inter.SourceAlpha = frames[0].SourceAlpha;
-				inter.DestinationAlpha = frames[0].DestinationAlpha;
+				inter.BlendSrc = frames[0].BlendSrc;
+				inter.BlendDst = frames[0].BlendDst;
 				inter.Offset = new TkVector2(frames[0].Offset.X, frames[0].Offset.Y);
 				inter.KeyIndex = keyFrameIdx;
 				inter.KeyFrame = frames[0];
@@ -461,23 +552,23 @@ namespace GRF.FileFormats.StrFormat {
 				if (layer[baseKeyIndex + 1] != null && layer[baseKeyIndex + 1].FrameIndex != frameIndex + 1)
 					frame.IsInterpolated = true;
 
-				if (adjustBezier && (Math.Abs(currentFrame.BezierAdjacent[0]) > 0.05 ||
-				    Math.Abs(currentFrame.BezierAdjacent[1]) > 0.05 ||
-				    Math.Abs(currentFrame.BezierAdjacent[2]) > 0.05 ||
-				    Math.Abs(currentFrame.BezierAdjacent[3]) > 0.05) &&
+				if (adjustBezier && (Math.Abs(currentFrame.BezierAdjacentPositions[0]) > 0.05 ||
+				    Math.Abs(currentFrame.BezierAdjacentPositions[1]) > 0.05 ||
+				    Math.Abs(currentFrame.BezierAdjacentPositions[2]) > 0.05 ||
+				    Math.Abs(currentFrame.BezierAdjacentPositions[3]) > 0.05) &&
 				    baseKeyIndex + 1 < str[currentFrame.LayerIdx].KeyFrames.Count) {
-					str.Commands.SetBezier(currentFrame.LayerIdx, baseKeyIndex, new float[] {
-						str[currentFrame.LayerIdx, baseKeyIndex].Bezier[0],
-						str[currentFrame.LayerIdx, baseKeyIndex].Bezier[1],
-						currentFrame.BezierAdjacent[0],
-						currentFrame.BezierAdjacent[1],
+					str.Commands.SetBezierPositions(currentFrame.LayerIdx, baseKeyIndex, new float[] {
+						str[currentFrame.LayerIdx, baseKeyIndex].BezierPositions[0],
+						str[currentFrame.LayerIdx, baseKeyIndex].BezierPositions[1],
+						currentFrame.BezierAdjacentPositions[0],
+						currentFrame.BezierAdjacentPositions[1],
 					});
 
-					str.Commands.SetBezier(currentFrame.LayerIdx, baseKeyIndex + 1, new float[] {
-						currentFrame.BezierAdjacent[2],
-						currentFrame.BezierAdjacent[3],
-						str[currentFrame.LayerIdx, baseKeyIndex + 1].Bezier[2],
-						str[currentFrame.LayerIdx, baseKeyIndex + 1].Bezier[3],
+					str.Commands.SetBezierPositions(currentFrame.LayerIdx, baseKeyIndex + 1, new float[] {
+						currentFrame.BezierAdjacentPositions[2],
+						currentFrame.BezierAdjacentPositions[3],
+						str[currentFrame.LayerIdx, baseKeyIndex + 1].BezierPositions[2],
+						str[currentFrame.LayerIdx, baseKeyIndex + 1].BezierPositions[3],
 					});
 				}
 
@@ -489,24 +580,24 @@ namespace GRF.FileFormats.StrFormat {
 
 		public TkVector2 GetXYVector(PointId point) {
 			int id = (int)point;
-			return new TkVector2(Vertices[id], Vertices[4 + id]);
+			return new TkVector2(Positions[id], Positions[4 + id]);
 		}
 
 		public void SetXYVector(PointId point, in TkVector2 vector) {
 			int id = (int)point;
-			Vertices[id] = vector.X;
-			Vertices[id + 4] = vector.Y;
+			Positions[id] = vector.X;
+			Positions[id + 4] = vector.Y;
 		}
 
 		public TkVector2 GetUVVector(UvPointId point) {
 			int id = 2 * (int)point;
-			return new TkVector2(TextCoords[id + 0], TextCoords[id + 1]);
+			return new TkVector2(UVs[id + 0], UVs[id + 1]);
 		}
 
 		public void SetUVVector(UvPointId point, in TkVector2 vector) {
 			int id = 2 * (int)point;
-			TextCoords[id + 0] = vector.X;
-			TextCoords[id + 1] = vector.Y;
+			UVs[id + 0] = vector.X;
+			UVs[id + 1] = vector.Y;
 		}
 	}
 }

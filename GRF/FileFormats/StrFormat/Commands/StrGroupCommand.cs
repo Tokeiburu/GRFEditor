@@ -2,7 +2,7 @@
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class StrGroupCommand : IGroupCommand<IStrCommand>, IStrCommand {
+	public class StrGroupCommand : IGroupCommand<IStrCommand>, IStrCommand, IAutoReverse {
 		private readonly Str _str;
 		private readonly List<IStrCommand> _commands = new List<IStrCommand>();
 		private readonly List<IStrCommand> _nullCommands = new List<IStrCommand>();
@@ -94,6 +94,40 @@ namespace GRF.FileFormats.StrFormat.Commands {
 
 		public void AddRange(List<IStrCommand> commands) {
 			_commands.AddRange(commands);
+		}
+
+		public bool CanDelete(IAutoReverse commandSrc) {
+			if (Commands.Count == 1 &&
+				commandSrc is StrGroupCommand srcGroupCmd && srcGroupCmd.Commands.Count == 1) {
+				var reverseCmdSrc = srcGroupCmd.Commands[0] as IAutoReverse;
+				var reverseCmdDst = Commands[0] as IAutoReverse;
+
+				if (reverseCmdSrc != null && reverseCmdDst != null)
+					return reverseCmdDst.CanDelete(reverseCmdSrc);
+			}
+
+			return false;
+		}
+
+		public bool CanCombine(ICombinableCommand commandSrc) {
+			if (Commands.Count == 1 &&
+				commandSrc is StrGroupCommand srcGroupCmd && srcGroupCmd.Commands.Count == 1) {
+				var combineCmdSrc = srcGroupCmd.Commands[0] as ICombinableCommand;
+				var combineCmdDst = Commands[0] as ICombinableCommand;
+
+				if (combineCmdSrc != null && combineCmdDst != null)
+					return combineCmdDst.CanCombine(combineCmdSrc);
+			}
+
+			return false;
+		}
+
+		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
+			if (command is StrGroupCommand srcGroupCmd) {
+				var combineCmdSrc = srcGroupCmd.Commands[0] as ICombinableCommand;
+				var combineCmdDst = Commands[0] as ICombinableCommand;
+				combineCmdDst.Combine(combineCmdSrc, abstractCommand);
+			}
 		}
 
 		#endregion

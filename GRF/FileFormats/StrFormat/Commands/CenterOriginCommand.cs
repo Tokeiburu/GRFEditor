@@ -54,8 +54,8 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			var pointCenter = new TkVector2();
 
 			for (int i = 0; i < 4; i++) {
-				pointCenter.X += keyFrame.Xy[i];
-				pointCenter.Y += keyFrame.Xy[i + 4];
+				pointCenter.X += keyFrame.Positions[i];
+				pointCenter.Y += keyFrame.Positions[i + 4];
 			}
 
 			pointCenter.X /= 4;
@@ -64,11 +64,11 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			var vertices = new float[8];
 
 			for (int i = 0; i < 4; i++) {
-				vertices[i] = keyFrame.Xy[i] - pointCenter.X;
-				vertices[i + 4] = keyFrame.Xy[i + 4] - pointCenter.Y;
+				vertices[i] = keyFrame.Positions[i] - pointCenter.X;
+				vertices[i + 4] = keyFrame.Positions[i + 4] - pointCenter.Y;
 			}
 
-			_commands.Add(new CoordsCommand(_layerIndex, keyIndex, vertices));
+			_commands.Add(new SetPositionsCommand(_layerIndex, keyIndex, vertices));
 		}
 
 		public void Undo(Str str) {

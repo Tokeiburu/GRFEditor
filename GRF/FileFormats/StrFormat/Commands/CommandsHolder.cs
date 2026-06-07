@@ -28,56 +28,76 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void SetEditorPosition(int frameIndex, int frameCount, int layerIndex, int layerCount) {
-			_str.Commands.StoreAndExecute(new PositionCommand(frameIndex, frameCount, layerIndex, layerCount));
+			_str.Commands.StoreAndExecute(new SetEditorPositionCommand(frameIndex, frameCount, layerIndex, layerCount));
 		}
 
-		public void ChangeColor(int layerIndex, int keyIndex, float a, float r, float g, float b) {
-			_str.Commands.StoreAndExecute(new ColorCommand(layerIndex, keyIndex, r, g, b, a));
+		public void SetColor(int layerIndex, int keyIndex, float a, float r, float g, float b) {
+			_str.Commands.StoreAndExecute(new SetColorCommand(layerIndex, keyIndex, r, g, b, a));
 		}
 
-		public void ChangeColor(int layerIndex, int keyIndex, in GrfColor color) {
-			_str.Commands.StoreAndExecute(new ColorCommand(layerIndex, keyIndex, color.R, color.G, color.B, color.A));
+		public void SetColor(int layerIndex, int keyIndex, in GrfColor color) {
+			_str.Commands.StoreAndExecute(new SetColorCommand(layerIndex, keyIndex, color.R, color.G, color.B, color.A));
 		}
 
 		public void SetScaleBias(int layerIndex, int keyIndex, float bias) {
-			_str.Commands.StoreAndExecute(new ScaleBiasCommand(layerIndex, keyIndex, bias));
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(bias - keyFrame.ScaleBias) < ChangeEpsilon)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.ScaleBias, bias, v => keyFrame.ScaleBias = v, "ScaleBias"));
 		}
 
 		public void SetAngleBias(int layerIndex, int keyIndex, float bias) {
-			_str.Commands.StoreAndExecute(new RotateBiasCommand(layerIndex, keyIndex, bias));
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(bias - keyFrame.AngleBias) < ChangeEpsilon)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.AngleBias, bias, v => keyFrame.AngleBias = v, "AngleBias"));
 		}
 
 		public void SetOffsetBias(int layerIndex, int keyIndex, float bias) {
-			_str.Commands.StoreAndExecute(new OffsetBiasCommand(layerIndex, keyIndex, bias));
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(bias - keyFrame.OffsetBias) < ChangeEpsilon)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.OffsetBias, bias, v => keyFrame.OffsetBias = v, "OffsetBias"));
 		}
 
 		public void SetAngle(int layerIndex, int keyIndex, float angle) {
-			if (Math.Abs(angle - _str[layerIndex, keyIndex].Angle) < ChangeEpsilon)
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(angle - keyFrame.Angle) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new RotateCommand(layerIndex, keyIndex, angle));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.Angle, angle, v => keyFrame.Angle = v, "Angle"));
 		}
 
-		public void SetRotation(int layerIndex, int keyIndex, float angle) {
-			SetAngle(layerIndex, keyIndex, angle);
+		public void SetBlendSrc(int layerIndex, int keyIndex, int blend) {
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(blend - keyFrame.BlendSrc) < ChangeEpsilon)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<int>(layerIndex, keyIndex, keyFrame.BlendSrc, blend, v => keyFrame.BlendSrc = v, "BlendSrc"));
 		}
 
-		public void SetSrcBlend(int layerIndex, int keyIndex, int blend) {
-			if (blend == _str[layerIndex, keyIndex].SourceAlpha)
-				return;
-			_str.Commands.StoreAndExecute(new BlendCommand(layerIndex, keyIndex, blend, 0));
-		}
+		public void SetBlendDst(int layerIndex, int keyIndex, int blend) {
+			var keyFrame = _str[layerIndex, keyIndex];
 
-		public void SetDstBlend(int layerIndex, int keyIndex, int blend) {
-			if (blend == _str[layerIndex, keyIndex].DestinationAlpha)
+			if (Math.Abs(blend - keyFrame.BlendDst) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new BlendCommand(layerIndex, keyIndex, blend, 1));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<int>(layerIndex, keyIndex, keyFrame.BlendDst, blend, v => keyFrame.BlendDst = v, "BlendDst"));
 		}
 
 		public void SetOffset(int layerIndex, int keyIndex, float x, float y) {
 			if (Math.Abs(x - _str[layerIndex, keyIndex].Offset.X) < ChangeEpsilon &&
 				Math.Abs(y - _str[layerIndex, keyIndex].Offset.Y) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new OffsetCommand(layerIndex, keyIndex, x, y));
+			_str.Commands.StoreAndExecute(new SetOffsetCommand(layerIndex, keyIndex, x, y));
 		}
 
 		public void AddKey(int layerIndex, int keyIndex, StrKeyFrame frame) {
@@ -171,37 +191,43 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 		#endregion
 
-		public void SetVertices(int layerIndex, int keyIndex, float[] vertices) {
-			if (Enumerable.SequenceEqual(vertices, _str[layerIndex, keyIndex].Xy))
+		public void SetPositions(int layerIndex, int keyIndex, float[] positions) {
+			if (Enumerable.SequenceEqual(positions, _str[layerIndex, keyIndex].Positions))
 				return;
-			_str.Commands.StoreAndExecute(new CoordsCommand(layerIndex, keyIndex, vertices));
+			_str.Commands.StoreAndExecute(new SetPositionsCommand(layerIndex, keyIndex, positions));
 		}
 
-		public void SetBezier(int layerIndex, int keyIndex, float[] bezierPoints) {
-			if (Enumerable.SequenceEqual(bezierPoints, _str[layerIndex, keyIndex].Bezier))
+		public void SetBezierPositions(int layerIndex, int keyIndex, float[] bezierPoints) {
+			if (Enumerable.SequenceEqual(bezierPoints, _str[layerIndex, keyIndex].BezierPositions))
 				return;
-			_str.Commands.StoreAndExecute(new BezierCommand(layerIndex, keyIndex, bezierPoints));
+			_str.Commands.StoreAndExecute(new SetBezierCommand(layerIndex, keyIndex, bezierPoints));
 		}
 
-		public void SetVertex(int layerIndex, int keyIndex, int point, float offset) {
-			if (Math.Abs(offset - _str[layerIndex, keyIndex].Xy[point]) < ChangeEpsilon)
+		public void SetPosition(int layerIndex, int keyIndex, int point, float offset) {
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(offset - keyFrame.Positions[point]) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new CoordsCommand(layerIndex, keyIndex, point, offset));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.Positions[point], offset, v => keyFrame.Positions[point] = v, "Position[" + point + "]"));
 		}
 
-		public void SetTextCoords(int layerIndex, int keyIndex, float[] coords) {
-			if (Enumerable.SequenceEqual(coords, _str[layerIndex, keyIndex].Uv))
+		public void SetUVs(int layerIndex, int keyIndex, float[] uvs) {
+			if (Enumerable.SequenceEqual(uvs, _str[layerIndex, keyIndex].UVs))
 				return;
-			_str.Commands.StoreAndExecute(new TextCoordsCommand(layerIndex, keyIndex, coords));
+			_str.Commands.StoreAndExecute(new SetUVsCommand(layerIndex, keyIndex, uvs));
 		}
 
-		public void ChangeTextureIndex(int layerIndex, int keyIndex, int textureIndex) {
-			if (textureIndex == _str[layerIndex, keyIndex].TextureIndex)
+		public void SetTextureIndex(int layerIndex, int keyIndex, int textureIndex) {
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(textureIndex - keyFrame.TextureIndex) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new TextureCommand(layerIndex, keyIndex, textureIndex));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.TextureIndex, textureIndex, v => keyFrame.TextureIndex = v, "TextureIndex"));
 		}
 
-		public void ChangeTextures(int layerIndex, List<string> textures) {
+		public void SetTextures(int layerIndex, List<string> textures) {
 			_str.Commands.StoreAndExecute(new TexturesCommand(layerIndex, textures));
 		}
 
@@ -224,30 +250,44 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			_str.Commands.StoreAndExecute(new MoveLayerCommand(layerIndexSource, layerIndexDest));
 		}
 
-		public void ChangeAnimationType(int layerIndex, int keyIndex, int animationType) {
-			_str.Commands.StoreAndExecute(new AnimationTypeCommand(layerIndex, keyIndex, animationType));
-		}
+		public void SetAnimationType(int layerIndex, int keyIndex, AnimationType animationType) {
+			var keyFrame = _str[layerIndex, keyIndex];
 
-		public void ChangeFps(int fps) {
-			_str.Commands.StoreAndExecute(new FpsCommand(fps));
-		}
-
-		public void ChangeDelay(int layerIndex, int keyIndex, float interval) {
-			if (Math.Abs(interval - _str[layerIndex, keyIndex].Delay) < ChangeEpsilon)
+			if (Math.Abs(animationType - keyFrame.AnimationType) < ChangeEpsilon)
 				return;
-			_str.Commands.StoreAndExecute(new DelayCommand(layerIndex, keyIndex, interval));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<AnimationType>(layerIndex, keyIndex, keyFrame.AnimationType, animationType, v => keyFrame.AnimationType = v, "AnimType"));
 		}
 
-		public void ChangeMaxFrame(int maxFrame) {
+		public void SetFps(int fps) {
+			if (_str.Fps == fps)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<int>(_str.Fps, fps, v => _str.Fps = v, "FPS"));
+		}
+
+		public void SetDelay(int layerIndex, int keyIndex, float delay) {
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (Math.Abs(delay - keyFrame.Delay) < ChangeEpsilon)
+				return;
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<float>(layerIndex, keyIndex, keyFrame.Delay, delay, v => keyFrame.Delay = v, "Delay"));
+		}
+
+		public void SetMaxFrame(int maxFrame) {
 			if (maxFrame == _str.MaxKeyFrame)
 				return;
-			_str.Commands.StoreAndExecute(new MaxFrameCommand(maxFrame));
+			_str.Commands.StoreAndExecute(new SetMaxFrameCommand(maxFrame));
 		}
 
 		public void SetInterpolated(int layerIndex, int keyIndex, bool isInterpolated) {
-			if (keyIndex < 0 || _str[layerIndex, keyIndex].IsInterpolated == isInterpolated)
+			var keyFrame = _str[layerIndex, keyIndex];
+
+			if (keyIndex < 0 || keyFrame.IsInterpolated == isInterpolated)
 				return;
-			_str.Commands.StoreAndExecute(new SetInterpolatedCommand(layerIndex, keyIndex, isInterpolated));
+
+			_str.Commands.StoreAndExecute(new SetPropertyCommand<bool>(layerIndex, keyIndex, keyFrame.IsInterpolated, isInterpolated, v => keyFrame.IsInterpolated = v, "Interpolation"));
 		}
 
 		public void FlipH(int layerIndex, int keyIndex) {

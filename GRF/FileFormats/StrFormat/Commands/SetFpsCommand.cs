@@ -1,12 +1,12 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class FpsCommand : IStrCommand, IAutoReverse {
+	public class SetFpsCommand : IStrCommand {
 		private bool _isSet = false;
 		private int _fps;
 		private int _oldFps;
 
-		public FpsCommand(int fps) {
+		public SetFpsCommand(int fps) {
 			_fps = fps;
 		}
 
@@ -30,7 +30,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			if (command is FpsCommand cmd) {
+			if (command is SetFpsCommand cmd) {
 				_fps = cmd._fps;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

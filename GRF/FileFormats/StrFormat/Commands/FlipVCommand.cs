@@ -23,13 +23,13 @@ namespace GRF.FileFormats.StrFormat.Commands {
 				2 * _origin.Y - str[_layerIndex, _keyIndex].Offset.Y);
 
 			// Self transformation
-			str[_layerIndex, _keyIndex].Xy[4] = -str[_layerIndex, _keyIndex].Xy[4];
-			str[_layerIndex, _keyIndex].Xy[5] = -str[_layerIndex, _keyIndex].Xy[5];
-			str[_layerIndex, _keyIndex].Xy[6] = -str[_layerIndex, _keyIndex].Xy[6];
-			str[_layerIndex, _keyIndex].Xy[7] = -str[_layerIndex, _keyIndex].Xy[7];
+			str[_layerIndex, _keyIndex].Positions[4] = -str[_layerIndex, _keyIndex].Positions[4];
+			str[_layerIndex, _keyIndex].Positions[5] = -str[_layerIndex, _keyIndex].Positions[5];
+			str[_layerIndex, _keyIndex].Positions[6] = -str[_layerIndex, _keyIndex].Positions[6];
+			str[_layerIndex, _keyIndex].Positions[7] = -str[_layerIndex, _keyIndex].Positions[7];
 			str[_layerIndex, _keyIndex].Angle = -str[_layerIndex, _keyIndex].Angle;
-			str[_layerIndex, _keyIndex].Bezier[1] = -str[_layerIndex, _keyIndex].Bezier[1];
-			str[_layerIndex, _keyIndex].Bezier[3] = -str[_layerIndex, _keyIndex].Bezier[3];
+			str[_layerIndex, _keyIndex].BezierPositions[1] = -str[_layerIndex, _keyIndex].BezierPositions[1];
+			str[_layerIndex, _keyIndex].BezierPositions[3] = -str[_layerIndex, _keyIndex].BezierPositions[3];
 		}
 
 		public void Undo(Str str) {
@@ -38,13 +38,13 @@ namespace GRF.FileFormats.StrFormat.Commands {
 				2 * _origin.Y - str[_layerIndex, _keyIndex].Offset.Y);
 
 			// Self transformation
-			str[_layerIndex, _keyIndex].Xy[4] = -str[_layerIndex, _keyIndex].Xy[4];
-			str[_layerIndex, _keyIndex].Xy[5] = -str[_layerIndex, _keyIndex].Xy[5];
-			str[_layerIndex, _keyIndex].Xy[6] = -str[_layerIndex, _keyIndex].Xy[6];
-			str[_layerIndex, _keyIndex].Xy[7] = -str[_layerIndex, _keyIndex].Xy[7];
+			str[_layerIndex, _keyIndex].Positions[4] = -str[_layerIndex, _keyIndex].Positions[4];
+			str[_layerIndex, _keyIndex].Positions[5] = -str[_layerIndex, _keyIndex].Positions[5];
+			str[_layerIndex, _keyIndex].Positions[6] = -str[_layerIndex, _keyIndex].Positions[6];
+			str[_layerIndex, _keyIndex].Positions[7] = -str[_layerIndex, _keyIndex].Positions[7];
 			str[_layerIndex, _keyIndex].Angle = -str[_layerIndex, _keyIndex].Angle;
-			str[_layerIndex, _keyIndex].Bezier[1] = -str[_layerIndex, _keyIndex].Bezier[1];
-			str[_layerIndex, _keyIndex].Bezier[3] = -str[_layerIndex, _keyIndex].Bezier[3];
+			str[_layerIndex, _keyIndex].BezierPositions[1] = -str[_layerIndex, _keyIndex].BezierPositions[1];
+			str[_layerIndex, _keyIndex].BezierPositions[3] = -str[_layerIndex, _keyIndex].BezierPositions[3];
 		}
 	}
 }

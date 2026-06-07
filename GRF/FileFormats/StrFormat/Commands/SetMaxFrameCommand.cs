@@ -1,12 +1,12 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class MaxFrameCommand : IStrCommand, IAutoReverse {
+	public class SetMaxFrameCommand : IStrCommand {
 		private bool _isSet = false;
 		private int _maxFrame;
 		private int _oldMaxFrame;
 
-		public MaxFrameCommand(int maxFrame) {
+		public SetMaxFrameCommand(int maxFrame) {
 			_maxFrame = maxFrame;
 		}
 
@@ -32,7 +32,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			if (command is MaxFrameCommand cmd) {
+			if (command is SetMaxFrameCommand cmd) {
 				_maxFrame = cmd._maxFrame;
 				abstractCommand.ExplicitCommandExecution((T)(object)this);
 			}

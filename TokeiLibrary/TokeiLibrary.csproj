@@ -87,6 +87,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="FileAssociationHelper.cs" />
     <Compile Include="Shortcuts\Manager.cs" />
+    <Compile Include="SliderExtensions.cs" />
     <Compile Include="WpfBugFix\ToggleMemoryPopup.xaml.cs">
       <DependentUpon>ToggleMemoryPopup.xaml</DependentUpon>
     </Compile>

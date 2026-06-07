@@ -72,16 +72,16 @@ namespace GRFEditor.OpenGL.StrGroup {
 			if (Inter == null)
 				return;
 
-			ChangeVertex(0, Inter.Vertices[2], -Inter.Vertices[6]);
-			ChangeVertex(1, Inter.Vertices[1], -Inter.Vertices[5]);
-			ChangeVertex(2, Inter.Vertices[0], -Inter.Vertices[4]);
-			ChangeVertex(3, Inter.Vertices[3], -Inter.Vertices[7]);
+			ChangeVertex(0, Inter.Positions[2], -Inter.Positions[6]);
+			ChangeVertex(1, Inter.Positions[1], -Inter.Positions[5]);
+			ChangeVertex(2, Inter.Positions[0], -Inter.Positions[4]);
+			ChangeVertex(3, Inter.Positions[3], -Inter.Positions[7]);
 			UpdateVertex();
 
-			ChangeVertexCoord(0, Inter.TextCoords[0] + Inter.TextCoords[2], Inter.TextCoords[3] + Inter.TextCoords[1]);
-			ChangeVertexCoord(1, Inter.TextCoords[0] + Inter.TextCoords[2], Inter.TextCoords[1]);
-			ChangeVertexCoord(2, Inter.TextCoords[0], Inter.TextCoords[1]);
-			ChangeVertexCoord(3, Inter.TextCoords[0], Inter.TextCoords[3] + Inter.TextCoords[1]);
+			ChangeVertexCoord(0, Inter.UVs[0] + Inter.UVs[2], Inter.UVs[3] + Inter.UVs[1]);
+			ChangeVertexCoord(1, Inter.UVs[0] + Inter.UVs[2], Inter.UVs[1]);
+			ChangeVertexCoord(2, Inter.UVs[0], Inter.UVs[1]);
+			ChangeVertexCoord(3, Inter.UVs[0], Inter.UVs[3] + Inter.UVs[1]);
 			UpdateVertexCoords();
 
 			Shader.Use();
@@ -97,7 +97,7 @@ namespace GRFEditor.OpenGL.StrGroup {
 				return;
 
 			GL.Enable(EnableCap.Blend);
-			GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(Inter.SourceAlpha), GLHelper.GetOpenGlBlendFromDirectXDest(Inter.DestinationAlpha));
+			GL.BlendFunc(GLHelper.GetOpenGlBlendFromDirectXSrc(Inter.BlendSrc), GLHelper.GetOpenGlBlendFromDirectXDest(Inter.BlendDst));
 
 			GL.Enable(EnableCap.Texture2D);
 			GL.BindTexture(TextureTarget.Texture2D, _textureIds[Inter.TextureIndex]);

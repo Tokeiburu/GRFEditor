@@ -8,21 +8,21 @@ namespace GRF.FileFormats.StrFormat {
 	/// </summary>
 	public class StrKeyFrame : IWriteableObject {
 		public StrKeyFrame() {
-			Uv = new float[8];
-			Xy = new float[8];
+			UVs = new float[8];
+			Positions = new float[8];
 			Color = new float[4];
-			Bezier = new float[4];
+			BezierPositions = new float[4];
 
 			Offset = new TkVector2(Str.OffsetX, Str.OffsetY);
 
-			Uv[0] = 0;
-			Uv[1] = 0;
-			Uv[2] = 1;
-			Uv[3] = 1;
-			Uv[4] = 0;
-			Uv[5] = 0;
-			Uv[6] = 1;
-			Uv[7] = 1;
+			UVs[0] = 0;
+			UVs[1] = 0;
+			UVs[2] = 1;
+			UVs[3] = 1;
+			UVs[4] = 0;
+			UVs[5] = 0;
+			UVs[6] = 1;
+			UVs[7] = 1;
 		}
 
 		/// <summary>
@@ -33,10 +33,10 @@ namespace GRF.FileFormats.StrFormat {
 			FrameIndex = reader.Int32();
 			Type = reader.Int32();
 			Offset = reader.Vector2();
-			Uv = reader.ArrayFloat(8);
-			Xy = reader.ArrayFloat(8);
+			UVs = reader.ArrayFloat(8);
+			Positions = reader.ArrayFloat(8);
 			TextureIndex = reader.Float();
-			AnimationType = reader.Int32();
+			AnimationType = (AnimationType)reader.Int32();
 			Delay = reader.Float();
 
 			if (float.IsInfinity(Delay) || float.IsNaN(Delay)) {
@@ -45,38 +45,38 @@ namespace GRF.FileFormats.StrFormat {
 
 			Angle = reader.Float() / (1024 / 360f);
 			Color = reader.ArrayFloat(4);
-			SourceAlpha = reader.Int32();
-			DestinationAlpha = reader.Int32();
+			BlendSrc = reader.Int32();
+			BlendDst = reader.Int32();
 			MtPresent = reader.Int32();
-			Bezier = new float[4];
+			BezierPositions = new float[4];
 		}
 
 		public StrKeyFrame(StrKeyFrame frame) {
-			Uv = new float[8];
-			Xy = new float[8];
+			UVs = new float[8];
+			Positions = new float[8];
 			Color = new float[4];
-			Bezier = new float[4];
+			BezierPositions = new float[4];
 
 			FrameIndex = frame.FrameIndex;
 			Type = frame.Type;
 			Offset = frame.Offset;
 
 			for (int i = 0; i < 8; i++) {
-				Uv[i] = frame.Uv[i];
-				Xy[i] = frame.Xy[i];
+				UVs[i] = frame.UVs[i];
+				Positions[i] = frame.Positions[i];
 			}
 
 			for (int i = 0; i < 4; i++) {
 				Color[i] = frame.Color[i];
-				Bezier[i] = frame.Bezier[i];
+				BezierPositions[i] = frame.BezierPositions[i];
 			}
 
 			TextureIndex = frame.TextureIndex;
 			AnimationType = frame.AnimationType;
 			Delay = frame.Delay;
 			Angle = frame.Angle;
-			SourceAlpha = frame.SourceAlpha;
-			DestinationAlpha = frame.DestinationAlpha;
+			BlendSrc = frame.BlendSrc;
+			BlendDst = frame.BlendDst;
 			MtPresent = frame.MtPresent;
 			IsInterpolated = frame.IsInterpolated;
 			ScaleBias = frame.ScaleBias;
@@ -84,25 +84,25 @@ namespace GRF.FileFormats.StrFormat {
 			OffsetBias = frame.OffsetBias;
 		}
 
-		public int FrameIndex { get; set; }
-		public int Type { get; set; }
-		public TkVector2 Offset { get; set; }
-		public float[] Uv { get; private set; }
-		public float[] Xy { get; private set; }
-		public float TextureIndex { get; set; }
-		public int AnimationType { get; set; }
-		public float Delay { get; set; }
-		public float Angle { get; set; }
-		public float[] Color { get; private set; }
-		public int SourceAlpha { get; set; }
-		public int DestinationAlpha { get; set; }
-		public int MtPresent { get; set; }
-		public float[] Bezier { get; private set; }
-		public bool IsInterpolated { get; set; }
+		public int FrameIndex;
+		public int Type;
+		public TkVector2 Offset;
+		public float[] UVs;
+		public float[] Positions;
+		public float TextureIndex;
+		public AnimationType AnimationType;
+		public float Delay;
+		public float Angle;
+		public float[] Color;
+		public int BlendSrc;
+		public int BlendDst;
+		public int MtPresent;
+		public float[] BezierPositions;
+		public bool IsInterpolated;
 
-		public float AngleBias { get; set; }
-		public float OffsetBias { get; set; }
-		public float ScaleBias { get; set; }
+		public float AngleBias;
+		public float OffsetBias;
+		public float ScaleBias;
 
 		internal bool PendingDelete { get; set; }
 
@@ -128,23 +128,23 @@ namespace GRF.FileFormats.StrFormat {
 			StrKeyFrame keyFrame = new StrKeyFrame();
 			keyFrame.Type = 0;
 			keyFrame.FrameIndex = frameIndex;
-			keyFrame.Xy[0] = -64;
-			keyFrame.Xy[4] = -64;
-			keyFrame.Xy[1] = 64;
-			keyFrame.Xy[5] = -64;
-			keyFrame.Xy[2] = 64;
-			keyFrame.Xy[6] = 64;
-			keyFrame.Xy[3] = -64;
-			keyFrame.Xy[7] = 64;
+			keyFrame.Positions[0] = -64;
+			keyFrame.Positions[4] = -64;
+			keyFrame.Positions[1] = 64;
+			keyFrame.Positions[5] = -64;
+			keyFrame.Positions[2] = 64;
+			keyFrame.Positions[6] = 64;
+			keyFrame.Positions[3] = -64;
+			keyFrame.Positions[7] = 64;
 
-			keyFrame.Uv[0] = 0;
-			keyFrame.Uv[1] = 0;
-			keyFrame.Uv[2] = 1;
-			keyFrame.Uv[3] = 1;
-			keyFrame.Uv[4] = 0;
-			keyFrame.Uv[5] = 0;
-			keyFrame.Uv[6] = 1;
-			keyFrame.Uv[7] = 1;
+			keyFrame.UVs[0] = 0;
+			keyFrame.UVs[1] = 0;
+			keyFrame.UVs[2] = 1;
+			keyFrame.UVs[3] = 1;
+			keyFrame.UVs[4] = 0;
+			keyFrame.UVs[5] = 0;
+			keyFrame.UVs[6] = 1;
+			keyFrame.UVs[7] = 1;
 
 			keyFrame.Color[0] = 255;
 			keyFrame.Color[1] = 255;
@@ -152,8 +152,8 @@ namespace GRF.FileFormats.StrFormat {
 			keyFrame.Color[3] = 255;
 
 			keyFrame.Offset = new TkVector2(Str.OffsetX, Str.OffsetY);
-			keyFrame.SourceAlpha = 5;
-			keyFrame.DestinationAlpha = 7;
+			keyFrame.BlendSrc = 5;
+			keyFrame.BlendDst = 7;
 			return keyFrame;
 		}
 
@@ -168,10 +168,10 @@ namespace GRF.FileFormats.StrFormat {
 			writer.Write(Type);
 			writer.Write(Offset.X);
 			writer.Write(Offset.Y);
-			for (int i = 0; i < 8; i++) writer.Write(Uv[i]);
-			for (int i = 0; i < 8; i++) writer.Write(Xy[i]);
+			for (int i = 0; i < 8; i++) writer.Write(UVs[i]);
+			for (int i = 0; i < 8; i++) writer.Write(Positions[i]);
 			writer.Write(TextureIndex);
-			writer.Write(AnimationType);
+			writer.Write((int)AnimationType);
 
 			if (float.IsInfinity(Delay) || float.IsNaN(Delay)) {
 				Delay = 0;
@@ -180,8 +180,8 @@ namespace GRF.FileFormats.StrFormat {
 			writer.Write(Delay);
 			writer.Write(Angle * (1024 / 360f));
 			for (int i = 0; i < 4; i++) writer.Write(Color[i]);
-			writer.Write(SourceAlpha);
-			writer.Write(DestinationAlpha);
+			writer.Write(BlendSrc);
+			writer.Write(BlendDst);
 			writer.Write(MtPresent);
 		}
 
@@ -197,17 +197,17 @@ namespace GRF.FileFormats.StrFormat {
 
 		public void Scale(float scale) {
 			for (int i = 0; i < 8; i++) {
-				Xy[i] *= scale;
+				Positions[i] *= scale;
 			}
 		}
 
 		public void Scale(float x, float y) {
 			for (int i = 0; i < 4; i++) {
-				Xy[i] *= x;
+				Positions[i] *= x;
 			}
 
 			for (int i = 4; i < 8; i++) {
-				Xy[i] *= y;
+				Positions[i] *= y;
 			}
 		}
 

@@ -278,11 +278,11 @@ namespace Utilities.Commands {
 			}
 		}
 
-		private bool _mergeDown(T command) {
+		private bool _mergeDown(T command, bool useCurrentOnly = false) {
 			if (command is ICombinableCommand commandAdded) {
 				if (IsDelayed && _delayedCommands.Count > 0 ||
 					!IsDelayed && _commands.Count > 0 && _commandIndexCurrent > -1) {
-					T lastCommand = IsDelayed ? _delayedCommands.Last() : Current;
+					T lastCommand = IsDelayed && !useCurrentOnly ? _delayedCommands.Last() : Current;
 
 					if (lastCommand is ICombinableCommand combinableCommand && _commandIndexNonModified != _commandIndexModified) {
 						if (combinableCommand.CanCombine(commandAdded)) {
@@ -347,6 +347,18 @@ namespace Utilities.Commands {
 						IGroupCommand<T> commandGroup = _delayedCommandsCommand;
 						commandGroup.AddRange(commands);
 						T command = (T)commandGroup;
+
+						if (_mergeDown(command, useCurrentOnly: true)) {
+							if (_commandIndexNonModified == _commandIndexCurrent) {
+								if (_commandIndexNonModified >= 0) {
+									_commandIndexNonModified = -2;
+								}
+							}
+
+							_commandIndexModified = _commandIndexCurrent;
+							OnModifiedStateChanged(default);
+							return;
+						}
 
 						if (_commandIndexNonModified >= 0) {
 							if (_commandIndexCurrent < _commandIndexNonModified) {

@@ -1,7 +1,7 @@
 ﻿using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class PositionCommand : IStrCommand, IFrameCommand, INullCommand {
+	public class SetEditorPositionCommand : IStrCommand, IFrameCommand, INullCommand {
 		private readonly int _layerIndex;
 		private readonly int _frameIndex;
 		private readonly int _layerCount;
@@ -13,7 +13,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		public int LayerCount => _layerCount;
 		public int FrameCount => _frameCount;
 
-		public PositionCommand(int frameIndex, int frameCount, int layerIndex, int layerCount) {
+		public SetEditorPositionCommand(int frameIndex, int frameCount, int layerIndex, int layerCount) {
 			_layerIndex = layerIndex;
 			_frameIndex = frameIndex;
 			_frameCount = frameCount;

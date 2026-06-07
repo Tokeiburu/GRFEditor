@@ -102,7 +102,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 				for (int i = 0; i < _keyFrames.Count; i++) {
 					var keyFrame = _keyFrames[i];
 
-					Buffer.BlockCopy(keyFrame.Xy, 0, _vertices, 8 * i * sizeof(float), 8 * sizeof(float));
+					Buffer.BlockCopy(keyFrame.Positions, 0, _vertices, 8 * i * sizeof(float), 8 * sizeof(float));
 					_oldOffsets[i] = keyFrame.Offset;
 					_newOffsets[i] = _oldOffsets[i];
 				}
@@ -136,15 +136,15 @@ namespace GRF.FileFormats.StrFormat.Commands {
 							TkVector2 center = default;
 
 							for (int j = 0; j < 4; j++) {
-								center.X += keyFrame.Xy[j];
-								center.Y += keyFrame.Xy[j + 4];
+								center.X += keyFrame.Positions[j];
+								center.Y += keyFrame.Positions[j + 4];
 							}
 
 							center /= 4f;
 
 							for (int j = 0; j < 4; j++) {
-								_newVertices[8 * k + j + 0] = (keyFrame.Xy[j] - center.X) * _sx + center.X;
-								_newVertices[8 * k + j + 4] = (keyFrame.Xy[j + 4] - center.Y) * _sy + center.Y;
+								_newVertices[8 * k + j + 0] = (keyFrame.Positions[j] - center.X) * _sx + center.X;
+								_newVertices[8 * k + j + 4] = (keyFrame.Positions[j + 4] - center.Y) * _sy + center.Y;
 							}
 						}
 						break;
@@ -156,7 +156,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			for (int k = 0; k < _keyFrames.Count; k++) {
 				var keyFrame = _keyFrames[k];
 
-				Buffer.BlockCopy(_newVertices, k * 8 * sizeof(float), keyFrame.Xy, 0, 8 * sizeof(float));
+				Buffer.BlockCopy(_newVertices, k * 8 * sizeof(float), keyFrame.Positions, 0, 8 * sizeof(float));
 				keyFrame.Offset = _newOffsets[k];
 			}
 		}
@@ -165,7 +165,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 			for (int k = 0; k < _keyFrames.Count; k++) {
 				var keyFrame = _keyFrames[k];
 
-				Buffer.BlockCopy(_vertices, k * 8 * sizeof(float), keyFrame.Xy, 0, 8 * sizeof(float));
+				Buffer.BlockCopy(_vertices, k * 8 * sizeof(float), keyFrame.Positions, 0, 8 * sizeof(float));
 				keyFrame.Offset = _oldOffsets[k];
 			}
 		}

@@ -2,7 +2,7 @@
 using Utilities.Commands;
 
 namespace GRF.FileFormats.StrFormat.Commands {
-	public class ColorCommand : IStrCommand, IAutoReverse, IPosCommand {
+	public class SetColorCommand : IStrCommand, IPosCommand {
 		private readonly int _layerIndex;
 		private readonly int _keyIndex;
 		private float[] _colors = new float[4];
@@ -11,7 +11,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		public int LayerIndex => _layerIndex;
 		public int KeyIndex => _keyIndex;
 
-		public ColorCommand(int layerIndex, int keyIndex, float r, float g, float b, float a) {
+		public SetColorCommand(int layerIndex, int keyIndex, float r, float g, float b, float a) {
 			_layerIndex = layerIndex;
 			_keyIndex = keyIndex;
 			_colors[0] = r;
@@ -43,7 +43,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			if (command is ColorCommand cmd) {
+			if (command is SetColorCommand cmd) {
 				if (cmd._layerIndex == _layerIndex &&
 					cmd._keyIndex == _keyIndex)
 					return true;
@@ -53,7 +53,7 @@ namespace GRF.FileFormats.StrFormat.Commands {
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			if (command is ColorCommand cmd) {
+			if (command is SetColorCommand cmd) {
 				for (int i = 0; i < 4; i++) {
 					_colors[i] = cmd._colors[i];
 				}

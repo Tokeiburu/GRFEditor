@@ -9,6 +9,11 @@ using GRF.IO;
 namespace GRF.FileFormats.StrFormat {
 	public partial class Str : IPrintable, IWriteableFile {
 		public const int OffsetX = 320;
+
+		// The Y offset is quite arbitrary.
+		// The real one, at reset zoom in the client, is closer to 280.
+		// When zoomed out, this value is closer to 320. I chose 
+		// 290 because that is what other STR renderers picked.
 		public const int OffsetY = 290;
 
 		/// <summary>
@@ -29,6 +34,7 @@ namespace GRF.FileFormats.StrFormat {
 
 			Commands = new CommandsHolder(this);
 
+			// Note: 0x6d617246 == Fram(e), it's not just a random value.
 			if (MaxKeyFrame == 0x6d617246) {
 				MaxKeyFrame = 0;
 
