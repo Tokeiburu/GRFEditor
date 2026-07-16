@@ -321,7 +321,7 @@ namespace GRFEditor.ApplicationConfiguration {
 
 		#region Program's configuration and information
 
-		public static string PublicVersion => "1.9.1.1";
+		public static string PublicVersion => "1.9.1.2";
 		public static string Author => "Tokeiburu";
 		public static string ProgramName => "GRF Editor";
 
@@ -737,6 +737,11 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static bool RenameCps {
 			get => Boolean.Parse(ConfigAsker["[Encryptor - RenameCps]", "true"]);
 			set => ConfigAsker["[Encryptor - RenameCps]"] = value.ToString();
+		}
+
+		public static bool SkipResourceCheck {
+			get => Boolean.Parse(ConfigAsker["[Encryptor - SkipResourceCheck]", "false"]);
+			set => ConfigAsker["[Encryptor - SkipResourceCheck]"] = value.ToString();
 		}
 
 		#endregion

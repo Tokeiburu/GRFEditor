@@ -38,6 +38,7 @@ namespace GRFEditor.WPF {
 
 			_tbClientPath.Text = GrfEditorConfiguration.EncryptorClientPath;
 			GrfToWpfBridge.Binder.Bind(_cbRenameCps, () => GrfEditorConfiguration.RenameCps, v => GrfEditorConfiguration.RenameCps = v);
+			GrfToWpfBridge.Binder.Bind(_cbIgnoreMissingResources, () => GrfEditorConfiguration.SkipResourceCheck, v => GrfEditorConfiguration.SkipResourceCheck = v);
 		}
 
 		private void _recentFiles_FileClicked(string file) {
@@ -149,7 +150,8 @@ namespace GRFEditor.WPF {
 				//_binaryReplace(newCps, "compress", newCompressName);
 
 				if (Methods.IndexOf(client, EncodingService.Ansi.GetBytes(newUncompressName)) < 0) {
-					throw new Exception("Some resources weren't found in your client. This can happen if you're using a 2024 client without the cps.dll restore patch or if you are using a client that has already been modified with this encryption tool, and the key has been changed.");
+					if (!GrfEditorConfiguration.SkipResourceCheck)
+						throw new Exception("Some resources weren't found in your client. This can happen if you're using a 2024 client without the cps.dll restore patch or if you are using a client that has already been modified with this encryption tool, and the key has been changed.");
 				}
 
 				if (removeCpsBandaidModified) {
@@ -159,7 +161,8 @@ namespace GRFEditor.WPF {
 				}
 
 				if (GrfEditorConfiguration.RenameCps && Methods.IndexOf(client, EncodingService.Ansi.GetBytes(newCpsName)) < 0) {
-					throw new Exception("Resources weren't found in your client. This can happen if you're using a 2024 client without the cps.dll restore patch or if you are using a client that has already been modified with this encryption tool, and the key has been changed.");
+					if (!GrfEditorConfiguration.SkipResourceCheck)
+						throw new Exception("Resources weren't found in your client. This can happen if you're using a 2024 client without the cps.dll restore patch or if you are using a client that has already been modified with this encryption tool, and the key has been changed.");
 				}
 
 				if (success) {
