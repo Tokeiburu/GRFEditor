@@ -321,7 +321,7 @@ namespace GRFEditor.ApplicationConfiguration {
 
 		#region Program's configuration and information
 
-		public static string PublicVersion => "1.9.1.0";
+		public static string PublicVersion => "1.9.1.1";
 		public static string Author => "Tokeiburu";
 		public static string ProgramName => "GRF Editor";
 

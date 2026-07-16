@@ -48,7 +48,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Utilities">
-      <HintPath>(SolutionDir)Libraries\Utilities.dll</HintPath>
+      <HintPath>$(SolutionDir)Libraries\Utilities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
