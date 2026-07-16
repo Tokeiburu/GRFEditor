@@ -11,18 +11,26 @@ namespace Utilities {
 		private readonly object _lock = new object();
 		private CancellationTokenSource _cts;
 		private bool _disposed;
+		private int _delayMs;
 
-		public void Execute(Action action, int delayMs = 0) {
+		public Debouncer(int delayMs = 50) {
+			_delayMs = delayMs;
+		}
+
+		public void Execute(Action action) {
 			lock (_lock) {
+				if (_disposed) return;
+
 				_cts?.Cancel();
 				_cts?.Dispose();
+
 				_cts = new CancellationTokenSource();
 				var token = _cts.Token;
 
 				Task.Run(async () => {
 					try {
-						if (delayMs > 0)
-							await Task.Delay(delayMs, token);
+						if (_delayMs > 0)
+							await Task.Delay(_delayMs, token);
 
 						if (!token.IsCancellationRequested)
 							action();
@@ -31,18 +39,18 @@ namespace Utilities {
 					catch (Exception ex) {
 						ErrorHandler.HandleException(ex);
 					}
-				});
+				}, token);
 			}
 		}
 
 		public void Dispose() {
-			if (_disposed) {
-				return;
-			}
+			lock (_lock) {
+				if (_disposed) return;
+				_disposed = true;
 
-			_cts?.Cancel();
-			_cts?.Dispose();
-			_disposed = true;
+				_cts?.Cancel();
+				_cts?.Dispose();
+			}
 		}
 	}
 
@@ -76,12 +84,13 @@ namespace Utilities {
 	public class UpdateDispatcher {
 		private readonly object _lock = new object();
 		private readonly int _delayMs;
-
+		private readonly bool _executeOnBackgroundThread;
 		private bool _isProcessing;
 		private Action _pendingAction;
 
-		public UpdateDispatcher(int delayMs = 50) {
+		public UpdateDispatcher(int delayMs = 50, bool executeOnBackgroundThread = false) {
 			_delayMs = delayMs;
+			_executeOnBackgroundThread = executeOnBackgroundThread;
 		}
 
 		public void Execute(Action action) {
@@ -106,11 +115,17 @@ namespace Utilities {
 					_pendingAction = null;
 				}
 
-				try {
-					action?.Invoke();
-				}
-				catch (Exception err) {
-					ErrorHandler.HandleException(err);
+				if (action != null) {
+					try {
+						if (_executeOnBackgroundThread) {
+							await Task.Run(() => action.Invoke()).ConfigureAwait(false);
+						}
+						else
+							action.Invoke();
+					}
+					catch (Exception err) {
+						ErrorHandler.HandleException(err);
+					}
 				}
 
 				if (_delayMs > 0)

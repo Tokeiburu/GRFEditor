@@ -187,24 +187,23 @@ namespace Utilities.Extension {
 			return Regex.Unescape(b.ToString());
 		}
 
-		public static string Escape(this String text, EscapeMode mode) {
-			StringBuilder b = new StringBuilder();
+		public static void Escape(this String text, StringBuilder b, EscapeMode mode) {
 			char c;
 			bool lineFeed = (mode & EscapeMode.LineFeed) == EscapeMode.LineFeed;
 			bool keepAscii = (mode & EscapeMode.KeepAsciiCode) == EscapeMode.KeepAsciiCode;
 			bool removeQuote = (mode & EscapeMode.RemoveQuote) == EscapeMode.RemoveQuote;
 			bool rawAscii = (mode & EscapeMode.RawAscii) == EscapeMode.RawAscii;
+			int len = text.Length;
 
 			if (rawAscii) {
-				for (int i = 0; i < text.Length; i++) {
+				for (int i = 0; i < len; i++) {
 					b.Append("\\");
-					b.Append((int) text[i]);
+					b.Append((int)text[i]);
 				}
-
-				return b.ToString();
+				return;
 			}
 
-			for (int i = 0; i < text.Length; i++) {
+			for (int i = 0; i < len; i++) {
 				c = text[i];
 
 				if (c <= 124) {
@@ -212,7 +211,7 @@ namespace Utilities.Extension {
 						case '\r':
 						case '\n':
 							if (lineFeed) {
-								b.Append("\\");
+								b.Append('\\');
 								b.Append(c);
 							}
 							else {
@@ -226,10 +225,10 @@ namespace Utilities.Extension {
 							b.Append(@"\f");
 							break;
 						case '\"':
-							if (!removeQuote || (i != 0 && i != text.Length - 1)) b.Append("\\\"");
+							if (!removeQuote || (i != 0 && i != len - 1)) b.Append("\\\"");
 							break;
 						case '\\':
-							if (keepAscii && i + 1 < text.Length) {
+							if (keepAscii && i + 1 < len) {
 								c = text[++i];
 
 								if (char.IsDigit(c)) {
@@ -254,7 +253,11 @@ namespace Utilities.Extension {
 					b.Append(c);
 				}
 			}
+		}
 
+		public static string Escape(this String text, EscapeMode mode) {
+			StringBuilder b = new StringBuilder();
+			Escape(text, b, mode);
 			return b.ToString();
 		}
 
@@ -271,11 +274,11 @@ namespace Utilities.Extension {
 		}
 
 		public static int ToInt(this string text) {
-			return FormatConverters.IntOrHexConverter(text);
+			return FormatConverters.IntOrHexConverter(text ?? "0");
 		}
 
 		public static long ToLong(this string text) {
-			return FormatConverters.LongOrHexConverter(text);
+			return FormatConverters.LongOrHexConverter(text ?? "0");
 		}
 
 		public static bool IsHexOrDigit(this char c) {
@@ -376,6 +379,14 @@ namespace Utilities.Extension {
 		//
 		//	return set;
 		//}
+
+		public static string TrimEnd(this string text, string trimString) {
+			while (text.EndsWith(trimString, StringComparison.Ordinal)) {
+				text = text.Substring(0, text.Length - trimString.Length);
+			}
+
+			return text;
+		}
 
 		public static string ReplaceAll(this string text, string oldChar, string newChar) {
 			if (text == null) return null;

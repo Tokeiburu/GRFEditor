@@ -82,6 +82,12 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 		public static DependencyProperty ShortcutCmdProperty = DependencyProperty.Register("ShortcutCmd", typeof(string), typeof(TkMenuItem), null);
 
+		public bool RequiresItem {
+			get { return (bool)GetValue(RequiresItemProperty); }
+			set { SetValue(RequiresItemProperty, value); }
+		}
+		public static DependencyProperty RequiresItemProperty = DependencyProperty.Register("RequiresItem", typeof(bool), typeof(TkMenuItem), null);
+
 		private bool _isInputStyleSet = false;
 
 		public string IconPath {

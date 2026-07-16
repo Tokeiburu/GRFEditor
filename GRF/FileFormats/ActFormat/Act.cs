@@ -638,15 +638,15 @@ namespace GRF.FileFormats.ActFormat {
 			}
 		}
 
-		public static Act MergeAct(Act[] back, Act primary, Act[] front) {
+		public static Act MergeAct(Act[] back, Act primary, Act[] front, bool useBodyAsBase = false) {
 			Act output = new Act(primary);
 
 			foreach (var act in back) {
-				_mergeAct(output, act, false);
+				_mergeAct(output, act, false, useBodyAsBase);
 			}
 
 			foreach (var act in front) {
-				_mergeAct(output, act, true);
+				_mergeAct(output, act, true, useBodyAsBase);
 			}
 
 			return output;
@@ -688,7 +688,7 @@ namespace GRF.FileFormats.ActFormat {
 			return vertex;
 		}
 
-		private static Act _mergeAct(Act input, Act act, bool front) {
+		private static Act _mergeAct(Act input, Act act, bool front, bool useBodyAsBase) {
 			int newIndexed8Index = input.Sprite.NumberOfIndexed8Images;
 			int newBgra32Index = input.Sprite.NumberOfImagesLoaded;
 			act = new Act(act);

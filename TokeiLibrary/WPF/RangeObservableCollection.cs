@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 
 namespace TokeiLibrary.WPF {
@@ -35,6 +36,8 @@ namespace TokeiLibrary.WPF {
 		public void UpdateAndEnable() {
 			_suppressNotification = false;
 			OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+			OnPropertyChanged(new PropertyChangedEventArgs("Count"));
+			OnPropertyChanged(new PropertyChangedEventArgs("Item[]"));
 		}
 
 		public void AddRange(IEnumerable<T> list) {
@@ -77,6 +80,18 @@ namespace TokeiLibrary.WPF {
 
 			_suppressNotification = false;
 			OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+		}
+
+		protected override void OnPropertyChanged(PropertyChangedEventArgs e) {
+			if (!_suppressNotification)
+				base.OnPropertyChanged(e);
+		}
+
+		public void ClearAndAddRange(IEnumerable<T> list) {
+			Disable();
+			Clear();
+			AddRange(list);
+			UpdateAndEnable();
 		}
 	}
 }

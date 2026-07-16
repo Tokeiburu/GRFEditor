@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows;
@@ -58,7 +60,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			return obj.GetValue(LastSortedPropertyKey.DependencyProperty) as GridViewColumnHeader;
 		}
 
-		private static void SetLastSorted(DependencyObject obj, GridViewColumnHeader value) {
+		public static void SetLastSorted(DependencyObject obj, GridViewColumnHeader value) {
 			obj.SetValue(LastSortedPropertyKey, value);
 		}
 
@@ -93,6 +95,13 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 				RegisterSortableGridview(grid, args);
 			}
 		}
+
+		private static void OnRegisterUpdateOnSizeChanged(DependencyObject sender, DependencyPropertyChangedEventArgs args) {
+			System.Windows.Controls.ListView grid = sender as System.Windows.Controls.ListView;
+			if (grid != null) {
+				RegisterUpdateOnSizeChanged(grid, args);
+			}
+		}
 		#endregion
 
 		private static readonly RoutedEventHandler GridViewColumnHeaderClickHandler = new RoutedEventHandler(GridViewColumnHeaderClicked);
@@ -112,6 +121,12 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			"CustomSorter",
 			typeof(IComparer),
 			typeof(ListViewExtensions));
+		
+		public static DependencyProperty UpdateOnSizeChangedProperty = DependencyProperty.RegisterAttached(
+			"UpdateOnSizeChanged",
+			typeof(bool),
+			typeof(ListViewExtensions),
+			new FrameworkPropertyMetadata(false, new PropertyChangedCallback(OnRegisterUpdateOnSizeChanged)));
 
 		private static void RegisterSortableGridview(System.Windows.Controls.ListView grid, DependencyPropertyChangedEventArgs args) {
 			if (args.NewValue is Boolean && (Boolean)args.NewValue) {
@@ -119,6 +134,33 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			}
 			else {
 				grid.RemoveHandler(ButtonBase.ClickEvent, GridViewColumnHeaderClickHandler);
+			}
+		}
+
+		private static void RegisterUpdateOnSizeChanged(System.Windows.Controls.ListView list, DependencyPropertyChangedEventArgs args) {
+			if (args.NewValue is Boolean value && value == true) {
+				list.SizeChanged += (sender, e) => {
+					double width = list.ActualWidth;
+					double totalWidth;
+
+					GridViewColumnCollection collection = ((GridView)list.View).Columns;
+
+					totalWidth = collection.OfType<FixedWidthColumn>().Where(p => !p.IsFill).Sum(p => p.ActualWidth);
+
+					List<FixedWidthColumn> toFillColumns = collection.OfType<FixedWidthColumn>().Where(p => p.IsFill).ToList();
+
+					int numOfColumns = toFillColumns.Count;
+
+					if (numOfColumns > 0) {
+						double remainingWidth = width - totalWidth - System.Windows.Forms.SystemInformation.VerticalScrollBarWidth;
+						double widthPerColumn = remainingWidth / numOfColumns;
+
+						if (widthPerColumn < 0)
+							return;
+
+						toFillColumns.ForEach(p => p.FixedWidth = widthPerColumn);
+					}
+				};
 			}
 		}
 
@@ -185,6 +227,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 						((Grid)header.Content).Children[1].Visibility = Visibility.Visible;
 						((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).Data = Geometry.Parse("M 1,2 7,2 4,-2 1,2 7,2");
+						((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).SetResourceReference(Path.FillProperty, "TextForeground");
 					}
 					else {
 						ListSortDirection tmpDirection = GetLastSortDirection(lv);
@@ -192,11 +235,13 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 							sortDirection = ListSortDirection.Descending;
 							((Grid) header.Content).Children[1].Visibility = Visibility.Visible;
 							((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).Data = Geometry.Parse("M 1,-2 7,-2 4,2 1,-2 7,-2");
+							((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).SetResourceReference(Path.FillProperty, "TextForeground");
 						}
 						else {
 							sortDirection = ListSortDirection.Ascending;
 							((Grid)header.Content).Children[1].Visibility = Visibility.Visible;
 							((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).Data = Geometry.Parse("M 1,2 7,2 4,-2 1,2 7,2");
+							((Path)((Canvas)((Grid)header.Content).Children[1]).Children[0]).SetResourceReference(Path.FillProperty, "TextForeground");
 						}
 					}
 					SetLastSorted(lv, header);
@@ -221,6 +266,10 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 		public static void SetCustomSorter(DependencyObject obj, IComparer value) {
 			obj.SetValue(CustomSorterProperty, value);
+		}
+
+		public static void SetUpdateOnSizeChanged(DependencyObject obj, bool value) {
+			obj.SetValue(UpdateOnSizeChangedProperty, value);
 		}
 
 		public static BindingBase GetSortBindingMember(DependencyObject obj) {
@@ -344,6 +393,41 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					e.Handled = true;
 				}
 			};
+		}
+
+		public static void SetCustomSortOnItemsSourceChanged(System.Windows.Controls.ListView list) {
+			_itemsSourceDescriptor.RemoveValueChanged(list, OnItemsSourceChanged);
+			_itemsSourceDescriptor.AddValueChanged(list, OnItemsSourceChanged);
+
+			ApplyCustomSort(list);
+		}
+
+		private static readonly DependencyPropertyDescriptor _itemsSourceDescriptor =
+			DependencyPropertyDescriptor.FromProperty(
+				ItemsControl.ItemsSourceProperty,
+				typeof(System.Windows.Controls.ListView));
+
+		private static void OnItemsSourceChanged(object sender, EventArgs e) {
+			ApplyCustomSort((System.Windows.Controls.ListView)sender);
+		}
+
+		private static void ApplyCustomSort(System.Windows.Controls.ListView list) {
+			if (list.ItemsSource == null)
+				return;
+
+			var view = CollectionViewSource.GetDefaultView(list.ItemsSource) as ListCollectionView;
+			if (view == null)
+				return;
+
+			if (view.CustomSort != null)
+				return;
+
+			var sorter = GetCustomSorter(list);
+			if (sorter == null)
+				return;
+
+			view.CustomSort = sorter;
+			_itemsSourceDescriptor.RemoveValueChanged(list, OnItemsSourceChanged);
 		}
 	}
 }

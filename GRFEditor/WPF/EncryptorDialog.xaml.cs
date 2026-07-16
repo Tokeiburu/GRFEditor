@@ -158,7 +158,7 @@ namespace GRFEditor.WPF {
 					client = newClient;
 				}
 
-				if (Methods.IndexOf(client, EncodingService.Ansi.GetBytes(newCpsName)) < 0) {
+				if (GrfEditorConfiguration.RenameCps && Methods.IndexOf(client, EncodingService.Ansi.GetBytes(newCpsName)) < 0) {
 					throw new Exception("Resources weren't found in your client. This can happen if you're using a 2024 client without the cps.dll restore patch or if you are using a client that has already been modified with this encryption tool, and the key has been changed.");
 				}
 

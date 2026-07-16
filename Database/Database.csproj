@@ -48,7 +48,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Utilities">
-      <HintPath>..\Libraries\Utilities.dll</HintPath>
+      <HintPath>(SolutionDir)Libraries\Utilities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -57,6 +57,7 @@
     <Compile Include="BaseTable.cs" />
     <Compile Include="Commands\AddTuple.cs" />
     <Compile Include="Commands\CCallbacks.cs" />
+    <Compile Include="Commands\ChangeModelKeyValue.cs" />
     <Compile Include="Commands\ChangeTupleProperty.cs" />
     <Compile Include="Commands\ChangeTuplePropertyAndUpdate.cs" />
     <Compile Include="Commands\CommandsHolder.cs" />
@@ -72,11 +73,16 @@
     <Compile Include="Commands\CopyTupleToAdv.cs" />
     <Compile Include="Commands\CopyTupleTo.cs" />
     <Compile Include="Commands\DeleteTuple.cs" />
+    <Compile Include="Commands\ChangeModelsField.cs" />
+    <Compile Include="Commands\ModelGroupCommand.cs" />
     <Compile Include="Commands\GroupCommand.cs" />
     <Compile Include="Commands\ITableCommand.cs" />
+    <Compile Include="Commands\ModelCommand.cs" />
+    <Compile Include="Commands\ModelListCommand.cs" />
     <Compile Include="DatabaseExceptions.cs" />
     <Compile Include="DbRequirement.cs" />
     <Compile Include="IAccessFunction.cs" />
+    <Compile Include="IModel.cs" />
     <Compile Include="IValueConverter.cs" />
     <Compile Include="KeyInvalidException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

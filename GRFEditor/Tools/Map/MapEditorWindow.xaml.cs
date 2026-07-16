@@ -61,7 +61,7 @@ namespace GRFEditor.Tools.Map {
 			}
 
 			_viewport.EnableRenderThread = false;
-			_viewport.RenderOptions.FpsCap = 30;
+			_viewport.RenderOptions.FpsCap = 60;
 
 			_cecWall._imagePreview.Width = _cecWall._imagePreview.Height = 32;
 			_setButtonImages();

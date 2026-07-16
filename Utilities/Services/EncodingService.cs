@@ -512,5 +512,47 @@ namespace Utilities.Services {
 
 			return valid;
 		}
+
+		public static bool IsValid(string text, Encoding encoding, SimpleBooleanFallback fallback) {
+			if (string.IsNullOrEmpty(text)) return true;
+
+			fallback.Reset();
+
+			Encoder encoder = encoding.GetEncoder();
+			encoder.GetByteCount(text.ToCharArray(), 0, text.Length, flush: true);
+			return !fallback.HasInvalidCharacters;
+		}
+
+		public static string ConvertTo(string text, Encoding sourceEncoding, Encoding destinationEncoding) {
+			return destinationEncoding.GetString(sourceEncoding.GetBytes(text));
+		}
+	}
+
+	public class SimpleBooleanFallback : EncoderFallback {
+		public bool HasInvalidCharacters { get; private set; }
+		public override int MaxCharCount => 1;
+
+		public void Reset() => HasInvalidCharacters = false;
+
+		public override EncoderFallbackBuffer CreateFallbackBuffer() => new SimpleBooleanBuffer(this);
+
+		private class SimpleBooleanBuffer : EncoderFallbackBuffer {
+			private readonly SimpleBooleanFallback _parent;
+			public SimpleBooleanBuffer(SimpleBooleanFallback parent) => _parent = parent;
+
+			public override bool Fallback(char charUnknown, int index) {
+				_parent.HasInvalidCharacters = true;
+				return true;
+			}
+
+			public override bool Fallback(char charUnknownHigh, char charUnknownLow, int index) {
+				_parent.HasInvalidCharacters = true;
+				return true;
+			}
+
+			public override char GetNextChar() => '\0';
+			public override bool MovePrevious() => false;
+			public override int Remaining => 0;
+		}
 	}
 }

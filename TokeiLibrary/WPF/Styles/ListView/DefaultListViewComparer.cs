@@ -24,6 +24,12 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 			_enableAlphaNumSorting = enableAlphaNumSorting;
 		}
 
+		public DefaultListViewComparer(bool enableAlphaNumSorting, string sortColumn, ListSortDirection dir = ListSortDirection.Ascending) {
+			_enableAlphaNumSorting = enableAlphaNumSorting;
+
+			SetSort(sortColumn, dir);
+		}
+
 		public override void SetSort(string sortColumn, ListSortDirection dir) {
 			_direction = dir;
 			_property = typeof(T).GetProperty(sortColumn);

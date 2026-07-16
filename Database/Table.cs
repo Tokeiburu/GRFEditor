@@ -8,8 +8,16 @@ using Utilities;
 namespace Database {
 	public class Table<T1, T2> : BaseTable, IEnumerable<T2> where T2 : Tuple {
 		public virtual CommandsHolder<T1, T2> Commands { get; private set; }
+		private int _uid = 1;
 
-		protected readonly AttributeList _list;
+		public int GenerateUniqueId() {
+			return _uid++;
+		}
+
+		public void ResetUniqueId() {
+			_uid = 1;
+		}
+
 		private readonly Dictionary<T1, T2> _tuples = new Dictionary<T1, T2>();
 		internal TkDictionary<int, int> AutoIncrements = new TkDictionary<int, int>();
 		public bool EnableRawEvents { get; set; }
@@ -70,10 +78,6 @@ namespace Database {
 
 			Commands = new CommandsHolder<T1, T2>(this);
 			_list = list;
-		}
-
-		public AttributeList AttributeList {
-			get { return _list; }
 		}
 
 		public object this[T1 key, object input] {
@@ -158,24 +162,30 @@ namespace Database {
 		}
 
 		public virtual void SetRaw(T1 key, DbAttribute attribute, object value, bool forceSet = false) {
-			// Always add inexistingn tuples automatically
-			if (!_tuples.ContainsKey(key)) {
-				T2 element = Compiled.New2<T2>.Instance();
-				element.Init(key, _list);
-				_tuples.Add(key, element);
-
-				if (EnableRawEvents) {
-					T2 tuple = _tuples[key];
-					tuple.Added = true;
-					Commands.StoreAndExecute(new AddTuple<T1, T2>(key, tuple, null) {IgnoreConflict = true});
-				}
-			}
-
+			// Always add inexisting tuples automatically
 			if (EnableRawEvents) {
-				Commands.StoreAndExecute(new ChangeTupleProperties<T1, T2>(_tuples[key], attribute, value));
+				bool storeAddCommand = false;
+				T2 tuple = null;
+
+				if (!_tuples.TryGetValue(key, out tuple)) {
+					tuple = Compiled.New2<T2>.Instance();
+					tuple.Init(key, _list);
+					_tuples.Add(key, tuple);
+
+					if (EnableRawEvents) {
+						tuple.Added = true;
+						storeAddCommand = true;
+					}
+				}
+
+				// Send the add tuple last, because models would be null otherwise
+				Commands.StoreAndExecute(new ChangeTupleProperties<T1, T2>(tuple, attribute, value));
+
+				if (storeAddCommand)
+					Commands.StoreAndExecute(new AddTuple<T1, T2>(key, tuple, null) { IgnoreConflict = true });
 			}
 			else {
-				_tuples[key].SetRawValue(attribute, value);
+				EnsureExists(key).SetRawValue(attribute, value);
 			}
 		}
 
@@ -203,7 +213,7 @@ namespace Database {
 					T2 tuple = _tuples[key];
 					tuple.Added = true;
 
-					for (int i = indexOffset; i < values.Length; i++) {
+					for (int i = indexOffset; i < values.Length && i + attributeOffset < attributes.Count; i++) {
 						tuple.SetRawValue(attributes[i + attributeOffset], values[i]);
 					}
 
@@ -218,7 +228,7 @@ namespace Database {
 			else {
 				var tuple = _tuples[key];
 
-				for (int i = indexOffset; i < values.Length; i++) {
+				for (int i = indexOffset; i < values.Length && i + attributeOffset < attributes.Count; i++) {
 					tuple.SetRawValue(attributes[i + attributeOffset], values[i]);
 				}
 			}
@@ -263,8 +273,14 @@ namespace Database {
 			//T2 elementTo = (T2) Activator.CreateInstance(typeof (T2), elementToId, _list);
 
 			foreach (DbAttribute attribute in _list.Attributes) {
-				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType))
-					elementTo.SetRawValue(attribute, elementFrom.GetRawCopyValue(attribute.Index));
+				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType)) {
+					var copy = elementFrom.GetRawCopyValue(attribute.Index);
+
+					if (copy is IModel model)
+						model.SetKey(elementToId);
+
+					elementTo.SetRawValue(attribute, copy);
+				}
 			}
 
 			elementTo.SetRawValue(_list.PrimaryAttribute, elementToId);
@@ -282,8 +298,14 @@ namespace Database {
 			//T2 elementTo = (T2)Activator.CreateInstance(typeof(T2), elementFromId, _list);
 
 			foreach (DbAttribute attribute in _list.Attributes) {
-				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType))
-					elementTo.SetRawValue(attribute, elementFrom.GetRawCopyValue(attribute.Index));
+				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType)) {
+					var copy = elementFrom.GetRawCopyValue(attribute.Index);
+
+					if (copy is IModel model)
+						model.SetKey(elementFromId);
+
+					elementTo.SetRawValue(attribute, copy);
+				}
 			}
 
 			elementTo.SetRawValue(_list.PrimaryAttribute, elementFromId);
@@ -297,8 +319,14 @@ namespace Database {
 			elementTo.Init(elementToId, _list);
 
 			foreach (DbAttribute attribute in _list.Attributes) {
-				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType))
-					elementTo.SetRawValue(attribute, elementFrom.GetRawCopyValue(attribute.Index));
+				if (!typeof(IBinding).IsAssignableFrom(attribute.DataType)) {
+					var copy = elementFrom.GetRawCopyValue(attribute.Index);
+					
+					if (copy is IModel model)
+						model.SetKey(elementTo);
+
+					elementTo.SetRawValue(attribute, copy);
+				}
 			}
 
 			elementTo.SetRawValue(_list.PrimaryAttribute, elementToId);
@@ -351,6 +379,21 @@ namespace Database {
 		public void Delete(T1 key) {
 			DatabaseExceptions.ThrowIfTraceNotEnabled();
 			Commands.Delete(key);
+		}
+
+		public T2 EnsureExists(T1 key) {
+			if (!_tuples.TryGetValue(key, out var element)) {
+				element = Compiled.New2<T2>.Instance();
+				element.Init(key, _list);
+				_tuples.Add(key, element);
+
+				if (EnableRawEvents) {
+					element.Added = true;
+					Commands.StoreAndExecute(new AddTuple<T1, T2>(key, element, null) { IgnoreConflict = true });
+				}
+			}
+
+			return element;
 		}
 	}
 }

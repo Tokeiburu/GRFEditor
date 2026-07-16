@@ -34,6 +34,7 @@ namespace GRF.Core.GrfWriters {
 		public void CompleteTier() {
 			_totalProcessed += _weights[_currentTier];
 			_currentTier++;
+			_progressObject.Progress = Math.Min(99.99f, 100.0f * _totalProcessed / _totalWeight);
 		}
 
 		public void SetTierProgress(int currentCount) {

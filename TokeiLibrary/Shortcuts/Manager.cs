@@ -292,6 +292,9 @@ namespace TokeiLibrary.Shortcuts {
 
 		public static void Link(TkCommand command, MenuItem menuItem, FrameworkElement element) {
 			Action executeAction = delegate {
+				if (!menuItem.IsEnabled)
+					return;
+
 				RoutedEventArgs arg = new RoutedEventArgs(MenuItem.ClickEvent, menuItem);
 				menuItem.RaiseEvent(arg);
 			};
@@ -301,6 +304,9 @@ namespace TokeiLibrary.Shortcuts {
 
 		public static void Link(TkCommand command, TkMenuItem menuItem, FrameworkElement element) {
 			Action executeAction = delegate {
+				if (!menuItem.IsEnabled)
+					return;
+
 				RoutedEventArgs arg = new RoutedEventArgs(MenuItem.ClickEvent, menuItem);
 				menuItem.RaiseEvent(arg);
 			};
@@ -357,6 +363,26 @@ namespace TokeiLibrary.Shortcuts {
 		public static TkCommand GetGesture(string commandName) {
 			Commands.TryGetValue(commandName, out var command);
 			return command;
+		}
+
+		public static TkBinding GetBinding(TkCommand command, FrameworkElement element) {
+			if (!ElementBinders.TryGetValue(element, out var binder))
+				return null;
+
+			if (!binder.Bindings.TryGetValue(command, out var binding))
+				return null;
+
+			return binding;
+		}
+
+		public static bool ExecuteCommand(TkCommand command, FrameworkElement element) {
+			var binding = GetBinding(command, element);
+
+			if (binding == null)
+				return false;
+
+			binding.Action();
+			return true;
 		}
 
 		public static readonly TkCommand Undo = new TkCommand("Application.Undo", new Shortcut(Key.Z, ModifierKeys.Control));

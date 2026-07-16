@@ -12,6 +12,10 @@ namespace TokeiLibrary.WPF.Styles {
 		}
 
 		public TkWindow(string title, string icon, SizeToContent sizeToContent = SizeToContent.WidthAndHeight, ResizeMode resizeMode = ResizeMode.NoResize, Assembly assembly = null) {
+			Initialize(title, icon, sizeToContent, resizeMode, assembly);
+		}
+
+		public void Initialize(string title, string icon, SizeToContent sizeToContent = SizeToContent.WidthAndHeight, ResizeMode resizeMode = ResizeMode.NoResize, Assembly assembly = null) {
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			ResizeMode = resizeMode;
 			ShowInTaskbar = false;

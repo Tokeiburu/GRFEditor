@@ -228,30 +228,8 @@ namespace GRF.Core.GroupedGrf {
 			return entries;
 		}
 
-		[Obsolete]
-		public override sealed List<string> FilesInDirectory(string directory, SearchOption option, bool ignoreCase) {
-			ignoreCase = true;
+		public override List<string> GetFiles(string directory, string searchPattern, SearchOption options, bool ignoreCase) {
 			HashSet<string> files = new HashSet<string>();
-
-			if (_hasProcessed == false) {
-				_generateBuffers();
-			}
-
-			if (_hasProcessed == true) {
-				HashSet<string> mappedFiles = _bufferedEntries.Files;
-				var currentPath = directory.TrimEnd('\\');
-
-				// Root files
-				IEnumerable<string> files2 = mappedFiles.Where(file => String.Compare(file, currentPath, StringComparison.OrdinalIgnoreCase) == 0).ToList();
-
-				if (option == SearchOption.AllDirectories) {
-					// We add all subfolders
-					currentPath += "\\";
-					files2 = files2.Concat(mappedFiles.Where(file => GrfPath.GetDirectoryName(file).StartsWith(currentPath, StringComparison.OrdinalIgnoreCase)));
-				}
-
-				return files2.Select(p => _bufferedEntries[p].RelativePath).Distinct().ToList();
-			}
 
 			foreach (var gResource in _multiGrfHolder.Paths.Reverse()) {
 				var path = gResource.Path;
@@ -262,19 +240,24 @@ namespace GRF.Core.GroupedGrf {
 
 					if (!Directory.Exists(GrfPath.Combine(cleanPath, tDirectory))) continue;
 
-					foreach (string file in Directory.GetFiles(GrfPath.Combine(cleanPath, tDirectory), "*", option)) {
+					foreach (string file in Directory.GetFiles(GrfPath.Combine(cleanPath, tDirectory), "*", options)) {
 						files.Add(file.Substring(cleanPath.Length + 1));
 					}
 				}
 				else if (_multiGrfHolder.Containers.ContainsKey(path)) {
 					GrfHolder grf = _multiGrfHolder.Containers[path];
 
-					foreach (string file in grf.FileTable.GetFiles(directory, null, option, ignoreCase))
+					foreach (string file in grf.FileTable.GetFiles(directory, null, options, ignoreCase))
 						files.Add(file);
 				}
 			}
 
 			return files.ToList();
+		}
+
+		[Obsolete]
+		public override sealed List<string> FilesInDirectory(string directory, SearchOption option, bool ignoreCase) {
+			return GetFiles(directory, "*", option, true);
 		}
 
 		public override sealed List<FileEntry> EntriesInDirectory(string currentPath, SearchOption options, bool ignoreCase) {

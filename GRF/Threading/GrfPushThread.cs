@@ -86,10 +86,6 @@ namespace GRF.Threading {
 			});
 		}
 
-		public void Terminate() {
-			
-		}
-
 		public void Start(Action<T, Func<bool>> process) {
 			_process = process;
 		}

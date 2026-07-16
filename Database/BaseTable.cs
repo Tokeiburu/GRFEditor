@@ -25,6 +25,10 @@ namespace Database {
 	}
 
 	public abstract class BaseTable {
+		protected AttributeList _list;
+
+		public AttributeList AttributeList => _list;
+
 		protected BaseTable() {
 			EnableEvents = true;
 		}

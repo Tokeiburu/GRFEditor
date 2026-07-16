@@ -1,6 +1,8 @@
-﻿using System;
+﻿using ErrorManager;
+using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Utilities;
 
 namespace TokeiLibrary {
@@ -53,7 +55,6 @@ namespace TokeiLibrary {
 
 			if (linkOverlay) flags += (uint) NativeMethods.SHGFI.LINKOVERLAY;
 
-
 			/* Check the size specified for return. */
 			if (small) {
 				flags += (uint) NativeMethods.SHGFI.SMALLICON; // include the small icon flag
@@ -62,17 +63,11 @@ namespace TokeiLibrary {
 				flags += 2;  // include the large icon flag
 			}
 
-			NativeMethods.SHGetFileInfo(name,
-				(uint) NativeMethods.FILE_ATTRIBUTE.NORMAL,
-				ref shfi,
-				(uint)Marshal.SizeOf(shfi),
-				flags);
-
+			NativeMethods.SHGetFileInfo(name, (uint) NativeMethods.FILE_ATTRIBUTE.NORMAL, ref shfi, (uint)Marshal.SizeOf(shfi), flags);
 
 			// Copy (clone) the returned icon to a new object, thus allowing us 
 			// to call DestroyIcon immediately
-			Icon icon = (Icon)
-								 Icon.FromHandle(shfi.hIcon).Clone();
+			Icon icon = (Icon)Icon.FromHandle(shfi.hIcon).Clone();
 			NativeMethods.DestroyIcon(shfi.hIcon); // Cleanup
 			return icon;
 		}

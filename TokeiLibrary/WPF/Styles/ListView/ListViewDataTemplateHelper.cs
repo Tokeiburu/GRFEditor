@@ -31,6 +31,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 				bool generateHeader = true;
 				bool generateStyle = true;
 				bool overrideSizeRedraw = false;
+				bool autosort = false;
 				DataTemplate template = null;
 
 				for (int i = 0; i < extraCommands.Length; i++) {
@@ -45,6 +46,9 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 					}
 					if (extraCommands[i] == "dataTemplate") {
 						template = list.TryFindResource(extraCommands[i + 1]) as DataTemplate;
+					}
+					if (extraCommands[i] == "autosort") {
+						autosort = Boolean.Parse(extraCommands[i + 1]);
 					}
 					i++;
 				}
@@ -157,9 +161,50 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 					list.ItemContainerStyle = style;
 				}
+
+				if (autosort) {
+					var columnIndex = columnInfos.ToList().FindIndex(p => !(p is ImageColumnInfo));
+
+					if (columnIndex >= 0) {
+						bool loaded = false;
+
+						list.Loaded += delegate {
+							if (loaded)
+								return;
+
+							GridViewColumn targetColumn = grid.Columns[columnIndex];
+							List<GridViewColumnHeader> allHeaders = GetListViewHeaders(list);
+							GridViewColumnHeader specificHeader = allHeaders.FirstOrDefault(h => h.Column == targetColumn);
+
+							ListViewExtensions.SetLastSorted(list, specificHeader);
+							ListViewExtensions.SetLastSortDirection(list, System.ComponentModel.ListSortDirection.Ascending);
+							loaded = true;
+						};
+					}
+				}
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
+			}
+		}
+
+		public static List<GridViewColumnHeader> GetListViewHeaders(System.Windows.Controls.ListView listView) {
+			List<GridViewColumnHeader> headers = new List<GridViewColumnHeader>();
+			FindHeadersRecursive(listView, headers);
+			return headers;
+		}
+
+		private static void FindHeadersRecursive(DependencyObject parent, List<GridViewColumnHeader> result) {
+			if (parent == null) return;
+
+			for (int i = 0; i < VisualTreeHelper.GetChildrenCount(parent); i++) {
+				DependencyObject child = VisualTreeHelper.GetChild(parent, i);
+				if (child is GridViewColumnHeader header) {
+					result.Add(header);
+				}
+				else {
+					FindHeadersRecursive(child, result);
+				}
 			}
 		}
 
@@ -279,30 +324,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 				}
 
 				ListViewExtensions.SetCustomSorter(list, sorter);
-
-				list.SizeChanged += (sender, e) => {
-					double width = list.ActualWidth;
-					double totalWidth;
-
-					GridViewColumnCollection collection = ((GridView)list.View).Columns;
-
-					totalWidth = collection.OfType<FixedWidthColumn>().Where(p => !p.IsFill).Sum(p => p.ActualWidth);
-
-					List<FixedWidthColumn> toFillColumns = collection.OfType<FixedWidthColumn>().Where(p => p.IsFill).ToList();
-
-					int numOfColumns = toFillColumns.Count;
-
-					if (numOfColumns > 0) {
-						double remainingWidth = width - totalWidth - SystemInformation.VerticalScrollBarWidth;
-						double widthPerColumn = remainingWidth / numOfColumns;
-
-						if (widthPerColumn < 0)
-							return;
-
-						toFillColumns.ForEach(p => p.FixedWidth = widthPerColumn);
-					}
-				};
-
+				ListViewExtensions.SetUpdateOnSizeChanged(list, true);
 				list.View = grid;
 			}
 			catch (Exception err) {
@@ -312,6 +334,10 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 		private static void _getStyle(System.Windows.Controls.ListView list) {
 			list.ItemContainerStyle = Application.Current.Resources["DefaultListViewItemStyle"] as Style;
+
+			ApplicationManager.ThemeChanged += delegate {
+				list.ItemContainerStyle = Application.Current.Resources["DefaultListViewItemStyle"] as Style;
+			};
 		}
 
 		private static DataTemplate _getDataTemplate() {
@@ -372,44 +398,46 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 
 			List<XElement> bindings = new List<XElement>();
 
-			for (int i = 0; i < triggers.Count; i++) {
-				bindings.Add(new XElement(ns + "DataTrigger",
-				                          new XAttribute("Binding", "{Binding " + triggers[i] + "}"),
-				                          new XAttribute("Value", "True"),
-				                          new XElement(ns + "Setter",
-				                                       new XAttribute("Property", "Control.Foreground"),
-				                                       new XAttribute("Value", triggers[i + 1]))
-					             ));
-				i++;
-			}
-
-			if (triggers.Count == 0) {
-				bindings.Add(new XElement(ns + "DataTrigger",
-					new XAttribute("Binding", "{Binding Null}"),
-					new XAttribute("Value", "False"),
-					new XElement(ns + "Setter",
-						new XAttribute("Property", "Control.Foreground"),
-						new XAttribute("Value", "{DynamicResource TextForeground}"))
-					));
-			}
-			else {
-				List<XElement> revTriggers = new List<XElement>();
-
-				for (int i = 0; i < triggers.Count; i += 2) {
-					revTriggers.Add(
-						new XElement(ns + "Condition",
-							new XAttribute("Binding", "{Binding " + triggers[i] + "}"),
-							new XAttribute("Value", "False"))
-						);
+			if (triggers != null) {
+				for (int i = 0; i < triggers.Count; i++) {
+					bindings.Add(new XElement(ns + "DataTrigger",
+											  new XAttribute("Binding", "{Binding " + triggers[i] + "}"),
+											  new XAttribute("Value", "True"),
+											  new XElement(ns + "Setter",
+														   new XAttribute("Property", "Control.Foreground"),
+														   new XAttribute("Value", triggers[i + 1]))
+									 ));
+					i++;
 				}
 
-				bindings.Add(new XElement(ns + "MultiDataTrigger",
-					new XElement(ns + "MultiDataTrigger.Conditions",
-							revTriggers
-						),
-					new XElement(ns + "Setter",
-						new XAttribute("Property", "Control.Foreground"),
-						new XAttribute("Value", "{DynamicResource TextForeground}"))));
+				if (triggers.Count == 0) {
+					bindings.Add(new XElement(ns + "DataTrigger",
+						new XAttribute("Binding", "{Binding Null}"),
+						new XAttribute("Value", "False"),
+						new XElement(ns + "Setter",
+							new XAttribute("Property", "Control.Foreground"),
+							new XAttribute("Value", "{DynamicResource TextForeground}"))
+						));
+				}
+				else {
+					List<XElement> revTriggers = new List<XElement>();
+
+					for (int i = 0; i < triggers.Count; i += 2) {
+						revTriggers.Add(
+							new XElement(ns + "Condition",
+								new XAttribute("Binding", "{Binding " + triggers[i] + "}"),
+								new XAttribute("Value", "False"))
+							);
+					}
+
+					bindings.Add(new XElement(ns + "MultiDataTrigger",
+						new XElement(ns + "MultiDataTrigger.Conditions",
+								revTriggers
+							),
+						new XElement(ns + "Setter",
+							new XAttribute("Property", "Control.Foreground"),
+							new XAttribute("Value", "{DynamicResource TextForeground}"))));
+				}
 			}
 
 			XElement xDataTemplate;
@@ -425,7 +453,7 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 				textBlock.Add(new XAttribute("ToolTip", toolTip));
 			}
 
-			if (triggers.Count == 0)
+			if (triggers == null || triggers.Count == 0)
 				xDataTemplate =
 				new XElement(ns + "DataTemplate",
 				             new XElement(ns + "TextBlock",

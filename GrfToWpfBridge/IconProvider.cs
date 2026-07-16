@@ -1,8 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Windows.Media.Imaging;
+using ErrorManager;
 using GRF.Image;
 using TokeiLibrary;
 using Utilities.Extension;
@@ -76,7 +78,7 @@ namespace GrfToWpfBridge {
 							break;
 						}
 
-						Icon temp = IconReader.GetFileIcon(extension, true, false);
+						Icon temp = WpfUtilities.TopWindow.Dispatch(() => IconReader.GetFileIcon(extension, true, false));
 						Bitmap bitmap = temp.ToBitmap();
 
 						using (MemoryStream stream = new MemoryStream()) {

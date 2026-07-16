@@ -2,43 +2,22 @@
 using Utilities.Commands;
 
 namespace Database.Commands {
-	public class GroupCommand<TKey, TValue> : IGroupCommand<ITableCommand<TKey, TValue>>, ITableCommand<TKey, TValue>, IAutoReverse, ICombinableCommand
+	public class ModelGroupCommand<TKey, TValue> : IGroupCommand<ITableCommand<TKey, TValue>>, ITableCommand<TKey, TValue>, IAutoReverse, ICombinableCommand
 		where TValue : Tuple {
+		private readonly List<ITableCommand<TKey, TValue>> _commands = new List<ITableCommand<TKey, TValue>>();
 		private readonly Table<TKey, TValue> _table;
-		private readonly List<ITableCommand<TKey, TValue>> _commands;
-		private readonly CCallbacks.GroupTupleCallback _callback;
+		private readonly string _editUniqueId;
 		private readonly bool _executeCommandsOnStore;
 		private bool _firstTimeExecuted = true;
 
-		public List<ITableCommand<TKey, TValue>> Commands {
-			get { return _commands; }
-		}
+		public List<ITableCommand<TKey, TValue>> Commands => _commands;
 
 		public void Close() {
-			if (_callback != null)
-				_callback(true);
 		}
 
-		internal GroupCommand() : this(new List<ITableCommand<TKey,TValue>>(), null, false) {
-		}
-
-		internal GroupCommand(bool executeCommandsOnStore, Table<TKey, TValue> table)
-			: this(new List<ITableCommand<TKey, TValue>>(), null, executeCommandsOnStore) {
+		public ModelGroupCommand(Table<TKey, TValue> table, string editUniqueId, bool executeCommandsOnStore) {
 			_table = table;
-		}
-
-		internal GroupCommand(bool executeCommandsOnStore, Table<TKey, TValue> table, CCallbacks.GroupTupleCallback callback)
-			: this(new List<ITableCommand<TKey, TValue>>(), callback, executeCommandsOnStore) {
-			_table = table;
-		}
-
-		internal GroupCommand(List<ITableCommand<TKey, TValue>> commands, CCallbacks.GroupTupleCallback callback) 
-			: this(commands, callback, false) {
-		}
-
-		internal GroupCommand(List<ITableCommand<TKey, TValue>> commands, CCallbacks.GroupTupleCallback callback, bool executeCommandsOnStore) {
-			_commands = commands;
-			_callback = callback;
+			_editUniqueId = editUniqueId;
 			_executeCommandsOnStore = executeCommandsOnStore;
 			Key = default(TKey);
 		}
@@ -54,18 +33,12 @@ namespace Database.Commands {
 			for (int index = 0; index < _commands.Count; index++) {
 				_commands[index].Execute(table);
 			}
-
-			if (_callback != null)
-				_callback(true);
 		}
 
 		public void Undo(Table<TKey, TValue> table) {
 			for (int index = _commands.Count - 1; index >= 0; index--) {
 				_commands[index].Undo(table);
 			}
-
-			if (_callback != null)
-				_callback(false);
 		}
 
 		public string CommandDescription {
@@ -106,26 +79,19 @@ namespace Database.Commands {
 			_commands.AddRange(commands);
 		}
 
-		public static GroupCommand<TKey, TValue> Make() {
-			return new GroupCommand<TKey, TValue>();
-		}
-
 		public bool CanDelete(IAutoReverse command) {
-			if (Commands.Count != 1) return false;
-			return Commands[0] is IAutoReverse revCommand && revCommand.CanDelete(command);
+			return false;
 		}
 
 		public bool CanCombine(ICombinableCommand command) {
-			if (Commands.Count != 1) return false;
-			return Commands[0] is ICombinableCommand revCommand && revCommand.CanCombine(command);
+			return command is ModelGroupCommand<TKey, TValue> modelGroupCmd && _editUniqueId == modelGroupCmd._editUniqueId;
 		}
 
 		public void Combine<T>(ICombinableCommand command, AbstractCommand<T> abstractCommand) {
-			if (Commands.Count != 1)
-				return;
+			if (command is ModelGroupCommand<TKey, TValue> modelGroupCmd) {
+				abstractCommand.ExplicitCommandUndo((T)(object)this);
 
-			var revCommand = (ICombinableCommand)Commands[0];
-			revCommand.Combine(command, abstractCommand);
+			}
 		}
 	}
 }

@@ -53,6 +53,7 @@ namespace Utilities {
 
 				if (display) {
 					Console.WriteLine("{2}; Elapsed milliseconds : {0}; Elapsed ticks : {1}.", _watches[opId].ElapsedMilliseconds, _watches[opId].ElapsedTicks, "Timer ID = " + opId);
+					_watches[opId].Reset();
 				}
 			}
 		}
@@ -80,6 +81,9 @@ namespace Utilities {
 
 				_watches[opId].Reset();
 				_watches[opId].Start();
+			}
+			else {
+				Start(opId);
 			}
 		}
 
@@ -663,6 +667,9 @@ namespace Utilities {
 		}
 
 		public static string Aggregate(IList list, string s) {
+			if (list.Count == 1)
+				return list[0].ToString();
+
 			StringBuilder toReturn = new StringBuilder();
 
 			for (int i = 0; i < list.Count; i++) {

@@ -8,6 +8,7 @@ namespace Database.Commands {
 		private readonly CCallbacks.KeyTupleCallback<TKey> _callback;
 		private TValue _conflict;
 		private ChangeTupleProperty<TKey, TValue> _changePropety;
+		private bool _isModel;
 
 		internal ChangeTupleKey(TKey oldKey, TKey newKey, CCallbacks.KeyTupleCallback<TKey> callback) {
 			_oldKey = oldKey;
@@ -20,11 +21,21 @@ namespace Database.Commands {
 
 		public void Execute(Table<TKey, TValue> table) {
 			if (_changePropety == null) {
-				_changePropety = new ChangeTupleProperty<TKey, TValue>(table.GetTuple(_oldKey), table.AttributeList.PrimaryAttribute, _newKey);
+				var tuple = table.GetTuple(_oldKey);
+				_changePropety = new ChangeTupleProperty<TKey, TValue>(tuple, table.AttributeList.PrimaryAttribute, _newKey);
+
+				if (table.AttributeList.Count > 0 && typeof(IModel).IsAssignableFrom(table.AttributeList[1].DataType)) {
+					_isModel = true;
+				}
 			}
 
 			if (table.ContainsKey(_newKey)) {
 				_conflict = table.GetTuple(_newKey);
+			}
+
+			if (_isModel) {
+				var tuple = table.GetTuple(_oldKey);
+				((IModel)tuple.GetValue(1)).SetKey(_newKey);
 			}
 
 			table.ChangeKey(_oldKey, _newKey);
@@ -44,6 +55,11 @@ namespace Database.Commands {
 				_conflict = table[_newKey];
 			}
 
+			if (_isModel) {
+				var tuple = table[_oldKey];
+				((IModel)tuple.GetValue(1)).SetKey(_newKey);
+			}
+
 			_changeKey(table, _oldKey, _newKey);
 			_changePropety.Execute(table);
 
@@ -55,6 +71,11 @@ namespace Database.Commands {
 		public void Undo(Table<TKey, TValue> table) {
 			_changePropety.Undo(table);
 			table.ChangeKey(_newKey, _oldKey);
+
+			if (_isModel) {
+				var tuple = table.GetTuple(_oldKey);
+				((IModel)tuple.GetValue(1)).SetKey(_oldKey);
+			}
 
 			if (_conflict != null) {
 				table.Add(_newKey, _conflict);
@@ -68,6 +89,11 @@ namespace Database.Commands {
 		internal void Undo(Dictionary<TKey, TValue> table) {
 			_changePropety.Undo(null);
 			_changeKey(table, _newKey, _oldKey);
+
+			if (_isModel) {
+				var tuple = table[_oldKey];
+				((IModel)tuple.GetValue(1)).SetKey(_oldKey);
+			}
 
 			if (_conflict != null) {
 				table.Add(_newKey, _conflict);

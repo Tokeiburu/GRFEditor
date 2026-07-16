@@ -47,4 +47,10 @@ namespace GRF.Threading {
 			return value;
 		}
 	}
+
+	public class DefaultProgress : IProgress {
+		public float Progress { get; set; }
+		public bool IsCancelling { get; set; }
+		public bool IsCancelled { get; set; }
+	}
 }

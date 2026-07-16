@@ -154,100 +154,94 @@ namespace GRFEditor {
 
 		private void _initSearchThreads() {
 			_searchFolderListingThread.Start((folderListingSearch, cancel) => {
-				try {
-					if (cancel())
-						return;
+				if (cancel())
+					return;
 
-					if (_items == null) return;
+				if (_items == null) return;
 
-					if (folderListingSearch.RelativePath == null) {
-						_itemEntries.Clear();
-						return;
-					}
-
-					this.Dispatch(p => p._grfEntrySorter.SetOrder(ListViewExtensions.GetLastGetSearchAccessor(_items), ListViewExtensions.GetLastSortDirection(_items)));
-
-					if (cancel())
-						return;
-
-					var entries = _grfHolder.FileTable.DirectoryStructure[folderListingSearch.RelativePath];
-
-					// No entries were found in this folder
-					if (entries == null)
-						entries = new List<FileEntry>();
-
-					if (cancel())
-						return;
-
-					List<string> search = folderListingSearch.Search.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
-
-					var res = search.Count == 0 ? entries : new List<FileEntry>();
-
-					Regex[] regexSearches = new Regex[search.Count];
-
-					for (int i = 0; i < search.Count; i++) {
-						var query = search[i];
-
-						if (query.IndexOf("*", StringComparison.OrdinalIgnoreCase) > -1 || query.IndexOf("?", StringComparison.OrdinalIgnoreCase) > -1) {
-							regexSearches[i] = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
-						}
-					}
-
-					if (search.Count > 0) {
-						for (int k = 0; k < entries.Count; k++) {
-							int i;
-
-							for (i = 0; i < search.Count; i++) {
-								if (regexSearches[i] != null && !regexSearches[i].IsMatch(entries[k].FileName))
-									break;
-								else if (entries[k].FileName.IndexOf(search[i], StringComparison.OrdinalIgnoreCase) == -1)
-									break;
-							}
-
-							if (i == search.Count) {
-								res.Add(entries[k]);
-							}
-
-							if (k % 100 == 0 && cancel())
-								return;
-						}
-					}
-
-					var result = new FileEntry[res.Count];
-
-					for (int i = 0; i < res.Count; i++) {
-						result[i] = res[i];
-
-						if (result[i].DataImage == null) {
-							result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
-						}
-					}
-
-					if (result.Length < 10000) {
-						_grfEntrySorter.UseAlphaNum = true;
-						Array.Sort(result, _grfEntrySorter);
-					}
-					else {
-						_grfEntrySorter.UseAlphaNum = false;
-						Array.Sort(result, _grfEntrySorter);
-					}
-
-					if (cancel())
-						return;
-
-					_itemEntries = new RangeObservableCollection<FileEntry>(result);
-
-					_items.Dispatch(delegate {
-						_items.ItemsSource = _itemEntries;
-					});
+				if (folderListingSearch.RelativePath == null) {
+					_itemEntries.Clear();
+					return;
 				}
-				catch (Exception err) {
-					Z.F(err);
+
+				this.Dispatch(p => p._grfEntrySorter.SetOrder(ListViewExtensions.GetLastGetSearchAccessor(_items), ListViewExtensions.GetLastSortDirection(_items)));
+
+				if (cancel())
+					return;
+
+				var entries = _grfHolder.FileTable.DirectoryStructure[folderListingSearch.RelativePath];
+
+				// No entries were found in this folder
+				if (entries == null)
+					entries = new List<FileEntry>();
+
+				if (cancel())
+					return;
+
+				List<string> search = folderListingSearch.Search.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).ToList();
+
+				var res = search.Count == 0 ? entries : new List<FileEntry>();
+
+				Regex[] regexSearches = new Regex[search.Count];
+
+				for (int i = 0; i < search.Count; i++) {
+					var query = search[i];
+
+					if (query.IndexOf("*", StringComparison.OrdinalIgnoreCase) > -1 || query.IndexOf("?", StringComparison.OrdinalIgnoreCase) > -1) {
+						regexSearches[i] = new Regex(Methods.WildcardToRegex(query), RegexOptions.IgnoreCase);
+					}
 				}
+
+				if (search.Count > 0) {
+					for (int k = 0; k < entries.Count; k++) {
+						int i;
+
+						for (i = 0; i < search.Count; i++) {
+							if (regexSearches[i] != null && !regexSearches[i].IsMatch(entries[k].FileName))
+								break;
+							else if (entries[k].FileName.IndexOf(search[i], StringComparison.OrdinalIgnoreCase) == -1)
+								break;
+						}
+
+						if (i == search.Count) {
+							res.Add(entries[k]);
+						}
+
+						if (k % 100 == 0 && cancel())
+							return;
+					}
+				}
+
+				var result = new FileEntry[res.Count];
+
+				for (int i = 0; i < res.Count; i++) {
+					result[i] = res[i];
+				
+					if (result[i].DataImage == null) {
+						result[i].DataImage = IconProvider.GetSmallIcon(result[i].RelativePath);
+					}
+				}
+
+				if (result.Length < 10000) {
+					_grfEntrySorter.UseAlphaNum = true;
+					Array.Sort(result, _grfEntrySorter);
+				}
+				else {
+					_grfEntrySorter.UseAlphaNum = false;
+					Array.Sort(result, _grfEntrySorter);
+				}
+
+				if (cancel())
+					return;
+
+				_itemEntries = new RangeObservableCollection<FileEntry>(result);
+
+				_items.Dispatch(delegate {
+					_items.ItemsSource = _itemEntries;
+				});
 			});
 
 			Dispatcher.ShutdownStarted += delegate {
-				_searchFolderListingThread.Terminate();
 				TextureManager.ExitTextureThreads();
 			};
 		}
@@ -331,8 +325,8 @@ namespace GRFEditor {
 
 						_listBoxResults.Dispatch(p => p.ItemsSource = _itemSearchEntries);
 					}
-					catch (Exception err) {
-						ErrorHandler.HandleException(err);
+					catch {
+						//ErrorHandler.HandleException(err);
 					}
 				}
 			});

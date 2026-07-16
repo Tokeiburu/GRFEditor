@@ -42,20 +42,17 @@ namespace Utilities.Commands {
 		private IGroupCommand<T> _delayedCommandsCommand;
 
 		public StackStatus StackStatus { get; private set; } = StackStatus.Unknown;
+		public int CommandsClearedCount { get; private set; }
 
 		/// <summary>
 		/// Gets the delayed commands.
 		/// </summary>
-		public ReadOnlyCollection<T> DelayedCommands {
-			get { return _delayedCommands.AsReadOnly(); }
-		}
+		public ReadOnlyCollection<T> DelayedCommands => _delayedCommands.AsReadOnly();
 
 		/// <summary>
 		/// Gets the commands.
 		/// </summary>
-		public ReadOnlyCollection<T> Commands {
-			get { return _commands.AsReadOnly(); }
-		}
+		public ReadOnlyCollection<T> Commands => _commands.AsReadOnly();
 
 		/// <summary>
 		/// Gets the latest command executed.
@@ -71,16 +68,12 @@ namespace Utilities.Commands {
 		/// <summary>
 		/// Gets the current index of the command.
 		/// </summary>
-		public int CommandIndex {
-			get { return _commandIndexCurrent; }
-		}
+		public int CommandIndex => _commandIndexCurrent;
 
 		/// <summary>
 		/// Gets the index of the command that has been last modified.
 		/// </summary>
-		public int ModifiedCommandIndex {
-			get { return _commandIndexModified; }
-		}
+		public int ModifiedCommandIndex => _commandIndexModified;
 
 		public event AbstractCommandsEventHandler PreviewCommandExecuted;
 		public event AbstractCommandsEventHandler CommandExecuted;
@@ -90,70 +83,36 @@ namespace Utilities.Commands {
 		public event AbstractCommandsEventHandler PreviewCommandRedo;
 		public event AbstractCommandsEventHandler CommandRedo;
 		public event AbstractCommandsEventHandler ModifiedStateChanged;
+		public event AbstractCommandsEventHandler RemoveLastCommandCalled;
 		public event AbstractCommandsEventHandler SaveCommandChanged;
 
-		protected virtual void OnCommandIndexChanged(T command) {
-			CommandIndexChanged?.Invoke(this, command);
-		}
-
-		protected virtual void OnPreviewCommandExecuted(T command) {
-			PreviewCommandExecuted?.Invoke(this, command);
-		}
-
-		protected virtual void OnPreviewCommandUndo(T command) {
-			PreviewCommandUndo?.Invoke(this, command);
-		}
-
-		protected virtual void OnPreviewCommandRedo(T command) {
-			PreviewCommandRedo?.Invoke(this, command);
-		}
-
-		protected virtual void OnCommandUndo(T command) {
-			CommandUndo?.Invoke(this, command);
-		}
-
-		protected virtual void OnCommandRedo(T command) {
-			CommandRedo?.Invoke(this, command);
-		}
-
-		protected virtual void OnCommandExecuted(T command) {
-			CommandExecuted?.Invoke(this, command);
-		}
-
-		protected virtual void OnModifiedStateChanged(T command) {
-			ModifiedStateChanged?.Invoke(this, command);
-		}
-
-		protected virtual void OnSaveCommandChanged(T command) {
-			SaveCommandChanged?.Invoke(this, command);
-		}
+		protected virtual void OnCommandIndexChanged(T command) => CommandIndexChanged?.Invoke(this, command);
+		protected virtual void OnPreviewCommandExecuted(T command) => PreviewCommandExecuted?.Invoke(this, command);
+		protected virtual void OnPreviewCommandUndo(T command) => PreviewCommandUndo?.Invoke(this, command);
+		protected virtual void OnPreviewCommandRedo(T command) => PreviewCommandRedo?.Invoke(this, command);
+		protected virtual void OnCommandUndo(T command) => CommandUndo?.Invoke(this, command);
+		protected virtual void OnCommandRedo(T command) => CommandRedo?.Invoke(this, command);
+		protected virtual void OnCommandExecuted(T command) => CommandExecuted?.Invoke(this, command);
+		protected virtual void OnModifiedStateChanged(T command) => ModifiedStateChanged?.Invoke(this, command);
+		protected virtual void OnRemoveLastCommandCalled(T command) => RemoveLastCommandCalled?.Invoke(this, command);
+		protected virtual void OnSaveCommandChanged(T command) => SaveCommandChanged?.Invoke(this, command);
 
 		public delegate void AbstractCommandsEventHandler(object sender, T command);
 
 		/// <summary>
 		/// Gets a value indicating whether this instance is modified.
 		/// </summary>
-		public virtual bool IsModified {
-			get { return _commandIndexCurrent != _commandIndexNonModified; }
-		}
+		public virtual bool IsModified => _commandIndexCurrent != _commandIndexNonModified;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can undo.
 		/// </summary>
-		public virtual bool CanUndo {
-			get {
-				return (_commandIndexCurrent > -1);
-			}
-		}
+		public virtual bool CanUndo => (_commandIndexCurrent > -1);
 
 		/// <summary>
 		/// Gets a value indicating whether this instance can redo.
 		/// </summary>
-		public virtual bool CanRedo {
-			get {
-				return (_commandIndexCurrent < _commands.Count - 1);
-			}
-		}
+		public virtual bool CanRedo => (_commandIndexCurrent < _commands.Count - 1);
 
 		/// <summary>
 		/// Saves this instance.
@@ -279,6 +238,9 @@ namespace Utilities.Commands {
 		}
 
 		private bool _mergeDown(T command, bool useCurrentOnly = false) {
+			if (command is IGroupCommand<T> groupCmd && groupCmd.Commands.Count == 1)
+				command = groupCmd.Commands[0];
+
 			if (command is ICombinableCommand commandAdded) {
 				if (IsDelayed && _delayedCommands.Count > 0 ||
 					!IsDelayed && _commands.Count > 0 && _commandIndexCurrent > -1) {
@@ -292,7 +254,6 @@ namespace Utilities.Commands {
 								if (deleteCommandFrom.CanDelete(deleteCommandTo)) {
 									Undo();
 									RemoveLastCommand();
-									return true;
 								}
 							}
 
@@ -307,6 +268,14 @@ namespace Utilities.Commands {
 
 		public void ExplicitCommandExecution(T command) {
 			_execute(command);
+		}
+
+		public void ExplicitCommandUndo(T command) {
+			_undo(command);
+		}
+
+		public void ExplicitCommandRedo(T command) {
+			_undo(command);
 		}
 
 		public class BackupCommandStack {
@@ -481,6 +450,9 @@ namespace Utilities.Commands {
 		/// </summary>
 		/// <param name="count">The number of commands to remove silently.</param>
 		public void RemoveCommands(int count) {
+			if (count <= 0)
+				return;
+
 			int oldIndex = _commandIndexCurrent;
 
 			_commandIndexCurrent -= count;
@@ -498,7 +470,9 @@ namespace Utilities.Commands {
 				StackStatus = StackStatus.Clear;
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
+				CommandsClearedCount = numberRemoved;
 				OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+				CommandsClearedCount = 0;
 			}
 		}
 
@@ -508,7 +482,10 @@ namespace Utilities.Commands {
 				_commands.RemoveAt(_commands.Count - 1);
 				OnCommandIndexChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 				_commandIndexModified = _commandIndexCurrent;
+				CommandsClearedCount = 1;
 				OnModifiedStateChanged(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
+				CommandsClearedCount = 0;
+				OnRemoveLastCommandCalled(_commandIndexCurrent <= -1 ? default : _commands[_commandIndexCurrent]);
 			}
 		}
 

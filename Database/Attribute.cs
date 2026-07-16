@@ -89,6 +89,10 @@ namespace Database {
 		public string GetQueryName() {
 			return AttributeList.GetQueryName(DisplayName);
 		}
+
+		public override string ToString() {
+			return AttributeName;
+		}
 	}
 
 	public interface IBinding {

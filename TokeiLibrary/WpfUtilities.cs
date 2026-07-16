@@ -623,17 +623,22 @@ namespace TokeiLibrary {
 			}
 
 			var tb = element.Content as TextBlock;
+			tb.SetResourceReference(TextBlock.ForegroundProperty, "TextForeground");
 
 			element.MouseEnter += delegate {
 				Mouse.OverrideCursor = Cursors.Hand;
-				element.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
+				tb.SetResourceReference(TextBlock.ForegroundProperty, "MouseOverTextBrush");
 				tb?.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
 			};
 
 			element.MouseLeave += delegate {
 				Mouse.OverrideCursor = null;
-				element.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+				tb.SetResourceReference(TextBlock.ForegroundProperty, "TextForeground");
 				tb?.SetValue(TextBlock.TextDecorationsProperty, null);
+			};
+
+			ApplicationManager.ThemeChanged += delegate {
+				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
 			};
 		}
 	}

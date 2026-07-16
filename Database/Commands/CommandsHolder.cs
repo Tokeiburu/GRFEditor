@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using Utilities;
 using Utilities.Commands;
 
 namespace Database.Commands {
@@ -24,6 +27,10 @@ namespace Database.Commands {
 
 		public void BeginNoDelay(CCallbacks.GroupTupleCallback callback) {
 			BeginEdit(new GroupCommand<TKey, TValue>(true, _table, callback));
+		}
+
+		public void BeginModelEdit() {
+			BeginEdit(new GroupCommand<TKey, TValue>());
 		}
 
 		public void AddGroupedCommands(List<ITableCommand<TKey, TValue>> commands) {
@@ -90,27 +97,82 @@ namespace Database.Commands {
 		}
 
 		public virtual void Set(TValue tuple, DbAttribute attribute, object value) {
-			if (tuple.GetValue(attribute) == value) return;
+			if (tuple.GetValue(attribute) == value || (value != null && value.Equals(tuple.GetValue(attribute)))) return;
 			StoreAndExecute(new ChangeTupleProperty<TKey, TValue>(tuple, attribute, value));
 		}
 
 		public virtual void Set(TValue tuple, DbAttribute attribute, object value, bool reversable) {
-			if (tuple.GetValue(attribute) == value) return;
+			if (tuple.GetValue(attribute) == value || (value != null && value.Equals(tuple.GetValue(attribute)))) return;
 			StoreAndExecute(new ChangeTupleProperty<TKey, TValue>(tuple, attribute, value) { Reversable = reversable });
 		}
 
 		public virtual void Set(TValue tuple, int attributeId, object value) {
-			if (tuple.GetValue(attributeId) == value) return;
+			if (tuple.GetValue(attributeId) == value || (value != null && value.Equals(tuple.GetValue(attributeId)))) return;
 			StoreAndExecute(new ChangeTupleProperty<TKey, TValue>(tuple, attributeId, value));
 		}
 
 		public virtual void Set(TKey key, TValue tuple, DbAttribute attribute, object value) {
-			if (tuple.GetValue(attribute) == value) return;
+			if (tuple.GetValue(attribute) == value || (value != null && value.Equals(tuple.GetValue(attribute)))) return;
 			StoreAndExecute(new ChangeTupleProperty<TKey, TValue>(key, tuple, attribute, value));
 		}
 
 		public virtual void Set(List<TValue> tuples, DbAttribute attribute, object value) {
 			StoreAndExecute(new GroupChangeTupleProperty<TKey, TValue>(tuples, attribute, value, null));
+		}
+
+		public virtual void SetKeyValue(TValue tuple, DbAttribute attribute, object model, string key, string value, bool reversable) {
+			StoreAndExecute(new ChangeModelKeyValue<TKey, TValue>(tuple, attribute, model, key, value) { Reversable = reversable });
+		}
+
+		public virtual void SetModelsValue<TModel, TFieldValue>(List<TValue> tuples, string fieldName, TFieldValue newValue, int modelAttributeIndex = 1) where TModel : new() {
+			if (tuples.Count == 0)
+				return;
+
+			var modelType = tuples[0].Attributes[modelAttributeIndex].DataType;
+			StoreAndExecute(new ChangeModelsField<TKey, TValue, TModel, TFieldValue>(tuples, fieldName, newValue));
+		}
+
+		public virtual void SetModelsValue<TModel, TFieldValue>(List<TValue> tuples, string fieldName, TFieldValue newValue, Func<object, List<TModel>> modelListGetter, int listIndex, int modelAttributeIndex = 1) where TModel : new() {
+			if (tuples.Count == 0)
+				return;
+
+			var modelType = tuples[0].Attributes[modelAttributeIndex].DataType;
+			StoreAndExecute(new ChangeModelsField<TKey, TValue, TModel, TFieldValue>(tuples, fieldName, newValue, modelListGetter, listIndex));
+		}
+
+		public virtual void SetModelsValue<TModel, TFieldValue>(List<TValue> tuples, string fieldName, Func<TModel, TFieldValue> newValue, int modelAttributeIndex = 1) where TModel : new() {
+			if (tuples.Count == 0)
+				return;
+
+			var modelType = tuples[0].Attributes[modelAttributeIndex].DataType;
+			StoreAndExecute(new ChangeModelsField<TKey, TValue, TModel, TFieldValue>(tuples, fieldName, default, null, -1, newValue));
+		}
+
+		public virtual void SetModelsValue<TModel, TFieldValue>(List<TValue> tuples, string fieldName, Func<TModel, TFieldValue> newValue, Func<object, List<TModel>> modelListGetter, int listIndex, int modelAttributeIndex = 1) where TModel : new() {
+			if (tuples.Count == 0)
+				return;
+
+			var modelType = tuples[0].Attributes[modelAttributeIndex].DataType;
+			StoreAndExecute(new ChangeModelsField<TKey, TValue, TModel, TFieldValue>(tuples, fieldName, default, modelListGetter, listIndex, newValue));
+		}
+
+		public virtual void SetModelValue<TFieldValue>(TValue tuple, object model, string fieldName, TFieldValue newValue, bool reversible = true) {
+			StoreAndExecute(new ModelCommand<TKey, TValue, TFieldValue>(tuple, model, fieldName, newValue, reversible));
+		}
+
+		public virtual void SetModelValue<TFieldValue>(TValue tuple, Expression<Func<TFieldValue>> expression, TFieldValue newValue, bool reversible = true) {
+			StoreAndExecute(new ModelCommand<TKey, TValue, TFieldValue>(tuple, expression, newValue, reversible));
+		}
+
+		public virtual void SetModelValue<TFieldValue>(TValue tuple, Func<TFieldValue> getter, Action<TFieldValue> setter, TFieldValue newValue, string fieldName, bool reversible = true) {
+			if (getter() != null && getter().ToString() == newValue.ToString())
+				return;
+
+			StoreAndExecute(new ModelCommand<TKey, TValue, TFieldValue>(tuple, getter, setter, newValue, fieldName, reversible));
+		}
+
+		public virtual void SetModelListValue<TFieldValue>(TValue tuple, Expression<Func<List<TFieldValue>>> expression, List<TFieldValue> newValue, ListCommandMode mode, int index = -1) {
+			StoreAndExecute(new ModelListCommand<TKey, TValue, TFieldValue>(tuple, expression, newValue, mode, index));
 		}
 
 		public virtual void ChangeKey(TKey oldKey, TKey newKey) {
