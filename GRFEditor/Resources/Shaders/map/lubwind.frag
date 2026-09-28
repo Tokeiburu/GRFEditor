@@ -1,4 +1,4 @@
-#version 330
+#version 420
 
 uniform sampler2D s_texture;
 uniform vec4 color = vec4(1,1,1,1);
@@ -9,15 +9,8 @@ out vec4 fragColor;
 void main()
 {
 	vec4 outColor = texture2D(s_texture, texCoord);
-	
-	if (outColor.a <= 0)
-		discard;
-	
 	outColor *= color;
-	
-	// Why was this not multiplied...? For reference, this fixes magic_y_01.tga blending, among many others.
-	//outColor.a = alpha;
-	
 	outColor.a *= alpha;
+	
 	fragColor = outColor;
 }

@@ -112,9 +112,9 @@ namespace GRFEditor.OpenGL {
 				case 11: // D3DBLEND_SRCALPHASAT
 					return BlendingFactor.SrcAlphaSaturate;
 				case 12: // D3DBLEND_BOTHSRCALPHA
-					return BlendingFactor.Src1Alpha;
+					return BlendingFactor.SrcAlpha;
 				case 13: // D3DBLEND_BOTHINVSRCALPHA
-					return (BlendingFactor)35067;
+					return BlendingFactor.OneMinusSrcAlpha;
 			}
 
 			return BlendingFactor.SrcAlpha;
@@ -183,9 +183,9 @@ namespace GRFEditor.OpenGL {
 				case 11: // D3DBLEND_SRCALPHASAT
 					return BlendingFactor.SrcAlphaSaturate;
 				case 12: // D3DBLEND_BOTHSRCALPHA
-					return BlendingFactor.Src1Alpha;
+					return BlendingFactor.OneMinusSrcAlpha;
 				case 13: // D3DBLEND_BOTHINVSRCALPHA
-					return (BlendingFactor)35067;
+					return BlendingFactor.SrcAlpha;
 			}
 
 			return BlendingFactor.SrcAlpha;
@@ -219,9 +219,9 @@ namespace GRFEditor.OpenGL {
 				case 11: // D3DBLEND_SRCALPHASAT
 					return BlendingFactorDest.SrcAlphaSaturate;
 				case 12: // D3DBLEND_BOTHSRCALPHA
-					return BlendingFactorDest.SrcAlpha;
-				case 13: // D3DBLEND_BOTHINVSRCALPHA
 					return BlendingFactorDest.OneMinusSrcAlpha;
+				case 13: // D3DBLEND_BOTHINVSRCALPHA
+					return BlendingFactorDest.SrcAlpha;
 			}
 
 			return BlendingFactorDest.SrcAlpha;
@@ -413,6 +413,20 @@ namespace GRFEditor.OpenGL {
 #else
 			return ErrorCode.NoError;
 #endif
+		}
+
+		public static int NextPowerOfTwo(int value) {
+			if (value <= 0) return 1;
+
+			value--;
+
+			value |= value >> 1;
+			value |= value >> 2;
+			value |= value >> 4;
+			value |= value >> 8;
+			value |= value >> 16;
+
+			return value + 1;
 		}
 	}
 }

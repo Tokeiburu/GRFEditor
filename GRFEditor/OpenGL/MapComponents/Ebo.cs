@@ -18,6 +18,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public void SetData(List<uint> indices, BufferUsageHint usage) {
+			Length = indices.Count;
 			SetData(indices.ToArray(), usage);
 		}
 
@@ -25,6 +26,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 			if (indices.Length == 0)
 				return;
 
+			Length = indices.Length;
 			Bind();
 			GL.BufferData(BufferTarget.ElementArrayBuffer, indices.Length * sizeof(uint), indices, usage);
 		}

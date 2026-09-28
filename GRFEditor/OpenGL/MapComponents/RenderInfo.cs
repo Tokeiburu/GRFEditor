@@ -133,6 +133,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 	public sealed class OpenGLMemoryManager {
 		public Dictionary<int, int> VertexArrayObjects = new Dictionary<int, int>();
 		public Dictionary<int, int> ElementBufferObjects = new Dictionary<int, int>();
+		public Dictionary<int, int> UniformBufferObjects = new Dictionary<int, int>();
 		public Dictionary<int, int> VertexBufferObjects = new Dictionary<int, int>();
 		public Dictionary<int, int> TextureIds = new Dictionary<int, int>();
 		private static OpenGLMemoryManager _manager;
@@ -215,6 +216,29 @@ namespace GRFEditor.OpenGL.MapComponents {
 			}
 			else {
 				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing EBO: " + id);
+			}
+		}
+
+		public static int AddUbo(int id) {
+			if (_manager.UniformBufferObjects.ContainsKey(id)) {
+				_manager.UniformBufferObjects[id]++;
+			}
+			else {
+				_manager.UniformBufferObjects[id] = 1;
+			}
+
+			return id;
+		}
+
+		public static void DelUbo(int id) {
+			if (_manager.UniformBufferObjects.ContainsKey(id)) {
+				_manager.UniformBufferObjects[id]--;
+
+				if (_manager.UniformBufferObjects[id] == 0)
+					_manager.UniformBufferObjects.Remove(id);
+			}
+			else {
+				GLHelper.OnLog(() => "Error: " + "Attempted to remove a non-existing UBO: " + id);
 			}
 		}
 

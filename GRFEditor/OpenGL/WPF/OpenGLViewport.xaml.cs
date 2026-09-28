@@ -9,16 +9,20 @@ using System.Windows;
 using System.Windows.Controls;
 using ErrorManager;
 using GRF.FileFormats.GatFormat;
+using GRF.FileFormats.LubFormat;
 using GRF.FileFormats.RswFormat;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.OpenGL.MapRenderers;
+using Lua;
+using Lua.Structure;
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using TokeiLibrary;
 using Utilities;
+using Utilities.Services;
 using Key = System.Windows.Input.Key;
 using Keyboard = System.Windows.Input.Keyboard;
 using UserControl = System.Windows.Controls.UserControl;
@@ -62,6 +66,7 @@ namespace GRFEditor.OpenGL.WPF {
 		public readonly Shader Shader_gnd;
 		public readonly Shader Shader_water;
 		public readonly Shader Shader_lub;
+		public readonly Shader Shader_lubWind;
 		public readonly Shader Shader_simple;
 		public readonly Shader Shader_gat;
 		public readonly Shader Shader_skymap;
@@ -148,6 +153,7 @@ namespace GRFEditor.OpenGL.WPF {
 				Shader_gnd = new Shader("map.gnd.vert", "map.gnd.frag");
 				Shader_water = new Shader("map.water.vert", "map.water.frag");
 				Shader_lub = new Shader("map.lub.vert", "map.lub.frag");
+				Shader_lubWind = new Shader("map.lubwind.vert", "map.lubwind.frag");
 				Shader_simple = new Shader("map.color.vert", "map.color.frag");
 				Shader_gat = new Shader("map.gat.vert", "map.gat.frag");
 				Shader_skymap = new Shader("map.skymap.vert", "map.skymap.frag");
@@ -303,8 +309,11 @@ namespace GRFEditor.OpenGL.WPF {
 			LubRenderer lubRenderer = null;
 			SkyMapRenderer skyRenderer = null;
 
-			try {	
-				lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, ResourceManager.GetData(@"data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub"), this);
+			// Lub effect file
+			var lubEffect = _readLubEffect(@"data\luafiles514\lua files\effecttool\" + Path.GetFileName(request.Resource) + ".lub");
+
+			try {
+				lubRenderer = new LubRenderer(request, Shader_lub, gnd, rsw, lubEffect, this);
 			}
 			catch {
 				lubRenderer = null;
@@ -346,6 +355,33 @@ namespace GRFEditor.OpenGL.WPF {
 			Camera.MaxDistance = (float)Math.Max(Camera.MaxDistance, maxDistance);
 
 			ResetCameraPosition = ResetCameraDistance = true;
+		}
+
+		private SimplifiedLuaElement _readLubEffect(string resourcePath) {
+			var lubData = ResourceManager.GetData(resourcePath);
+
+			if (lubData == null)
+				return null;
+
+			// Try-catch for encryption and other potential errors, don't care much about this
+			try {
+				if (Lub.IsCompiled(lubData)) {
+					Lub lub = new Lub(lubData);
+					var text = lub.Decompile();
+					lubData = EncodingService.DisplayEncoding.GetBytes(text);
+				}
+
+				SimplifiedLuaElement lua;
+
+				using (LuaReader reader = new LuaReader(new MemoryStream(lubData))) {
+					lua = reader.ReadSimplified();
+				}
+
+				return lua;
+			}
+			catch {
+				return null;
+			}
 		}
 
 		private void _loadRsm(RendererLoadRequest request) {

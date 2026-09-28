@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using ErrorManager;
 using GRF.FileFormats.LubFormat;
 using GRF.FileFormats.RswFormat;
@@ -73,38 +74,30 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		private readonly Dictionary<Texture, RenderInfoEffects> _groups = new Dictionary<Texture, RenderInfoEffects>();
 		private readonly RenderInfoEffects _animatedGroup = new RenderInfoEffects();
 		const int LubEffectVertexSize = 6;
+		private List<LubWindRenderer> _windRenderers = new List<LubWindRenderer>();
+		private Ubo<WindParticleParams> _windUbo;
 
-		public LubRenderer(RendererLoadRequest request, Shader shader, Gnd gnd, Rsw rsw, byte[] lubData, OpenGLViewport viewport) {
+		public LubRenderer(RendererLoadRequest request, Shader shader, Gnd gnd, Rsw rsw, SimplifiedLuaElement lubEffect, OpenGLViewport viewport) {
 			Shader = shader;
 			_gnd = gnd;
 			_rsw = rsw;
 			_request = request;
 
-			if (lubData != null && rsw.LubEffects.Count > 0) {
-				if (Lub.IsCompiled(lubData)) {
-					Lub lub = new Lub(lubData);
-					var text = lub.Decompile();
-					lubData = EncodingService.DisplayEncoding.GetBytes(text);
-				}
+			if (lubEffect != null && rsw.LubEffects.Count > 0) {
+				SimplifiedLuaElement emitter;
+				string lubMapName = Path.GetFileName(request.Resource.Replace("@", ""));
 
-				SimplifiedLuaElement lua;
-				SimplifiedLuaElement luaEmitter;
-
-				using (LuaReader reader = new LuaReader(new MemoryStream(lubData))) {
-					lua = reader.ReadSimplified();
-				}
-
-				if ((luaEmitter = lua["_" + Path.GetFileName(request.Resource.Replace("@", "")) + "_emitterInfo"]) != null) {
+				if ((emitter = lubEffect[$"_{lubMapName}_emitterInfo"]) != null) {
 					try {
-						_parseEmitter(luaEmitter, false);
+						_parseEmitter(emitter, false);
 					}
 					catch (Exception err) {
 						ErrorHandler.HandleException(err);
 					}
 				}
 
-				if ((luaEmitter = lua["_" + Path.GetFileName(request.Resource) + "_animatedEmitterInfo"]) != null) {
-					_parseEmitter(luaEmitter, true);
+				if ((emitter = lubEffect[$"_{lubMapName}_animatedEmitterInfo"]) != null) {
+					_parseEmitter(emitter, true);
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\shockwave_b.bmp", Rsm.RsmTexturePath + @"effect\shockwave_b.bmp", TextureRenderMode.RsmTexture, _request));
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\shockwave_c.bmp", Rsm.RsmTexturePath + @"effect\shockwave_c.bmp", TextureRenderMode.RsmTexture, _request));
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\shockwave_d.bmp", Rsm.RsmTexturePath + @"effect\shockwave_d.bmp", TextureRenderMode.RsmTexture, _request));
@@ -112,6 +105,31 @@ namespace GRFEditor.OpenGL.MapRenderers {
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\plazma_a.bmp", Rsm.RsmTexturePath + @"effect\plazma_a.bmp", TextureRenderMode.RsmTexture, _request));
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\plazma_b.bmp", Rsm.RsmTexturePath + @"effect\plazma_b.bmp", TextureRenderMode.RsmTexture, _request));
 					Textures.Add(TextureManager.LoadTextureAsync(@"effect\plazma_c.bmp", Rsm.RsmTexturePath + @"effect\plazma_c.bmp", TextureRenderMode.RsmTexture, _request));
+				}
+
+				SimplifiedLuaElement windEffects;
+
+				if ((windEffects = lubEffect[$"_{lubMapName}_windEffectInfo"]) != null) {
+					try {
+						foreach (var effectKeyValue in windEffects.KeyValues) {
+							var key = Int32.Parse(effectKeyValue.Key.Trim('[', ']'));
+
+							if (key >= _rsw.WindEffects.Count) {
+								continue;
+							}
+
+							if (_request.CancelRequired())
+								break;
+
+							var effect = new LubWindEffect();
+							effect.Load(effectKeyValue.Value);
+
+							_windRenderers.Add(new LubWindRenderer(effect, _request, viewport.Shader_lubWind));
+						}
+					}
+					catch (Exception err) {
+						ErrorHandler.HandleException(err);
+					}
 				}
 			}
 
@@ -123,7 +141,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				return;
 
 			foreach (var effect in _effects) {
-				var texture = TextureManager.LoadTextureAsync(effect.Texture, Rsm.RsmTexturePath + effect.Texture.Replace("\\\\", "\\"), TextureRenderMode.RsmTexture, _request);
+				var texture = TextureManager.LoadTextureAsync(effect.Texture, Rsm.RsmTexturePath + effect.Texture.Replace("\\\\", "\\"), TextureRenderMode.LubTexture, _request);
 				Textures.Add(texture);
 				effect.Texture2D = texture;
 
@@ -158,6 +176,14 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			_animatedGroup.RenderInfo.RawVertices = new float[LubEffectVertexSize * 4 * _animatedGroup.Effects.Sum(p => p.Maxcount)];
 
+			foreach (var windRenderer in _windRenderers) {
+				windRenderer.Load(viewport);
+			}
+
+			_windUbo = new Ubo<WindParticleParams>();
+			_windUbo.Bind();
+			GL.BufferData(BufferTarget.UniformBuffer, Marshal.SizeOf<WindParticleParams>(), IntPtr.Zero, BufferUsageHint.DynamicDraw);
+
 			_verticesLoaded = true;
 		}
 		
@@ -179,6 +205,8 @@ namespace GRFEditor.OpenGL.MapRenderers {
 				_watch.Start();
 			}
 
+			RenderWindEffects(viewport);
+
 			_skipRender = !_skipRender;
 
 			Shader.Use();
@@ -199,6 +227,27 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			//if (_animatedGroup.Effects.Count > 0) {
 			//	_renderAnimatedGroup(viewport, Textures);
 			//}
+
+			GL.DepthMask(true);
+			GL.Enable(EnableCap.DepthTest);
+			GL.BlendFunc(BlendingFactor.SrcAlpha, BlendingFactor.OneMinusSrcAlpha);
+		}
+
+		private void RenderWindEffects(OpenGLViewport viewport) {
+			if (_windRenderers.Count <= 0)
+				return;
+
+			GL.Enable(EnableCap.Blend);
+			GL.DepthMask(false);
+
+			viewport.Shader_lubWind.Use();
+			viewport.Shader_lubWind.SetMatrix4("vp", ref viewport.ViewProjection);
+			viewport.Shader_lubWind.SetFloat("uTime", _time);
+			_windUbo.Bind();
+
+			foreach (var windRenderer in _windRenderers) {
+				windRenderer.Render(viewport, _windUbo);
+			}
 
 			GL.DepthMask(true);
 			GL.Enable(EnableCap.DepthTest);

@@ -95,10 +95,12 @@
     <Compile Include="OpenGL\MapComponents\RenderInfo.cs" />
     <Compile Include="OpenGL\MapComponents\ResourceManager.cs" />
     <Compile Include="OpenGL\MapComponents\RsmFormat.cs" />
+    <Compile Include="OpenGL\MapComponents\Ubo.cs" />
     <Compile Include="OpenGL\MapRenderers\GatRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\GatMinimapRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\BillboardRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\LubRenderer.cs" />
+    <Compile Include="OpenGL\MapRenderers\LubWindRenderer.cs" />
     <Compile Include="OpenGL\MapRenderers\RenderMode.cs" />
     <Compile Include="OpenGL\MapRenderers\RsmRenderer.cs" />
     <Compile Include="OpenGL\MapComponents\Texture.cs" />
@@ -650,6 +652,10 @@
     <EmbeddedResource Include="Resources\Shaders\map\rsm_load.comp" />
     <EmbeddedResource Include="Resources\Shaders\str\background.frag" />
     <EmbeddedResource Include="Resources\Shaders\str\background.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\lubwind.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\lubwind.vert" />
+    <EmbeddedResource Include="Resources\Shaders\map\str.frag" />
+    <EmbeddedResource Include="Resources\Shaders\map\str.vert" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />

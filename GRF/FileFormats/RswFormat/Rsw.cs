@@ -90,6 +90,11 @@ namespace GRF.FileFormats.RswFormat {
 		public List<Effect> LubEffects { get; private set; } = new List<Effect>();
 
 		/// <summary>
+		/// Gets or sets the lub wind effects.
+		/// </summary>
+		public List<Effect> WindEffects { get; private set; } = new List<Effect>();
+
+		/// <summary>
 		/// Gets or sets the str effects.
 		/// </summary>
 		public List<Effect> StrEffects { get; private set; } = new List<Effect>();
@@ -217,6 +222,9 @@ namespace GRF.FileFormats.RswFormat {
 						
 						if (effectNumber == 974) {
 							LubEffects.Add((Effect)obj);
+						}
+						else if (effectNumber == 2343) {
+							WindEffects.Add((Effect)obj);
 						}
 						else if (effectNumber == 1412) {
 							StrEffects.Add((Effect)obj);

@@ -14,6 +14,7 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
 using TokeiLibrary;
+using Utilities;
 
 namespace GRFEditor.WPF {
 	public partial class SearchPanel : UserControl {

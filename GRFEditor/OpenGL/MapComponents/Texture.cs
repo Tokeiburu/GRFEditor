@@ -5,6 +5,7 @@ using GRF.Image;
 using GRF.Image.Decoders;
 using GRF.Threading;
 using OpenTK.Graphics.OpenGL;
+using Utilities;
 using Utilities.Extension;
 
 namespace GRFEditor.OpenGL.MapComponents {
@@ -99,6 +100,8 @@ namespace GRFEditor.OpenGL.MapComponents {
 		WaterTexture,
 		ShadowMapTexture,
 		CloudTexture,
+		LubTexture,
+		StrTexture,
 	};
 
 	public static class TextureManager {
@@ -281,6 +284,11 @@ namespace GRFEditor.OpenGL.MapComponents {
 		public static bool EnableMipmap { get; set; }
 		public bool IsDithered { get; set; }
 		public bool TransparencyFixed { get; set; }
+		public int Width;
+		public int Height;
+		public int PotWidth;
+		public int PotHeight;
+		public bool RequiresPoTAdjust { get; private set; }
 
 		static Texture() {
 			EnableMipmap = false;
@@ -367,6 +375,20 @@ namespace GRFEditor.OpenGL.MapComponents {
 				OpenGLMemoryManager.AddTextureId(_id);
 				GL.BindTexture(TextureTarget.Texture2D, _id);
 
+				Width = Image.Width;
+				Height = Image.Height;
+
+				if (RenderMode == TextureRenderMode.StrTexture ||
+					RenderMode == TextureRenderMode.LubTexture) {
+					PotWidth = GLHelper.NextPowerOfTwo(Image.Width);
+					PotHeight = GLHelper.NextPowerOfTwo(Image.Height);
+
+					if (PotWidth != Width || PotHeight != Height) {
+						RequiresPoTAdjust = true;
+						Image.Margin(0, 0, PotWidth - Width, PotHeight - Height);
+					}
+				}
+
 				GCHandle pinnedArray = GCHandle.Alloc(Image.Pixels, GCHandleType.Pinned);
 				IntPtr pointer = pinnedArray.AddrOfPinnedObject();
 
@@ -425,6 +447,7 @@ namespace GRFEditor.OpenGL.MapComponents {
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
 					break;
+				case TextureRenderMode.LubTexture:
 				case TextureRenderMode.RsmTexture:
 					if (EnableMipmap) {
 						GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
@@ -437,6 +460,18 @@ namespace GRFEditor.OpenGL.MapComponents {
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int)TextureMinFilter.Linear);
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.ClampToEdge);
 					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.ClampToEdge);
+					break;
+				case TextureRenderMode.StrTexture:
+					if (EnableMipmap) {
+						GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+						GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.LinearMipmapLinear);
+					}
+					else {
+						GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int)TextureMinFilter.Linear);
+					}
+
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int)TextureWrapMode.Repeat);
+					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int)TextureWrapMode.Repeat);
 					break;
 				default:
 					if (EnableMipmap) {

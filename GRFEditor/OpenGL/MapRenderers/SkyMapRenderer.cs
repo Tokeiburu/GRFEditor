@@ -28,7 +28,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 		private Texture _cloudTex;
 		private Texture _starTex;
 		private Texture _fogTex;
-		private int _uboHandle;
+		private Ubo<ParticleParams> _ubo;
 		private float _time;
 
 		public SkymapSettings SkyMap = new SkymapSettings();
@@ -298,6 +298,12 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			for (int i = 0; i < skyEffect.Particles.Length; i++) {
 				skyEffect.Particles[i].ExpandDelay = 10f * TkRandom.NextFloat();
 				_updateParticle(skyEffect, ref skyEffect.Particles[i], i);
+
+				// Adjust start/end on creation for a smoother start
+				float dur = skyEffect.Particles[i].LifeEnd - skyEffect.Particles[i].LifeStart;
+				float adjust = TkRandom.NextFloat() * dur;
+				skyEffect.Particles[i].LifeStart -= adjust;
+				skyEffect.Particles[i].LifeEnd -= adjust;
 			}
 
 			GL.BufferData(BufferTarget.ArrayBuffer, Marshal.SizeOf<ParticleInstance>() * skyEffect.Particles.Length, skyEffect.Particles, BufferUsageHint.StreamDraw);
@@ -313,11 +319,10 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			_time = _watch.ElapsedMilliseconds / 1000f;
 
-			if (_uboHandle == 0) {
-				_uboHandle = GL.GenBuffer();
-				GL.BindBuffer(BufferTarget.UniformBuffer, _uboHandle);
+			if (_ubo == null) {
+				_ubo = new Ubo<ParticleParams>();
+				_ubo.Bind();
 				GL.BufferData(BufferTarget.UniformBuffer, Marshal.SizeOf<ParticleParams>(), IntPtr.Zero, BufferUsageHint.DynamicDraw);
-				GL.BindBufferBase(BufferRangeTarget.UniformBuffer, 0, _uboHandle);
 			}
 
 			for (int k = 0; k < SkyMap.SkyEffects.Count; k++) {
@@ -333,7 +338,15 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			List<GrfImage> images = new List<GrfImage>();
 			foreach (var texture in textures) {
-				GrfImage img = new GrfImage(ResourceManager.GetData(Rsm.RsmTexturePath + texture));
+				var data = ResourceManager.GetData(Rsm.RsmTexturePath + texture);
+				GrfImage img;
+
+				if (data != null) {
+					img = new GrfImage(data);
+				}
+				else {
+					img = new GrfImage(new byte[256 * 256 * 3], 256, 256, GrfImageType.Bgr24);
+				}
 
 				if (img.GrfImageType == GrfImageType.Indexed8) {
 					img.Convert(GrfImageType.Bgr24);
@@ -448,6 +461,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			// Gravity time is just built different...
 			Shader.SetFloat("uTime", _time / 1.6f);
+			_ubo.Bind();
 
 			GL.Enable(EnableCap.Blend);
 			GL.Enable(EnableCap.DepthTest);
@@ -500,8 +514,7 @@ namespace GRFEditor.OpenGL.MapRenderers {
 
 			Shader.SetVector4("color", new Vector4(skyEffect.Color, 1));
 
-			GL.BindBuffer(BufferTarget.UniformBuffer, _uboHandle);
-			GL.BufferSubData(BufferTarget.UniformBuffer, IntPtr.Zero, Marshal.SizeOf<ParticleParams>(), ref skyEffect.ShaderParameters);
+			_ubo.SetData(ref skyEffect.ShaderParameters);
 
 			if (skyEffect.ShaderParameters.DirMode == 2)
 				Shader.SetVector3("aForcedDir", ref skyEffect.ShaderParameters.ForcedDir);
@@ -555,13 +568,9 @@ namespace GRFEditor.OpenGL.MapRenderers {
 			IsUnloaded = true;
 
 			_cloudTex?.Unload();
-
 			_starTex?.Unload();
-
 			_fogTex?.Unload();
-
-			if (_uboHandle > 0)
-				GL.DeleteBuffer(_uboHandle);
+			_ubo?.Unload();
 			
 			foreach (var texture in Textures) {
 				TextureManager.UnloadTexture(texture.Resource, _request.Context);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -12,12 +13,12 @@ using ICSharpCode.AvalonEdit.Editing;
 using ICSharpCode.AvalonEdit.Rendering;
 using ICSharpCode.AvalonEdit.Search;
 using TokeiLibrary;
+using Utilities;
 using Utilities.Extension;
 using SearchPanel = GRFEditor.WPF.SearchPanel;
 
 namespace GRFEditor.Core.Avalon {
 	public class AvalonDefaultLoading {
-		private readonly object _lock = new object();
 		private readonly List<string> _toIgnore = new List<string> { "\t", Environment.NewLine, "\n", "\r", " ", ",", ".", "!", "\"", "?" };
 		private string _currentWord;
 		private SearchPanel.SearchResultBackgroundRenderer _renderer;
@@ -141,6 +142,9 @@ namespace GRFEditor.Core.Avalon {
 			try {
 				string currentWord = AvalonHelper.GetWholeWord(_textEditor.TextArea.Document, _textEditor);
 
+				if (currentWord == null)
+					return;
+
 				if (_textEditor.CaretOffset > 0) {
 					if (currentWord.Length <= 0 || !char.IsLetterOrDigit(currentWord[0])) {
 						foreach (char c in new char[] { '{', '}', '(', ')', '[', ']' }) {
@@ -258,6 +262,8 @@ namespace GRFEditor.Core.Avalon {
 			return false;
 		}
 
+		private Debouncer _debouncer = new Debouncer(300);
+
 		private void _updateCurrentWord(string currentWord) {
 			_renderer.CurrentResults.Clear();
 
@@ -300,41 +306,26 @@ namespace GRFEditor.Core.Avalon {
 				_currentWord = currentWord;
 			}
 
-			new Thread(new ThreadStart(delegate {
-				lock (_lock) {
+			_debouncer.Execute(delegate {
+				Regex pattern = new Regex(Regex.Escape(currentWord), RegexOptions.Compiled);
+				RegexSearchStrategy strategy = new RegexSearchStrategy(pattern, true);
+
+				_textEditor.Dispatch(delegate {
 					try {
-						if (currentWord != _currentWord)
-							return;
+						_renderer.CurrentResults.Clear();
 
-						Thread.Sleep(300);
-
-						if (currentWord != _currentWord)
-							return;
-
-						Regex pattern = new Regex(Regex.Escape(currentWord), RegexOptions.Compiled);
-						RegexSearchStrategy strategy = new RegexSearchStrategy(pattern, true);
-
-						_textEditor.Dispatch(delegate {
-							try {
-								_renderer.CurrentResults.Clear();
-
-								if (!string.IsNullOrEmpty(currentWord)) {
-									// We cast from ISearchResult to SearchResult; this is safe because we always use the built-in strategy
-									foreach (SearchResult result in strategy.FindAll(_textArea.Document, 0, _textArea.Document.TextLength)) {
-										_renderer.CurrentResults.Add(result);
-									}
-								}
-								_textArea.TextView.InvalidateLayer(KnownLayer.Selection);
+						if (!string.IsNullOrEmpty(currentWord)) {
+							// We cast from ISearchResult to SearchResult; this is safe because we always use the built-in strategy
+							foreach (SearchResult result in strategy.FindAll(_textArea.Document, 0, _textArea.Document.TextLength)) {
+								_renderer.CurrentResults.Add(result);
 							}
-							catch {
-							}
-						});
+						}
+						_textArea.TextView.InvalidateLayer(KnownLayer.Selection);
 					}
-					catch (ArgumentException ex) {
-						throw new SearchPatternException(ex.Message, ex);
+					catch {
 					}
-				}
-			})).Start();
+				});
+			});
 		}
 	}
 }
