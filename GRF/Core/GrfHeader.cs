@@ -94,6 +94,8 @@ namespace GRF.Core {
 		public bool EncryptFileTable { get; private set; }
 		public bool DecryptFileTable { get; internal set; }
 		internal Container Container { get; private set; }
+		internal byte[] ProtectedKeyBlock = new byte[0];
+		internal IDictionary<uint, byte[]> ProtectedKeys = new Dictionary<uint, byte[]>();
 		public ThorSettings ThorSettings = new ThorSettings();
 
 		public string Key { get; set; }

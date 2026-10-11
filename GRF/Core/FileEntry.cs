@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using Encryption;
+using GRF.Core.GrfCompression;
 using GRF.ContainerFormat;
 using GRF.IO;
 using Utilities;
@@ -12,6 +13,8 @@ using Utilities.Services;
 namespace GRF.Core {
 	public sealed class FileEntry : ContainerEntry, INotifyPropertyChanged {
 		private GrfHeader _header;
+		private byte[] _protectedFileName;
+		private string _protectedRelativePath;
 
 		/// <summary>
 		/// Initializes a new instance of the <see cref="FileEntry" /> class.
@@ -43,6 +46,8 @@ namespace GRF.Core {
 			Header = entry.Header;
 			Cycle = entry.Cycle;
 			Stream = entry.Stream;
+			_protectedFileName = entry._protectedFileName;
+			_protectedRelativePath = entry._protectedRelativePath;
 		}
 
 		/// <summary>
@@ -56,6 +61,7 @@ namespace GRF.Core {
 		internal FileEntry(byte[] data, ref int offset, GrfHeader header, ByteReaderStream stream, int version) {
 			Header = header;
 			Stream = stream;
+			int nameStart = offset;
 			int endCharPosition = offset;
 
 			while (data[endCharPosition] != 0x00) {
@@ -74,6 +80,12 @@ namespace GRF.Core {
 			TemporarySizeCompressedAlignment = SizeCompressedAlignment = BitConverter.ToInt32(data, offset + 4);
 			NewSizeDecompressed = SizeDecompressed = BitConverter.ToInt32(data, offset + 8);
 			Flags = (EntryType)data[offset + 12];
+			if (Flags.HasFlag(EntryType.GravityEncryptedFile)) {
+				// The filename hash uses the original bytes, before display decoding or path normalization.
+				_protectedFileName = new byte[endCharPosition - nameStart];
+				Buffer.BlockCopy(data, nameStart, _protectedFileName, 0, _protectedFileName.Length);
+				_protectedRelativePath = _relativePath.Replace("\\\\", "\\");
+			}
 
 			int entrySize = version == 300 ? 21 : 17;
 
@@ -85,6 +97,8 @@ namespace GRF.Core {
 			}
 
 			offset += entrySize;
+			if (GravityEncrypted)
+				ValidateProtectedSizes();
 
 			switch (Flags) {
 				case EntryType.File:
@@ -267,8 +281,33 @@ namespace GRF.Core {
 			return new FileEntry(this);
 		}
 
+		private void ValidateProtectedSizes() {
+			if (Flags != EntryType.GravityEncryptedFile || _protectedFileName == null ||
+			    SizeCompressed < 104 || SizeCompressedAlignment < SizeCompressed ||
+			    SizeCompressedAlignment > 258 * 1024 * 1024 || SizeDecompressed < 0 || SizeDecompressed > 256 * 1024 * 1024 ||
+			    FileExactOffset < GrfHeader.DataByteSize || FileExactOffset > Stream.LengthLong - SizeCompressedAlignment)
+				throw new InvalidDataException("Invalid protected GRF entry metadata: " + RelativePath);
+		}
+
+		internal byte[] DecodeProtectedData(byte[] data) {
+			ValidateProtectedSizes();
+			if (data.Length < SizeCompressed)
+				throw new InvalidDataException("Truncated protected GRF entry: " + RelativePath);
+			byte[] packed = new byte[SizeCompressed];
+			Buffer.BlockCopy(data, 0, packed, 0, packed.Length);
+			return ProtectedGrfDecoder.Decode(packed, _protectedFileName, SizeDecompressed, Header.ProtectedKeys);
+		}
+
+		internal void ValidateProtectedSave(GrfHeader destinationHeader) {
+			if (!GravityEncrypted || Modification.HasFlags(Modification.Removed))
+				return;
+			if (!destinationHeader.IsCompatibleWith(3, 0) || Header != destinationHeader || GetFixedFileName() != _protectedRelativePath ||
+			    (Modification & (Modification.Encrypt | Modification.Decrypt)) != 0)
+				throw new InvalidOperationException("Protected GRF entries must retain their original archive, filename and version 3 format. Extract the content before renaming it or copying it to another archive.");
+		}
+
 		protected override byte[] _getDecompressedData() {
-			if (NewSizeDecompressed == 0)
+			if (NewSizeDecompressed == 0 && !GravityEncrypted)
 				return new byte[] {};
 
 			byte[] data;
@@ -281,13 +320,15 @@ namespace GRF.Core {
 			if (BypassSaveCheck)
 				BypassSaveCheck = false;
 
-			if (Flags.HasFlag(EntryType.GravityEncryptedFile))
-				throw GrfExceptions.__GravityEncryptedFile.Create(RelativePath);
+			if (GravityEncrypted)
+				ValidateProtectedSizes();
 
 			lock (Stream.SharedLock) {
 				Stream.PositionLong = FileExactOffset;
 				data = Stream.Bytes(SizeCompressedAlignment);
 			}
+			if (GravityEncrypted)
+				return DecodeProtectedData(data);
 
 			if ((Header.IsEncrypted && Flags.HasFlags(EntryType.GrfEditorCrypted)) || Modification.HasFlags(Modification.Decrypt)) {
 				if (Header.EncryptionKey != null) {
@@ -458,7 +499,7 @@ namespace GRF.Core {
 				writer.Write((uint)TemporaryOffset - GrfHeader.DataByteSize);
 			}
 			else {
-				var fileName = EncodingService.Ansi.GetBytes(EncodingService.GetAnsiString(GetFixedFileName()));
+				var fileName = GravityEncrypted ? _protectedFileName : EncodingService.Ansi.GetBytes(EncodingService.GetAnsiString(GetFixedFileName()));
 				writer.Write(fileName);
 				writer.Write((byte)0);
 				writer.Write(NewSizeCompressed);

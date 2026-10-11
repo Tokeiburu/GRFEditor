@@ -211,6 +211,13 @@ namespace GRF.Core {
 				GrfExceptions.IfTrueThrowContainerSaving(IsBusy);
 				GrfExceptions.IfEncryptionCheckFlagThrow(this);
 				string ext = (fileName ?? FileName).GetExtension();
+				bool hasProtectedEntries = Table.Entries.Any(p => p.GravityEncrypted && !p.Modification.HasFlags(Modification.Removed));
+				if (hasProtectedEntries && ((ext != ".grf" && ext != ".gpf") || mode == SavingMode.Thor || mode == SavingMode.Rgz || mode == SavingMode.RepackSource))
+					throw new InvalidOperationException("Protected entries can only be saved in their original version 3 GRF format. Extract the content before converting the archive.");
+				foreach (FileEntry entry in Table.Entries)
+					entry.ValidateProtectedSave(InternalHeader);
+				if (mergeGrf != null && mergeGrf.Table.Entries.Any(p => p.GravityEncrypted))
+					throw new InvalidOperationException("Extract protected content before merging it into another archive.");
 
 				switch (mode) {
 					case SavingMode.FileCopy:

@@ -60,12 +60,12 @@ namespace GRF.Threading {
 							entry = sortedEntries[i];
 							entry.DesDecrypt(data, (int) entry.TemporaryOffset);
 
-							if (entry.IsEmpty() || entry.TemporaryOffset >= data.Length) {
+							if ((!entry.GravityEncrypted && entry.IsEmpty()) || entry.TemporaryOffset >= data.Length) {
 								NumberOfFilesProcessed++;
 								continue;
 							}
 
-							if (data[entry.TemporaryOffset] != 0x78 && !entry.IsEmpty() && data[entry.TemporaryOffset] != 0) {
+							if (!entry.GravityEncrypted && data[entry.TemporaryOffset] != 0x78 && !entry.IsEmpty() && data[entry.TemporaryOffset] != 0) {
 								NumberOfFilesProcessed++;
 								continue;
 							}
@@ -73,25 +73,27 @@ namespace GRF.Threading {
 							entry.Align(data, (int) entry.TemporaryOffset, out dataTmp);
 
 							try {
-								try {
-									if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile) {
-										
-									}
-									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-									else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
-									else
-										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+								if (entry.GravityEncrypted) {
+									dataTmp = entry.DecodeProtectedData(dataTmp);
 								}
-								catch {
+								else {
 									try {
-										dataTmp = Compression.DecompressZlib(dataTmp, entry.SizeDecompressed);
+										if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+											dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
+										else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
+											dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
+										else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
+											dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
+										else
+											dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 									}
 									catch {
-										// Do nothing, leave it as is
+										try {
+											dataTmp = Compression.DecompressZlib(dataTmp, entry.SizeDecompressed);
+										}
+										catch {
+											// Do nothing, leave it as is
+										}
 									}
 								}
 

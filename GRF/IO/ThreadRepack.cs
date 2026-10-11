@@ -83,7 +83,7 @@ namespace GRF.IO {
 									else
 										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 
-									entry.NewSizeDecompressed = dataTmp.Length;
+									entry.NewSizeDecompressed = compress ? dataTmp.Length : entry.SizeDecompressed;
 
 									if (compress) {
 										dataTmp = Compression.Compress(dataTmp);
@@ -101,7 +101,7 @@ namespace GRF.IO {
 										entry.TemporarySizeCompressedAlignment = Methods.Align(entry.NewSizeCompressed);
 
 										_dataTmp = new byte[entry.TemporarySizeCompressedAlignment];
-										Buffer.BlockCopy(dataTmp, 0, _dataTmp, 0, dataTmp.Length);
+										Buffer.BlockCopy(dataTmp, 0, _dataTmp, 0, entry.SizeCompressed);
 									}
 
 									outputFileStream.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
@@ -160,8 +160,10 @@ namespace GRF.IO {
 									outputFileStream.Write(_dataTmp, 0, entry.TemporarySizeCompressedAlignment);
 								}
 								finally {
-									entry.Flags &= ~EntryType.RawDataFile;
-									entry.Flags |= EntryType.File;
+									if (!entry.GravityEncrypted) {
+										entry.Flags &= ~EntryType.RawDataFile;
+										entry.Flags |= EntryType.File;
+									}
 								}
 
 								NumberOfFilesProcessed++;
