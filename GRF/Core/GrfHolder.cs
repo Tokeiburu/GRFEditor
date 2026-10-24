@@ -568,6 +568,7 @@ namespace GRF.Core {
 			switch (FileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
+				case ".gsf":
 					return _grf.Save(null, grfAdd?.Container, SavingMode.FileEdit, syncMode);
 				default:
 					throw GrfExceptions.__MergeNotSupported.Create();
@@ -584,6 +585,7 @@ namespace GRF.Core {
 			switch (FileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
+				case ".gsf":
 					return _grf.Save(fileName, grfAdd?.Container, SavingMode.FileCopy, syncMode);
 				default:
 					throw GrfExceptions.__MergeNotSupported.Create();

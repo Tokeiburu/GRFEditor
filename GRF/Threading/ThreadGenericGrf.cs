@@ -60,12 +60,12 @@ namespace GRF.Threading {
 							entry = sortedEntries[i];
 							entry.DesDecrypt(data, (int) entry.TemporaryOffset);
 
-							if (entry.IsEmpty() || entry.TemporaryOffset >= data.Length) {
+							if ((!entry.GravityEncrypted && entry.IsEmpty()) || entry.TemporaryOffset >= data.Length) {
 								NumberOfFilesProcessed++;
 								continue;
 							}
 
-							if (data[entry.TemporaryOffset] != 0x78 && !entry.IsEmpty() && data[entry.TemporaryOffset] != 0) {
+							if (!entry.GravityEncrypted && data[entry.TemporaryOffset] != 0x78 && !entry.IsEmpty() && data[entry.TemporaryOffset] != 0) {
 								NumberOfFilesProcessed++;
 								continue;
 							}
@@ -74,9 +74,8 @@ namespace GRF.Threading {
 
 							try {
 								try {
-									if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile) {
-										
-									}
+									if (entry.GravityEncrypted)
+										dataTmp = entry.DecodeProtectedData(dataTmp);
 									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)

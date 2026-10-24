@@ -96,8 +96,7 @@ namespace GRFEditor.Tools.GrfValidation {
 		public ValidateResult Validate(FileEntry entry) {
 			ValidateResult result = new ValidateResult();
 
-			if (entry.Flags.HasFlag(EntryType.GravityEncryptedFile) ||
-				entry.Flags.HasFlag(EntryType.GrfEditorCrypted))
+			if (entry.Flags.HasFlag(EntryType.GrfEditorCrypted))
 				return result;
 
 			byte[] data = _validateDecompress(entry, result);

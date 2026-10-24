@@ -469,7 +469,7 @@ namespace TokeiLibrary.WPF {
 			TkTreeViewItem node = (TkTreeViewItem)SelectedItem;
 
 			while (node != null) {
-				if (node.HeaderText.IsExtension(".grf", ".rgz", ".root", ".gpf", ".thor"))
+				if (node.HeaderText.IsExtension(".grf", ".rgz", ".root", ".gpf", ".thor", ".gsf"))
 					break;
 
 				path = node.HeaderText + "\\" + path;

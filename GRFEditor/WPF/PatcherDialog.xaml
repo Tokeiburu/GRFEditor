@@ -20,7 +20,7 @@
             <Label Content="Older GRF" VerticalAlignment="Center" />
             <Label Content="Newer GRF" VerticalAlignment="Center" Grid.Row="1" />
             <Styles:PathBrowser BrowseMode="File"  Name="_pathBrowserOldGrf" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserOldGrf_TextChanged" UseSavePath="True" SavePathUniqueName="GRFEditor - Patch old - " MaxWidth="350" MinWidth="350" Grid.Column="1" />
-            <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserNewGrf" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserNewGrf_TextChanged" UseSavePath="True" SavePathUniqueName="GRFEditor - Patch old - " MaxWidth="350" MinWidth="350" Grid.Row="1" Grid.Column="1" />
+			<Styles:PathBrowser BrowseMode="File" Name="_pathBrowserNewGrf" Filter="Container Files|*.grf;*.gpf;*.thor;*.gsf" TextChanged="_pathBrowserNewGrf_TextChanged" UseSavePath="True" SavePathUniqueName="GRFEditor - Patch old - " MaxWidth="350" MinWidth="350" Grid.Row="1" Grid.Column="1" />
             <Styles:TkProgressBar x:Name="_progress" Grid.Row="3" Grid.Column="1" Margin="3" />
             <Label Grid.Row="2" Content="Output file name" />
             <TextBox Grid.Row="2" Grid.Column="1" Name="_textBoxOutputName" Text="" Margin="3" MinHeight="24" VerticalContentAlignment="Center" />

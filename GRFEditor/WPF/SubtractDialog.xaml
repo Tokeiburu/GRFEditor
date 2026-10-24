@@ -20,8 +20,8 @@
             <Label Content="GRF1" VerticalAlignment="Center" Grid.Row="0" />
             <Label Content="GRF2" VerticalAlignment="Center" Grid.Row="1" />
             <Label Grid.Row="2" Content="Output" />
-            <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf1" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserGrf1_TextChanged" Grid.Row="0" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
-            <Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf2" Filter="Container Files|*.grf;*.gpf;*.thor" TextChanged="_pathBrowserGrf2_TextChanged" Grid.Row="1" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
+			<Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf1" Filter="Container Files|*.grf;*.gpf;*.thor;*.gsf" TextChanged="_pathBrowserGrf1_TextChanged" Grid.Row="0" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
+			<Styles:PathBrowser BrowseMode="File" Name="_pathBrowserGrf2" Filter="Container Files|*.grf;*.gpf;*.thor;*.gsf" TextChanged="_pathBrowserGrf2_TextChanged" Grid.Row="1" Grid.Column="1" UseSavePath="True" SavePathUniqueName="GRFEditor - Merge new - " MaxWidth="350" MinWidth="350" />
             <TextBox Grid.Row="2" Grid.Column="1" Name="_textBoxOutputName" Text="" Margin="3" />
             <Styles:TkProgressBar x:Name="_progressBarComponent" Grid.Row="3" Grid.Column="1" Margin="3" />
         </Grid>

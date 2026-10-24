@@ -52,6 +52,9 @@ namespace GrfToWpfBridge.TreeViewManager {
 				case ".rgz":
 					ImagePath = ApplicationManager.PreloadResourceImage("rgz-16.png");
 					break;
+				case ".gsf":
+					ImagePath = ApplicationManager.PreloadResourceImage("gsf-16.png");
+					break;
 				case ".gpf":
 					ImagePath = ApplicationManager.PreloadResourceImage("gpf-16.png");
 					break;

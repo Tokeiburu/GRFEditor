@@ -140,7 +140,7 @@ namespace GRFEditor {
 
 		private void _miDecryptFileTable_Click(object sender, RoutedEventArgs e) {
 			try {
-				if (!_grfHolder.Header.FoundErrors) {
+				if (!_grfHolder.Header.HasErrors) {
 					return;
 				}
 
@@ -322,12 +322,12 @@ namespace GRFEditor {
 					if (_grfHolder.IsOpened && new string[] { ".thor", ".rgz" }.Any(p => p == _grfHolder.FileName.GetExtension())) {
 					}
 					else {
-						if (files != null && files.All(p => p.EndsWith(".grf") || p.EndsWith(".gpf") || p.EndsWith(".rgz") || p.EndsWith(".thor"))) {
+						if (files != null && files.All(p => p.IsExtension(".grf", ".gpf", ".rgz", ".thor", ".gsf"))) {
 							return; // Gives the event to the MenuInteracionDrop
 						}
 
-						if (files != null && files.Any(p => p.EndsWith(".grf") || p.EndsWith(".gpf"))) {
-							ErrorHandler.HandleException("Deselect the GRF or GPF files before dropping them here.", ErrorLevel.Low);
+						if (files != null && files.Any(p => p.IsExtension(".grf", ".gpf", ".gsf"))) {
+							ErrorHandler.HandleException("Deselect the GRF, GPF or GSF files before dropping them here.", ErrorLevel.Low);
 							return;
 						}
 					}
@@ -407,12 +407,12 @@ namespace GRFEditor {
 
 				if (e.Data.GetDataPresent(DataFormats.FileDrop, true)) {
 					// Not tested 
-					// Note : because the execution literally can't come here?...
-					if (files != null && files.All(p => p.EndsWith(".grf") || p.EndsWith(".gpf"))) {
+					// Note: because the execution literally can't come here?...
+					if (files != null && files.All(p => p.IsExtension(".grf", ".gpf", ".gsf"))) {
 						return;
 					}
 
-					if (files != null && files.Any(p => p.EndsWith(".grf") || p.EndsWith(".gpf"))) {
+					if (files != null && files.Any(p => p.IsExtension(".grf", ".gpf", ".gsf"))) {
 						ErrorHandler.HandleException("Deselect the GRF or GPF files before dropping them here.", ErrorLevel.Low);
 						return;
 					}
@@ -664,7 +664,7 @@ namespace GRFEditor {
 						_asyncOperation.QueueAndRunOperation(new GrfThread(() => _grfHolder.SetEncryptionFlag(encryptionKey != null), _grfHolder, null, true));
 
 						_treeViewPathManager.RenamePrimaryProject(loadSettings.FileName);
-						_progressBarComponent.SetSpecialState(_grfHolder.Header != null && _grfHolder.Header.FoundErrors ? TkProgressBar.ProgressStatus.ErrorsDetected : TkProgressBar.ProgressStatus.Finished);
+						_setFinishProgressBarState();
 
 						if (_grfHolder.Header != null && _grfHolder.Header.FileTableRequiresDecryption) {
 							this.Dispatch(p => _miDecryptFileTable_Click(null, null));
@@ -684,6 +684,19 @@ namespace GRFEditor {
 					_reloading = false;
 				}
 			}, "GrfEditor - GRF loading thread");
+		}
+
+		private void _setFinishProgressBarState() {
+			var state = TkProgressBar.ProgressStatus.Finished;
+
+			if (_grfHolder.Header != null && _grfHolder.Header.Errors.Count > 0) {
+				if (_grfHolder.Header.HasErrors)
+					state = TkProgressBar.ProgressStatus.ErrorsDetected;
+				else if (_grfHolder.Header.HasWarnings)
+					state = TkProgressBar.ProgressStatus.Warning;
+			}
+
+			_progressBarComponent.SetSpecialState(state);
 		}
 
 		public bool Load(string fileName, byte[] encryptionKey = null) {
@@ -798,7 +811,7 @@ namespace GRFEditor {
 						}
 
 						_recentFilesManager.AddRecentFile(loadSettings.FileName);
-						_progressBarComponent.SetSpecialState(_grfHolder.Header != null && _grfHolder.Header.FoundErrors ? TkProgressBar.ProgressStatus.ErrorsDetected : TkProgressBar.ProgressStatus.Finished);
+						_setFinishProgressBarState();
 
 						if (_grfHolder.Header != null && _grfHolder.Header.FileTableRequiresDecryption) {
 							this.Dispatch(p => _miDecryptFileTable_Click(null, null));

@@ -63,7 +63,7 @@ namespace GRFEditor.Tools.GrfShrinker {
 				if (_grfHolder.IsBusy)
 					throw new Exception("The GRF is saving, please wait for the operation to finish first.");
 
-				if (_grfHolder.Header.FoundErrors)
+				if (_grfHolder.Header.HasErrors)
 					throw new Exception("The GRF contains errors and cannot be modified.");
 
 				string output = _grfHolder.FileName;

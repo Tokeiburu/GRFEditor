@@ -280,12 +280,14 @@ namespace GRFEditor.WPF {
 					FileAssociationHelper.Register(".gpf", "Gravity Patch File", Methods.ApplicationFullPath);
 					FileAssociationHelper.Register(".rgz", "Gravity Patch GZip File", Methods.ApplicationFullPath);
 					FileAssociationHelper.Register(".grfkey", "GRF Editor Encryption Key File", Methods.ApplicationFullPath, iconPath: null, openWithEditor: false);
+					FileAssociationHelper.Register(".gsf", "Gravity Secure Patch File", Methods.ApplicationFullPath);
 				}
 				else {
 					FileAssociationHelper.Unregister(".grf", Methods.ApplicationFullPath);
 					FileAssociationHelper.Unregister(".gpf", Methods.ApplicationFullPath);
 					FileAssociationHelper.Unregister(".rgz", Methods.ApplicationFullPath);
 					FileAssociationHelper.Unregister(".grfkey", Methods.ApplicationFullPath);
+					FileAssociationHelper.Unregister(".gsf", Methods.ApplicationFullPath);
 				}
 			}
 			catch (Exception err) {

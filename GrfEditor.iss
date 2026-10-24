@@ -28,6 +28,7 @@ Type: files; Name: "{app}\gpf.ico"
 Type: files; Name: "{app}\grf.ico"
 Type: files; Name: "{app}\rgz.ico"
 Type: files; Name: "{app}\grfkey.ico"
+Type: files; Name: "{app}\gsf.ico"
 Type: files; Name: "{app}\crash.log"
 Type: files; Name: "{app}\debug.log"
 Type: filesandordirs; Name: "{app}\tmp"
@@ -35,6 +36,7 @@ Type: files; Name: "{userappdata}\GRF Editor\gpf.ico"
 Type: files; Name: "{userappdata}\GRF Editor\grf.ico"
 Type: files; Name: "{userappdata}\GRF Editor\rgz.ico"
 Type: files; Name: "{userappdata}\GRF Editor\grfkey.ico"
+Type: files; Name: "{userappdata}\GRF Editor\gsf.ico"
 Type: files; Name: "{userappdata}\GRF Editor\crash.log"
 Type: files; Name: "{userappdata}\GRF Editor\debug.log"
 Type: filesandordirs; Name: "{userappdata}\GRF Editor\~tmp"
@@ -84,15 +86,18 @@ begin
         RegDeleteKeyIncludingSubkeys(HKCR, 'grfeditor.rgz');
         RegDeleteKeyIncludingSubkeys(HKCR, 'grfeditor.spr');
         RegDeleteKeyIncludingSubkeys(HKCR, 'grfeditor.grfkey');
+		RegDeleteKeyIncludingSubkeys(HKCR, 'grfeditor.gsf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.grf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.gpf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.rgz');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.grfkey');
+		RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.gsf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\.spr');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.grf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.gpf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.rgz');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.grfkey');
+		RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.gsf');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe.spr');
         RegDeleteKeyIncludingSubkeys(HKCU, 'Software\Classes\Applications\GRF Editor.exe');
 

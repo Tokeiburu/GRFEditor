@@ -153,7 +153,7 @@ namespace GRFEditor {
 			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
 
 			WpfUtilities.AddDragDropEffects(_items);
-			WpfUtilities.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf"));
+			WpfUtilities.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf" || p == ".gsf"));
 
 			_grfEntrySorter.SetOrder("DisplayRelativePath", ListSortDirection.Ascending);
 			_grfSearchEntrySorter.SetOrder("RelativePath", ListSortDirection.Ascending);

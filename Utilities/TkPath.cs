@@ -91,7 +91,7 @@ namespace Utilities {
 
 		public bool IsContainer {
 			get {
-				return FilePath.IsExtension(".grf", ".gpf", ".thor", ".rgz");
+				return FilePath.IsExtension(".grf", ".gpf", ".thor", ".rgz", ".gsf");
 			}
 		}
 

@@ -189,7 +189,7 @@ namespace GrfToWpfBridge.MultiGrf {
 
 		public void _menuItemsAdd_Click(object sender, RoutedEventArgs e) {
 			try {
-				string[] paths = TkPathRequest.OpenFiles(Setting, "filter", "Container Files|*.grf;*.gpf;*.thor");
+				string[] paths = TkPathRequest.OpenFiles(Setting, "filter", "Container Files|*.grf;*.gpf;*.thor;*.gsf");
 
 				if (paths != null && paths.Length > 0) {
 					foreach (string file in paths) {
