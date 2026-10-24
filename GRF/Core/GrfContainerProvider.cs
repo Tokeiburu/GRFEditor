@@ -22,6 +22,7 @@ namespace GRF.Core {
 			switch (fileName.GetExtension()) {
 				case ".grf":
 				case ".gpf":
+				case ".gsf":
 					return new Container(fileName, loadData);
 				case ".rgz":
 					using (var file = new Rgz(fileName)) {

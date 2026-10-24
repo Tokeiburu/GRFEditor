@@ -85,9 +85,8 @@ namespace GRF.Threading {
 							}
 
 							try {
-								if (entry.Flags.HasFlag(EntryType.GravityEncryptedFile)) {
+								if (entry.Flags.HasFlag(EntryType.GravityEncryptedFile))
 									dataTmp = entry.DecodeProtectedData(dataTmp);
-								}
 								else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 									dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 								else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)

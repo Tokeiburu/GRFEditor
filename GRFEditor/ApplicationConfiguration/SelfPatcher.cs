@@ -21,6 +21,7 @@ namespace GRFEditor.ApplicationConfiguration {
 		public static readonly SelfPatch Patch0003 = new Patch0003(3);
 		public static readonly SelfPatch Patch0004 = new Patch0004(4);
 		public static readonly SelfPatch Patch0005 = new Patch0005(5);
+		public static readonly SelfPatch Patch0006 = new Patch0006(6);
 
 		static SelfPatcher() {
 			Patches = Patches.OrderBy(p => p.PatchId).ToList();
@@ -61,6 +62,25 @@ namespace GRFEditor.ApplicationConfiguration {
 			}
 			catch {
 			}
+		}
+	}
+
+	public class Patch0006 : SelfPatch {
+		public Patch0006(int patchId)
+			: base(patchId) {
+		}
+
+		public override bool PatchAppliaction() {
+			try {
+				if (GrfEditorConfiguration.GrfFilesAssociated) {
+					FileAssociationHelper.Register(".gsf", "Gravity Secure Patch File", Methods.ApplicationFullPath);
+				}
+			}
+			catch {
+				return false;
+			}
+
+			return true;
 		}
 	}
 

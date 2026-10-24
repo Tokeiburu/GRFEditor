@@ -90,7 +90,7 @@ namespace GRFEditor.WPF {
 					_grfSource.Open(_fileSource);
 				}
 
-				if (_grfSource.Header.FoundErrors) {
+				if (_grfSource.Header.HasErrors) {
 					ErrorHandler.HandleException("The current GRF contains errors and cannot be subtracted.");
 					return;
 				}
@@ -111,7 +111,7 @@ namespace GRFEditor.WPF {
 				return;
 			}
 
-			if (_grfSource.Header.FoundErrors) {
+			if (_grfSource.Header.HasErrors) {
 				ErrorHandler.HandleException("The current GRF contains errors and cannot be subtracted.");
 				return;
 			}
@@ -134,7 +134,7 @@ namespace GRFEditor.WPF {
 				return;
 			}
 
-			if (_grfAdd.Header.FoundErrors) {
+			if (_grfAdd.Header.HasErrors) {
 				ErrorHandler.HandleException("The subtracting GRF contains errors and cannot be merged.");
 				return;
 			}

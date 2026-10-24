@@ -52,7 +52,11 @@ namespace GRF.Core.GrfWriters {
 		public void CompleteTier() {
 			_totalProcessed += _weights[_currentTier];
 			_currentTier++;
-			_progressObject.Progress = (float)Math.Min(99.99f, 100.0f * _totalProcessed / _totalWeight);
+
+			if (_totalWeight == 0)
+				_progressObject.Progress = -1;
+			else
+				_progressObject.Progress = (float)Math.Min(99.99f, 100.0f * _totalProcessed / Math.Max(1, _totalWeight));
 		}
 
 		public void SetTierProgress(int currentCount) {
@@ -60,7 +64,10 @@ namespace GRF.Core.GrfWriters {
 		}
 
 		public void SetTierProgress(float progress) {
-			_progressObject.Progress = (float)Math.Min(99.99f, (progress * _weights[_currentTier] + _totalProcessed) / _totalWeight * 100.0f);
+			if (_totalWeight == 0)
+				_progressObject.Progress = -1;
+			else
+				_progressObject.Progress = (float)Math.Min(99.99f, (progress * _weights[_currentTier] + _totalProcessed) / Math.Max(1, _totalWeight) * 100.0f);
 		}
 
 		public void SetSpecialState(int value) {

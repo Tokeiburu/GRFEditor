@@ -731,7 +731,7 @@ namespace GRFEditor {
 
 			_miTreeEncryption.SubmenuOpened += delegate {
 				if (_grfHolder != null)
-					_miDecryptFileTable.Visibility = _grfHolder.Header.FoundErrors ? Visibility.Visible : Visibility.Collapsed;
+					_miDecryptFileTable.Visibility = _grfHolder.Header.HasErrors ? Visibility.Visible : Visibility.Collapsed;
 			};
 		}
 

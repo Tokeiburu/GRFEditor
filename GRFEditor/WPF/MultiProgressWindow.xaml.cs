@@ -400,7 +400,7 @@ namespace GRFEditor.WPF {
 				ApplicationManager.Shutdown();
 
 			if (_grf.IsOpened) {
-				if (_grf.Header.FoundErrors) {
+				if (_grf.Header.HasErrors) {
 					ErrorHandler.HandleException("Couldn't load the container properly. The current command cannot execute.");
 					ApplicationManager.Shutdown();
 				}

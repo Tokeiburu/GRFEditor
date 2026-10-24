@@ -3,6 +3,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Threading;
 using System.Windows;
+using ErrorManager;
+using GRF.ContainerFormat;
 using GRF.Core;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
@@ -88,7 +90,7 @@ namespace GRFEditor.WPF {
 					_grfSource.Open(_fileSource);
 				}
 
-				if (_grfSource.Header.FoundErrors) {
+				if (_grfSource.Header.HasErrors) {
 					WindowProvider.ShowDialog("The current GRF contains errors and cannot be merged.");
 					return;
 				}
@@ -104,7 +106,7 @@ namespace GRFEditor.WPF {
 				return;
 			}
 
-			if (_grfSource.Header.FoundErrors) {
+			if (_grfSource.Header.HasErrors) {
 				WindowProvider.ShowDialog("The current GRF contains errors and cannot be merged.");
 				return;
 			}
@@ -127,7 +129,7 @@ namespace GRFEditor.WPF {
 				return;
 			}
 
-			if (_grfAdd.Header.FoundErrors) {
+			if (_grfAdd.Header.HasErrors) {
 				WindowProvider.ShowDialog("The added GRF contains errors and cannot be merged.");
 				return;
 			}
@@ -140,24 +142,39 @@ namespace GRFEditor.WPF {
 			_buttonOK.Dispatch(p => p.IsEnabled = false);
 			_pathBrowserNewGrf.Dispatch(p => p.IsEnabled = false);
 			_pathBrowserOldGrf.Dispatch(p => p.IsEnabled = false);
-			_asyncOperation.SetAndRunOperation(new GrfThread(() => _grfSource.Merge(_grfAdd), _grfSource, _grfSource), _syncFinished);
+
+			ContainerSaveResult result = null;
+			_asyncOperation.SetAndRunOperation(new GrfThread(() => result = _grfSource.Merge(_grfAdd), _grfSource, _grfSource), source => _syncFinished(source, result));
 		}
 
-		private void _syncFinished(object grfSource) {
+		private void _syncFinished(object grfSource, ContainerSaveResult result) {
 			_pathBrowserNewGrf.Dispatch(p => p.IsEnabled = true);
 			_pathBrowserOldGrf.Dispatch(p => p.IsEnabled = true);
 			_buttonOK.Dispatch(p => p.IsEnabled = true);
+
+			if (result == null)
+				return;
+
+			if (!result.Success) {
+				if (result.Error != null)
+					ErrorHandler.HandleException(result.Error);
+				if (result.RequiresReload && _fileNameOriginal == _grfSource.FileName)
+					_editor.Load(result.NewFileName, _grfSource.Header.EncryptionKey);
+				if (result.IsCancelled)
+					return;
+				return;
+			}
 
 			if (_fileNameOriginal == _grfSource.FileName) {
 				_editor.Load(_fileNameOriginal);
 
 				// This is necessary because the encrypted GRFs add commands
-				((GrfHolder)grfSource).Commands.ClearCommands();
+				_grfSource.Commands.ClearCommands();
 			}
 			else {
 				// This is necessary because the encrypted GRFs add commands
-				((GrfHolder)grfSource).Commands.ClearCommands();
-				((GrfHolder)grfSource).Close();
+				_grfSource.Commands.ClearCommands();
+				_grfSource.Close();
 			}
 		}
 

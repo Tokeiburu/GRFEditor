@@ -78,12 +78,13 @@ namespace GRF.ContainerFormat {
 		public static readonly FormattedExceptionMessage __CorruptedOrEncryptedEntry = "Failed to decompress data. The following entry is either corrupted or encrypted: \r\n{0}";
 		public static readonly FormattedExceptionMessage __GrfSizeLimitReached = "Failed to save the GRF, size limit reached (4,294,967,295 bytes).";
 		public static readonly FormattedExceptionMessage __InvalidSprConvertMode = "Unexpected SprConvertMode for this function.";
-		public static readonly FormattedExceptionMessage __GravityEncryptedFile = "The file '{0}' is using a new encryption method by Gravity which is not supported.";
+		public static readonly FormattedExceptionMessage __GravityEncryptedFile = "The file '{0}' is using a new encryption method by Gravity which is not supported.\r\n{1}";
 		public static readonly FormattedExceptionMessage __ThorFileDeleted = "The file '{0}' is a special GRF entry used by patchers to signal its deletion. It has no content.";
 		public static readonly FormattedExceptionMessage __SprSizeLimitReached = "Image [index: {2}, {0}x{1}] has too many pixels (max: {3}), the limit is 65536. Consider converting the image to Bgra32 (no size limit).";
 		public static readonly FormattedExceptionMessage __SprRleBufferOverflowException = "Buffer overflow while executing the Rle compression or decompressing.";
 		public static readonly FormattedExceptionMessage __UnsupportedEncryptionOperation = "The encryption operation is incompatible with the version used on this GRF.";
 		public static readonly FormattedExceptionMessage __UnsupportedEncryptionVersion = "GRF encryption can only be used for THOR, GRF and GPF files which use the 0x200 or 0x300 format.";
+		public static readonly FormattedExceptionMessage __InvalidGrfDecoder = "Invalid or unsupported GRF encryption.";
 
 		internal static void IfNullThrow(object value, string name) {
 			if (value == null)
@@ -191,6 +192,10 @@ namespace GRF.ContainerFormat {
 		private readonly FormattedExceptionMessage _format;
 
 		public GrfException(FormattedExceptionMessage format, string message) : base(message) {
+			_format = format;
+		}
+
+		public GrfException(FormattedExceptionMessage format, string message, Exception innerException) : base(message, innerException) {
 			_format = format;
 		}
 

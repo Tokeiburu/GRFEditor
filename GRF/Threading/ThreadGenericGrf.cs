@@ -73,27 +73,24 @@ namespace GRF.Threading {
 							entry.Align(data, (int) entry.TemporaryOffset, out dataTmp);
 
 							try {
-								if (entry.GravityEncrypted) {
-									dataTmp = entry.DecodeProtectedData(dataTmp);
+								try {
+									if (entry.GravityEncrypted)
+										dataTmp = entry.DecodeProtectedData(dataTmp);
+									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
+										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
+									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
+										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
+									else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
+										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
+									else
+										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
 								}
-								else {
+								catch {
 									try {
-										if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-											dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-										else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-											dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-										else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-											dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
-										else
-											dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+										dataTmp = Compression.DecompressZlib(dataTmp, entry.SizeDecompressed);
 									}
 									catch {
-										try {
-											dataTmp = Compression.DecompressZlib(dataTmp, entry.SizeDecompressed);
-										}
-										catch {
-											// Do nothing, leave it as is
-										}
+										// Do nothing, leave it as is
 									}
 								}
 

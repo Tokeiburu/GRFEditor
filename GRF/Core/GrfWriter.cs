@@ -193,7 +193,10 @@ namespace GRF.Core {
 
 			foreach (var entry in sortedEntries) {
 				if (entry.Modification.HasFlag(Modification.GrfMerge)) {
-					mergeEntries.Add(entry);
+					if (entry.GravityEncrypted)
+						addedEntries.Add(entry);
+					else
+						mergeEntries.Add(entry);
 				}
 				else if (entry.Modification.HasFlag(Modification.Added)) {
 					addedEntries.Add(entry);

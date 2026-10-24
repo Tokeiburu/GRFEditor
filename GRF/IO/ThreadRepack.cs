@@ -73,7 +73,7 @@ namespace GRF.IO {
 
 								try {
 									if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile)
-										compress = false;
+										dataTmp = AttemptProtectedGrfDecode(entry, dataTmp, ref compress);
 									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
@@ -116,7 +116,7 @@ namespace GRF.IO {
 
 									try {
 										if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile)
-											compress = false;
+											dataTmp = AttemptProtectedGrfDecode(entry, dataTmp, ref compress);
 										else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
 											dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
 										else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
@@ -179,6 +179,24 @@ namespace GRF.IO {
 			finally {
 				Terminated = true;
 			}
+		}
+
+		private byte[] AttemptProtectedGrfDecode(FileEntry entry, byte[] dataTmp, ref bool compress) {
+			if (entry.Header.ProtectedKeys.Count == 0) {
+				compress = false;
+			}
+			else {
+				try {
+					var data = entry.DecodeProtectedData(dataTmp);
+					entry.Flags &= ~EntryType.GravityEncryptedFile;
+					return data;
+				}
+				catch {
+					compress = false;
+				}
+			}
+
+			return dataTmp;
 		}
 	}
 }

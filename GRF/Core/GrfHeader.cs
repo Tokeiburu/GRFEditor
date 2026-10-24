@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Text;
+using ErrorManager;
 using GRF.ContainerFormat;
 using GRF.FileFormats;
 using GRF.IO;
@@ -12,7 +14,7 @@ using Utilities.Tools;
 namespace GRF.Core {
 	public class GrfHeader : FileHeader {
 		public const int DataByteSize = 46;
-		private readonly List<string> _errors = new List<string>();
+		private readonly List<GrfLoadError> _errors = new List<GrfLoadError>();
 		private object _errorLock = new object();
 
 		internal GrfHeader(ByteReaderStream reader, Container container) {
@@ -94,9 +96,11 @@ namespace GRF.Core {
 		public bool EncryptFileTable { get; private set; }
 		public bool DecryptFileTable { get; internal set; }
 		internal Container Container { get; private set; }
+		public ThorSettings ThorSettings = new ThorSettings();
+
+		// Gravity Encryption data
 		internal byte[] ProtectedKeyBlock = new byte[0];
 		internal IDictionary<uint, byte[]> ProtectedKeys = new Dictionary<uint, byte[]>();
-		public ThorSettings ThorSettings = new ThorSettings();
 
 		public string Key { get; set; }
 		public long FileTableOffset { get; set; }
@@ -110,8 +114,12 @@ namespace GRF.Core {
 		/// </summary>
 		public bool IsEncrypted { get; set; }
 
-		public bool FoundErrors {
-			get { return _errors.Count > 0; }
+		public bool HasErrors {
+			get { return _errors.Any(p => p.Severity == ErrorLevel.Critical); }
+		}
+
+		public bool HasWarnings {
+			get { return _errors.All(p => p.Severity == ErrorLevel.Warning); }
 		}
 
 		/// <summary>
@@ -138,7 +146,7 @@ namespace GRF.Core {
 		
 		internal uint EncryptionHashValue;
 
-		public ReadOnlyCollection<string> Errors {
+		public ReadOnlyCollection<GrfLoadError> Errors {
 			get { return _errors.AsReadOnly(); }
 		}
 
@@ -164,7 +172,13 @@ namespace GRF.Core {
 
 		internal void SetError(string error, params object[] args) {
 			lock (_errorLock) {
-				_errors.Add(String.Format(error, args));
+				_errors.Add(new GrfLoadError(String.Format(error, args)));
+			}
+		}
+
+		internal void SetError(string error, ErrorLevel severity, params object[] args) {
+			lock (_errorLock) {
+				_errors.Add(new GrfLoadError(String.Format(error, args), severity));
 			}
 		}
 

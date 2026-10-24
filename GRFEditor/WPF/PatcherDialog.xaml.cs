@@ -63,12 +63,12 @@ namespace GRFEditor.WPF {
 			_newerGrf.Close();
 			_newerGrf.Open(_fileNewer);
 
-			if (_olderGrf.Header.FoundErrors) {
+			if (_olderGrf.Header.HasErrors) {
 				ErrorHandler.HandleException("The older GRF contains errors and cannot be used to make a patch.");
 				return;
 			}
 
-			if (_newerGrf.Header.FoundErrors) {
+			if (_newerGrf.Header.HasErrors) {
 				ErrorHandler.HandleException("The newer GRF contains errors and cannot be used to make a patch.");
 				return;
 			}

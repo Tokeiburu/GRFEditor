@@ -480,3 +480,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+/*.diff
+/GRFApplicationValidator
+/GRF/Patcher
+/Encryption
+/Libraries/update libraries.bat

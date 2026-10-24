@@ -21,6 +21,7 @@ namespace TokeiLibrary.WPF.Styles {
 		public enum ProgressStatus {
 			Finished,
 			ErrorsDetected,
+			Warning,
 			FileLoaded,
 			Cancelling
 		}
@@ -263,6 +264,12 @@ namespace TokeiLibrary.WPF.Styles {
 						IsIndeterminate = false;
 						ForegroundColor = NormalBrush;
 						Display = "Finished";
+						break;
+					case ProgressStatus.Warning:
+						IsIndeterminate = false;
+						ForegroundColor = NormalBrush;
+						Display = "Finished";
+						_buttonError.Visibility = Visibility.Visible;
 						break;
 					case ProgressStatus.ErrorsDetected:
 						IsIndeterminate = false;

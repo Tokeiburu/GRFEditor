@@ -72,7 +72,7 @@ namespace GRF.Hash {
 			foreach (string file in Directory.GetFiles(folder, searchPattern, SearchOption.AllDirectories)) {
 				string relativePath = file.Substring(folder.Length + 1);
 
-				if (file.IsExtension(".grf", ".rgz", ".gpf", ".thor")) {
+				if (file.IsExtension(".grf", ".rgz", ".gpf", ".thor", ".gsf")) {
 					using (var container = new GrfHolder(file, GrfLoadOptions.Normal)) {
 						GrfThreadPool<FileEntry> threadPool = new GrfThreadPool<FileEntry>();
 						threadPool.Initialize<ThreadScanGrf>(container.Container, container.FileTable.Entries);

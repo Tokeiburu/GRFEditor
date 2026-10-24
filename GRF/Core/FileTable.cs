@@ -9,6 +9,7 @@ using GRF.ContainerFormat;
 using GRF.IO;
 using Utilities;
 using Utilities.Services;
+using ErrorManager;
 
 namespace GRF.Core {
 	public class FileTable : ContainerTable<FileEntry> {
@@ -141,7 +142,7 @@ namespace GRF.Core {
 		private void _load100(ByteReaderStream grfStream) {
 			FileEntry fileEntry;
 
-			int fileListSize = grfStream.Length - grfStream.Position;
+			int fileListSize = (int)(grfStream.Length - grfStream.Position);
 			byte[] fileListData = grfStream.Bytes(fileListSize);
 
 			EntryType entryType;
@@ -306,13 +307,21 @@ namespace GRF.Core {
 			TableSizeCompressed = grfStream.Int32();
 			TableSize = grfStream.Int32();
 			long tablePosition = grfStream.PositionLong;
-			if (keyBlockSize > 20 + 65535 * 64 || TableSizeCompressed < 0 || TableSize < 0 ||
-			    tablePosition > grfStream.LengthLong - TableSizeCompressed - keyBlockSize)
-				throw new InvalidDataException("Invalid protected GRF key block or file table bounds.");
-			if (keyBlockSize != 0) {
-				grfStream.PositionLong = tablePosition + TableSizeCompressed;
-				_header.ProtectedKeyBlock = grfStream.Bytes((int)keyBlockSize);
-				_header.ProtectedKeys = ProtectedGrfDecoder.DecodeArchiveKeys(_header.ProtectedKeyBlock);
+
+			try {
+				if (keyBlockSize > 20 + 65535 * 64 || TableSizeCompressed < 0 || TableSize < 0 ||
+					tablePosition > grfStream.LengthLong - TableSizeCompressed - keyBlockSize)
+					throw new InvalidDataException("Invalid protected GRF key block or file table bounds.");
+				if (keyBlockSize != 0) {
+					grfStream.PositionLong = tablePosition + TableSizeCompressed;
+					_header.ProtectedKeyBlock = grfStream.Bytes((int)keyBlockSize);
+					_header.ProtectedKeys = ProtectedGrfDecoder.DecodeArchiveKeys(_header.ProtectedKeyBlock);
+					grfStream.PositionLong = tablePosition;
+				}
+			}
+			catch {
+				// An invalid or unsupported key block should not prevent reading the GRF, ignore the error for now.
+				_header.SetError(GrfStrings.FailedGravityEncryptionKeys, ErrorLevel.Warning);
 				grfStream.PositionLong = tablePosition;
 			}
 
@@ -410,13 +419,13 @@ namespace GRF.Core {
 						}
 					}
 
-					if (header.IsCompatibleWith(3, 0)) {
+					if (header.IsCompatibleWith(3, 0))
 						grfStream.Write(BitConverter.GetBytes(header.ProtectedKeyBlock.Length), 0, 4);
-					}
 
 					grfStream.Write(BitConverter.GetBytes(TableSizeCompressed), 0, 4);
 					grfStream.Write(BitConverter.GetBytes(TableSize), 0, 4);
 					grfStream.Write(dataCompressed, 0, dataCompressed.Length);
+					
 					if (header.IsCompatibleWith(3, 0))
 						grfStream.Write(header.ProtectedKeyBlock, 0, header.ProtectedKeyBlock.Length);
 				}

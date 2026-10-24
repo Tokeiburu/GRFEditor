@@ -17,16 +17,12 @@ namespace GRF.ContainerFormat {
 		/// <summary>
 		/// Gets a value indicating whether this entry has been removed.
 		/// </summary>
-		public bool IsRemoved {
-			get { return (Modification & Modification.Removed) == Modification.Removed; }
-		}
+		public bool IsRemoved => (Modification & Modification.Removed) == Modification.Removed;
 
 		/// <summary>
 		/// Gets a value indicating whether this instance has been added.
 		/// </summary>
-		public bool IsAdded {
-			get { return (Modification & Modification.Added) == Modification.Added; }
-		}
+		public bool IsAdded => (Modification & Modification.Added) == Modification.Added;
 
 		#endregion
 

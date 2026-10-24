@@ -19,12 +19,17 @@ set c=%c% -gzip "ColorPicker.dll" "Compressed\ColorPicker.dll"
 set c=%c% -gzip "GrfToWpfBridge.dll" "Compressed\GrfToWpfBridge.dll"
 set c=%c% -gzip "OpenTK.dll" "Compressed\OpenTK.dll"
 set c=%c% -gzip "OpenTK.GLControl.dll" "Compressed\OpenTK.GLControl.dll"
+set c=%c% -gzip "K4os.Compression.LZ4.dll" "Compressed\K4os.Compression.LZ4.dll"
+set c=%c% -gzip "System.IO.Hashing.dll" "Compressed\System.IO.Hashing.dll"
+set c=%c% -gzip "System.Memory.dll" "Compressed\System.Memory.dll"
+set c=%c% -gzip "System.Runtime.CompilerServices.Unsafe.dll" "Compressed\System.Runtime.CompilerServices.Unsafe.dll"
 set c=%c% -gzip "gpf.ico" "Compressed\gpf.ico"
 set c=%c% -gzip "grf.ico" "Compressed\grf.ico"
 set c=%c% -gzip "rgz.ico" "Compressed\rgz.ico"
 set c=%c% -gzip "spr.ico" "Compressed\spr.ico"
 set c=%c% -gzip "grfkey.ico" "Compressed\grfkey.ico"
 set c=%c% -gzip "default.pal" "Compressed\default.pal"
+set c=%c% -gzip "gsf.ico" "Compressed\gsf.ico"
 
 
 :PROGRAM

@@ -4,12 +4,13 @@ using Utilities;
 
 namespace GRF.FileFormats {
 	public sealed class FileFormat {
-		public static FileFormat AllContainers = new FileFormat(".grf;.rgz;.gpf;.thor", "Container");
+		public static FileFormat AllContainers = new FileFormat(".grf;.rgz;.gpf;.thor;.gsf", "Container");
 		public static FileFormat Act = new FileFormat(".act", "Animation");
 		public static FileFormat Pal = new FileFormat(".pal", "Palette");
 		public static FileFormat Ebm = new FileFormat(".ebm", "Emblem");
 		public static FileFormat Grf = new FileFormat(".grf", "Gravity Resource");
 		public static FileFormat Gpf = new FileFormat(".gpf", "Gravity Patch");
+		public static FileFormat Gsf = new FileFormat(".gsf", "Gravity Secure Patch");
 		public static FileFormat Rgz = new FileFormat(".rgz", "Ragnarok Gzip");
 		public static FileFormat Cde = new FileFormat(".cde", "Client Database Editor");
 		public static FileFormat Sde = new FileFormat(".sde", "Server Database Editor");

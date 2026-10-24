@@ -48,16 +48,34 @@ namespace GRF.Threading {
 							return;
 
 						entry = _entries[i];
-						buffer = new byte[entry.NewSizeDecompressed];
-						if (entry.SourceFilePath == GrfStrings.DataStreamId) {
+
+						if (entry.SourceFilePath == null && entry.GravityEncrypted) {
+							byte[] data;
+							
+							try {
+								data = entry.GetDecompressedData();
+								entry.NewSizeDecompressed = data.Length;
+							}
+							catch {
+								_numberOfFilesProcessed++;
+								NumberOfFilesProcessed = _numberOfFilesProcessed / 2;
+								continue;
+							}
+
+							outPutFile.Write(data, 0, data.Length);
+						}
+						else if (entry.SourceFilePath == GrfStrings.DataStreamId) {
 							outPutFile.Write(entry.RawDataSource.Data, 0, entry.RawDataSource.Data.Length);
 						}
 						else {
+							buffer = new byte[entry.NewSizeDecompressed];
+
 							using (FileStream inputTempFile = new FileStream(entry.SourceFilePath, FileMode.Open, FileAccess.Read)) {
 								while ((bytesRead = inputTempFile.Read(buffer, 0, entry.NewSizeDecompressed)) > 0)
 									outPutFile.Write(buffer, 0, bytesRead);
 							}
 						}
+
 						_numberOfFilesProcessed++;
 						NumberOfFilesProcessed = _numberOfFilesProcessed / 2;
 					}

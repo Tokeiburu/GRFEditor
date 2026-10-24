@@ -1102,6 +1102,35 @@
   <ItemGroup>
     <EmbeddedResource Include="Files\binkw64.dll" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\gsf.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\gsf.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\gsf-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\K4os.Compression.LZ4.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\K4os.Compression.LZ4.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\System.IO.Hashing.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\System.IO.Hashing.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\System.Memory.dll" />
+    <None Include="Files\System.Runtime.CompilerServices.Unsafe.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\System.Memory.dll" />
+    <EmbeddedResource Include="Files\Compressed\System.Runtime.CompilerServices.Unsafe.dll" />
+  </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />
     <Copy SourceFiles="@(EmbeddedDlls)" DestinationFolder="$(EmbeddedDllsPath)" SkipUnchangedFiles="true" Condition="Exists('$(ExternalDllsPath)')" />

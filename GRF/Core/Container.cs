@@ -211,13 +211,16 @@ namespace GRF.Core {
 				GrfExceptions.IfTrueThrowContainerSaving(IsBusy);
 				GrfExceptions.IfEncryptionCheckFlagThrow(this);
 				string ext = (fileName ?? FileName).GetExtension();
-				bool hasProtectedEntries = Table.Entries.Any(p => p.GravityEncrypted && !p.Modification.HasFlags(Modification.Removed));
-				if (hasProtectedEntries && ((ext != ".grf" && ext != ".gpf") || mode == SavingMode.Thor || mode == SavingMode.Rgz || mode == SavingMode.RepackSource))
+				bool hasProtectedEntries = Table.Entries.Any(p => p.GravityEncrypted && !p.Removed);
+				
+				if (hasProtectedEntries && (mode == SavingMode.Thor || mode == SavingMode.Rgz || mode == SavingMode.RepackSource))
 					throw new InvalidOperationException("Protected entries can only be saved in their original version 3 GRF format. Extract the content before converting the archive.");
+				
 				foreach (FileEntry entry in Table.Entries)
 					entry.ValidateProtectedSave(InternalHeader);
-				if (mergeGrf != null && mergeGrf.Table.Entries.Any(p => p.GravityEncrypted))
-					throw new InvalidOperationException("Extract protected content before merging it into another archive.");
+
+				if (mergeGrf != null && mergeGrf.Table.Entries.Any(p => p.GravityEncrypted) && mergeGrf.InternalHeader.ProtectedKeys.Count == 0)
+					throw new InvalidOperationException("Cannot merge a protected GRF that has an invalid or unknown key. Decrypt its content before attempting to merge.");
 
 				switch (mode) {
 					case SavingMode.FileCopy:
@@ -270,6 +273,7 @@ namespace GRF.Core {
 			}
 			catch (Exception err) {
 				result.Fail(err);
+				AProgress.Finalize(this);
 			}
 
 			result.Completed = true;
@@ -283,7 +287,7 @@ namespace GRF.Core {
 			try {
 				// Validation before saving
 				if (fileName.GetExtension() == null && mode != SavingMode.FileEdit)
-					throw new InvalidOperationException("The file name must end with : .grf | .gpf | .rgz");
+					throw new InvalidOperationException("The file name must end with: .grf | .gpf | .rgz");
 				if (_headerCheckFailed()) {
 					result.Cancelled();
 					return;
@@ -480,6 +484,9 @@ namespace GRF.Core {
 			string targetFilePath = fileName;
 			string sourceFilePath = FileName;
 
+			if (sourceFilePath != targetFilePath)
+				result.RequiresReload = true;
+
 			try {
 				if (fileCopy) {
 					// Make a file copy first before overwriting the current file
@@ -661,7 +668,7 @@ namespace GRF.Core {
 		}
 
 		private bool _headerCheckFailed() {
-			if (InternalHeader.FoundErrors) {
+			if (InternalHeader.HasErrors) {
 				if (ErrorHandler.YesNoRequest(GrfStrings.GrfContainsErrors, GrfStrings.GrfDataIntegrity) == false) {
 					return true;
 				}

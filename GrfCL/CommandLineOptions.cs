@@ -486,7 +486,7 @@ namespace GrfCL {
 			if (grf.IsClosed)
 				throw new Exception("The GRF hasn't been opened yet. Use \"-open C:\\example.grf\" as the first option.");
 
-			if (grf.Header == null || grf.Header.FoundErrors) {
+			if (grf.Header == null || grf.Header.HasErrors) {
 				grf.Close();
 				throw new Exception("The GRF contains error and it has been closed.");
 			}
