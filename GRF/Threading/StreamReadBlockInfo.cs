@@ -60,10 +60,6 @@ namespace GRF.Threading {
 			for (int i = indexFrom; i < indexTo; i++) {
 				entry = entries[i];
 
-				//if (entry.SizeCompressedAlignment != Methods.Align(entry.SizeCompressedAlignment)) {
-				//	Z.F();
-				//}
-
 				entry.TemporarySizeCompressedAlignment = Methods.Align(entry.SizeCompressedAlignment);
 
 				// No more space available in the buffer

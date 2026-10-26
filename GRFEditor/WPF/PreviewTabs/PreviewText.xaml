@@ -6,7 +6,7 @@
              xmlns:avalonedit="http://icsharpcode.net/sharpdevelop/avalonedit" xmlns:WPF="clr-namespace:GRFEditor.WPF"
              xmlns:PreviewTabs="clr-namespace:GrfToWpfBridge.PreviewTabs;assembly=GrfToWpfBridge"
              xmlns:Styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
-             xmlns:avalon="clr-namespace:GRFEditor.Core.Avalon"
+             xmlns:avalon="clr-namespace:WpfAvalonUtility;assembly=WpfAvalonUtility"
              mc:Ignorable="d" 
              d:DesignHeight="300" d:DesignWidth="300" Foreground="{DynamicResource TextForeground}">
     <Grid>

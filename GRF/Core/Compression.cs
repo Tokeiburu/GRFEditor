@@ -143,7 +143,5 @@ namespace GRF.Core {
 
 			return arrCompressed;
 		}
-
-		
 	}
 }

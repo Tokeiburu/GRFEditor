@@ -33,6 +33,10 @@
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup>
+    <LibDir>$(SolutionDir)..\..\tktoolsuite\Libraries\</LibDir>
+    <LibDir Condition="!Exists('$(LibDir)')">$(SolutionDir)Libraries\</LibDir>
+  </PropertyGroup>
+  <PropertyGroup>
     <StartupObject>GRFEditor.GRFEditorMain</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
@@ -77,10 +81,9 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="ApplicationConfiguration\EditorPosition.cs" />
+    <Compile Include="ApplicationConfiguration\GrfEditorCommands.cs" />
     <Compile Include="ApplicationConfiguration\PathRequest.cs" />
     <Compile Include="ApplicationConfiguration\SelfPatcher.cs" />
-    <Compile Include="Core\Avalon\AvalonDefaultLoading.cs" />
-    <Compile Include="Core\Avalon\RegexSearchStrategy.cs" />
     <Compile Include="Core\KnownPositionComponent.cs" />
     <Compile Include="Core\AsyncOperationReturnState.cs" />
     <Compile Include="ApplicationConfiguration\GrfEditorConfiguration.cs" />
@@ -280,7 +283,6 @@
       <DependentUpon>PatcherDialog.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\Avalon\AvalonLoader.cs" />
     <Compile Include="WPF\PreviewTabs\DecompilerSettings.xaml.cs">
       <DependentUpon>DecompilerSettings.xaml</DependentUpon>
     </Compile>
@@ -343,9 +345,6 @@
     </Compile>
     <Compile Include="WPF\QuickPreview.xaml.cs">
       <DependentUpon>QuickPreview.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="WPF\SearchPanel.xaml.cs">
-      <DependentUpon>SearchPanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="WPF\SettingsDialog.xaml.cs">
       <DependentUpon>SettingsDialog.xaml</DependentUpon>
@@ -603,10 +602,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WPF\SearchPanel.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="WPF\SettingsDialog.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -659,18 +654,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
-    <None Include="Files\ActImaging.dll" />
     <None Include="Files\default.pal" />
-    <EmbeddedResource Include="Files\Encryption.dll" />
-    <None Include="Files\Gif.Components.dll" />
     <None Include="Files\gpf.ico" />
-    <None Include="Files\GRF.dll" />
     <None Include="Files\grf.ico" />
     <None Include="Files\grfkey.ico" />
-    <None Include="Files\ICSharpCode.AvalonEdit.dll" />
     <None Include="Files\rgz.ico" />
-    <None Include="Files\TokeiLibrary.dll" />
-    <None Include="Files\Utilities.dll" />
     <EmbeddedResource Include="Resources\add.ico" />
     <Resource Include="Resources\add.png" />
     <Resource Include="Resources\app.ico" />
@@ -797,10 +785,6 @@
     <EmbeddedResource Include="Resources\cde.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\Database.dll" />
-    <None Include="Files\Lua.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\tree.png" />
   </ItemGroup>
   <ItemGroup>
@@ -825,9 +809,6 @@
     <EmbeddedResource Include="Files\Compressed\Be.Windows.Forms.HexBox.dll" />
     <EmbeddedResource Include="Files\Compressed\Gif.Components.dll" />
     <EmbeddedResource Include="Files\Compressed\ICSharpCode.AvalonEdit.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\Be.Windows.Forms.HexBox.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\ActImaging.dll" />
@@ -861,9 +842,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\cw.bmp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\System.Threading.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\validity.ico" />
@@ -962,41 +940,37 @@
     <Resource Include="Resources\line.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\OpenTK.dll" />
-    <None Include="Files\OpenTK.GLControl.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\OpenTK.dll" />
     <EmbeddedResource Include="Files\Compressed\OpenTK.GLControl.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ActImaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)Libraries\ActImaging.dll</HintPath>
+      <HintPath>$(LibDir)ActImaging.dll</HintPath>
     </Reference>
     <Reference Include="Be.Windows.Forms.HexBox, Version=1.5.0.34411, Culture=neutral, PublicKeyToken=e0e5adf0ebc99863, processorArchitecture=MSIL" />
     <Reference Include="ColorPicker, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)Libraries\ColorPicker.dll</HintPath>
+      <HintPath>$(LibDir)ColorPicker.dll</HintPath>
     </Reference>
     <Reference Include="Encryption">
-      <HintPath>$(SolutionDir)Libraries\Encryption.dll</HintPath>
+      <HintPath>$(LibDir)Encryption.dll</HintPath>
     </Reference>
     <Reference Include="ErrorManager">
-      <HintPath>$(SolutionDir)Libraries\ErrorManager.dll</HintPath>
+      <HintPath>$(LibDir)ErrorManager.dll</HintPath>
     </Reference>
     <Reference Include="ICSharpCode.AvalonEdit, Version=4.3.1.9429, Culture=neutral, PublicKeyToken=9cc39be672370310, processorArchitecture=MSIL">
-      <HintPath>$(SolutionDir)Libraries\ICSharpCode.AvalonEdit.dll</HintPath>
+      <HintPath>$(LibDir)ICSharpCode.AvalonEdit.dll</HintPath>
     </Reference>
     <Reference Include="Lua, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)Libraries\Lua.dll</HintPath>
+      <HintPath>$(LibDir)Lua.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)Libraries\OpenTK\OpenTK.dll</HintPath>
+      <HintPath>$(LibDir)OpenTK3.3\OpenTK.dll</HintPath>
     </Reference>
     <Reference Include="OpenTK.GLControl, Version=2.0.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SolutionDir)Libraries\OpenTK\OpenTK.GLControl.dll</HintPath>
+      <HintPath>$(LibDir)OpenTK\OpenTK.GLControl.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -1010,9 +984,9 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
     <Reference Include="WindowsFormsIntegration" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\ErrorManager.dll" />
+    <Reference Include="WpfAvalonUtility">
+      <HintPath>$(LibDir)WpfAvalonUtility.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\GrfToWpfBridge\GrfToWpfBridge.csproj">
@@ -1048,10 +1022,35 @@
   <ItemGroup>
     <Resource Include="Resources\gat.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\stop2.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Files\gsf.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\gsf.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\gsf-16.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\K4os.Compression.LZ4.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\System.IO.Hashing.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\System.Memory.dll" />
+    <EmbeddedResource Include="Files\Compressed\System.Runtime.CompilerServices.Unsafe.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\Compressed\WpfAvalonUtility.dll" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
+      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
@@ -1073,6 +1072,7 @@
     <ExternalDlls Include="$(ExternalDllsPath)Be.Windows.Forms.HexBox.dll" Visible="false" />
     <ExternalDlls Include="$(ExternalDllsPath)Gif.Components.dll" Visible="false" />
     <ExternalDlls Include="$(ExternalDllsPath)ICSharpCode.AvalonEdit.dll" Visible="false" />
+    <ExternalDlls Include="$(ExternalDllsPath)WpfAvalonUtility.dll" Visible="false" />
   </ItemGroup>
   <Target Name="CopyExternalDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(GrfEditorDllsPath)" Condition="!Exists('$(GrfEditorDllsPath)')" />
@@ -1086,50 +1086,13 @@
     <EmbeddedDlls Include="$(GrfEditorDllsPath)GRF.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)GrfToWpfBridge.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)ICSharpCode.AvalonEdit.dll" Visible="false" />
+    <EmbeddedDlls Include="$(GrfEditorDllsPath)WpfAvalonUtility.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)Lua.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)OpenTK.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)OpenTK.GLControl.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)TokeiLibrary.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)Utilities.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)ErrorManager.dll" Visible="false" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\cps.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\stop2.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\binkw64.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\gsf.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\gsf.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\gsf-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\K4os.Compression.LZ4.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\K4os.Compression.LZ4.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\System.IO.Hashing.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\System.IO.Hashing.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Files\System.Memory.dll" />
-    <None Include="Files\System.Runtime.CompilerServices.Unsafe.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\System.Memory.dll" />
-    <EmbeddedResource Include="Files\Compressed\System.Runtime.CompilerServices.Unsafe.dll" />
   </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />

@@ -813,6 +813,23 @@ namespace GRF.ContainerFormat.Commands {
 		}
 
 		/// <summary>
+		/// Decrypts Gravity encrypted GRF files.
+		/// </summary>
+		/// <param name="grfFiles">The GRF files.</param>
+		/// <param name="callback">The callback.</param>
+		public void GravityDecryptFiles(IEnumerable<string> grfFiles, CCallbacks.EncryptFilesCallback callback = null) {
+			GrfExceptions.IfSavingThrow(_container);
+			GrfExceptions.IfNullThrow(grfFiles, "grfFiles");
+
+			List<string> files = grfFiles.ToList();
+
+			if (files.Count == 0)
+				return;
+
+			StoreAndExecute(new GravityDecryptFiles<TEntry>(files, callback));
+		}
+
+		/// <summary>
 		/// Sets the AbstractCommand object in the edit mode.<para></para>
 		/// All following commands will be grouped.<para></para>
 		/// Commands will be delayed (they will not be applied until End is called).

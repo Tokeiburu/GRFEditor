@@ -9,7 +9,6 @@ using GRF.FileFormats;
 using GRF.FileFormats.BsonFormat;
 using GRF.IO;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.Core.Avalon;
 using GRFEditor.WPF.PreviewTabs.Controls;
 using GrfToWpfBridge;
 using GrfToWpfBridge.PreviewTabs;
@@ -26,8 +25,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		public PreviewText() {
 			InitializeComponent();
-			AvalonHelper.Load(_textEditor);
-			AvalonHelper.SetupSyntaxSelection(_textEditor, _highlightingComboBox);
+			WpfAvalonUtility.AvalonHelper.Load(_textEditor);
+			WpfAvalonUtility.AvalonHelper.SetupSyntaxSelection(_textEditor, _highlightingComboBox);
 
 			Binder.Bind(_cbWordWrap, () => GrfEditorConfiguration.EnableWordWrap, delegate {
 				_textEditor.WordWrap = GrfEditorConfiguration.EnableWordWrap;
@@ -49,8 +48,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 		private void _displayFile(PreviewTextLoader.LoadResult result) {
 			this.Dispatch(delegate {
 				if (result.Syntax != null) {
-					AvalonHelper.Select(result.Syntax, _highlightingComboBox);
-					AvalonHelper.SetSyntax(_textEditor, result.Syntax);
+					WpfAvalonUtility.AvalonHelper.Select(result.Syntax, _highlightingComboBox);
+					WpfAvalonUtility.AvalonHelper.SetSyntax(_textEditor, result.Syntax);
 				}
 
 				_textEditor.Encoding = result.EditorEncoding;

@@ -213,7 +213,7 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _menuItemSoustract_Click(object sender, RoutedEventArgs e) {
+		private void _menuItemSubtract_Click(object sender, RoutedEventArgs e) {
 			try {
 				WindowProvider.ShowWindow<SubtractDialogCustom>(new SubtractDialogCustom(_grfHolder), this);
 			}
@@ -471,7 +471,7 @@ namespace GRFEditor {
 			}
 		}
 
-		private void _menuFocus(object sender, RoutedEventArgs e) {
+		private void _menuFocus() {
 			try {
 				_textBoxMainSearch.SelectAll();
 				_textBoxMainSearch.Focus();
@@ -662,6 +662,7 @@ namespace GRFEditor {
 			_miExportAsThor.Click += _miExportAsThor_Click;
 			_miSetEncryptionKey.Click += _menuItemSetEncryptionKey_Click;
 			_miFlagRemove.Click += _menuItemsFlagRemove_Click;
+			_miDecodeProtectedEntries.Click += _menuItemsGravityDecode_Click;
 
 			_contextMenuEntries.Items.Add(_miOpen);
 			_contextMenuEntries.Items.Add(_miOpenExplorer);
@@ -683,26 +684,29 @@ namespace GRFEditor {
 			_miEncryption.Items.Add(_miEncrypt);
 			_miEncryption.Items.Add(_miDecrypt);
 			_miEncryption.Items.Add(_miSetEncryptionKey);
+			_contextMenuEntries.Items.Add(_miDecodeProtected);
+			_miDecodeProtected.Items.Add(_miDecodeProtectedEntries);
 			_contextMenuEntries.Items.Add(_miProperties);
 			_contextMenuEntries.Items.Add(_miSelect);
 
-			_miTreeOpenExplorer.Click += new RoutedEventHandler(_menuOpen_Click);
-			_miTreeExtractFolder.Click += new RoutedEventHandler(_menuItemExtract_Click);
-			_miTreeExtractFolderAt.Click += new RoutedEventHandler(_menuItemExtractTo_Click);
-			_miTreeExtractRootFiles.Click += new RoutedEventHandler(_menuItemExtractFiles_Click);
-			_miTreeExtractRootFilesAt.Click += new RoutedEventHandler(_menuItemExtractFilesTo_Click);
-			_miTreeRename.Click += new RoutedEventHandler(_menuItemRename_Click);
-			_miTreeDelete.Click += new RoutedEventHandler(_menuItemDelete_Click);
-			_miTreeAdd.Click += new RoutedEventHandler(_menuItemAdd_Click);
-			_miTreeNewFolder.Click += new RoutedEventHandler(_menuItemNewFolder_Click);
-			_miTreeEncrypt.Click += new RoutedEventHandler(_menuItemEncrypt_Click);
-			_miTreeDecrypt.Click += new RoutedEventHandler(_menuItemDecrypt_Click);
-			_miTreeSetEncryptionKey.Click += new RoutedEventHandler(_menuItemSetEncryptionKey_Click);
-			_miDecryptFileTable.Click += new RoutedEventHandler(_miDecryptFileTable_Click);
-			_miTreeClearEncryptionCache.Click += new RoutedEventHandler(_miTreeClearEncryptionCache_Click);
-			_miTreeSelectInExplorer.Click += new RoutedEventHandler(_menuItemSelect_Click);
-			_miTreeProperties.Click += new RoutedEventHandler(_menuItemProperties_Click);
-			_miTreeFlagRemove.Click += new RoutedEventHandler(_menuItemFlagRemove_Click);
+			_miTreeOpenExplorer.Click += _menuOpen_Click;
+			_miTreeExtractFolder.Click += _menuItemExtract_Click;
+			_miTreeExtractFolderAt.Click += _menuItemExtractTo_Click;
+			_miTreeExtractRootFiles.Click += _menuItemExtractFiles_Click;
+			_miTreeExtractRootFilesAt.Click += _menuItemExtractFilesTo_Click;
+			_miTreeRename.Click += _menuItemRename_Click;
+			_miTreeDelete.Click += _menuItemDelete_Click;
+			_miTreeAdd.Click += _menuItemAdd_Click;
+			_miTreeNewFolder.Click += _menuItemNewFolder_Click;
+			_miTreeEncrypt.Click += _menuItemEncrypt_Click;
+			_miTreeDecrypt.Click += _menuItemDecrypt_Click;
+			_miTreeSetEncryptionKey.Click += _menuItemSetEncryptionKey_Click;
+			_miDecryptFileTable.Click += _miDecryptFileTable_Click;
+			_miTreeClearEncryptionCache.Click += _miTreeClearEncryptionCache_Click;
+			_miTreeSelectInExplorer.Click += _menuItemSelect_Click;
+			_miTreeProperties.Click += _menuItemProperties_Click;
+			_miTreeFlagRemove.Click += _menuItemFlagRemove_Click;
+			_miTreeDecodeProtectedEntries.Click += _memuItemDecodeProtectedEntries_Click;
 
 			_contextMenuNodes.Items.Add(_miTreeOpenExplorer);
 			_contextMenuNodes.Items.Add(_miTreeExtract);
@@ -722,6 +726,8 @@ namespace GRFEditor {
 			_miTreeEncryption.Items.Add(_miTreeSetEncryptionKey);
 			_miTreeEncryption.Items.Add(_miDecryptFileTable);
 			_miTreeEncryption.Items.Add(_miTreeClearEncryptionCache);
+			_contextMenuNodes.Items.Add(_miTreeDecodeProtected);
+			_miTreeDecodeProtected.Items.Add(_miTreeDecodeProtectedEntries);
 			_contextMenuNodes.Items.Add(_miTreeProperties);
 			_contextMenuNodes.Items.Add(_miTreeSelectInExplorer);
 
@@ -733,52 +739,62 @@ namespace GRFEditor {
 				if (_grfHolder != null)
 					_miDecryptFileTable.Visibility = _grfHolder.Header.HasErrors ? Visibility.Visible : Visibility.Collapsed;
 			};
+
+			_contextMenuNodes.Opened += delegate {
+				if (_grfHolder != null)
+					_miTreeDecodeProtected.Visibility = _grfHolder.Header.IsCompatibleWith(3, 0) && _grfHolder.Header.HasProtectedKeys ? Visibility.Visible : Visibility.Collapsed;
+			};
 		}
 
 		#region MenuItems
 
-		private readonly MenuItem _miDecrypt = new MenuItem { Header = "Decrypt", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
-		private readonly MenuItem _miDelete = new MenuItem { Header = "Delete", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("delete.png") } };
-		private readonly MenuItem _miEncrypt = new MenuItem { Header = "Encrypt", IsEnabled = true, Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miDecrypt = new TkMenuItem { Header = "Decrypt", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miDelete = new TkMenuItem { Header = "Delete", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("delete.png") } };
+		private readonly TkMenuItem _miEncrypt = new TkMenuItem { Header = "Encrypt", IsEnabled = true, Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
 		private readonly MenuItem _miEncryption = new MenuItem { Header = "Encryption", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
 		private readonly MenuItem _miExportMapFiles = new MenuItem { Header = "Export map files...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("mapEditor.png") } };
-		private readonly MenuItem _miExtract = new MenuItem { Header = "Extract", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("archive.png") } };
-		private readonly MenuItem _miExtractAt = new MenuItem { Header = "Extract...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("archive.png") } };
-		private readonly MenuItem _miExportAsThor = new MenuItem { Header = "Export selection...", Icon = new Image { Source = new GrfImage(ApplicationManager.GetResource("grf-16.png")).Cast<BitmapSource>() } };
+		private readonly TkMenuItem _miExtract = new TkMenuItem { Header = "Extract", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("archive.png") } };
+		private readonly TkMenuItem _miExtractAt = new TkMenuItem { Header = "Extract...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("archive.png") } };
+		private readonly TkMenuItem _miExportAsThor = new TkMenuItem { Header = "Export selection...", Icon = new Image { Source = new GrfImage(ApplicationManager.GetResource("grf-16.png")).Cast<BitmapSource>() } };
 		private readonly MenuItem _miFlagRemove = new MenuItem { Header = "Set as removed", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("error16.png") } };
-		private readonly MenuItem _miOpen = new MenuItem { Header = "Open file", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("newFile.png") } };
-		private readonly MenuItem _miOpenExplorer = new MenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("open.png") } };
-		private readonly MenuItem _miProperties = new MenuItem { Header = "Properties", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("properties.png") } };
-		private readonly MenuItem _miRename = new MenuItem { Header = "Rename...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
+		private readonly TkMenuItem _miOpen = new TkMenuItem { Header = "Open file", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("newFile.png") } };
+		private readonly TkMenuItem _miOpenExplorer = new TkMenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("open.png") } };
+		private readonly TkMenuItem _miProperties = new TkMenuItem { Header = "Properties", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("properties.png") } };
+		private readonly TkMenuItem _miRename = new TkMenuItem { Header = "Rename...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
 		private readonly MenuItem _miSaveMapAs = new MenuItem { Header = "Save map as...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("imconvert.png") } };
 		private readonly MenuItem _miConvertRsm_Anim = new MenuItem { Header = "RSM2 to RSM1 (anim)", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("downgrade.png") } };
 		private readonly MenuItem _miConvertRsm_Flat = new MenuItem { Header = "RSM2 to RSM1 (flat)", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("downgrade.png") } };
 		private readonly MenuItem _miConvertRsw_Anim = new MenuItem { Header = "Downgrade", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("downgrade.png") } };
 		private readonly MenuItem _miConvertRsw_AnimTo = new MenuItem { Header = "Downgrade to...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("downgrade.png") } };
 		private readonly MenuItem _miSelect = new MenuItem { Header = "Select", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png") } };
-		private readonly MenuItem _miSetEncryptionKey = new MenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
+		private readonly TkMenuItem _miSetEncryptionKey = new TkMenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
 		private readonly MenuItem _miToNpc = new MenuItem { Header = "Copy NPC name", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("copy.png") } };
+		private readonly MenuItem _miDecodeProtected = new MenuItem { Header = "Gravity Encryption", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("gsf-16.png") } };
+		private readonly TkMenuItem _miDecodeProtectedEntries = new TkMenuItem { Header = "Decode", IsEnabled = true, Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+
 		private readonly MenuItem _miTreeAdd = new MenuItem { Header = "Add...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("add.png") } };
-		private readonly MenuItem _miTreeDecrypt = new MenuItem { Header = "Decrypt", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
-		private readonly MenuItem _miTreeDelete = new MenuItem { Header = "Delete", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("delete.png") } };
-		private readonly MenuItem _miTreeEncrypt = new MenuItem { Header = "Encrypt", IsEnabled = true, Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeDecrypt = new TkMenuItem { Header = "Decrypt", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeDelete = new TkMenuItem { Header = "Delete", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("delete.png") } };
+		private readonly TkMenuItem _miTreeEncrypt = new TkMenuItem { Header = "Encrypt", IsEnabled = true, Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
 		private readonly MenuItem _miTreeEncryption = new MenuItem { Header = "Encryption", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
 		private readonly MenuItem _miTreeExtract = new MenuItem { Header = "Extract", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("archive.png") } };
-		private readonly MenuItem _miTreeExtractFolder = new MenuItem { Header = "Extract folder", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
-		private readonly MenuItem _miTreeExtractFolderAt = new MenuItem { Header = "Extract folder...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
-		private readonly MenuItem _miTreeExtractRootFiles = new MenuItem { Header = "Extract root files only", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
-		private readonly MenuItem _miTreeExtractRootFilesAt = new MenuItem { Header = "Extract root files only...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeExtractFolder = new TkMenuItem { Header = "Extract folder", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeExtractFolderAt = new TkMenuItem { Header = "Extract folder...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeExtractRootFiles = new TkMenuItem { Header = "Extract root files only", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeExtractRootFilesAt = new TkMenuItem { Header = "Extract root files only...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
 		private readonly MenuItem _miTreeFlagRemove = new MenuItem { Header = "Add files to remove...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("error16.png") } };
-		private readonly MenuItem _miTreeNewFolder = new MenuItem { Header = "New folder...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("newFolder.png") } };
-		private readonly MenuItem _miTreeOpenExplorer = new MenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("open.png") } };
-		private readonly MenuItem _miTreeProperties = new MenuItem { Header = "Properties", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("properties.png") } };
-		private readonly MenuItem _miTreeRename = new MenuItem { Header = "Rename...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
-		private readonly MenuItem _miTreeSelectInExplorer = new MenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png") } };
+		private readonly TkMenuItem _miTreeNewFolder = new TkMenuItem { Header = "New folder...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("newFolder.png") } };
+		private readonly TkMenuItem _miTreeOpenExplorer = new TkMenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("open.png") } };
+		private readonly TkMenuItem _miTreeProperties = new TkMenuItem { Header = "Properties", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("properties.png") } };
+		private readonly TkMenuItem _miTreeRename = new TkMenuItem { Header = "Rename...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
+		private readonly TkMenuItem _miTreeSelectInExplorer = new TkMenuItem { Header = "Select in explorer", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("arrowdown.png") } };
 		private readonly Separator _miTreeSeparator = new Separator();
-		private readonly MenuItem _miTreeSetEncryptionKey = new MenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
+		private readonly MenuItem _miTreeDecodeProtected = new MenuItem { Header = "Gravity Encryption", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("gsf-16.png") } };
+		private readonly TkMenuItem _miTreeDecodeProtectedEntries = new TkMenuItem { Header = "Decode", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("empty.png") } };
+		private readonly TkMenuItem _miTreeSetEncryptionKey = new TkMenuItem { Header = "Set key", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("lock.png") } };
 		private readonly MenuItem _miDecryptFileTable = new MenuItem { Header = "Decrypt file table", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("diff.png"), Visibility = Visibility.Collapsed } };
 		private readonly MenuItem _miTreeClearEncryptionCache = new MenuItem { Header = "Clear cache", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("refresh.png") } };
-		private readonly MenuItem _miUsage = new MenuItem { Header = "Find usages...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("help.png") } };
+		private readonly TkMenuItem _miUsage = new TkMenuItem { Header = "Find usages...", Icon = new Image { Source = ApplicationManager.PreloadResourceImage("help.png") } };
 
 		#endregion
 	}

@@ -22,6 +22,11 @@ Source: "GrfCL\bin\Release\GrfCL.exe.config"; DestDir: "{app}"; Flags: ignorever
 Source: "GRFEditor\bin\Release\GRF Editor.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "GRFEditor\bin\Release\GRF Editor.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "GRFEditor\Resources\app.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "GRFEditor\Files\gpf.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
+Source: "GRFEditor\Files\grf.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
+Source: "GRFEditor\Files\rgz.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
+Source: "GRFEditor\Files\grfkey.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
+Source: "GRFEditor\Files\gsf.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
 
 [UninstallDelete]
 Type: files; Name: "{app}\gpf.ico"

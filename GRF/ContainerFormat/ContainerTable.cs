@@ -368,6 +368,14 @@ namespace GRF.ContainerFormat {
 			return oldEntry;
 		}
 
+		internal virtual TEntry GravityDecryptFile(string fileName) {
+			TEntry oldEntry = _indexedEntries[fileName];
+			TEntry entry = (TEntry)oldEntry.Copy();
+			entry.Modification |= Modification.GravityDecrypt;
+			_indexedEntries[fileName] = entry;
+			return oldEntry;
+		}
+
 		/// <summary>
 		/// Adds an entry directly, without checking anything first (should only be used by IGrfCommands)<para></para>
 		/// Manipulating the file table directly may cause unwanted results.

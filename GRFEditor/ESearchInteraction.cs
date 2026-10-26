@@ -132,15 +132,15 @@ namespace GRFEditor {
 		#region Search interactions
 
 		private void _listBoxResults_KeyDown(object sender, KeyEventArgs e) {
-			if (ApplicationShortcut.Delete.IsMatch())
-				_menuItemsDelete_Click(_listBoxResults, null);
-			else if (ApplicationShortcut.Rename.IsMatch())
-				_menuItemsRename_Click(_listBoxResults, null);
-			else if (ApplicationShortcut.Copy.IsMatch()) {
-				if (_listBoxResults.SelectedItems.Count > 0) {
-					Clipboard.SetDataObject(String.Join("\r\n", _listBoxResults.SelectedItems.Cast<FileEntry>().Select(p => p.RelativePath).ToArray()));
-				}
-			}
+			//if (ApplicationShortcut.Delete.IsMatch())
+			//	_menuItemsDelete_Click(_listBoxResults, null);
+			//else if (ApplicationShortcut.Rename.IsMatch())
+			//	_menuItemsRename_Click(_listBoxResults, null);
+			//else if (ApplicationShortcut.Copy.IsMatch()) {
+			//	if (_listBoxResults.SelectedItems.Count > 0) {
+			//		Clipboard.SetDataObject(String.Join("\r\n", _listBoxResults.SelectedItems.Cast<FileEntry>().Select(p => p.RelativePath).ToArray()));
+			//	}
+			//}
 		}
 
 		private void _textBoxSearch_TextChanged(object sender, TextChangedEventArgs e) {

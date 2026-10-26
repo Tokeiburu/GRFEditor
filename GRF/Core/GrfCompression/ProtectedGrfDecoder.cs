@@ -18,7 +18,7 @@ namespace GRF.Core.GrfCompression {
 			if (raw == null) throw new ArgumentNullException(nameof(raw));
 			var keys = new Dictionary<uint, byte[]>();
 			if (raw.Length == 0) return keys;
-			if (raw.Length < 20 || raw[0] != 1 || raw[1] != 1 || raw[2] != 0 || raw[3] != 0)
+			if (raw.Length < 20)
 				throw Invalid("Unsupported or truncated GRF archive key block.");
 			uint size = Word(raw, 12);
 			if (size == 0 || size % 64 != 0 || size / 64 > 65535 || size != raw.Length - 20)
@@ -26,6 +26,21 @@ namespace GRF.Core.GrfCompression {
 			byte[] digest;
 			using (var sha = SHA256.Create()) digest = sha.ComputeHash(Encoding.ASCII.GetBytes("uf8E8qAwHthrLxiS"));
 			byte[] decoded = Slice(raw, 20, (int)size);
+			
+			if (raw[0] != 1 || raw[1] != 1 || raw[2] != 0 || raw[3] != 0) {
+				// Try using kRO default keys as a backup
+				int keyCount = Math.Min(GrfHeader.KRODefaultProtectedKeys.Count, decoded.Length / 64);
+				for (uint i = 0; i < keyCount; i++) {
+					Buffer.BlockCopy(BitConverter.GetBytes(i + 1), 0, decoded, (int)(64 * i), 4);
+					Buffer.BlockCopy(GrfHeader.KRODefaultProtectedKeys[i + 1], 0, decoded, (int)(64 * i + 4), 60);
+				}
+
+				if (XxHash32.HashToUInt32(decoded) != Word(raw, 16))
+					throw Invalid("Unsupported GRF archive key block.");
+
+				return GrfHeader.KRODefaultProtectedKeys;
+			}
+
 			ProtectedGrfCiphers.ChamCbcDecrypt(decoded, 0, decoded.Length, Slice(digest, 0, 16), Slice(digest, 16, 16));
 			if (XxHash32.HashToUInt32(decoded) != Word(raw, 16))
 				throw Invalid("GRF archive key-block checksum mismatch.");

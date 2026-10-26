@@ -145,10 +145,12 @@ namespace GRFEditor.OpenGL.MapComponents {
 		}
 
 		public static void Remove(object context) {
+			Console.WriteLine("Removed context: " + context.GetHashCode());
 			_managers.Remove(context);
 		}
 
 		public static void CreateInstance(object context) {
+			Console.WriteLine("Created context: " + context.GetHashCode());
 			_managers[context] = new OpenGLMemoryManager();
 		}
 

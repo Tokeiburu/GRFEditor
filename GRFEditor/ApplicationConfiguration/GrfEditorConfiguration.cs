@@ -19,6 +19,9 @@ using GrfToWpfBridge;
 using OpenTK;
 using Utilities;
 using Configuration = TokeiLibrary.Configuration;
+using TokeiLibrary;
+using System.Text;
+using TokeiLibrary.Shortcuts;
 
 namespace GRFEditor.ApplicationConfiguration {
 	/// <summary>
@@ -157,7 +160,7 @@ namespace GRFEditor.ApplicationConfiguration {
 			private object _lock = new object();
 
 			public delegate void LoadedEventHandler();
-			public delegate void ModifiedEventHandler();
+			public delegate void ModifiedEventHandler(object sender, EventArgs args);
 
 			public event ModifiedEventHandler Modified;
 
@@ -167,7 +170,7 @@ namespace GRFEditor.ApplicationConfiguration {
 
 			private void OnModified() {
 				ModifiedEventHandler handler = Modified;
-				if (handler != null) handler();
+				if (handler != null) handler(this, null);
 			}
 
 			private static string _mapExtractorResources {
@@ -321,7 +324,7 @@ namespace GRFEditor.ApplicationConfiguration {
 
 		#region Program's configuration and information
 
-		public static string PublicVersion => "1.9.1.5";
+		public static string PublicVersion => "1.9.1.6";
 		public static string Author => "Tokeiburu";
 		public static string ProgramName => "GRF Editor";
 
@@ -1187,6 +1190,55 @@ namespace GRFEditor.ApplicationConfiguration {
 		}
 
 		#endregion
+
+		private static ObservableDictionary<string, string> _remapper;
+		public static ObservableDictionary<string, string> Remapper {
+			get {
+				if (_remapper != null)
+					return _remapper;
+
+				var value = ConfigAsker["[GRFEditor - Remapper]", ""];
+
+				var gestures = new ObservableDictionary<string, string>();
+				string[] groups = value.Split('%');
+
+				foreach (var sub in groups) {
+					if (sub.Length < 1)
+						continue;
+
+					string[] values = sub.Split('|');
+
+					gestures[values[0]] = values[1];
+				}
+
+				_remapper = gestures;
+
+				_remapper.CollectionChanged += delegate {
+					StringBuilder b = new StringBuilder();
+
+					foreach (var keyPair in _remapper) {
+						b.Append(keyPair.Key);
+						b.Append("|");
+						b.Append(keyPair.Value);
+						b.Append("%");
+					}
+
+					ConfigAsker["[GRFEditor - Remapper]"] = b.ToString();
+				};
+
+				return gestures;
+			}
+		}
+		public static void OverrideShortcuts() {
+			try {
+				ApplicationShortcut.OverrideBindings(Remapper);
+			}
+			catch (Exception err) {
+				Remapper.Clear();
+				ApplicationShortcut.OverrideBindings(Remapper);
+				ErrorHandler.HandleException("Failed to load the custom key bindings. The bindings will be reset to their default values.", err);
+			}
+		}
 	}
 
 	[Flags]

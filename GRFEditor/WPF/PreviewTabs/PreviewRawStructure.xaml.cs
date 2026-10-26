@@ -8,7 +8,6 @@ using GRF.Core;
 using GRF.FileFormats;
 using GRF.FileFormats.BsonFormat;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.Core.Avalon;
 using GRFEditor.WPF.PreviewTabs.Controls;
 using GrfToWpfBridge;
 using GrfToWpfBridge.PreviewTabs;
@@ -25,8 +24,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		public PreviewRawStructure() {
 			InitializeComponent();
-			AvalonHelper.Load(_textEditor);
-			AvalonHelper.SetupSyntaxSelection(_textEditor, _highlightingComboBox);
+			WpfAvalonUtility.AvalonHelper.Load(_textEditor);
+			WpfAvalonUtility.AvalonHelper.SetupSyntaxSelection(_textEditor, _highlightingComboBox);
 
 			_changeRawViewButtonDisplay();
 			Binder.Bind(_cbWordWrap, () => GrfEditorConfiguration.EnableWordWrap, delegate {
@@ -73,8 +72,8 @@ namespace GRFEditor.WPF.PreviewTabs {
 				_buttonRawView.Visibility = result.RawViewAvailable ? Visibility.Visible : Visibility.Collapsed;
 
 				if (result.Syntax != null) {
-					AvalonHelper.Select(result.Syntax, _highlightingComboBox);
-					AvalonHelper.SetSyntax(_textEditor, result.Syntax);
+					WpfAvalonUtility.AvalonHelper.Select(result.Syntax, _highlightingComboBox);
+					WpfAvalonUtility.AvalonHelper.SetSyntax(_textEditor, result.Syntax);
 				}
 
 				_buttonSave.Visibility = result.SavingEnabled ? Visibility.Visible : Visibility.Collapsed;

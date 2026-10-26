@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Windows;
 using GRF.Core;
 using TokeiLibrary.WPF.Styles;
+using Utilities;
 
 namespace GRFEditor.Tools.MapExtractor {
 	/// <summary>
@@ -18,6 +20,10 @@ namespace GRFEditor.Tools.MapExtractor {
 			_mapExtractor = new MapExtractor(grf, fileName);
 			_gridMapExtractor.Children.Add(_mapExtractor);
 			_mapExtractor.Reload(grf, fileName, () => false);
+		}
+
+		~MapExtractorDialog() {
+			Z.F();
 		}
 
 		protected override void OnClosing(CancelEventArgs e) {

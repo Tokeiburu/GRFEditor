@@ -29,7 +29,22 @@ namespace GRF.IO {
 				FileName = Path.Combine(Settings.TempPath, "~rtmp" + StartIndex + "_" + _grfData.UniqueString);
 
 				using (var outputFileStream = new FileStream(FileName, FileMode.Create)) {
-					using (var originalStream = _grfData.GetSourceStream()) {
+					bool requiresDispose = true;
+					Stream originalStream = null;
+					bool canCancel = true;
+
+					if (ThreadPool != null && ThreadPool.SourceStream != null) {
+						originalStream = ThreadPool.SourceStream;
+						requiresDispose = false;
+						
+						// Cannot cancel on the if the source GRF stream is used.
+						canCancel = false;
+					}
+					else {
+						originalStream = _grfData.GetSourceStream().Value;
+					}
+
+					try {
 						byte[] data;
 						int toIndex = 0;
 						int fromIndex;
@@ -46,10 +61,10 @@ namespace GRF.IO {
 						while (toIndex < indexMax) {
 							fromIndex = toIndex;
 
-							data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream.Value, out _);
+							data = _srb.ReadMisaligned(sortedEntries, out toIndex, fromIndex, indexMax, originalStream, out _);
 
 							for (int i = fromIndex; i < toIndex; i++) {
-								if (_grfData.IsCancelling)
+								if (canCancel && _grfData.IsCancelling)
 									return;
 
 								if (IsPaused)
@@ -72,16 +87,10 @@ namespace GRF.IO {
 								bool compress = true;
 
 								try {
-									if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile)
+									if (entry.GravityEncrypted)
 										dataTmp = AttemptProtectedGrfDecode(entry, dataTmp, ref compress);
-									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-									else if (Compression.IsNormalCompression && dataTmp[0] == 0)
-										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
 									else
-										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+										dataTmp = entry.GetDecompressedDataFromBuffer(dataTmp);
 
 									entry.NewSizeDecompressed = compress ? dataTmp.Length : entry.SizeDecompressed;
 
@@ -115,16 +124,10 @@ namespace GRF.IO {
 									Buffer.BlockCopy(data, (int)entry.TemporaryOffset, dataTmp, 0, entry.SizeCompressed);
 
 									try {
-										if ((entry.Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile)
+										if (entry.GravityEncrypted)
 											dataTmp = AttemptProtectedGrfDecode(entry, dataTmp, ref compress);
-										else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-											dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-										else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-											dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-										else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-											dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
 										else
-											dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+											dataTmp = entry.GetDecompressedDataFromBuffer(dataTmp);
 									}
 									catch {
 										try {
@@ -170,6 +173,10 @@ namespace GRF.IO {
 							}
 						}
 					}
+					finally {
+						if (requiresDispose)
+							originalStream?.Dispose();
+					}
 				}
 			}
 			catch (Exception err) {
@@ -182,18 +189,13 @@ namespace GRF.IO {
 		}
 
 		private byte[] AttemptProtectedGrfDecode(FileEntry entry, byte[] dataTmp, ref bool compress) {
-			if (entry.Header.ProtectedKeys.Count == 0) {
-				compress = false;
+			try {
+				var data = entry.DecodeProtectedData(dataTmp);
+				entry.Flags &= ~EntryType.GravityEncryptedFile;
+				return data;
 			}
-			else {
-				try {
-					var data = entry.DecodeProtectedData(dataTmp);
-					entry.Flags &= ~EntryType.GravityEncryptedFile;
-					return data;
-				}
-				catch {
-					compress = false;
-				}
+			catch {
+				compress = false;
 			}
 
 			return dataTmp;

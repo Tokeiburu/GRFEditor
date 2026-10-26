@@ -484,7 +484,7 @@ namespace GRF.Core {
 			string targetFilePath = fileName;
 			string sourceFilePath = FileName;
 
-			if (sourceFilePath != targetFilePath)
+			if (targetFilePath != null && sourceFilePath != targetFilePath)
 				result.RequiresReload = true;
 
 			try {

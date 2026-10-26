@@ -38,6 +38,12 @@ namespace TokeiLibrary {
 			//}
 		}
 
+		private static HashSet<Assembly> _assemblies = new HashSet<Assembly>();
+
+		public static void RegisterAssembly(Assembly assembly) {
+			_assemblies.Add(assembly);
+		}
+
 		public static bool CrashReportEnabled {
 			get {
 				return _crashReportEnabled;
@@ -118,7 +124,19 @@ namespace TokeiLibrary {
 				if (_resources.ContainsKey(resource))
 					return _resources[resource];
 				else {
-					foreach (Assembly currentAssembly in new Assembly[] { Application.ResourceAssembly, Assembly.GetCallingAssembly(), Assembly.GetEntryAssembly(), Assembly.GetExecutingAssembly(), assembly }) {
+					HashSet<Assembly> assemblies = new HashSet<Assembly>(_assemblies);
+					assemblies.Add(Application.ResourceAssembly);
+					assemblies.Add(Assembly.GetCallingAssembly());
+					assemblies.Add(Assembly.GetEntryAssembly());
+					assemblies.Add(Assembly.GetExecutingAssembly());
+
+					if (assembly != null)
+						assemblies.Add(assembly);
+
+					foreach (var rassembly in _assemblies)
+						assemblies.Add(rassembly);
+
+					foreach (Assembly currentAssembly in assemblies) {
 						if (currentAssembly == null) continue;
 
 						string[] names = currentAssembly.GetManifestResourceNames();

@@ -11,33 +11,47 @@ namespace TokeiLibrary.WPF {
 	public static class SettingsShortcutGenerator {
 		public class ShortcutVisual {
 			public Grid Grid;
-			public Label Label;
+			public TextBlock Label;
+			public RowDefinition Row;
+
+			public void Hide() {
+				Row.Height = new GridLength(0);
+			}
+
+			public void Show() {
+				Row.Height = new GridLength(-1, GridUnitType.Auto);
+			}
 		}
 
 		public static Dictionary<string, ShortcutVisual> CreateGrid(ObservableDictionary<string, string> remapper, Grid _gridShortcuts) {
 			int row = 0;
 			Dictionary<string, ShortcutVisual> _shortcuts = new Dictionary<string, ShortcutVisual>();
+			int j = 0;
 
 			foreach (var command in ApplicationShortcut.Commands.Values) {
+				j++;
+
 				string actionName = command.CommandName;
 
 				if (actionName == "#auto_generated")
 					continue;
 
-				Label l = new Label { Content = actionName };
-
-				l.Content = actionName;
+				TextBlock l = new TextBlock { Text = actionName };
+				l.VerticalAlignment = VerticalAlignment.Center;
+				l.Margin = new Thickness(3);
 
 				WpfUtilities.SetGridPosition(l, row, 0);
 				_gridShortcuts.Children.Add(l);
 
 				Border b = new Border();
 				b.Margin = new Thickness(3);
+				b.Height = 20;
 				b.BorderThickness = new Thickness(1);
 				b.BorderBrush = WpfUtilities.LostFocusBrush;
 
 				Grid grid = new Grid();
-				_shortcuts[actionName] = new ShortcutVisual { Grid = grid, Label = l };
+				var sv = new ShortcutVisual { Grid = grid, Label = l };
+				_shortcuts[actionName] = sv;
 				grid.ColumnDefinitions.Add(new ColumnDefinition());
 				grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(-1, GridUnitType.Auto) });
 
@@ -72,7 +86,10 @@ namespace TokeiLibrary.WPF {
 
 				WpfUtilities.SetGridPosition(grid, row, 1);
 				_gridShortcuts.Children.Add(grid);
-				_gridShortcuts.RowDefinitions.Add(new RowDefinition { Height = new GridLength(-1, GridUnitType.Auto) });
+
+				var rowDef = new RowDefinition { Height = new GridLength(-1, GridUnitType.Auto) };
+				_gridShortcuts.RowDefinitions.Add(rowDef);
+				sv.Row = rowDef;
 
 				tb.GotFocus += delegate {
 					b.BorderThickness = new Thickness(2);

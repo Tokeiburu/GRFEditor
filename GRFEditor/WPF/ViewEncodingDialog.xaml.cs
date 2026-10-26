@@ -6,7 +6,6 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
 using ErrorManager;
-using GRFEditor.Core.Avalon;
 using ICSharpCode.AvalonEdit;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
@@ -49,8 +48,8 @@ namespace GRFEditor.WPF {
 
 			_tbSource.PreviewKeyDown += _tb_PreviewKeyDown;
 
-			AvalonHelper.Load(_tbSource);
-			AvalonHelper.Load(_tbDest);
+			WpfAvalonUtility.AvalonHelper.Load(_tbSource);
+			WpfAvalonUtility.AvalonHelper.Load(_tbDest);
 		}
 
 		private void _tb_PreviewKeyDown(object sender, KeyEventArgs e) {

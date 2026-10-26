@@ -28,6 +28,16 @@ namespace GRFEditor {
 		private readonly KnownPositionComponent _positions = new KnownPositionComponent();
 		private FileEntry _latestSelectedItem;
 
+		private void _menuListFocus() {
+			try {
+				_textBoxSearch.SelectAll();
+				_textBoxSearch.Focus();
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
 		#region Events
 
 		private void _menuItemsRename_Click(object sender, RoutedEventArgs e) {
@@ -118,6 +128,17 @@ namespace GRFEditor {
 			ListView items = WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement);
 
 			if (EncryptionService.Decrypt(_grfHolder, items)) {
+				if (items == _items)
+					_loadListItems();
+				else
+					_search(true);
+			}
+		}
+
+		private void _menuItemsGravityDecode_Click(object sender, RoutedEventArgs e) {
+			ListView items = WpfUtilities.GetPlacementFromContextMenu<ListView>(sender as FrameworkElement);
+
+			if (EncryptionService.GravityDecrypt(_grfHolder, items)) {
 				if (items == _items)
 					_loadListItems();
 				else
@@ -332,15 +353,15 @@ namespace GRFEditor {
 		}
 
 		private void _items_KeyDown(object sender, KeyEventArgs e) {
-			if (ApplicationShortcut.Delete.IsMatch())
-				_menuItemsDelete_Click(_items, null);
-			else if (ApplicationShortcut.Rename.IsMatch())
-				_menuItemsRename_Click(_items, null);
-			else if (ApplicationShortcut.Copy.IsMatch()) {
-				if (_items.SelectedItems.Count > 0) {
-					Clipboard.SetDataObject(String.Join("\r\n", _items.SelectedItems.Cast<FileEntry>().Select(p => p.DisplayRelativePath).ToArray()));
-				}
-			}
+			//if (ApplicationShortcut.Delete.IsMatch())
+			//	_menuItemsDelete_Click(_items, null);
+			//else if (ApplicationShortcut.Rename.IsMatch())
+			//	_menuItemsRename_Click(_items, null);
+			//else if (ApplicationShortcut.Copy.IsMatch()) {
+			//	if (_items.SelectedItems.Count > 0) {
+			//		Clipboard.SetDataObject(String.Join("\r\n", _items.SelectedItems.Cast<FileEntry>().Select(p => p.DisplayRelativePath).ToArray()));
+			//	}
+			//}
 		}
 
 		private void _items_PreviewMouseRightButtonUp(object sender, MouseButtonEventArgs e) {
@@ -350,16 +371,18 @@ namespace GRFEditor {
 				if (lvi != null) {
 					FileEntry entry = (FileEntry) _items.SelectedItem;
 
-					_miSaveMapAs.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miConvertRsw_AnimTo.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miConvertRsw_Anim.Visibility = new string[] { ".rsw", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miConvertRsm_Anim.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miConvertRsm_Flat.Visibility = new string[] { ".rsm2" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
-					_miExportMapFiles.Visibility = new string[] { ".rsw", ".rsm", ".rsm2", ".gnd", ".gat" }.Any(p => entry.RelativePath.GetExtension() == p) ? Visibility.Visible : Visibility.Collapsed;
+					_miSaveMapAs.Visibility =			entry.RelativePath.IsExtension(".rsw", ".gnd", ".gat") ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsw_AnimTo.Visibility =	entry.RelativePath.IsExtension(".rsw", ".gnd", ".gat") ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsw_Anim.Visibility =		entry.RelativePath.IsExtension(".rsw", ".gnd", ".gat") ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsm_Anim.Visibility =		entry.RelativePath.IsExtension(".rsm2") ? Visibility.Visible : Visibility.Collapsed;
+					_miConvertRsm_Flat.Visibility =		entry.RelativePath.IsExtension(".rsm2") ? Visibility.Visible : Visibility.Collapsed;
+					_miExportMapFiles.Visibility =		entry.RelativePath.IsExtension(".rsw", ".rsm", ".rsm2", ".gnd", ".gat") ? Visibility.Visible : Visibility.Collapsed;
+					_miToNpc.Visibility =				entry.RelativePath.IsExtension(".act", ".spr") ? Visibility.Visible : Visibility.Collapsed;
+					_miDecodeProtected.Visibility =		entry.GravityEncrypted ? Visibility.Visible : Visibility.Collapsed;
 
 					_miSelect.Visibility = Visibility.Collapsed;
 
-					_miFlagRemove.Visibility = _grfHolder.FileName.GetExtension() == ".thor" ? Visibility.Visible : Visibility.Collapsed;
+					_miFlagRemove.Visibility = _grfHolder.FileName.IsExtension(".thor") ? Visibility.Visible : Visibility.Collapsed;
 					e.Handled = false;
 				}
 				else {

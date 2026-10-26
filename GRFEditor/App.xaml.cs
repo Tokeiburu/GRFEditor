@@ -31,6 +31,10 @@ namespace GRFEditor {
 			ImageConverterManager.AddConverter(new DefaultImageConverter());
 			Gat.AutomaticallyFixNegativeGatTypes = true;
 
+			ApplicationManager.ThemeChanged += delegate {
+				Debug.Ignore(() => AppContext.SetSwitch("Switch.System.Windows.Controls.Text.UseAdornerForTextboxSelectionRendering", GrfEditorConfiguration.ThemeIndex == 0));
+			};
+
 			Configuration.SetImageRendering(Resources);
 
 			Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/" + Assembly.GetEntryAssembly().GetName().Name.Replace(" ", "%20") + ";component/WPF/Styles/GRFEditorStyles.xaml", UriKind.RelativeOrAbsolute) });
@@ -41,21 +45,6 @@ namespace GRFEditor {
 			}
 			else if (GrfEditorConfiguration.ThemeIndex == 1) {
 				Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri("pack://application:,,,/" + Assembly.GetEntryAssembly().GetName().Name.Replace(" ", "%20") + ";component/WPF/Styles/StyleDark.xaml", UriKind.RelativeOrAbsolute) });
-				//Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(@"C:\tktoolsuite\GRFEditor\GRFEditor\WPF\Styles\StyleGilgamesh.xaml", UriKind.Absolute) });
-				//
-				//Methods.FileModified(@"C:\tktoolsuite\GRFEditor\GRFEditor\WPF\Styles", "StyleGilgamesh.xaml", delegate {
-				//	Application.Current.Dispatch(delegate {
-				//		try {
-				//			Application.Current.Resources.MergedDictionaries.RemoveAt(Application.Current.Resources.MergedDictionaries.Count - 1);
-				//
-				//			//Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(path, UriKind.RelativeOrAbsolute) });
-				//			Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(@"C:\tktoolsuite\GRFEditor\GRFEditor\WPF\Styles\StyleGilgamesh.xaml", UriKind.Absolute) });
-				//		}
-				//		catch {
-				//			Application.Current.Resources.MergedDictionaries.Add(new ResourceDictionary { Source = new Uri(@"C:\tktoolsuite\GRFEditor\GRFEditor\WPF\Styles\StyleDark.xaml", UriKind.Absolute) });
-				//		}
-				//	});
-				//});
 
 				ApplicationManager.ImageProcessing = delegate(string name, BitmapFrame img) {
 					if (img == null) return null;
@@ -86,6 +75,8 @@ namespace GRFEditor {
 
 					return img;
 				};
+
+				Debug.Ignore(() => AppContext.SetSwitch("Switch.System.Windows.Controls.Text.UseAdornerForTextboxSelectionRendering", false));
 			}
 
 			base.OnStartup(e);

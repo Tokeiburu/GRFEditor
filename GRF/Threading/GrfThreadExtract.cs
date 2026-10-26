@@ -85,16 +85,7 @@ namespace GRF.Threading {
 							}
 
 							try {
-								if (entry.Flags.HasFlag(EntryType.GravityEncryptedFile))
-									dataTmp = entry.DecodeProtectedData(dataTmp);
-								else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-									dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-								else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-									dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-								else if (Compression.IsNormalCompression && (dataTmp.Length > 1 && dataTmp[0] == 0))
-									dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
-								else
-									dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+								dataTmp = entry.GetDecompressedDataFromBuffer(dataTmp);
 
 								// Check if we should decompile .lub files
 								if (Settings.DecompileLubOnExtract &&

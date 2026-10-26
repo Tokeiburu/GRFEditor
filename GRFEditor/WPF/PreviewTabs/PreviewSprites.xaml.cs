@@ -14,6 +14,7 @@ using GRF.Image;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
 using GRFEditor.Core.Services;
+using GRFEditor.WPF.PreviewTabs.Controls;
 using GrfToWpfBridge;
 using TokeiLibrary;
 using Utilities;

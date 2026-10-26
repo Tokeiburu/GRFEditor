@@ -15,5 +15,6 @@ namespace GRF.Core {
 		Decrypt = 1 << 6,
 		Special = 1 << 7,
 		DoNotRewrite = 1 << 8,
+		GravityDecrypt = 1 << 9,
 	}
 }

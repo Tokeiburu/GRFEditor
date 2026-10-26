@@ -78,6 +78,35 @@ namespace GRFEditor.Core.Services {
 			return false;
 		}
 
+		public static bool GravityDecrypt(GrfHolder grfHolder, List<FileEntry> entries) {
+			try {
+				entries = entries.Where(p => p.GravityEncrypted && !p.PendingGravityDecrypt).ToList();
+
+				if (entries.Count == 0) {
+					ErrorHandler.HandleException("No Gravity encrypted files are selected.", ErrorLevel.Low);
+				}
+				else {
+					grfHolder.Commands.GravityDecryptFiles(entries.Select(p => p.RelativePath));
+					return true;
+				}
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+				return false;
+			}
+			return false;
+		}
+
+		public static bool GravityDecrypt(GrfHolder grfHolder, ListView list) {
+			try {
+				return GravityDecrypt(grfHolder, list.SelectedItems.Cast<FileEntry>().ToList());
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+				return false;
+			}
+		}
+
 		public static bool RequestDecryptionKey(GrfHolder grfHolder) {
 			if (grfHolder.Header.EncryptionKey == null) {
 				return (bool) Application.Current.Dispatch(() => {

@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:WPF="clr-namespace:TokeiLibrary.WPF;assembly=TokeiLibrary"
+					xmlns:WPF1="clr-namespace:GRFEditor.WPF"
                     xmlns:TreeViewManager="clr-namespace:GrfToWpfBridge.TreeViewManager;assembly=GrfToWpfBridge"
                     xmlns:styles="clr-namespace:TokeiLibrary.WPF.Styles;assembly=TokeiLibrary"
                     xmlns:application="clr-namespace:GrfToWpfBridge.Application;assembly=GrfToWpfBridge">
@@ -126,7 +127,18 @@
     <TextBlock x:Key="AvalonDebugDbCommentFont" Foreground="#A0A0A0" FontWeight="Bold" />
     <TextBlock x:Key="AvalonDebugDbDefault" Foreground="{StaticResource TextForeground}" FontWeight="Bold" />
 
-    <!-- GRF Editor style overrides - Avalon -->
+	<TextBlock x:Key="AvalonXMLComment" Foreground="#2DBE03" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLCData" Foreground="#FB1E70" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLDocType" Foreground="#FB1E70" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLXmlDeclaration" Foreground="#60D8F0" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLXmlTag" Foreground="#9AC968" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLEntitySet" Foreground="{StaticResource TextForeground}" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLAttributeName" Foreground="#B7EF7C" FontWeight="Bold" />
+	<TextBlock x:Key="AvalonXMLAttributeValue" Foreground="#FE9700" />
+	<TextBlock x:Key="AvalonXMLEntity" Foreground="#60D8F0" />
+	<TextBlock x:Key="AvalonXMLBrokenEntity" Foreground="#AE7DFE" />
+
+	<!-- GRF Editor style overrides - Avalon -->
     <Color x:Key="UIThemeAvalonSelectionBackgroundColor">#0A67D6</Color>
     <Color x:Key="UIThemeAvalonSelectionForegroundColor">#FFFFFF</Color>
     <Color x:Key="UIThemeAvalonMarkerColor">#02A90B</Color>
@@ -711,9 +723,10 @@
         <Setter Property="Background" Value="{DynamicResource UIThemeTextBoxBorderBrush}"/>
         <Setter Property="BorderBrush" Value="{DynamicResource UIThemeTextBoxBorderBrush}"/>
         <Setter Property="BorderThickness" Value="1"/>
-        <Setter Property="Padding" Value="1"/>
-        <Setter Property="SelectionBrush" Value="#DCDCFF"/>
-        <Setter Property="Template">
+		<Setter Property="Padding" Value="1"/>
+		<Setter Property="SelectionBrush" Value="#FF626FFD"/>
+		<Setter Property="SelectionTextBrush" Value="White"/>
+		<Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type TextBoxBase}">
                     <Border Name="Border"
@@ -882,11 +895,11 @@
         </ControlTemplate.Triggers>
     </ControlTemplate>
 
-    <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
-        <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
-    </ControlTemplate>
+	<ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
+		<Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+	</ControlTemplate>
 
-    <Style x:Key="ComboBoxTheme" TargetType="{x:Type ComboBox}">
+	<Style x:Key="ComboBoxTheme" TargetType="{x:Type ComboBox}">
         <Setter Property="FocusVisualStyle" Value="{x:Null}" />
         <Setter Property="SnapsToDevicePixels" Value="true"/>
         <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -974,10 +987,10 @@
     <Style TargetType="{x:Type application:CompressionMethodPicker}" BasedOn="{StaticResource ComboBoxTheme}">
     </Style>
 
-    <Style TargetType="{x:Type application:EncryptionMethodPicker}" BasedOn="{StaticResource ComboBoxTheme}">
-    </Style>
+	<Style TargetType="{x:Type application:EncryptionMethodPicker}" BasedOn="{StaticResource ComboBoxTheme}">
+	</Style>
 
-    <Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxTheme}">
+	<Style TargetType="{x:Type ComboBox}" BasedOn="{StaticResource ComboBoxTheme}">
     </Style>
 
     <!-- SimpleStyles: ComboBoxItem -->

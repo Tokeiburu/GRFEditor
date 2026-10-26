@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Input;
 using ErrorManager;
+using Utilities;
 
 namespace TokeiLibrary.WPF.Styles {
 	public class TkWindow : Window {
@@ -50,6 +53,11 @@ namespace TokeiLibrary.WPF.Styles {
 					ErrorHandler.HandleException(err);
 				}
 			};
+
+			this.Closing += delegate {
+				FocusManager.SetFocusedElement(this, null);
+				Keyboard.ClearFocus();
+			};
 		}
 
 		public static bool ShutDownOnInvalidIcons { get; set; }
@@ -61,6 +69,19 @@ namespace TokeiLibrary.WPF.Styles {
 		protected virtual void GRFEditorWindowKeyDown(object sender, KeyEventArgs e) {
 			if (e.Key == Key.Escape)
 				Close();
+		}
+
+		protected override AutomationPeer OnCreateAutomationPeer() {
+			return new FakeWindowAutomationPeer(this);
+		}
+	}
+
+	public class FakeWindowAutomationPeer : WindowAutomationPeer {
+		public FakeWindowAutomationPeer(Window window) : base(window) {
+		}
+
+		protected override List<AutomationPeer> GetChildrenCore() {
+			return null;
 		}
 	}
 }

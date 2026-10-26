@@ -16,6 +16,7 @@ namespace GRF {
 		public const string ChangeVersion = "Change format from '{0}' to '{1}'";
 		public const string ChangeHeader = "Change header from '{0}' to '{1}'";
 		public const string DecryptFiles = "Decrypt files...";
+		public const string GravityDecryptFiles = "Gravity decrypt files...";
 		public const string DeleteFile = "Delete file '{0}'";
 		public const string DeleteFiles = "Delete files...";
 		public const string DeleteFolder = "Delete folder '{0}'";
@@ -60,7 +61,7 @@ namespace GRF {
 		public const string FailedReadContainer = "Failed to read the container: {0}";
 		public const string FailedEncodingString = "File name is wrongly encoded: {0}.";
 		public const string FailedGrfHeader = "File header is invalid, expected 'Master of Magic', found '{0}'.";
-		public const string FailedGravityEncryptionKeys = "Failed to read Gravity's custom encryption keys. You will not be able to read encrypted content.";
+		public const string FailedGravityEncryptionKeys = "Failed to read Gravity's encryption keys. You will not be able to read encrypted content.";
 		public const string FailedData = "{0}";
 		public const string GrfContainsErrors = "There were errors detected while loading or while modifying the GRF. It's strongly advised to save the GRF with another name and check if the content has been correctly updated.\n\nWould you like to save it anyway?";
 		public const string CouldNotSaveContainer = "Couldn't save the container file.";

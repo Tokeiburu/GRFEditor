@@ -25,23 +25,24 @@
                     <Label Content="File" Name="_miFile" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
 				<MenuItem TokeiLibrary:WpfProperties.ImagePath="add.png" Header="New">
-                    <MenuItem Name="_menuItemNewGrf" TokeiLibrary:WpfProperties.ImagePath="grf-16.png" Header="Grf" InputGestureText="Ctrl-N" Click="_menuItemNewGrf_Click" />
-                    <MenuItem TokeiLibrary:WpfProperties.ImagePath="gpf-16.png" Header="Gpf" Click="_menuItemNewGpf_Click" />
-                    <MenuItem Name="_menuItemNewRgz" TokeiLibrary:WpfProperties.ImagePath="rgz-16.png" Header="Rgz" Click="_menuItemNewRgz_Click" />
-                    <MenuItem Name="_menuItemNewThor" TokeiLibrary:WpfProperties.ImagePath="thor-16.png" Header="Thor" Click="_menuItemNewThor_Click" />
+                    <Styles:TkMenuItem Name="_menuItemNewGrf" TokeiLibrary:WpfProperties.ImagePath="grf-16.png" Header="Grf" Click="_menuItemNewGrf_Click" />
+					<Styles:TkMenuItem Name="_menuItemNewGpf" TokeiLibrary:WpfProperties.ImagePath="gpf-16.png" Header="Gpf" Click="_menuItemNewGpf_Click" />
+					<Styles:TkMenuItem Name="_menuItemNewRgz" TokeiLibrary:WpfProperties.ImagePath="rgz-16.png" Header="Rgz" Click="_menuItemNewRgz_Click" />
+					<Styles:TkMenuItem Name="_menuItemNewThor" TokeiLibrary:WpfProperties.ImagePath="thor-16.png" Header="Thor" Click="_menuItemNewThor_Click" />
+					<!--<Styles:TkMenuItem Name="_menuItemNewGsf" TokeiLibrary:WpfProperties.ImagePath="gsf-16.png" Header="Gsf" Click="_menuItemNewGsf_Click" />-->
                 </MenuItem>
-                <MenuItem Name="_menuItemOpenFrom" TokeiLibrary:WpfProperties.ImagePath="newFile.png" Header="Open..." InputGestureText="Ctrl-O" Click="_menuItemOpenFrom_Click" />
+                <Styles:TkMenuItem Name="_menuItemOpenFrom" TokeiLibrary:WpfProperties.ImagePath="newFile.png" Header="Open..." Click="_menuItemOpenFrom_Click" />
                 <MenuItem Name="_menuItemRecentFiles" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Open recent" />
                 <Separator />
-                <MenuItem Name="_menuItemCloseGrf" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Close Grf" Click="_menuItemCloseGrf_Click" />
+				<Styles:TkMenuItem Name="_menuItemCloseGrf" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Close Grf" Click="_menuItemCloseGrf_Click" />
                 <Separator />
-                <MenuItem Name="_menuItemSave" TokeiLibrary:WpfProperties.ImagePath="save.png" Header="Save" InputGestureText="Ctrl-S" Click="_menuItemSave_Click" />
-                <MenuItem Name="_menuItemSaveAs" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Save as..." Click="_menuItemSaveAs_Click" />
+				<Styles:TkMenuItem Name="_menuItemSave" TokeiLibrary:WpfProperties.ImagePath="save.png" Header="Save" Click="_menuItemSave_Click" />
+				<Styles:TkMenuItem Name="_menuItemSaveAs" TokeiLibrary:WpfProperties.ImagePath="empty.png" Header="Save as..." Click="_menuItemSaveAs_Click" />
                 <MenuItem Header="Save advanced" TokeiLibrary:WpfProperties.ImagePath="empty.png">
-                    <MenuItem Name="_menuItemDefragment" TokeiLibrary:WpfProperties.ImagePath="defrag.png" Header="Defragment (quick)" Click="_menuItemDefragment_Click" InputGestureText="Ctrl-Shift-S" />
-                    <MenuItem Name="_menuItemCompact" TokeiLibrary:WpfProperties.ImagePath="redirect.png" Header="Compact (redirect indexes)" Click="_menuItemCompact_Click" InputGestureText="Ctrl-Alt-S" />
-                    <MenuItem Name="_menuItemRepack" TokeiLibrary:WpfProperties.ImagePath="pack.png" Header="Repack (recompress)" Click="_menuItemRepack_Click" />
-                    <MenuItem Name="_menuItemEncryptTable" TokeiLibrary:WpfProperties.ImagePath="lock.png" Header="Encrypt File Table" Click="_menuItemTableEncrypt_Click" />
+					<Styles:TkMenuItem Name="_menuItemDefragment" TokeiLibrary:WpfProperties.ImagePath="defrag.png" Header="Defragment (quick)" Click="_menuItemDefragment_Click" />
+					<Styles:TkMenuItem Name="_menuItemCompact" TokeiLibrary:WpfProperties.ImagePath="redirect.png" Header="Compact (redirect indexes)" Click="_menuItemCompact_Click" />
+					<Styles:TkMenuItem Name="_menuItemRepack" TokeiLibrary:WpfProperties.ImagePath="pack.png" Header="Repack (recompress)" Click="_menuItemRepack_Click" />
+					<Styles:TkMenuItem Name="_menuItemEncryptTable" TokeiLibrary:WpfProperties.ImagePath="lock.png" Header="Encrypt File Table" Click="_menuItemTableEncrypt_Click" />
                 </MenuItem>
                 <Separator />
                 <MenuItem Name="_menuItemAbout" TokeiLibrary:WpfProperties.ImagePath="help.png" Header="About..." Click="_menuItemAbout_Click" />
@@ -51,57 +52,53 @@
                 <MenuItem.Header>
                     <Label Content="Edit" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
-                <MenuItem Name="_buttonUndo" TokeiLibrary:WpfProperties.ImagePath="undo.png" IsEnabled="false" Header="Undo" InputGestureText="Ctrl-Z" Click="_buttonUndo_Click" />
-                <MenuItem Name="_buttonRedo" TokeiLibrary:WpfProperties.ImagePath="redo.png" IsEnabled="false" Header="Redo" InputGestureText="Ctrl-Y" Click="_buttonRedo_Click" />
-                <MenuItem Name="_buttonPositionUndo" IsEnabled="false" Header="Navigate backward" InputGestureText="Alt-Z" Click="_buttonPositionUndo_Click">
-                    <MenuItem.Icon>
+				<Styles:TkMenuItem Name="_buttonUndo" TokeiLibrary:WpfProperties.ImagePath="undo.png" IsEnabled="false" Header="Undo" Click="_buttonUndo_Click" />
+				<Styles:TkMenuItem Name="_buttonRedo" TokeiLibrary:WpfProperties.ImagePath="redo.png" IsEnabled="false" Header="Redo" Click="_buttonRedo_Click" />
+				<Styles:TkMenuItem Name="_buttonPositionUndo" IsEnabled="false" Header="Navigate backward" Click="_buttonPositionUndo_Click">
+                    <Styles:TkMenuItem.Icon>
                         <Image Source="Resources\forward.png" Width="16" Height="16" RenderTransformOrigin="0.5,0.5">
                             <Image.RenderTransform>
                                 <ScaleTransform ScaleX="-1"/>
                             </Image.RenderTransform>
                         </Image>
-                    </MenuItem.Icon>
-                </MenuItem>
-                <MenuItem Name="_buttonPositionRedo" TokeiLibrary:WpfProperties.ImagePath="forward.png" IsEnabled="false" Header="Navigate forward" InputGestureText="Alt-Y" Click="_buttonPositionRedo_Click" />
-                <MenuItem Name="_menuItemMerge" TokeiLibrary:WpfProperties.ImagePath="addgrf.png" Header="Merge" InputGestureText="Ctrl-M" Click="_menuItemMerge_Click" />
-                <MenuItem Name="_menuItemSoustract" TokeiLibrary:WpfProperties.ImagePath="subgrf.png" Header="Subtract" Click="_menuItemSoustract_Click" />
+                    </Styles:TkMenuItem.Icon>
+                </Styles:TkMenuItem>
+				<Styles:TkMenuItem Name="_buttonPositionRedo" TokeiLibrary:WpfProperties.ImagePath="forward.png" IsEnabled="false" Header="Navigate forward" Click="_buttonPositionRedo_Click" />
+				<Styles:TkMenuItem Name="_menuItemMerge" TokeiLibrary:WpfProperties.ImagePath="addgrf.png" Header="Merge" Click="_menuItemMerge_Click" />
+				<Styles:TkMenuItem Name="_menuItemSubtract" TokeiLibrary:WpfProperties.ImagePath="subgrf.png" Header="Subtract" Click="_menuItemSubtract_Click" />
                 <Separator />
-                <MenuItem Name="_menuItemExtractRgz" TokeiLibrary:WpfProperties.ImagePath="archive.png" Header="Extract Rgz" IsEnabled="False" Click="_menuItemExtractRgz_Click" />
+				<Styles:TkMenuItem Name="_menuItemExtractRgz" TokeiLibrary:WpfProperties.ImagePath="archive.png" Header="Extract Rgz" IsEnabled="False" Click="_menuItemExtractRgz_Click" />
                 <Separator />
-                <MenuItem Name="_menuItemEditContainerSettings" TokeiLibrary:WpfProperties.ImagePath="properties.png" Header="Edit Grf/Thor settings" Click="_menuItemEditContainerSettings_Click" />
+				<Styles:TkMenuItem Name="_menuItemEditContainerSettings" TokeiLibrary:WpfProperties.ImagePath="properties.png" Header="Edit Grf/Thor settings" Click="_menuItemEditContainerSettings_Click" />
             </MenuItem>
             <MenuItem VerticalAlignment="Center" Visibility="Visible">
                 <MenuItem.Header>
                     <Label Content="Tools" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="-5 0 -5 0" />
                 </MenuItem.Header>
-                <MenuItem Name="_menuItemValidateGrf" TokeiLibrary:WpfProperties.ImagePath="validity.png" Header="Grf validation" Click="_menuItemValidateGrf_Click" />
-                <MenuItem Name="_menuItemOpenProgramData" TokeiLibrary:WpfProperties.ImagePath="newFolder.png" Click="_menuItemOpenProgramData_Click" Header="Open roaming data" />
+				<Styles:TkMenuItem Name="_menuItemValidateGrf" TokeiLibrary:WpfProperties.ImagePath="validity.png" Header="Grf validation" Click="_menuItemValidateGrf_Click" />
+				<Styles:TkMenuItem Name="_menuItemOpenProgramData" TokeiLibrary:WpfProperties.ImagePath="newFolder.png" Click="_menuItemOpenProgramData_Click" Header="Open roaming data" />
                 <Separator />
-                <MenuItem Name="_menuItemImportSprite" TokeiLibrary:WpfProperties.ImagePath="convert.png" Header="Import sprite..." Click="_menuItemImportSprite_Click" />
+				<Styles:TkMenuItem Name="_menuItemImportSprite" TokeiLibrary:WpfProperties.ImagePath="convert.png" Header="Import sprite..." Click="_menuItemImportSprite_Click" />
                 <Separator />
-                <MenuItem Name="_menuItemSpriteConverter" TokeiLibrary:WpfProperties.ImagePath="spritemaker.png" Header="Sprite editor" Click="_menuItemSpriteConverter_Click" />
-                <MenuItem Name="_menuItemFlatMapsMaker" TokeiLibrary:WpfProperties.ImagePath="mapEditor.png" Header="Flat maps maker" Click="_menuItemFlatMapsMaker_Click" />
-                <MenuItem Name="_menuItemPatchMaker" TokeiLibrary:WpfProperties.ImagePath="diff.png" Header="Patch maker" Click="_menuItemPatchMaker_Click" />
-                <MenuItem Name="_menuItemHash" TokeiLibrary:WpfProperties.ImagePath="hash.png" Header="Hash viewer" Click="_menuItemHash_Click" />
-                <MenuItem Name="_menuItemEncoding" TokeiLibrary:WpfProperties.ImagePath="refresh.png" Header="Text encoding" Click="_menuItemEncoding_Click" />
-                <MenuItem Name="_menuItemSearch" TokeiLibrary:WpfProperties.ImagePath="search.png" Header="Advanced search" Click="_menuItemSearch_Click" />
-                <MenuItem Name="_menuItemImageConverter" TokeiLibrary:WpfProperties.ImagePath="imconvert.png" Header="Image converter" Click="_menuItemImageConverter_Click" />
-                <MenuItem Name="_menuItemGrfCL" TokeiLibrary:WpfProperties.ImagePath="dos.png" Header="GRF Command Line" Click="_menuItemGrfCL_Click" />
-                <MenuItem Name="_menuItemOpenGL" TokeiLibrary:WpfProperties.ImagePath="warning16.png" Header="OpenGL Logger" Click="_menuItemOpenGL_Click" />
-                <!--<MenuItem Name="_menuItemImageRecon" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image finder" Click="_menuItemImageRecon_Click" />-->
-                <MenuItem Name="_menuItemEncryptor" TokeiLibrary:WpfProperties.ImagePath="lock.png" IsEnabled="True" Header="GRF Encryption" Click="_menuItemEncryptor_Click" />
-                <!--<MenuItem Name="_menuItemPatcher" IsEnabled="True" Header="Grf patcher" Click="_menuItemPatcher_Click">
-                    <MenuItem.Icon>
+                <Styles:TkMenuItem Name="_menuItemSpriteConverter" TokeiLibrary:WpfProperties.ImagePath="spritemaker.png" Header="Sprite editor" Click="_menuItemSpriteConverter_Click" />
+                <Styles:TkMenuItem Name="_menuItemFlatMapsMaker" TokeiLibrary:WpfProperties.ImagePath="mapEditor.png" Header="Flat maps maker" Click="_menuItemFlatMapsMaker_Click" />
+                <Styles:TkMenuItem Name="_menuItemPatchMaker" TokeiLibrary:WpfProperties.ImagePath="diff.png" Header="Patch maker" Click="_menuItemPatchMaker_Click" />
+                <Styles:TkMenuItem Name="_menuItemHash" TokeiLibrary:WpfProperties.ImagePath="hash.png" Header="Hash viewer" Click="_menuItemHash_Click" />
+                <Styles:TkMenuItem Name="_menuItemEncoding" TokeiLibrary:WpfProperties.ImagePath="refresh.png" Header="Text encoding" Click="_menuItemEncoding_Click" />
+                <Styles:TkMenuItem Name="_menuItemSearch" TokeiLibrary:WpfProperties.ImagePath="search.png" Header="Advanced search" Click="_menuItemSearch_Click" />
+                <Styles:TkMenuItem Name="_menuItemImageConverter" TokeiLibrary:WpfProperties.ImagePath="imconvert.png" Header="Image converter" Click="_menuItemImageConverter_Click" />
+                <Styles:TkMenuItem Name="_menuItemGrfCL" TokeiLibrary:WpfProperties.ImagePath="dos.png" Header="GRF Command Line" Click="_menuItemGrfCL_Click" />
+                <Styles:TkMenuItem Name="_menuItemOpenGL" TokeiLibrary:WpfProperties.ImagePath="warning16.png" Header="OpenGL Logger" Click="_menuItemOpenGL_Click" />
+				<!--<Styles:TkMenuItem Name="_menuItemImageRecon" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image finder" Click="_menuItemImageRecon_Click" />-->
+				<Styles:TkMenuItem Name="_menuItemEncryptor" TokeiLibrary:WpfProperties.ImagePath="lock.png" IsEnabled="True" Header="GRF Encryption" Click="_menuItemEncryptor_Click" />
+				<!--<Styles:TkMenuItem Name="_menuItemPatcher" IsEnabled="True" Header="Grf patcher" Click="_menuItemPatcher_Click">
+                    <Styles:TkMenuItem.Icon>
                         <Image Source="Resources\lock.png" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>-->
+                    </Styles:TkMenuItem.Icon>
+                </Styles:TkMenuItem>-->
                 <Separator />
-                <MenuItem Name="_menuItemSettings" Header="Settings" Click="_menuItemSettings_OnClick">
-                    <MenuItem.Icon>
-                        <Image Source="Resources\settings.png" Width="16" Height="16"  />
-                    </MenuItem.Icon>
-                </MenuItem>
-            </MenuItem>
+				<Styles:TkMenuItem Name="_menuItemSettings" TokeiLibrary:WpfProperties.ImagePath="settings.png" Header="Settings" Click="_menuItemSettings_OnClick" />
+			</MenuItem>
         </Menu>
         <Image Margin="114,0,0,0" Source="Resources\find.png" Height="16" Width="16"  HorizontalAlignment="Left" />
         <TextBox Name="_textBoxMainSearch"  Width="130" Margin="133,3,0,3" Height="24" TextChanged="_textBox_TextChanged" VerticalAlignment="Center" HorizontalAlignment="Left" VerticalContentAlignment="Center" />
@@ -154,7 +151,7 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
                     <!-- TreeView and ListView -->
-                    <WPF:TkView Grid.Column="0" BorderThickness="0" Margin="0" Name="_treeView" Drop="_treeView_Drop" SelectedItemChanged="_treeView_SelectedItemChanged" KeyDown="_treeView_KeyDown" PreviewMouseRightButtonUp="_treeView_PreviewMouseRightButtonUp" PreviewMouseRightButtonDown="_treeView_PreviewMouseRightButtonDown" />
+                    <WPF:TkView Grid.Column="0" BorderThickness="0" Margin="0" Name="_treeView" Drop="_treeView_Drop" SelectedItemChanged="_treeView_SelectedItemChanged" PreviewMouseRightButtonUp="_treeView_PreviewMouseRightButtonUp" PreviewMouseRightButtonDown="_treeView_PreviewMouseRightButtonDown" />
                     <GridSplitter Width="2" Grid.Column="1" HorizontalAlignment="Left" Background="{x:Static TokeiLibrary:Configuration.UIGridBackground}" />
                     <Grid Grid.Column="2" Background="{DynamicResource ListItemSearchBackground}">
                         <Grid.RowDefinitions>

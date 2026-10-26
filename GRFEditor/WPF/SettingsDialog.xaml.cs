@@ -15,6 +15,7 @@ using GRF.Core;
 using GRF.GrfSystem;
 using GRFEditor.ApplicationConfiguration;
 using TokeiLibrary;
+using TokeiLibrary.Shortcuts;
 using TokeiLibrary.WPF;
 using TokeiLibrary.WPF.Styles;
 using Utilities;
@@ -44,6 +45,8 @@ namespace GRFEditor.WPF {
 			_initializeApplicationSettings();
 			_initializeResourcesSettings();
 			_initializeMaxThreadOptions();
+
+			LoadShortcuts();
 		}
 
 		private void _initializeGeneralSettings() {
@@ -89,9 +92,18 @@ namespace GRFEditor.WPF {
 		private void _initializeResourcesSettings() {
 			_mViewer.SaveResourceMethod = v => GrfEditorConfiguration.Resources.SaveResources(v);
 			_mViewer.LoadResourceMethod = () => GrfEditorConfiguration.Resources.LoadResources();
-			GrfEditorConfiguration.Resources.Modified += () => _mViewer.LoadResourcesInfo();
+			GrfEditorConfiguration.Resources.Modified += OnResourcesModified;
 			_mViewer.LoadResourcesInfo();
 			_mViewer.CanDeleteMainGrf = false;
+		}
+
+		protected override void OnClosed(EventArgs e) {
+			GrfEditorConfiguration.Resources.Modified -= OnResourcesModified;
+			base.OnClosed(e);
+		}
+
+		private void OnResourcesModified(object sender, EventArgs e) {
+			_mViewer.LoadResourcesInfo();
 		}
 
 		public class ThreadCountView {
@@ -292,6 +304,42 @@ namespace GRFEditor.WPF {
 			}
 			catch (Exception err) {
 				ErrorHandler.HandleException(err);
+			}
+		}
+
+		private Dictionary<string, SettingsShortcutGenerator.ShortcutVisual> _shortcuts;
+
+		public void LoadShortcuts() {
+			_gridShortcuts.Children.Clear();
+			_shortcuts = SettingsShortcutGenerator.CreateGrid(GrfEditorConfiguration.Remapper, _gridShortcuts);
+		}
+
+		private void _fbResetShortcuts_Click(object sender, RoutedEventArgs e) {
+			GrfEditorConfiguration.Remapper.Clear();
+			ApplicationShortcut.ResetBindings();
+			ApplicationShortcut.OverrideBindings(GrfEditorConfiguration.Remapper);
+			LoadShortcuts();
+		}
+
+		private void _fbRefreshhortcuts_Click(object sender, RoutedEventArgs e) {
+			LoadShortcuts();
+		}
+
+		private void _tbSearch_TextChanged(object sender, TextChangedEventArgs e) {
+			if (_tbSearch.Text == "") {
+				foreach (var key in _shortcuts.Values) {
+					key.Show();
+				}
+			}
+			else {
+				foreach (var key in _shortcuts) {
+					if (key.Key.IndexOf(_tbSearch.Text, StringComparison.OrdinalIgnoreCase) > -1) {
+						key.Value.Show();
+					}
+					else {
+						key.Value.Hide();
+					}
+				}
 			}
 		}
 	}

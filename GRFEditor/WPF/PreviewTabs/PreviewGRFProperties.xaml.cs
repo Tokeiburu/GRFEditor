@@ -5,7 +5,6 @@ using ErrorManager;
 using GRF.Core;
 using GRF.FileFormats;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.Core.Avalon;
 using GRFEditor.WPF.PreviewTabs.Controls;
 using GrfToWpfBridge;
 using GrfToWpfBridge.PreviewTabs;
@@ -24,7 +23,7 @@ namespace GRFEditor.WPF.PreviewTabs {
 
 		public PreviewGRFProperties() {
 			InitializeComponent();
-			AvalonHelper.Load(_textEditor);
+			WpfAvalonUtility.AvalonHelper.Load(_textEditor);
 
 			_textEditor.TextArea.IndentationStrategy = new DefaultIndentationStrategy();
 			_foldingManager = FoldingManager.Install(_textEditor.TextArea);

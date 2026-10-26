@@ -14,6 +14,7 @@ namespace GRF.Threading {
 		private List<GrfWriterThread<TEntry>> _threads = new List<GrfWriterThread<TEntry>>();
 		private int _numberOfFiles;
 		public List<TEntry> Entries { get; protected set; }
+		public Stream SourceStream = null;
 
 		public List<GrfWriterThread<TEntry>> Threads {
 			get { return _threads; }
@@ -23,7 +24,9 @@ namespace GRF.Threading {
 			Entries = new List<TEntry>();
 		}
 
-		public void Initialize<T>(ContainerAbstract<TEntry> grf, List<TEntry> sortedEntries, int numberOfThreads = -1) where T : GrfWriterThread<TEntry>, new() {
+		public void Initialize<T>(ContainerAbstract<TEntry> grf, List<TEntry> sortedEntries, int numberOfThreads = -1, Stream sourceStream = null) where T : GrfWriterThread<TEntry>, new() {
+			SourceStream = sourceStream;
+
 			if (numberOfThreads < 0)
 				numberOfThreads = sortedEntries.Count < Settings.MaximumNumberOfThreads ? sortedEntries.Count : Settings.MaximumNumberOfThreads;
 
@@ -31,7 +34,7 @@ namespace GRF.Threading {
 				int startIndex = (int)(sortedEntries.Count / (float)numberOfThreads * i);
 				int endIndex = (int)(sortedEntries.Count / (float)numberOfThreads * (i + 1));
 				T t = new T();
-				t.Init(grf, sortedEntries, startIndex, endIndex);
+				t.Init(this, grf, sortedEntries, startIndex, endIndex);
 				_threads.Add(t);
 			}
 

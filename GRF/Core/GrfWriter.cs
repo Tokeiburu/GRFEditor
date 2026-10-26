@@ -52,7 +52,7 @@ namespace GRF.Core {
 			var tieredProgress = new TieredProgress(grf);
 			tieredProgress.SetSpecialState(TieredProgress.SpecialIndexingContent);
 
-			// This is done is three steps:
+			// This is done in three steps:
 			// 1: Delete "duplicate" entries
 			// 2: Copy GRF normally
 			// 3: Restore deleted "duplicate" entries and fix their offsets
@@ -205,7 +205,10 @@ namespace GRF.Core {
 					if (enableEncryption && (entry.Modification.HasFlag(Modification.Encrypt) || entry.Modification.HasFlag(Modification.Decrypt)))
 						encryptedEntries.Add(entry);
 
-					continuousEntries.Add(entry);
+					if (entry.GravityEncrypted && entry.PendingGravityDecrypt)
+						addedEntries.Add(entry);
+					else
+						continuousEntries.Add(entry);
 				}
 			}
 		}
@@ -221,13 +224,18 @@ namespace GRF.Core {
 				}
 
 				Random rnd = new Random();
-				List<FileEntry> smallEntries = entries.Where(p => p.NewSizeDecompressed <= 2048).ToList();
-				entries = entries.Where(p => p.NewSizeDecompressed > 2048).OrderBy(p => rnd.Next()).ToList(); // Better spread
+				List<FileEntry> gravitedProtectedEntries = entries.Where(p => p.GravityEncrypted && p.PendingGravityDecrypt).ToList();
+				List<FileEntry> smallEntries = entries.Where(p => p.NewSizeDecompressed <= 2048 && !p.GravityEncrypted).ToList();
+				entries = entries.Where(p => p.NewSizeDecompressed > 2048 && !p.GravityEncrypted).OrderBy(p => rnd.Next()).ToList(); // Better spread
 
 				GrfThreadPool<FileEntry> pool = new GrfThreadPool<FileEntry>();
 				pool.Initialize<ThreadCompressFiles>(grf, entries);
 				pool.Initialize<ThreadCompressSmallFiles>(grf, smallEntries, smallEntries.Count == 0 ? 0 : (smallEntries.Count / 50000) + 1);
+				pool.Initialize<ThreadRepack>(grf, gravitedProtectedEntries, 1, outputStream);
 				pool.Start(v => tieredProgress.SetTierProgress(v / 100.0f), () => grf.IsCancelling);
+
+				// The repack thread can change the outputStream offset
+				outputStream.Seek(currentOffset, SeekOrigin.Begin);
 				currentOffset = pool.Dump(grf.Header, outputStream, currentOffset, grfAddTotalSize);
 			}
 

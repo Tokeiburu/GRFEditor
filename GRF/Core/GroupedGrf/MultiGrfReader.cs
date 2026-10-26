@@ -85,6 +85,9 @@ namespace GRF.Core.GroupedGrf {
 			if (String.IsNullOrEmpty(relativePath))
 				return null;
 
+			if (File.Exists(relativePath))
+				return new TkPath(relativePath);
+
 			var entry = FileTable[relativePath];
 			if (entry != null) {
 				if (entry.SourceFilePath != null)
@@ -99,6 +102,9 @@ namespace GRF.Core.GroupedGrf {
 		public TkPath FindTkPathAbsolute(string relativePath) {
 			if (String.IsNullOrEmpty(relativePath))
 				return null;
+
+			if (File.Exists(relativePath))
+				return new TkPath(relativePath);
 
 			var entry = FileTable[relativePath];
 			if (entry != null) {

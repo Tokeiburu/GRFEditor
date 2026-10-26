@@ -125,9 +125,6 @@ namespace GRFEditor.OpenGL.WPF {
 				_primary.MouseUp += _primary_MouseUp;
 				_primary.KeyDown += _primary_KeyDown;
 
-				IsVisibleChanged += delegate {
-					//EnableRenderThread = IsVisible && Visibility == Visibility.Visible;
-				};
 				bool wasVisible = true;
 				LayoutUpdated += delegate {
 					bool nowVisible = IsVisible;
@@ -141,9 +138,9 @@ namespace GRFEditor.OpenGL.WPF {
 				EnableRenderThread = true;
 				new Thread(_renderRefreshThread) { Name = "GrfEditor - Map animation update thread" }.Start();
 
-				Dispatcher.ShutdownStarted += delegate {
-					UnloadAndStopViewport();
-				};
+				WpfUtilities.OnUnloadUserControl(
+					(s, e) => UnloadAndStopViewport(),
+					this);
 
 				OpenGLMemoryManager.CreateInstance(this);
 				_primary.MakeCurrent();
@@ -211,6 +208,18 @@ namespace GRFEditor.OpenGL.WPF {
 			TextureManager.UnloadAllTextures(this);
 			OpenGLMemoryManager.Clear();
 			OpenGLMemoryManager.Remove(this);
+
+			_primary.Load -= _primary_Load;
+			_primary.Resize -= _primary_Resize;
+			_primary.MouseDown -= _primary_MouseDown;
+			_primary.MouseUp -= _primary_MouseUp;
+			_primary.KeyDown -= _primary_KeyDown;
+
+			_primary.Dispose();
+			_primary = null;
+
+			_host.Child = null;
+			_host.Dispose();
 		}
 
 		public void Load(RendererLoadRequest request) {

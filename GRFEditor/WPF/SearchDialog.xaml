@@ -58,8 +58,8 @@
                         <TextBox AcceptsReturn="False" AcceptsTab="False" Padding="3" BorderThickness="0" Name="_tbSearchPattern" VerticalAlignment="Center" HorizontalAlignment="Left" Width="145">
                         </TextBox>
                         <TextBlock  Name="_labelFind" Margin="3 0 0 0" VerticalAlignment="Center" Text="Find..." FontStyle="Italic" Foreground="Gray" IsHitTestVisible="False" />
-                        <Border HorizontalAlignment="Right" BorderBrush="White" Width="15" Background="White" BorderThickness="0">
-							<Styles:FancyButton x:Name="_buttonOpenSubMenu" HorizontalAlignment="Right" Width="15" TokeiLibrary:WpfProperties.ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
+						<Border HorizontalAlignment="Right" Width="{Binding Source={x:Static SystemParameters.VerticalScrollBarWidth}}" BorderThickness="0">
+							<Styles:FancyButton x:Name="_buttonOpenSubMenu" Background="{Binding ElementName=_tbSearchPattern, Path=Background}" HorizontalAlignment="Right" Width="15" TokeiLibrary:WpfProperties.ImagePath="smallArrow.png" Click="_buttonOpenSubMenu_Click" />
                         </Border>
                     </Grid>
                 </Border>

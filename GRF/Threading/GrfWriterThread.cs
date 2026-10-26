@@ -13,6 +13,7 @@ namespace GRF.Threading {
 		public bool Terminated = false;				// Used by the dispatcher to evaluate when the work is done
 		public bool Error { get; set; }
 		public Exception Exception { get; set; }
+		public GrfThreadPool<TEntry> ThreadPool { get; set; }
 
 		public string FileName { get; set; }
 
@@ -21,6 +22,11 @@ namespace GRF.Threading {
 
 		public void Init(GrfHolder container, List<TEntry> entries, int startIndex, int endIndex) {
 			Init((ContainerAbstract<TEntry>) (object) container.Container, entries, startIndex, endIndex);
+		}
+
+		public void Init(GrfThreadPool<TEntry> threadPool, ContainerAbstract<TEntry> container, List<TEntry> entries, int startIndex, int endIndex) {
+			ThreadPool = threadPool;
+			Init(container, entries, startIndex, endIndex);
 		}
 
 		public void Init(ContainerAbstract<TEntry> container, List<TEntry> entries, int startIndex, int endIndex) {

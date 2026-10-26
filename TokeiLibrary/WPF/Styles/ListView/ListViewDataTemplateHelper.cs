@@ -315,9 +315,14 @@ namespace TokeiLibrary.WPF.Styles.ListView {
 		private static void _getStyle(System.Windows.Controls.ListView list) {
 			list.ItemContainerStyle = Application.Current.Resources["DefaultListViewItemStyle"] as Style;
 
-			ApplicationManager.ThemeChanged += delegate {
+			Action themeChangedEvent = delegate {
 				list.ItemContainerStyle = Application.Current.Resources["DefaultListViewItemStyle"] as Style;
 			};
+
+			WpfUtilities.OnUnloadUserControl(
+				(s, e) => ApplicationManager.ThemeChanged += themeChangedEvent,
+				(s, e) => ApplicationManager.ThemeChanged -= themeChangedEvent,
+			list);
 		}
 
 		private static DataTemplate _getDataTemplate() {

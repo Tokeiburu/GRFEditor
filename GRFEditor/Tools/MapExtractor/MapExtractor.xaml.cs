@@ -57,14 +57,19 @@ namespace GRFEditor.Tools.MapExtractor {
 		private void _initializeResources() {
 			_itemsResources.SaveResourceMethod = v => Configuration.Resources.SaveResources(v);
 			_itemsResources.LoadResourceMethod = () => Configuration.Resources.LoadResources();
-			Configuration.Resources.Modified += delegate {
-				_itemsResources.LoadResourcesInfo();
-				
-				if (!_asyncOperation.IsRunning)
-					_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, null, false, true));
-			};
+			WpfUtilities.OnUnloadUserControl(
+				(s, e) => Configuration.Resources.Modified += OnResourcesModified,
+				(s, e) => Configuration.Resources.Modified -= OnResourcesModified,
+			this);
 			_itemsResources.LoadResourcesInfo();
 			_itemsResources.CanDeleteMainGrf = false;
+		}
+
+		private void OnResourcesModified(object sender, EventArgs e) {
+			_itemsResources.LoadResourcesInfo();
+
+			if (!_asyncOperation.IsRunning)
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => _updateMapFiles(_fileName, null), this, null, false, true));
 		}
 
 		private void _initializeTreeView() {

@@ -47,12 +47,17 @@ namespace GRFEditor.Tools.GrfValidation {
 		private void _setupResourceViewer() {
 			_mViewer.SaveResourceMethod = v => GrfEditorConfiguration.Resources.SaveResources(v);
 			_mViewer.LoadResourceMethod = () => GrfEditorConfiguration.Resources.LoadResources();
-			GrfEditorConfiguration.Resources.Modified += delegate {
-				_mViewer.LoadResourcesInfo();
-			};
+			WpfUtilities.OnUnloadUserControl(
+				(s, e) => GrfEditorConfiguration.Resources.Modified += OnResourcesModified,
+				(s, e) => GrfEditorConfiguration.Resources.Modified -= OnResourcesModified,
+			this);
 			_mViewer.LoadResourcesInfo();
 			_mViewer.CanDeleteMainGrf = false;
 			_asyncOperation.SetAndRunOperation(prog => _updateResources(prog));
+		}
+
+		private void OnResourcesModified(object sender, EventArgs e) {
+			_mViewer.LoadResourcesInfo();
 		}
 
 		private void _loadSettingsUI() {

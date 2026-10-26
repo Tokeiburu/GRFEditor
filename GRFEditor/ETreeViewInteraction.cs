@@ -121,6 +121,12 @@ namespace GRFEditor {
 				_loadListItems();
 		}
 
+		private void _memuItemDecodeProtectedEntries_Click(object sender, RoutedEventArgs e) {
+			var relativePath = _treeViewPathManager.GetCurrentRelativePath();
+			if (EncryptionService.GravityDecrypt(_grfHolder, _grfHolder.FileTable.Entries.Where(p => p.RelativePath.StartsWith(relativePath)).ToList()))
+				_loadListItems();
+		}
+
 		private void _menuItemSetEncryptionKey_Click(object sender, RoutedEventArgs e) {
 			_checkIfEncrypted(false);
 		}
@@ -565,15 +571,6 @@ namespace GRFEditor {
 			}
 			finally {
 				_grfHolder.Commands.End();
-			}
-		}
-
-		private void _treeView_KeyDown(object sender, KeyEventArgs e) {
-			if (e.Key == Key.Delete)
-				_menuItemDelete_Click(null, null);
-
-			if (e.Key == Key.F2) {
-				_renamingService.RenameFolder(_treeView.SelectedItem, _treeView, _grfHolder, this, _renameFolderCallback, _deleteFolderCallback, _addFilesCallback);
 			}
 		}
 

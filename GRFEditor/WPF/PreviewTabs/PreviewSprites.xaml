@@ -4,8 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:ListView="clr-namespace:TokeiLibrary.WPF.Styles.ListView;assembly=TokeiLibrary"
-             xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker"
-             mc:Ignorable="d" 
+             xmlns:sliders="clr-namespace:ColorPicker.Sliders;assembly=ColorPicker" xmlns:controls="clr-namespace:GRFEditor.WPF.PreviewTabs.Controls"
+			 mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="400" Background="{DynamicResource TabItemBackground}" Foreground="{DynamicResource TextForeground}">
     <Grid Name="_primaryGrid">
         <Grid.RowDefinitions>
@@ -39,10 +39,10 @@
                 <WrapPanel Name="_wrapPanel" VerticalAlignment="Top">
 
                 </WrapPanel>
-                <StackPanel Name="_stackPanel" VerticalAlignment="Top">
-                    
-                </StackPanel>
-            </Grid>
+				<StackPanel Name="_stackPanel" VerticalAlignment="Top">
+
+				</StackPanel>
+			</Grid>
         </ScrollViewer>
     </Grid>
 </UserControl>

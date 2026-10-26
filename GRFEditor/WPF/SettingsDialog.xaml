@@ -183,6 +183,35 @@
 						</StackPanel>
 					</StackPanel>
 				</TabItem>
+				<TabItem Header="Shortcuts" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
+					<Grid>
+						<Grid.RowDefinitions>
+							<RowDefinition Height="auto" />
+							<RowDefinition />
+						</Grid.RowDefinitions>
+						<StackPanel Focusable="True" FocusVisualStyle="{x:Null}">
+							<Label Content="Shortcuts" FontWeight="Bold" FontSize="16" Margin="3 10 0 5" />
+							<Rectangle Margin="5 0 5 5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+							<WrapPanel>
+								<Styles:FancyButton x:Name="_fbResetShortcuts" Click="_fbResetShortcuts_Click" HorizontalAlignment="Left" TextHeader="Reset" TextDescription="Reset all shortcuts" />
+								<Styles:FancyButton x:Name="_fbRefreshhortcuts" Click="_fbRefreshhortcuts_Click" HorizontalAlignment="Left" TextHeader="Update" TextDescription="Look for new loaded shortcuts" />
+							</WrapPanel>
+							<Rectangle Margin="5" Stroke="{DynamicResource SeperatorBrush}" VerticalAlignment="Stretch" />
+							<DockPanel>
+								<Label Content="Search" />
+								<TextBox Name="_tbSearch" Margin="2" TextChanged="_tbSearch_TextChanged" VerticalContentAlignment="Center" />
+							</DockPanel>
+						</StackPanel>
+						<ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Focusable="True" FocusVisualStyle="{x:Null}">
+							<Grid Name="_gridShortcuts" Focusable="True" FocusVisualStyle="{x:Null}" VerticalAlignment="Top">
+								<Grid.ColumnDefinitions>
+									<ColumnDefinition Width="Auto" />
+									<ColumnDefinition />
+								</Grid.ColumnDefinitions>
+							</Grid>
+						</ScrollViewer>
+					</Grid>
+				</TabItem>
 				<TabItem Header="Application" Style="{DynamicResource ResourceKey=TabItemStyled}" Foreground="{DynamicResource TextForeground}">
 					<StackPanel>
 						<StackPanel>

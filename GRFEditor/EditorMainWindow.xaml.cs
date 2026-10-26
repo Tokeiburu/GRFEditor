@@ -96,19 +96,85 @@ namespace GRFEditor {
 					SetEncoding(1252);
 				}
 
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-N", "GrfEditor.New"), () => _menuItemNewGrf_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-O", "GrfEditor.Open"), () => _menuItemOpenFrom_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-S", "GrfEditor.Save"), () => _menuItemSave_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Shift-S", "GrfEditor.Defragment"), () => _menuItemDefragment_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Alt-S", "GrfEditor.Compact"), () => _menuItemCompact_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Z", "GrfEditor.Undo"), () => _buttonUndo_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-Y", "GrfEditor.Redo"), () => _buttonRedo_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Alt-Z", "GrfEditor.NavigateBackward"), () => _buttonPositionUndo_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Alt-Y", "GrfEditor.NavigateFoward"), () => _buttonPositionRedo_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-M", "GrfEditor.Merge"), () => _menuItemMerge_Click(null, null), this);
-				ApplicationShortcut.Link(ApplicationShortcut.FromString("Ctrl-F", "GrfEditor.Search"), () => _menuFocus(null, null), this);
+				GrfEditorConfiguration.OverrideShortcuts();
+				ApplicationShortcut.Link(GrfEditorCommands.New, _menuItemNewGrf, this);
+				ApplicationShortcut.Link(GrfEditorCommands.NewGpf, _menuItemNewGpf, this);
+				ApplicationShortcut.Link(GrfEditorCommands.NewRgz, _menuItemNewRgz, this);
+				ApplicationShortcut.Link(GrfEditorCommands.NewThor, _menuItemNewThor, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Open, _menuItemOpenFrom, this);
+				ApplicationShortcut.Link(GrfEditorCommands.CloseGrf, _menuItemCloseGrf, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Save, _menuItemSave, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SaveAs, _menuItemSaveAs, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SaveDefragment, _menuItemDefragment, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SaveCompact, _menuItemCompact, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SaveRepack, _menuItemRepack, this);
+				ApplicationShortcut.Link(GrfEditorCommands.EncryptFileTable, _menuItemEncryptTable, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Undo, _buttonUndo, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Redo, _buttonRedo, this);
+				ApplicationShortcut.Link(GrfEditorCommands.NavigationBackward, _buttonPositionUndo, this);
+				ApplicationShortcut.Link(GrfEditorCommands.NavigationForward, _buttonPositionRedo, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Merge, _menuItemMerge, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Subtract, _menuItemSubtract, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Search, _menuFocus, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SearchList, _menuListFocus, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ExtractRgz, _menuItemExtractRgz, this);
+				ApplicationShortcut.Link(GrfEditorCommands.OpenContainerOptions, _menuItemEditContainerSettings, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ValidateGrf, _menuItemValidateGrf, this);
+				ApplicationShortcut.Link(GrfEditorCommands.OpenProgramData, _menuItemOpenProgramData, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ImportSprite, _menuItemImportSprite, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SpriteConverter, _menuItemSpriteConverter, this);
+				ApplicationShortcut.Link(GrfEditorCommands.FlatMapsMaker, _menuItemFlatMapsMaker, this);
+				ApplicationShortcut.Link(GrfEditorCommands.PatchMaker, _menuItemPatchMaker, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Hash, _menuItemHash, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Encoding, _menuItemEncoding, this);
+				ApplicationShortcut.Link(GrfEditorCommands.GrfSearch, _menuItemSearch, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ImageConverter, _menuItemImageConverter, this);
+				ApplicationShortcut.Link(GrfEditorCommands.GrfCL, _menuItemGrfCL, this);
+				ApplicationShortcut.Link(GrfEditorCommands.OpenGL, _menuItemOpenGL, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Encryptor, _menuItemEncryptor, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Settings, _menuItemSettings, this);
+
+				_assignItemShortcut(GrfEditorCommands.OpenProperty, _miProperties, _menuItemsProperties_Click);
+				_assignItemShortcut(GrfEditorCommands.Delete, _miDelete, _menuItemsDelete_Click);
+				_assignItemShortcut(GrfEditorCommands.Rename, _miRename, _menuItemsRename_Click);
+				_assignItemShortcut(GrfEditorCommands.Extract, _miExtract, _menuItemsExtract_Click);
+				_assignItemShortcut(GrfEditorCommands.ExtractTo, _miExtractAt, _menuItemsExtractAt_Click);
+				_assignItemShortcut(GrfEditorCommands.SelectInExplorer, _miOpenExplorer, _menuItemsOpenExplorer_Click);
+				_assignItemShortcut(GrfEditorCommands.OpenFile, _miOpen, _menuItemsOpen_Click);
+				_assignItemShortcut(GrfEditorCommands.ExportSelection, _miExportAsThor, _miExportAsThor_Click);
+				_assignItemShortcut(GrfEditorCommands.FindUsage, _miUsage, _menuItemsUsage_Click);
+				_assignItemShortcut(GrfEditorCommands.GrfeEncrypt, _miEncrypt, _menuItemsEncrypt_Click);
+				_assignItemShortcut(GrfEditorCommands.GrfeDecrypt, _miDecrypt, _menuItemsDecrypt_Click);
+				_assignItemShortcut(GrfEditorCommands.GravityDecrypt, _miDecodeProtectedEntries, _menuItemsGravityDecode_Click);
+				_assignItemShortcut(GrfEditorCommands.SetKey, _miSetEncryptionKey, _menuItemSetEncryptionKey_Click);
+
+				ApplicationShortcut.Link(GrfEditorCommands.Rename, _miTreeRename, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Delete, _miTreeDelete, this);
+				ApplicationShortcut.Link(GrfEditorCommands.TreeAdd, _miTreeAdd, this);
+				ApplicationShortcut.Link(GrfEditorCommands.TreeNewFolder, _miTreeNewFolder, this);
+				ApplicationShortcut.Link(GrfEditorCommands.Extract, _miTreeExtractFolder, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ExtractTo, _miTreeExtractFolderAt, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ExtractRootFiles, _miTreeExtractRootFiles, this);
+				ApplicationShortcut.Link(GrfEditorCommands.ExtractRootFilesTo, _miTreeExtractRootFilesAt, this);
+				ApplicationShortcut.Link(GrfEditorCommands.GrfeEncrypt, _miTreeEncrypt, this);
+				ApplicationShortcut.Link(GrfEditorCommands.GrfeDecrypt, _miTreeDecrypt, this);
+				ApplicationShortcut.Link(GrfEditorCommands.GravityDecrypt, _miTreeDecodeProtectedEntries, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SetKey, _miTreeSetEncryptionKey, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SelectInExplorer, _miTreeSelectInExplorer, this);
+				ApplicationShortcut.Link(GrfEditorCommands.SelectInExplorer, _miTreeOpenExplorer, this);
+				ApplicationShortcut.Link(GrfEditorCommands.OpenProperty, _miTreeProperties, this);
 			}
 			catch {
+			}
+		}
+
+		private void _assignItemShortcut(TkCommand command, TkMenuItem menuItem, Action<object, RoutedEventArgs> routedCommand) {
+			menuItem.ShortcutCmd = command.CommandName;
+
+			ListView[] lists = new[] { _listBoxResults, _items };
+
+			foreach (var list in lists) {
+				ApplicationShortcut.Link(command, () => routedCommand(list, null), list);
 			}
 		}
 
@@ -143,14 +209,14 @@ namespace GRFEditor {
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "RelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "Editor_GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
 
 			ListViewDataTemplateHelper.GenerateListViewTemplateNew(_items, new ListViewDataTemplateHelper.GeneralColumnInfo[] {
 				new ListViewDataTemplateHelper.ImageColumnInfo { Header = "", DisplayExpression = "DataImage", SearchGetAccessor = "FileType", FixedWidth = 20, MaxHeight = 16 },
 				new ListViewDataTemplateHelper.RangeColumnInfo { Header = "File name", DisplayExpression = "DisplayRelativePath", SearchGetAccessor = "RelativePath", IsFill = true, TextAlignment = TextAlignment.Left, ToolTipBinding = "RelativePath", MinWidth = 100 },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Type", DisplayExpression = "FileType", FixedWidth = 40, ToolTipBinding = "FileType", TextAlignment = TextAlignment.Right },
 				new ListViewDataTemplateHelper.GeneralColumnInfo { Header = "Size", DisplayExpression = "DisplaySize", SearchGetAccessor = "NewSizeDecompressed", FixedWidth = 60, TextAlignment = TextAlignment.Right, ToolTipBinding = "NewSizeDecompressed" }
-			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
+			}, new DefaultListViewComparer<FileEntry>(), new string[] { "Added", "{DynamicResource CellBrushAdded}", "LzmaCompressed", "{DynamicResource CellBrushCustomCompression}", "Encrypted", "{DynamicResource CellBrushEncrypted}", "Removed", "{DynamicResource CellBrushRemoved}", "Editor_GravityEncrypted", "{DynamicResource CellGravityEncrypted}" });
 
 			WpfUtilities.AddDragDropEffects(_items);
 			WpfUtilities.AddDragDropEffects(_treeView, f => f.Select(p => p.GetExtension()).All(p => p == ".grf" || p == ".rgz" || p == ".thor" || p == ".gpf" || p == ".gsf"));

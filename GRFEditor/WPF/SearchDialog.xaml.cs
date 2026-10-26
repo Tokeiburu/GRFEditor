@@ -12,7 +12,6 @@ using ErrorManager;
 using GRF.Core;
 using GRF.Threading;
 using GRFEditor.ApplicationConfiguration;
-using GRFEditor.Core.Avalon;
 using GRFEditor.Core.Services;
 using GrfToWpfBridge;
 using GrfToWpfBridge.Application;
@@ -46,8 +45,8 @@ namespace GRFEditor.WPF {
 
 			ShowInTaskbar = true;
 
-			AvalonHelper.Load(_tbPreview);
-			AvalonHelper.Load(_tbPreview);
+			WpfAvalonUtility.AvalonHelper.Load(_tbPreview);
+			WpfAvalonUtility.AvalonHelper.Load(_tbPreview);
 
 			_tbSearchPattern.KeyDown += new KeyEventHandler(_tbSearchPattern_KeyUp);
 			_tbSearchPattern.GotFocus += _tbSearchPattern_GotFocus;
@@ -62,6 +61,8 @@ namespace GRFEditor.WPF {
 			Binder.Bind(_cbWholeWord);
 			Binder.Bind(_tbSearchPattern);
 			Binder.Bind(_tbFilePattern, "*.txt;*.lua;*.log;*.xml;*.ini;*.lub");
+
+			WpfUtilities.AddMouseInOutUnderline(_cbMatchCase, _cbRegex, _cbWholeWord);
 
 			_tbSearchPattern_LostFocus(null, null);
 			_tbFilePattern_LostFocus(null, null);

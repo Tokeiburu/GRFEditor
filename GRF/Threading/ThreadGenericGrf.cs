@@ -74,16 +74,7 @@ namespace GRF.Threading {
 
 							try {
 								try {
-									if (entry.GravityEncrypted)
-										dataTmp = entry.DecodeProtectedData(dataTmp);
-									else if ((entry.Flags & EntryType.LZSS) == EntryType.LZSS)
-										dataTmp = Compression.LzssDecompress(dataTmp, entry.SizeDecompressed);
-									else if ((entry.Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
-										dataTmp = Compression.RawDecompress(dataTmp, entry.SizeDecompressed);
-									else if (dataTmp.Length > 0 && Compression.IsNormalCompression && dataTmp[0] == 0)
-										dataTmp = Compression.DecompressLzma(dataTmp, entry.SizeDecompressed);
-									else
-										dataTmp = Compression.Decompress(dataTmp, entry.SizeDecompressed);
+									dataTmp = entry.GetDecompressedDataFromBuffer(dataTmp);
 								}
 								catch {
 									try {

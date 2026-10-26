@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using GRF.Threading;
-using GRFEditor.Core.Avalon;
 using GRFEditor.OpenGL.MapComponents;
 using GRFEditor.WPF;
 using GrfToWpfBridge.PreviewTabs;
@@ -99,20 +98,21 @@ namespace GRFEditor.OpenGL.WPF {
 			WindowStartupLocation = WindowStartupLocation.CenterOwner;
 			Owner = WpfUtilities.TopWindow;
 
-			AvalonHelper.Load(_textEditor);
-			AvalonHelper.SetSyntax(_textEditor, "DebugDb");
+			WpfAvalonUtility.AvalonHelper.Load(_textEditor);
+			WpfAvalonUtility.AvalonHelper.SetSyntax(_textEditor, "DebugDb");
 
 			Log = "OpenGL: Logger Started...\r\n";
 
 			_openGLThread.Start(this);
 
-			GLHelper.Log += delegate(object sender, string message) {
-				_openGLThread.Add(message);
-			};
+			WpfUtilities.OnUnloadUserControl(
+				(s, e) => GLHelper.Log += OnLog,
+				(s, e) => GLHelper.Log -= OnLog,
+			this);
+		}
 
-			Dispatcher.ShutdownStarted += delegate {
-				_openGLThread.Terminate();
-			};
+		private void OnLog(object sender, string message) {
+			_openGLThread.Add(message);
 		}
 
 		public string Log {

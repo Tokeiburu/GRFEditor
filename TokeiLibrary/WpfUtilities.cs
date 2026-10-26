@@ -187,6 +187,21 @@ namespace TokeiLibrary {
 			return parent as T;
 		}
 
+		public static DependencyObject GetMostParent(DependencyObject control) {
+			DependencyObject parent = VisualTreeHelper.GetParent(control);
+
+			while (true) {
+				var parentDp = VisualTreeHelper.GetParent(parent);
+
+				if (parentDp == null)
+					break;
+
+				parent = parentDp;
+			}
+
+			return parent;
+		}
+
 		public static TItemContainer GetObjectAtPoint<TItemContainer>(this Visual control, Point p) where TItemContainer : DependencyObject {
 			// ItemContainer - can be ListViewItem, or TreeViewItem and so on(depends on control)
 			TItemContainer obj = GetContainerAtPoint<TItemContainer>(control, p);
@@ -623,18 +638,14 @@ namespace TokeiLibrary {
 		public static void AddMouseInOutUnderline(TextBlock tb) {
 			tb.MouseEnter += delegate {
 				Mouse.OverrideCursor = Cursors.Hand;
-				tb.Foreground = Application.Current.Resources["MouseOverTextBrush"] as SolidColorBrush;
+				tb.SetResourceReference(TextBlock.ForegroundProperty, "MouseOverTextBrush");
 				tb.SetValue(TextBlock.TextDecorationsProperty, TextDecorations.Underline);
 			};
-
+		
 			tb.MouseLeave += delegate {
 				Mouse.OverrideCursor = null;
-				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
+				tb.SetResourceReference(TextBlock.ForegroundProperty, "TextForeground");
 				tb.SetValue(TextBlock.TextDecorationsProperty, null);
-			};
-
-			ApplicationManager.ThemeChanged += delegate {
-				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
 			};
 		}
 
@@ -657,10 +668,48 @@ namespace TokeiLibrary {
 				tb.SetResourceReference(TextBlock.ForegroundProperty, "TextForeground");
 				tb?.SetValue(TextBlock.TextDecorationsProperty, null);
 			};
+		}
 
-			ApplicationManager.ThemeChanged += delegate {
-				tb.Foreground = Application.Current.Resources["TextForeground"] as SolidColorBrush;
-			};
+		public static void OnUnloadUserControl(EventHandler action, FrameworkElement element) {
+			Window parentWindow = Window.GetWindow(element);
+
+			if (parentWindow != null) {
+				parentWindow.Closed += action;
+			}
+			else {
+				element.Tag = action;
+				element.Loaded += UserControl_LoadedOnce;
+			}
+		}
+
+		public static void OnUnloadUserControl(EventHandler register, EventHandler unregister, FrameworkElement element) {
+			register(null, null);
+
+			Window parentWindow = Window.GetWindow(element);
+
+			if (parentWindow != null) {
+				parentWindow.Closed += unregister;
+			}
+			else {
+				element.Tag = unregister;
+				element.Loaded += UserControl_LoadedOnce;
+			}
+		}
+
+		private static void UserControl_LoadedOnce(object sender, RoutedEventArgs e) {
+			var element = sender as FrameworkElement;
+
+			if (element == null)
+				return;
+
+			element.Loaded -= UserControl_LoadedOnce;
+
+			Window parentWindow = Window.GetWindow(element);
+			
+			if (parentWindow != null) {
+				EventHandler unregister = (EventHandler)element.Tag;
+				parentWindow.Closed += unregister;
+			}
 		}
 	}
 }

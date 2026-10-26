@@ -256,6 +256,8 @@ namespace GRF.Core {
 		public bool Removed => (Flags & EntryType.RemoveFile) == EntryType.RemoveFile;
 		public bool Modified => (Flags & EntryType.FileNameRenamed) == EntryType.FileNameRenamed;
 		public bool GravityEncrypted => (Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile;
+		public bool PendingGravityDecrypt => (Modification & Modification.GravityDecrypt) == Modification.GravityDecrypt;
+		public bool Editor_GravityEncrypted => GravityEncrypted && !PendingGravityDecrypt;
 
 		#endregion
 
@@ -280,18 +282,18 @@ namespace GRF.Core {
 			if (Flags != EntryType.GravityEncryptedFile || _protectedFileName == null ||
 			    SizeCompressed < 104 || SizeCompressedAlignment < SizeCompressed ||
 			    SizeCompressedAlignment > 258 * 1024 * 1024 || SizeDecompressed < 0 || SizeDecompressed > 256 * 1024 * 1024 ||
-			    FileExactOffset < GrfHeader.DataByteSize || FileExactOffset > Stream.LengthLong - SizeCompressedAlignment)
+			    FileExactOffset < GrfHeader.DataByteSize || (Stream.Stream.CanSeek && FileExactOffset > Stream.LengthLong - SizeCompressedAlignment))
 				throw new InvalidDataException("Invalid protected GRF entry metadata: " + RelativePath);
 		}
 
-		internal byte[] DecodeProtectedData(byte[] data) {
+		internal byte[] DecodeProtectedData(byte[] data, int offset = 0) {
 			ValidateProtectedSizes();
 			
-			if (data.Length < SizeCompressed)
+			if (data.Length < offset + SizeCompressed)
 				throw new InvalidDataException("Truncated protected GRF entry: " + RelativePath);
 			
 			byte[] packed = new byte[SizeCompressed];
-			Buffer.BlockCopy(data, 0, packed, 0, packed.Length);
+			Buffer.BlockCopy(data, offset, packed, 0, packed.Length);
 			return ProtectedGrfDecoder.Decode(packed, _protectedFileName, SizeDecompressed, Header.ProtectedKeys);
 		}
 
@@ -783,6 +785,19 @@ namespace GRF.Core {
 			entry.NewSizeDecompressed = uncompressedLength;
 			entry.TemporarySizeCompressedAlignment = alignment;
 			return entry;
+		}
+
+		public byte[] GetDecompressedDataFromBuffer(byte[] buffer) {
+			if ((Flags & EntryType.GravityEncryptedFile) == EntryType.GravityEncryptedFile)
+				return DecodeProtectedData(buffer);
+			else if ((Flags & EntryType.LZSS) == EntryType.LZSS)
+				return Compression.LzssDecompress(buffer, SizeDecompressed);
+			else if ((Flags & EntryType.RawDataFile) == EntryType.RawDataFile)
+				return Compression.RawDecompress(buffer, SizeDecompressed);
+			else if (Compression.IsNormalCompression && buffer.Length > 1 && buffer[0] == 0)
+				return Compression.DecompressLzma(buffer, SizeDecompressed);
+			else
+				return Compression.Decompress(buffer, SizeDecompressed);
 		}
 	}
 }
