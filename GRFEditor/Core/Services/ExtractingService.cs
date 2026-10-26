@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.IO;
 using System.Linq;
@@ -207,7 +207,7 @@ namespace GRFEditor.Core.Services {
 
 		public void ExtractAll(GrfHolder grfData, string extractionPath) {
 			try {
-				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(extractionPath, "", SearchOption.AllDirectories, grfData.FileTable.Entries,
+				_asyncOperation.SetAndRunOperation(new GrfThread(() => grfData.Extract(extractionPath, "", SearchOption.AllDirectories, null,
  					null,
 					ExtractOptions.Normal | ExtractOptions.OverrideCpuPerf | (GrfEditorConfiguration.GrfFileTableIgnoreCase ? ExtractOptions.IgnoreCase : 0), SyncMode.Synchronous), grfData, null, true));
 			}
