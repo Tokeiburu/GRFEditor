@@ -654,11 +654,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Core\Avalon\Syntax\DebugDb.xshd" />
-    <None Include="Files\default.pal" />
-    <None Include="Files\gpf.ico" />
-    <None Include="Files\grf.ico" />
-    <None Include="Files\grfkey.ico" />
-    <None Include="Files\rgz.ico" />
     <EmbeddedResource Include="Resources\add.ico" />
     <Resource Include="Resources\add.png" />
     <Resource Include="Resources\app.ico" />
@@ -766,9 +761,6 @@
     <EmbeddedResource Include="Resources\c-3.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\spr.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\scale.png" />
   </ItemGroup>
   <ItemGroup>
@@ -806,20 +798,6 @@
     <EmbeddedResource Include="Resources\file_imf.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\Be.Windows.Forms.HexBox.dll" />
-    <EmbeddedResource Include="Files\Compressed\Gif.Components.dll" />
-    <EmbeddedResource Include="Files\Compressed\ICSharpCode.AvalonEdit.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\ActImaging.dll" />
-    <EmbeddedResource Include="Files\Compressed\GRF.dll" />
-    <EmbeddedResource Include="Files\Compressed\Lua.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\TokeiLibrary.dll" />
-    <EmbeddedResource Include="Files\Compressed\Utilities.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\collection_bg.png" />
   </ItemGroup>
   <ItemGroup>
@@ -833,9 +811,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\backward.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\ColorPicker.dll" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\syn-16.png" />
@@ -878,9 +853,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\replaceAll.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\GrfToWpfBridge.dll" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\gpf.ico" />
@@ -938,10 +910,6 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\line.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\OpenTK.dll" />
-    <EmbeddedResource Include="Files\Compressed\OpenTK.GLControl.dll" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="ActImaging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -1026,26 +994,10 @@
     <Resource Include="Resources\stop2.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Files\gsf.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Files\Compressed\gsf.ico" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\gsf-16.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\K4os.Compression.LZ4.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\System.IO.Hashing.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\System.Memory.dll" />
-    <EmbeddedResource Include="Files\Compressed\System.Runtime.CompilerServices.Unsafe.dll" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Files\Compressed\WpfAvalonUtility.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>

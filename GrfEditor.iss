@@ -27,6 +27,7 @@ Source: "GRFEditor\Files\grf.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: 
 Source: "GRFEditor\Files\rgz.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
 Source: "GRFEditor\Files\grfkey.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
 Source: "GRFEditor\Files\gsf.ico"; DestDir: "{userappdata}\GRF Editor\"; Flags: ignoreversion
+Source: "GRFEditor\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 [UninstallDelete]
 Type: files; Name: "{app}\gpf.ico"
@@ -36,6 +37,7 @@ Type: files; Name: "{app}\grfkey.ico"
 Type: files; Name: "{app}\gsf.ico"
 Type: files; Name: "{app}\crash.log"
 Type: files; Name: "{app}\debug.log"
+Type: files; Name: "{app}\*.dll"
 Type: filesandordirs; Name: "{app}\tmp"
 Type: files; Name: "{userappdata}\GRF Editor\gpf.ico"
 Type: files; Name: "{userappdata}\GRF Editor\grf.ico"
