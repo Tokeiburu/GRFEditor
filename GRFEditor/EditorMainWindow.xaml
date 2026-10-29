@@ -91,6 +91,11 @@
                 <Styles:TkMenuItem Name="_menuItemOpenGL" TokeiLibrary:WpfProperties.ImagePath="warning16.png" Header="OpenGL Logger" Click="_menuItemOpenGL_Click" />
 				<!--<Styles:TkMenuItem Name="_menuItemImageRecon" ListView:WpfUtils.ImagePath="imconvert.png" Header="Image finder" Click="_menuItemImageRecon_Click" />-->
 				<Styles:TkMenuItem Name="_menuItemEncryptor" TokeiLibrary:WpfProperties.ImagePath="lock.png" IsEnabled="True" Header="GRF Encryption" Click="_menuItemEncryptor_Click" />
+				<MenuItem Name="_menuItemGrfEncryption" TokeiLibrary:WpfProperties.ImagePath="gsf-16.png" Header="Gravity Encryption" >
+					<Styles:TkMenuItem Name="_menuItemSetKROKeys" Header="Set kRO (Korea) keys" Click="_menuItemSetKROKeys_Click" />
+					<Styles:TkMenuItem Name="_menuItemSetJROKeys" Header="Set jRO (Japan) keys" Click="_menuItemSetJROKeys_Click" />
+					<!--<Styles:TkMenuItem Name="_menuItemSetCnROKeys" Header="Set cnRO keys" Click="_menuItemSetCnROKeys_Click" />-->
+				</MenuItem>
 				<!--<Styles:TkMenuItem Name="_menuItemPatcher" IsEnabled="True" Header="Grf patcher" Click="_menuItemPatcher_Click">
                     <Styles:TkMenuItem.Icon>
                         <Image Source="Resources\lock.png" Height="16"  />

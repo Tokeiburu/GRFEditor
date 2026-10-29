@@ -640,6 +640,27 @@ namespace GRFEditor {
 			Forward(null, null);
 		}
 
+		private void _menuItemSetKROKeys_Click(object sender, RoutedEventArgs e) {
+			_trySetKeys(GrfHeader.KRODefaultProtectedKeys);
+		}
+
+		private void _menuItemSetJROKeys_Click(object sender, RoutedEventArgs e) {
+			_trySetKeys(GrfHeader.JRODefaultProtectedKeys);
+		}
+
+		private void _menuItemSetCnROKeys_Click(object sender, RoutedEventArgs e) {
+			_trySetKeys(GrfHeader.CnRODefaultProtectedKeys);
+		}
+
+		private void _trySetKeys(Dictionary<uint, byte[]> keys) {
+			try {
+				_grfHolder.Header.ProtectedKeys = keys;
+			}
+			catch (Exception err) {
+				ErrorHandler.HandleException(err);
+			}
+		}
+
 		private void _loadMenus() {
 			_miOpen.Click += _menuItemsOpen_Click;
 			_miOpenExplorer.Click += _menuItemsOpenExplorer_Click;

@@ -1002,7 +1002,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" />
+      <UserProperties BuildVersion_BuildVersioningStyle="None.None.MonthStamp.Increment" BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
@@ -1045,6 +1045,9 @@
     <EmbeddedDlls Include="$(GrfEditorDllsPath)TokeiLibrary.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)Utilities.dll" Visible="false" />
     <EmbeddedDlls Include="$(GrfEditorDllsPath)ErrorManager.dll" Visible="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Files\cps.dll" />
   </ItemGroup>
   <Target Name="CopyEmbeddedDlls" BeforeTargets="BeforeBuild">
     <MakeDir Directories="$(EmbeddedDllsPath)" Condition="!Exists('$(EmbeddedDllsPath)')" />

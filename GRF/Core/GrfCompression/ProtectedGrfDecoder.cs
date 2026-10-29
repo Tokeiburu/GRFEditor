@@ -10,7 +10,7 @@ using K4os.Compression.LZ4;
 namespace GRF.Core.GrfCompression {
 	// Protected GRF records authenticate the original filename bytes, not a decoded path.
 	internal static class ProtectedGrfDecoder {
-		private const int HeaderSize = 104;
+		public const int HeaderSize = 104;
 		private const int MaxOutputSize = 256 * 1024 * 1024;
 		private const int MaxPackedSize = 258 * 1024 * 1024;
 
@@ -20,6 +20,9 @@ namespace GRF.Core.GrfCompression {
 			if (raw.Length == 0) return keys;
 			if (raw.Length < 20)
 				throw Invalid("Unsupported or truncated GRF archive key block.");
+			Dictionary<uint, byte[]> dictionary2 = ProtectedJroDecoder.TryLoadArchiveKeys(raw) ?? ProtectedCnDecoder.TryLoadArchiveKeys(raw);
+			if (dictionary2 != null)
+				return dictionary2;
 			uint size = Word(raw, 12);
 			if (size == 0 || size % 64 != 0 || size / 64 > 65535 || size != raw.Length - 20)
 				throw Invalid("GRF archive key-block size mismatch.");
@@ -60,14 +63,30 @@ namespace GRF.Core.GrfCompression {
 				throw Invalid("Protected GRF output size exceeds limit or differs from file table.");
 			byte[] nameHash = NativeHash(rawName);
 			byte[] header = DecodeHeader(payload, nameHash);
+			bool flag = header[0] == 2;
+			int headerSize = flag ? ProtectedCnDecoder.HeaderSize : HeaderSize;
+			if (flag)
+				ProtectedCnDecoder.VerifyHeader(payload, header);
 			uint paddedSize = Word(header, 12), compressedSize = Word(header, 16), outputSize = Word(header, 20);
 			if (outputSize != expectedSize || outputSize > MaxOutputSize)
 				throw Invalid("Protected GRF output size exceeds limit or differs from file table.");
-			if (paddedSize > MaxPackedSize || paddedSize > payload.Length - HeaderSize || compressedSize > paddedSize)
+			if (paddedSize > MaxPackedSize || paddedSize > payload.Length - headerSize || compressedSize > paddedSize)
 				throw Invalid("Protected GRF body size lies outside payload or exceeds limit.");
 			int cipher = header[8] | (header[9] << 8);
-			if (cipher != 1 && cipher != 5 && cipher != 7 && cipher != 128 && cipher != 133)
-				throw Invalid("Unsupported protected GRF body cipher " + cipher + ".");
+			switch (cipher) {
+				case 1:
+				case 5:
+				case 7:
+				case 9 when flag:
+				case 128:
+				case 133:
+				case 259:
+				case 260:
+				case 269:
+					break;
+				default:
+					throw Invalid("Unsupported protected GRF body cipher " + cipher + ".");
+			}
 			int compression = header[10];
 			if (compression > 2) throw Invalid("Unsupported protected GRF compression " + compression + ".");
 			if ((header[11] & ~1) != 0) throw Invalid("Unsupported protected GRF parameter flags " + header[11] + ".");
@@ -79,8 +98,12 @@ namespace GRF.Core.GrfCompression {
 			byte[] outputHash = Slice(header, 24, 16);
 			byte[] parameters = new byte[64];
 			for (int i = 0; i < 60; i++) parameters[i] = (byte)(material[i] ^ ((header[11] & 1) != 0 ? outputHash[i % 16] : 0));
-			byte[] body = Slice(payload, HeaderSize, (int)paddedSize);
-			if (compressedSize > 128) {
+			byte[] body = Slice(payload, headerSize, (int)paddedSize);
+			if (cipher == 259 || cipher == 260 || cipher == 269)
+				body = ProtectedJroDecoder.DecodeBody(body, header, rawName, (ushort)cipher, archiveKeys);
+			else if (flag && cipher == 9)
+				body = ProtectedCnDecoder.DecodeBody9WithMaterial(body, header, rawName, parameters);
+			else if (compressedSize > 128) {
 				if (cipher == 1)
 					ProtectedGrfCiphers.DecryptChamTail(parameters, NativeHash(rawName, expectedSize), outputHash, body, 128);
 				else if (cipher == 5 || cipher == 7)
@@ -88,6 +111,8 @@ namespace GRF.Core.GrfCompression {
 				else
 					ProtectedGrfCiphers.DecryptBodyTail(cipher, parameters, nameHash, outputHash, body, 128);
 			}
+			if (compressedSize > body.Length)
+				throw Invalid("Decoded protected body is shorter than declared.");
 			byte[] output;
 			switch (compression) {
 				case 0:
@@ -112,6 +137,10 @@ namespace GRF.Core.GrfCompression {
 		private static byte[] DecodeHeader(byte[] payload, byte[] nameHash) {
 			if (payload.Length < HeaderSize || payload[0] != 1)
 				throw Invalid("Unsupported or truncated protected GRF header.");
+			if (payload[0] == 2 && payload[1] != 1 && payload[1] != 2)
+				throw Invalid("Unsupported signed GPakEx header cipher.");
+			if (payload[1] == 241)
+				return ProtectedJroDecoder.DecodeHeader241(payload);
 			byte[] header = Slice(payload, 0, HeaderSize);
 			switch (header[1]) {
 				case 1:
