@@ -370,7 +370,20 @@ namespace GRF.Core {
 						}
 					}
 
-					if ((fileEntry.Flags & (EntryType.File | EntryType.RawDataFile | EntryType.GravityEncryptedFile)) > 0) {
+					
+					if (
+						(fileEntry.Flags &
+							(EntryType.File |
+							 EntryType.RawDataFile |
+							 EntryType.GravityEncryptedFile)) > 0
+						||
+						(fileEntry.Flags == EntryType.HeaderCrypted &&
+						 fileEntry.RelativePath.EndsWith(
+							 ".png",
+							 StringComparison.OrdinalIgnoreCase))
+					)
+					{
+
 						if (_indexedEntries.TryGetValue(fileEntry.RelativePath, out FileEntry conflict)) {
 							if ((conflict.Modification & Modification.FileNameRenamed) == Modification.FileNameRenamed) {
 								_indexedEntries[fileEntry.RelativePath] = fileEntry;
